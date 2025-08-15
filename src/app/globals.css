@@ -1,0 +1,325 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom animations */
+@keyframes slide-up {
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+html {
+  height: 100%; /* Full height for the root element */
+  margin: 0; /* Remove any default margins */
+  padding: 0; /* Remove any default padding */
+  background-color: #1a1a1a; /* Match darkBg (assuming #1A1A1A from your theme; adjust if different) */
+}
+
+body {
+  @apply bg-darkBg text-neonText; /* Sets dark background and white text globally */
+  font-family:
+    'Inter', sans-serif; /* A clean font; we can change to something more neon-like later if you want */
+  min-height: 100vh; /* Ensure body covers full viewport height */
+  margin: 0; /* No margins */
+  padding: 0; /* No padding */
+}
+
+/* Perfect neon button style with stable text and glowing background */
+.neon-button {
+  @apply border-2 border-neonCyan text-neonCyan rounded-md px-4 py-2;
+  background: rgba(
+    26,
+    26,
+    26,
+    0.8
+  ) !important; /* Dark background with !important */
+  box-shadow:
+    0 0 5px rgba(0, 255, 255, 0.3),
+    0 0 10px rgba(255, 0, 255, 0.2);
+  transition: all 0.3s ease;
+  font-weight: 500 !important; /* Stable font weight */
+  position: relative;
+  overflow: hidden;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1.5 !important; /* Prevent text shifting */
+}
+
+.neon-button:hover {
+  @apply text-white border-neonPink;
+  background: linear-gradient(
+    45deg,
+    rgba(0, 255, 255, 0.2) 0%,
+    rgba(255, 0, 255, 0.2) 50%,
+    rgba(0, 255, 255, 0.2) 100%
+  ) !important;
+  box-shadow:
+    0 0 15px rgba(0, 255, 255, 0.6),
+    0 0 25px rgba(255, 0, 255, 0.4),
+    0 0 35px rgba(0, 255, 255, 0.3) !important;
+  font-weight: 500 !important; /* Keep same font weight to prevent jumping */
+  transform: none !important; /* Prevent any transform animations */
+}
+
+/* Special styling for logout/danger buttons */
+.neon-button.bg-neonPink {
+  @apply border-neonPink text-neonPink;
+  background: rgba(26, 26, 26, 0.8) !important;
+  box-shadow:
+    0 0 5px rgba(255, 0, 255, 0.4),
+    0 0 10px rgba(255, 0, 255, 0.2);
+}
+
+.neon-button.bg-neonPink:hover {
+  @apply text-white border-neonCyan;
+  background: linear-gradient(
+    45deg,
+    rgba(255, 0, 255, 0.2) 0%,
+    rgba(0, 255, 255, 0.2) 50%,
+    rgba(255, 0, 255, 0.2) 100%
+  ) !important;
+  box-shadow:
+    0 0 15px rgba(255, 0, 255, 0.6),
+    0 0 25px rgba(0, 255, 255, 0.4),
+    0 0 35px rgba(255, 0, 255, 0.3) !important;
+}
+
+/* Additional neon styles */
+.shadow-neon {
+  box-shadow:
+    0 0 10px #00ffff,
+    0 0 20px #ff00ff,
+    0 0 30px #00ffff;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bg-neon-gradient {
+  background: linear-gradient(45deg, #00ffff 0%, #ff00ff 50%, #00ffff 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+}
+
+/* Enhanced fallback for browsers that don't support background-clip: text */
+@supports not (background-clip: text) or not (-webkit-background-clip: text) {
+  .bg-neon-gradient {
+    background: none;
+    background-image: none;
+    color: #00ffff;
+    text-shadow: 0 0 10px #ff00ff;
+  }
+}
+
+/* Neon text color variations */
+.text-neon-cyan {
+  color: #00ffff;
+}
+.text-neon-pink {
+  color: #ff00ff;
+}
+.text-neon-green {
+  color: #00ff00;
+}
+.text-neon-blue {
+  color: #0080ff;
+}
+.text-neon-purple {
+  color: #8000ff;
+}
+.text-neon-orange {
+  color: #ff8000;
+}
+.text-neon-yellow {
+  color: #ffff00;
+}
+
+/* Border color variations */
+.border-neon-cyan {
+  border-color: #00ffff;
+}
+
+/* 3D Carousel Animations */
+@keyframes carousel-float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.carousel-card-hover:hover {
+  animation: carousel-float 2s ease-in-out infinite;
+}
+
+/* Perspective and 3D transforms */
+.carousel-container {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.carousel-card {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center center;
+}
+
+/* Mobile carousel responsiveness */
+@media (max-width: 768px) {
+  .carousel-mobile {
+    transform: scale(0.9);
+  }
+
+  .carousel-side-cards {
+    transform: scale(0.6) translateX(0px);
+  }
+}
+
+/* Touch gesture improvements */
+.touch-carousel {
+  touch-action: pan-x;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.carousel-smooth-transition {
+  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Enhanced card scaling for mobile */
+@media (max-width: 640px) {
+  .carousel-card-mobile {
+    width: 260px !important;
+    height: 280px !important;
+  }
+
+  .carousel-card-mobile.scale-100 {
+    transform: scale(0.95) !important;
+  }
+
+  .carousel-card-mobile.scale-75 {
+    transform: scale(0.7) !important;
+  }
+}
+
+/* Text truncation utilities */
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* Improved 3D Carousel Styles */
+.carousel-3d-container {
+  perspective: 1200px;
+  perspective-origin: center center;
+}
+
+.carousel-3d-card {
+  transform-style: preserve-3d;
+  transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  backface-visibility: hidden;
+}
+
+/* Remove hover effects - no popping or scaling on hover */
+.carousel-3d-card:hover {
+  /* No hover effects */
+}
+
+/* Enhanced mobile responsiveness for 3D carousel */
+@media (max-width: 768px) {
+  .carousel-3d-container {
+    perspective: 800px;
+  }
+
+  .carousel-3d-card {
+    width: 280px !important;
+    height: 320px !important;
+  }
+
+  .carousel-3d-mobile-center {
+    transform: translateX(0) translateZ(0) rotateY(0deg) scale(1) !important;
+  }
+
+  .carousel-3d-mobile-side {
+    transform: translateX(0) translateZ(-150px) rotateY(0deg) scale(0.8) !important;
+  }
+}
+
+/* Smooth auto-rotation indicator */
+.carousel-auto-rotate::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(0, 255, 255, 0.1),
+    transparent
+  );
+  border-radius: inherit;
+  opacity: 0;
+  animation: rotate-glow 4s ease-in-out infinite;
+}
+
+@keyframes rotate-glow {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.border-neon-pink {
+  border-color: #ff00ff;
+}
+.border-neon-green {
+  border-color: #00ff00;
+}
+.border-neon-blue {
+  border-color: #0080ff;
+}
+.border-neon-purple {
+  border-color: #8000ff;
+}
+.border-neon-orange {
+  border-color: #ff8000;
+}
+.border-neon-yellow {
+  border-color: #ffff00;
+}
