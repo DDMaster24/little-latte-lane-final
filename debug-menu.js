@@ -71,7 +71,7 @@ async function debugMenuIssue() {
 
     // Test 4: Check table permissions
     console.log('\n🔍 Test 4: Check RLS Policy Status');
-    const { data: rlsStatus, error: rlsError } = await supabase
+    const { data: _rlsStatus, error: rlsError } = await supabase
       .rpc('pg_tables')
       .select('*');
 
