@@ -1,8 +1,8 @@
 # 📋 Little Latte Lane - Single Source of Truth Contract
 
-**Version:** 2.0  
-**Last Updated:** August 15, 2025  
-**Status:** Production Ready  
+**Version:** 3.0  
+**Last Updated:** August 16, 2025  
+**Status:** Production Ready + Enhanced  
 **Environment:** Live PayFast + Supabase Production Database
 
 > ⚠️ **CRITICAL**: This document is the **SINGLE SOURCE OF TRUTH** for the Little Latte Lane project. Any changes to database schema, features, or system architecture MUST be updated here first before implementation.
@@ -17,10 +17,12 @@
 - **Database:** Supabase (PostgreSQL with RLS)
 - **Payment:** PayFast (South African gateway)
 - **Email:** Resend API
-- **Styling:** Tailwind CSS
+- **Styling:** Tailwind CSS + Custom Neon Theme
 - **State Management:** Zustand
 - **Authentication:** Supabase Auth
+- **Notifications:** Sonner Toast System
 - **Deployment:** Vercel (production ready)
+- **PWA:** Next-PWA with offline support
 
 ### Environment Configuration
 - **Production Mode:** `NODE_ENV=production`
@@ -151,14 +153,36 @@ image_url TEXT
 created_at TIMESTAMP WITH TIME ZONE
 ```
 
-#### `admin_settings`
+#### `admin_settings` / `settings`
 ```sql
 id UUID PRIMARY KEY
-setting_key TEXT UNIQUE NOT NULL
-setting_value JSONB
+key TEXT UNIQUE NOT NULL -- 'virtual_golf', 'restaurant_hours', etc.
+value JSONB -- Flexible JSON storage
 description TEXT
+created_at TIMESTAMP WITH TIME ZONE
 updated_at TIMESTAMP WITH TIME ZONE
 ```
+
+**Note:** The `settings` table replaces `admin_settings` for better naming consistency.
+
+---
+
+## 🎨 DESIGN SYSTEM CONTRACT
+
+### Neon Theme Colors
+- **Primary Cyan:** `neonCyan` (#00FFFF)
+- **Secondary Pink:** `neonPink` (#FF00FF) 
+- **Accent Blue:** `neonBlue` (#0066FF)
+- **Background:** Dark theme with glass morphism effects
+- **Text:** White primary, gray secondary
+- **Interactive Elements:** Neon gradients and glow effects
+
+### Component Standards
+- **Cards:** Glass morphism with backdrop blur
+- **Buttons:** Gradient backgrounds with hover effects
+- **Forms:** Neon focus states and validation
+- **Navigation:** Clean category switching with URL sync
+- **Notifications:** Sonner toast system with neon theming
 
 ---
 
@@ -299,18 +323,24 @@ ADMIN_EMAIL=admin@littlelattlane.com
 ## 📱 FEATURE CONTRACT
 
 ### Implemented Features
-- ✅ Complete menu browsing system
-- ✅ Shopping cart with item customization
+- ✅ Complete menu browsing system with category navigation
+- ✅ Enhanced pizza customization system ("Build Your Pizza")
+- ✅ Shopping cart with item customization and real-time pricing
 - ✅ User authentication (Supabase Auth)
-- ✅ Order management system
-- ✅ Table and golf booking system
+- ✅ Order management system with status tracking
+- ✅ Virtual Golf booking system with "Coming Soon" functionality
+- ✅ Table booking system
 - ✅ PayFast payment integration (LIVE)
 - ✅ Email notification system
-- ✅ Admin dashboard
+- ✅ Admin dashboard with Virtual Golf management
 - ✅ Staff kitchen interface
-- ✅ Responsive mobile design
+- ✅ Responsive mobile design with neon theme
 - ✅ Progressive Web App (PWA)
 - ✅ Real-time order status updates
+- ✅ Sonner toast notification system
+- ✅ Glass morphism UI design
+- ✅ Category switching with URL synchronization
+- ✅ Admin-controlled feature toggles
 
 ### User Roles
 - **Customer:** Browse, order, book, view order history
@@ -386,8 +416,17 @@ ADMIN_EMAIL=admin@littlelattlane.com
 ---
 
 **🔐 CONTRACT INTEGRITY**  
-**Hash:** `LLL-SOTA-2025-08-15-PROD`  
+**Hash:** `LLL-SOTA-2025-08-16-ENHANCED`  
 **Signatories:** Development Team, Business Owner  
 **Next Review:** Monthly or before major releases
+
+**🎉 RECENT ACHIEVEMENTS (August 16, 2025)**
+- ✅ **Phase 1 Complete:** Core system polish and optimization
+- ✅ **Pizza System Enhanced:** Streamlined "Build Your Pizza" experience
+- ✅ **Virtual Golf System:** Coming soon banner with admin activation
+- ✅ **Design System:** Consistent neon theme implementation
+- ✅ **Navigation Enhanced:** Smooth category switching with URL sync
+- ✅ **Notification System:** Migrated to Sonner toast system
+- ✅ **Code Quality:** TypeScript strict mode, error-free builds
 
 > **⚠️ REMINDER:** This is a LIVING CONTRACT. Every change must be reflected here FIRST before implementation. This prevents code drift and ensures system integrity.
