@@ -4,10 +4,16 @@ import { supabaseServer } from '@/lib/supabaseServer';
 import { confirmPaymentAndDecrementStock } from '@/lib/orderActions';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 async function sendEmail(to: string, subject: string, html: string) {
   try {
+    // Only initialize Resend if API key is available and valid
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey || apiKey.startsWith('re_YourActual') || apiKey === 're_YourActualResendApiKey_Here') {
+      console.log('Resend API key not configured, skipping email notification');
+      return;
+    }
+
+    const resend = new Resend(apiKey);
     await resend.emails.send({
       from: 'Little Latte Lane <no-reply@yourdomain.com>', // Replace with your verified domain
       to,
