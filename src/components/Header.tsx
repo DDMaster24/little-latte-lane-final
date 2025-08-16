@@ -31,22 +31,22 @@ export default function Header() {
   if (!mounted) {
     return (
       <header
-        className="bg-darkBg text-neonText py-4 px-6 flex items-center justify-between shadow-neon relative"
+        className="bg-darkBg text-neonText py-3 px-4 lg:py-4 lg:px-6 flex items-center justify-between shadow-neon relative z-40"
         suppressHydrationWarning={true}
       >
-        <div className="flex items-center ml-4">
+        <div className="flex items-center space-x-2 lg:space-x-4 flex-1 min-w-0">
           <Image
             src="/images/logo.png"
             alt="Little Latte Lane Logo"
-            width={100}
-            height={100}
-            className="mr-8 shadow-neon"
+            width={60}
+            height={60}
+            className="lg:w-[100px] lg:h-[100px] shadow-neon flex-shrink-0"
           />
-          <div>
-            <h1 className="text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-lg sm:text-2xl lg:text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent truncate">
               Little Latte Lane
             </h1>
-            <p className="text-base">Roberts&apos; Cafe and Deli</p>
+            <p className="text-xs sm:text-sm lg:text-base text-gray-300 truncate">Roberts&apos; Cafe and Deli</p>
           </div>
         </div>
 
@@ -167,53 +167,90 @@ export default function Header() {
 
       {/* Mobile Menu Dropdown */}
       {isMobileMenuOpen && (
-        <nav className="absolute top-full left-0 w-full bg-darkBg shadow-neon md:hidden flex flex-col items-center space-y-4 py-4 z-50">
+        <nav className="absolute top-full left-0 w-full bg-darkBg/95 backdrop-blur-md shadow-neon md:hidden flex flex-col space-y-3 py-4 z-50 border-t border-neonCyan/30 animate-slide-up">
           <Link
             href="/"
-            className="neon-button"
+            className="neon-button mx-4 text-center py-3 hover:bg-neonCyan/10 rounded-lg transition-all duration-300"
             onClick={() => setIsMobileMenuOpen(false)}
           >
-            Home
+            🏠 Home
           </Link>
           <Link
             href="/menu"
-            className="neon-button"
+            className="neon-button mx-4 text-center py-3 hover:bg-neonCyan/10 rounded-lg transition-all duration-300"
             onClick={() => setIsMobileMenuOpen(false)}
           >
-            Menu
+            🍽️ Menu
           </Link>
           <Link
             href="/bookings"
-            className="neon-button"
+            className="neon-button mx-4 text-center py-3 hover:bg-neonCyan/10 rounded-lg transition-all duration-300"
             onClick={() => setIsMobileMenuOpen(false)}
           >
-            Bookings
+            📅 Bookings
           </Link>
           <Link
             href="/account"
-            className="neon-button"
+            className="neon-button mx-4 text-center py-3 hover:bg-neonCyan/10 rounded-lg transition-all duration-300"
             onClick={() => setIsMobileMenuOpen(false)}
           >
-            My Account
+            👤 My Account
           </Link>
           {user && profile?.role === 'admin' && (
             <Link
               href="/admin"
-              className="neon-button"
+              className="neon-button mx-4 text-center py-3 hover:bg-neonPink/10 rounded-lg transition-all duration-300"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Admin Panel
+              ⚙️ Admin Panel
             </Link>
           )}
           {user && profile?.role === 'staff' && (
             <Link
               href="/staff"
-              className="neon-button"
+              className="neon-button mx-4 text-center py-3 hover:bg-neonBlue/10 rounded-lg transition-all duration-300"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Staff Panel
+              👨‍🍳 Staff Panel
             </Link>
           )}
+          
+          {/* Mobile Auth Section */}
+          <div className="mx-4 pt-3 border-t border-gray-700">
+            {user ? (
+              <div className="flex flex-col items-center space-y-3">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-neonCyan to-neonPink flex items-center justify-center">
+                    <span className="text-black font-bold text-xs">
+                      {(profile?.username || user.email || 'U').charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <span className="text-sm text-neonText">
+                    {profile?.username || user.email}
+                  </span>
+                </div>
+                <Button 
+                  onClick={() => {
+                    signOut();
+                    setIsMobileMenuOpen(false);
+                  }} 
+                  className="neon-button bg-neonPink w-full py-2"
+                >
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <Button 
+                onClick={() => {
+                  setIsModalOpen(true);
+                  setIsMobileMenuOpen(false);
+                }} 
+                className="neon-button w-full py-3"
+              >
+                Login
+              </Button>
+            )}
+          </div>
         </nav>
       )}
     </header>

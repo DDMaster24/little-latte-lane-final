@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { toast } from 'sonner';
 
 interface CartItemCustomization {
   // Legacy customization format
@@ -49,6 +50,10 @@ export const useCartStore = create<CartStore>((set, get) => ({
     set((state) => {
       // For customized items, always add as new item (don't merge)
       if (item.customization) {
+        toast.success(`${item.name} added to cart!`, {
+          description: item.customization.isCustomized ? 'With custom options' : undefined,
+          duration: 2000,
+        });
         return { items: [...state.items, item] };
       }
 
@@ -57,6 +62,10 @@ export const useCartStore = create<CartStore>((set, get) => ({
         (i) => i.id === item.id && !i.customization
       );
       if (existing) {
+        toast.success(`${item.name} quantity updated!`, {
+          description: `Now ${existing.quantity + item.quantity} in cart`,
+          duration: 2000,
+        });
         return {
           items: state.items.map((i) =>
             i.id === item.id && !i.customization
@@ -65,15 +74,36 @@ export const useCartStore = create<CartStore>((set, get) => ({
           ),
         };
       }
+      
+      toast.success(`${item.name} added to cart!`, {
+        description: `R${item.price.toFixed(2)}`,
+        duration: 2000,
+      });
       return { items: [...state.items, item] };
     }),
 
   removeItem: (id) =>
-    set((state) => ({
-      items: state.items.filter((i) => i.id !== id),
-    })),
+    set((state) => {
+      const item = state.items.find(i => i.id === id);
+      if (item) {
+        toast.info(`${item.name} removed from cart`, {
+          duration: 2000,
+        });
+      }
+      return {
+        items: state.items.filter((i) => i.id !== id),
+      };
+    }),
 
-  clearCart: () => set({ items: [] }),
+  clearCart: () => {
+    const itemCount = get().items.length;
+    if (itemCount > 0) {
+      toast.success(`Cart cleared! ${itemCount} items removed`, {
+        duration: 2000,
+      });
+    }
+    set({ items: [] });
+  },
 
   updateQuantity: (id, quantity) =>
     set((state) => ({

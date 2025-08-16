@@ -4,41 +4,48 @@ import CategoriesSection from '@/components/CategoriesSection';
 import BookingsSection from '@/components/BookingsSection';
 import { Suspense } from 'react';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { CategorySkeleton, LoadingSpinner } from '@/components/LoadingComponents';
 
 export default function Home() {
   return (
-    <main className="flex flex-col p-4">
-      {' '}
-      {/* Removed min-h-screen (handled in layout), added p-4 for consistent padding/margins */}
+    <main className="flex flex-col p-4 space-y-8 animate-fade-in">
       <ErrorBoundary>
-        <WelcomingSection /> {/* Welcome section */}
+        <WelcomingSection />
       </ErrorBoundary>
-      <ErrorBoundary>
-        <Suspense
-          fallback={
-            <div className="text-center text-neonText py-4">
-              Loading events...
-            </div>
-          }
-        >
-          <EventsSpecialsSection /> {/* Events and specials section */}
-        </Suspense>
-      </ErrorBoundary>
+      
       <ErrorBoundary>
         <Suspense
           fallback={
-            <div className="text-center text-neonText py-4">
-              Loading categories...
+            <div className="text-center py-8">
+              <LoadingSpinner size="md" text="Loading latest events and specials..." />
             </div>
           }
         >
-          <CategoriesSection /> {/* Categories section with loading fallback */}
+          <EventsSpecialsSection />
         </Suspense>
       </ErrorBoundary>
+      
       <ErrorBoundary>
-        <BookingsSection /> {/* Bookings section ("Book Now" button) */}
+        <Suspense
+          fallback={
+            <div className="space-y-6">
+              <div className="text-center">
+                <div className="w-48 h-8 bg-gradient-to-r from-gray-700 to-gray-600 rounded mx-auto mb-4 shimmer" />
+                <div className="w-64 h-4 bg-gradient-to-r from-gray-700 to-gray-600 rounded mx-auto shimmer" />
+              </div>
+              <CategorySkeleton count={6} />
+            </div>
+          }
+        >
+          <CategoriesSection />
+        </Suspense>
       </ErrorBoundary>
-      {/* Footer is in layout.tsx, so no need here */}
+      
+      <ErrorBoundary>
+        <div className="animate-bounce-in">
+          <BookingsSection />
+        </div>
+      </ErrorBoundary>
     </main>
   );
 }

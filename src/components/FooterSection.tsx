@@ -12,7 +12,9 @@ export default function FooterSection() {
           <h3 className="text-lg font-bold mb-2 bg-neon-gradient bg-clip-text text-transparent">
             Contact Number:
           </h3>
-          <p>+27 123 456 789</p>
+          <p>+27 (0)12 345 6789</p>
+          <p className="text-sm text-gray-400 mt-1">Operating Hours:</p>
+          <p className="text-sm">Mon-Sun: 8:00 AM - 10:00 PM</p>
         </div>
 
         {/* Location */}
@@ -20,36 +22,37 @@ export default function FooterSection() {
           <h3 className="text-lg font-bold mb-2 bg-neon-gradient bg-clip-text text-transparent">
             Location:
           </h3>
-          <p>Roberts Estate, Gate 1, Roberts Drive</p>
-          <p>Little Latte Lane</p>
+          <p>Roberts Estate, Gate 1</p>
+          <p>Roberts Drive, Little Latte Lane</p>
+          <p className="text-sm text-gray-400 mt-1">Johannesburg, South Africa</p>
         </div>
 
         {/* Social Links */}
         <div>
           <h3 className="text-lg font-bold mb-2 bg-neon-gradient bg-clip-text text-transparent">
-            Social Links:
+            Connect With Us:
           </h3>
           <ul className="space-y-1">
             <li>
               <a
-                href="https://facebook.com"
+                href="https://facebook.com/littlelattelane"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-neonPink hover:shadow-neon"
+                className="hover:text-neonPink hover:shadow-neon transition-all duration-300"
                 aria-label="Facebook"
               >
-                Facebook - Little Latte Lane
+                📘 Facebook
               </a>
             </li>
             <li>
               <a
-                href="https://instagram.com"
+                href="https://instagram.com/littlelattelane"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-neonPink hover:shadow-neon"
+                className="hover:text-neonPink hover:shadow-neon transition-all duration-300"
                 aria-label="Instagram"
               >
-                Instagram - Little Latte Lane
+                📸 Instagram
               </a>
             </li>
             <li>
@@ -57,19 +60,19 @@ export default function FooterSection() {
                 href="https://littlelattelane.co.za"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-neonPink hover:shadow-neon"
+                className="hover:text-neonPink hover:shadow-neon transition-all duration-300"
                 aria-label="Website"
               >
-                Website - Little Latte Lane
+                🌐 Website
               </a>
             </li>
             <li>
               <a
                 href="mailto:info@littlelattelane.co.za"
-                className="hover:text-neonPink hover:shadow-neon"
+                className="hover:text-neonPink hover:shadow-neon transition-all duration-300"
                 aria-label="Email"
               >
-                Email - Little Latte Lane
+                ✉️ Email Us
               </a>
             </li>
           </ul>

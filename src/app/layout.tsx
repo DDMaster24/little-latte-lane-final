@@ -4,6 +4,7 @@ import './globals.css';
 import { ClientWrapper } from '@/components/ClientWrapper';
 import Header from '@/components/Header';
 import FooterSection from '@/components/FooterSection';
+import { Toaster } from 'sonner';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -44,6 +45,19 @@ export default function RootLayout({
           <Header />
           <main className="flex-grow">{children}</main>
           <FooterSection />
+          <Toaster 
+            position="top-right"
+            theme="dark"
+            className="toaster group"
+            toastOptions={{
+              classNames: {
+                toast: 'group toast bg-darkBg border-neonCyan text-neonText',
+                description: 'text-gray-400',
+                actionButton: 'bg-neonCyan text-darkBg',
+                cancelButton: 'bg-gray-600 text-white',
+              },
+            }}
+          />
         </ClientWrapper>
       </body>
     </html>
