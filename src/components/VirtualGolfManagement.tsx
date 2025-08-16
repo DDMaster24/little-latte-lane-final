@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 // Update the import path if the Switch component exists elsewhere, for example:
 import { Switch } from '@/components/ui/switch';
@@ -142,7 +142,7 @@ export default function VirtualGolfManagement() {
             onCheckedChange={(checked: boolean) =>
               setSettings((prev) => ({ ...prev, enabled: checked }))
             }
-            className="data-[state=checked]:bg-green-600"
+            className="data-[state=checked]:bg-neonCyan"
           />
         </div>
 
@@ -173,10 +173,10 @@ export default function VirtualGolfManagement() {
         {!settings.enabled && settings.comingSoonMessage && (
           <div className="space-y-3">
             <Label className="text-white text-lg font-medium">Preview</Label>
-            <div className="bg-gray-900/50 p-6 rounded-lg border border-purple-500/30">
+            <div className="bg-gray-900/50 p-6 rounded-lg border border-neonCyan/30">
               <div className="text-center">
                 <div className="text-4xl mb-4">🏌️‍♂️</div>
-                <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-cyan-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
+                <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-neonCyan via-neonPink to-neonBlue bg-clip-text text-transparent">
                   Virtual Golf Coming Soon!
                 </h3>
                 <div className="text-gray-300 whitespace-pre-line">
@@ -192,7 +192,7 @@ export default function VirtualGolfManagement() {
           <Button
             onClick={saveSettings}
             disabled={isSaving}
-            className="bg-purple-600 hover:bg-purple-700 text-white flex-1"
+            className="bg-neonCyan hover:bg-neonCyan/80 text-black flex-1"
           >
             {isSaving ? 'Saving...' : 'Save Settings'}
           </Button>
@@ -206,9 +206,9 @@ export default function VirtualGolfManagement() {
         </div>
 
         {/* Help Text */}
-        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-          <h4 className="text-blue-400 font-medium mb-2">💡 How it works:</h4>
-          <ul className="text-sm text-blue-300 space-y-1">
+        <div className="bg-neonBlue/10 border border-neonBlue/30 rounded-lg p-4">
+          <h4 className="text-neonBlue font-medium mb-2">💡 How it works:</h4>
+          <ul className="text-sm text-neonBlue/80 space-y-1">
             <li>
               • When <strong>OFF</strong>: Users see a &ldquo;Coming Soon&rdquo;
               banner covering the entire booking page

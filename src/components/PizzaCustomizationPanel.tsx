@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useCartStore, type CartItem } from '@/stores/cartStore';
 import { Plus, Minus, ShoppingCart } from 'lucide-react';
-import toast from 'react-hot-toast';
 
 interface PizzaTopping {
   name: string;
@@ -138,27 +137,27 @@ export default function PizzaCustomizationPanel({
       addItem(cartItem);
     }
 
-    toast.success(`${cartItem.name} added to cart!`);
+    // Toast is now handled in the cart store
   };
 
   const totalPrice = calculateTotalPrice();
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Pizza Customization Header */}
-      <div className="text-center mb-6">
-        <h2 className="text-3xl font-bold text-neon-green mb-2">
-          🍕 Customize Your Pizza
-        </h2>
-        <p className="text-gray-300">
-          Build your perfect pizza with our fresh ingredients
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-neonCyan via-neonPink to-neonBlue bg-clip-text text-transparent">
+          Build Your Pizza
+        </h1>
+        <p className="text-gray-300 text-lg">
+          Create your perfect pizza with our fresh ingredients
         </p>
       </div>
 
       {/* Step 1: Choose Pizza Type */}
-      <Card className="bg-gray-900/80 border-neon-blue/50">
+      <Card className="bg-gray-800/50 backdrop-blur-sm border-neonBlue/50">
         <CardHeader>
-          <CardTitle className="text-neon-blue text-xl">
+          <CardTitle className="text-neonBlue text-xl">
             Step 1: Choose Your Pizza
           </CardTitle>
         </CardHeader>
@@ -168,8 +167,8 @@ export default function PizzaCustomizationPanel({
               key={pizzaType.name}
               className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                 selectedPizzaType?.name === pizzaType.name
-                  ? 'border-neon-blue bg-neon-blue/10'
-                  : 'border-gray-600 hover:border-neon-blue/50'
+                  ? 'border-neonBlue bg-neonBlue/10'
+                  : 'border-gray-600 hover:border-neonBlue/50'
               }`}
               onClick={() => handlePizzaTypeChange(pizzaType)}
             >
@@ -182,14 +181,6 @@ export default function PizzaCustomizationPanel({
                     {pizzaType.description}
                   </p>
                 </div>
-                <div className="text-right">
-                  <div className="text-neon-green font-semibold text-sm">
-                    Small: R{pizzaType.smallPrice.toFixed(2)}
-                  </div>
-                  <div className="text-neon-green font-semibold text-sm">
-                    Large: R{pizzaType.largePrice.toFixed(2)}
-                  </div>
-                </div>
               </div>
             </div>
           ))}
@@ -197,9 +188,9 @@ export default function PizzaCustomizationPanel({
       </Card>
 
       {/* Step 2: Choose Size */}
-      <Card className="bg-gray-900/80 border-neon-green/50">
+      <Card className="bg-gray-800/50 backdrop-blur-sm border-neonCyan/50">
         <CardHeader>
-          <CardTitle className="text-neon-green text-xl">
+          <CardTitle className="text-neonCyan text-xl">
             Step 2: Choose Size
           </CardTitle>
         </CardHeader>
@@ -210,8 +201,8 @@ export default function PizzaCustomizationPanel({
                 key={size}
                 className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                   selectedSize === size
-                    ? 'border-neon-green bg-neon-green/10'
-                    : 'border-gray-600 hover:border-neon-green/50'
+                    ? 'border-neonCyan bg-neonCyan/10'
+                    : 'border-gray-600 hover:border-neonCyan/50'
                 }`}
                 onClick={() => handleSizeChange(size as 'small' | 'large')}
               >
@@ -219,7 +210,7 @@ export default function PizzaCustomizationPanel({
                   <h3 className="text-lg font-semibold text-white capitalize">
                     {size} {size === 'small' ? '(8-10 inch)' : '(12-14 inch)'}
                   </h3>
-                  <p className="text-neon-green font-bold text-xl">
+                  <p className="text-neonCyan font-bold text-xl">
                     R
                     {(size === 'small'
                       ? selectedPizzaType.smallPrice
@@ -234,9 +225,9 @@ export default function PizzaCustomizationPanel({
       </Card>
 
       {/* Step 3: Add Toppings */}
-      <Card className="bg-gray-900/80 border-neon-pink/50">
+      <Card className="bg-gray-800/50 backdrop-blur-sm border-neonPink/50">
         <CardHeader>
-          <CardTitle className="text-neon-pink text-xl">
+          <CardTitle className="text-neonPink text-xl">
             Step 3: Add Toppings
             <span className="text-sm font-normal text-gray-400 ml-2">
               ({selectedToppings.length} selected)
@@ -254,8 +245,8 @@ export default function PizzaCustomizationPanel({
                   key={topping.name}
                   className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
                     isSelected
-                      ? 'border-neon-pink bg-neon-pink/10'
-                      : 'border-gray-600 hover:border-neon-pink/50'
+                      ? 'border-neonPink bg-neonPink/10'
+                      : 'border-gray-600 hover:border-neonPink/50'
                   }`}
                   onClick={() => handleToppingToggle(topping.name)}
                 >
@@ -265,7 +256,7 @@ export default function PizzaCustomizationPanel({
                     </span>
                     <Badge
                       variant="outline"
-                      className="border-neon-pink text-neon-pink"
+                      className="border-neonPink text-neonPink"
                     >
                       +R{price.toFixed(2)}
                     </Badge>
@@ -278,9 +269,9 @@ export default function PizzaCustomizationPanel({
       </Card>
 
       {/* Order Summary & Add to Cart */}
-      <Card className="bg-gray-900/80 border-neon-green/50">
+      <Card className="bg-gray-800/50 backdrop-blur-sm border-neonCyan/50">
         <CardHeader>
-          <CardTitle className="text-neon-green text-xl">
+          <CardTitle className="text-neonCyan text-xl">
             Order Summary
           </CardTitle>
         </CardHeader>
@@ -325,7 +316,7 @@ export default function PizzaCustomizationPanel({
 
             <Separator className="border-gray-700" />
 
-            <div className="flex justify-between text-xl font-bold text-neon-green">
+            <div className="flex justify-between text-xl font-bold text-neonCyan">
               <span>Total:</span>
               <span>R{totalPrice.toFixed(2)}</span>
             </div>
@@ -361,7 +352,7 @@ export default function PizzaCustomizationPanel({
 
             <Button
               onClick={handleAddToCart}
-              className="bg-neon-green text-black hover:bg-neon-green/80 font-semibold py-3 px-8"
+              className="bg-neonCyan text-black hover:bg-neonCyan/80 font-semibold py-3 px-8"
             >
               <ShoppingCart className="h-5 w-5 mr-2" />
               Add to Cart - R{totalPrice.toFixed(2)}

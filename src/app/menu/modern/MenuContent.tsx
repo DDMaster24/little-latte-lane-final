@@ -28,6 +28,7 @@ import {
   MenuItemSkeleton,
 } from '@/components/LoadingComponents';
 import { type MenuItem } from '@/lib/dataClient';
+import PizzaCustomizationPanel from '@/components/PizzaCustomizationPanel';
 
 export default function MenuContent() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -74,6 +75,9 @@ export default function MenuContent() {
   // Get category name with fallback
   const selectedCategoryName =
     categories.find((cat) => cat.id === selectedCategory)?.name || 'Menu';
+
+  // Check if current category is Pizza
+  const isPizzaCategory = selectedCategoryName.toLowerCase().includes('pizza');
 
   // Get accurate item count for each category
   const getCategoryItemCount = (categoryId: string) => {
@@ -193,107 +197,117 @@ export default function MenuContent() {
           </div>
         </div>
 
-        {/* CENTER PANEL - Menu Items */}
+        {/* CENTER PANEL - Menu Items or Pizza Customizer */}
         <div className="flex-1 p-6">
           <div className="mb-6">
             <h1 className="text-3xl font-bold bg-neon-gradient bg-clip-text text-transparent">
               {selectedCategoryName}
             </h1>
-            <p className="text-gray-400 mt-1">
-              {currentMenuItems.length} items available
-            </p>
+            {!isPizzaCategory && (
+              <p className="text-gray-400 mt-1">
+                {currentMenuItems.length} items available
+              </p>
+            )}
           </div>
 
-          {currentMenuItems.length === 0 ? (
-            <div className="text-center py-12">
-              <Clock className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-400">
-                No items available in this category
-              </p>
-            </div>
+          {isPizzaCategory ? (
+            // Show Pizza Customization Panel
+            <PizzaCustomizationPanel />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {currentMenuItems.map((item) => {
-                const quantity = getCartQuantity(item.id);
-                return (
-                  <Card
-                    key={item.id}
-                    className="bg-gray-800 border-gray-600 hover:border-gray-500 transition-all duration-200 hover:scale-105"
-                  >
-                    <CardHeader className="pb-3">
-                      {item.image_url && (
-                        <div className="relative w-full h-40 mb-3 overflow-hidden rounded bg-gray-700">
-                          <Image
-                            src={item.image_url}
-                            alt={item.name}
-                            width={320}
-                            height={160}
-                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
-                            loading="lazy"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                            }}
-                          />
-                        </div>
-                      )}
-                      <CardTitle className="text-white text-lg">
-                        {item.name}
-                      </CardTitle>
-                      {item.description && (
-                        <p className="text-gray-400 text-sm mt-1">
-                          {item.description}
-                        </p>
-                      )}
-                    </CardHeader>
+            // Show Regular Menu Items
+            <>
+              {currentMenuItems.length === 0 ? (
+                <div className="text-center py-12">
+                  <Clock className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-400">
+                    No items available in this category
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {currentMenuItems.map((item) => {
+                    const quantity = getCartQuantity(item.id);
+                    return (
+                      <Card
+                        key={item.id}
+                        className="bg-gray-800 border-gray-600 hover:border-gray-500 transition-all duration-200 hover:scale-105"
+                      >
+                        <CardHeader className="pb-3">
+                          {item.image_url && (
+                            <div className="relative w-full h-40 mb-3 overflow-hidden rounded bg-gray-700">
+                              <Image
+                                src={item.image_url}
+                                alt={item.name}
+                                width={320}
+                                height={160}
+                                className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                                loading="lazy"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                }}
+                              />
+                            </div>
+                          )}
+                          <CardTitle className="text-white text-lg">
+                            {item.name}
+                          </CardTitle>
+                          {item.description && (
+                            <p className="text-gray-400 text-sm mt-1">
+                              {item.description}
+                            </p>
+                          )}
+                        </CardHeader>
 
-                    <CardContent>
-                      <div className="flex items-center justify-between">
-                        <span className="text-2xl font-bold text-neonPink">
-                          R{item.price.toFixed(2)}
-                        </span>
-
-                        {quantity === 0 ? (
-                          <Button
-                            onClick={() => handleAddToCart(item)}
-                            className="bg-neonCyan text-black hover:bg-cyan-400 font-semibold"
-                          >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Add
-                          </Button>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() =>
-                                updateCartQuantity(item.id, quantity - 1)
-                              }
-                              className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                            >
-                              <Minus className="h-3 w-3" />
-                            </Button>
-                            <span className="text-white font-semibold min-w-[2rem] text-center">
-                              {quantity}
+                        <CardContent>
+                          <div className="flex items-center justify-between">
+                            <span className="text-2xl font-bold text-neonPink">
+                              R{item.price.toFixed(2)}
                             </span>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() =>
-                                updateCartQuantity(item.id, quantity + 1)
-                              }
-                              className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                            >
-                              <Plus className="h-3 w-3" />
-                            </Button>
+
+                            {quantity === 0 ? (
+                              <Button
+                                onClick={() => handleAddToCart(item)}
+                                className="bg-neonCyan text-black hover:bg-cyan-400 font-semibold"
+                              >
+                                <Plus className="h-4 w-4 mr-1" />
+                                Add
+                              </Button>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() =>
+                                    updateCartQuantity(item.id, quantity - 1)
+                                  }
+                                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                                >
+                                  <Minus className="h-3 w-3" />
+                                </Button>
+                                <span className="text-white font-semibold min-w-[2rem] text-center">
+                                  {quantity}
+                                </span>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() =>
+                                    updateCartQuantity(item.id, quantity + 1)
+                                  }
+                                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                                >
+                                  <Plus className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </>
           )}
         </div>
 

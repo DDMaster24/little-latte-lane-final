@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import NextImage from 'next/image';
@@ -41,44 +41,53 @@ export default function BookingsPage() {
 
   async function fetchGolfSettings() {
     setIsLoadingSettings(true);
-    const { data, error } = await supabase
-      .from('settings')
-      .select('*')
-      .eq('key', 'virtual_golf')
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('*')
+        .eq('key', 'virtual_golf')
+        .single();
 
-    if (error) {
-      // If settings don't exist, create default
-      const defaultSettings = {
-        key: 'virtual_golf',
-        value: JSON.stringify({
+      if (error) {
+        console.log('Settings table error or no data found:', error.message);
+        // If settings don't exist, create default and use fallback
+        const defaultSettings = {
           enabled: false,
           comingSoonMessage:
             "Virtual Golf Coming Soon! 🏌️‍♂️\n\nWe're putting the finishing touches on our state-of-the-art virtual golf simulator. Stay tuned for an amazing golf experience!",
-        }),
-      };
+        };
 
-      const { data: newSettings, error: insertError } = await supabase
-        .from('settings')
-        .insert(defaultSettings)
-        .select()
-        .single();
+        setGolfSettings(defaultSettings);
 
-      if (!insertError && newSettings) {
-        // Check if newSettings.value is already an object (JSONB) or a string
-        if (typeof newSettings.value === 'string') {
-          setGolfSettings(JSON.parse(newSettings.value));
+        // Try to create the settings entry
+        const { data: _newSettings, error: insertError } = await supabase
+          .from('settings')
+          .insert({
+            key: 'virtual_golf',
+            value: JSON.stringify(defaultSettings),
+          })
+          .select()
+          .single();
+
+        if (insertError) {
+          console.log('Could not create settings entry:', insertError.message);
+        }
+      } else if (data) {
+        // Check if data.value is already an object (JSONB) or a string
+        if (typeof data.value === 'string') {
+          setGolfSettings(JSON.parse(data.value));
         } else {
-          setGolfSettings(newSettings.value);
+          setGolfSettings(data.value);
         }
       }
-    } else if (data) {
-      // Check if data.value is already an object (JSONB) or a string
-      if (typeof data.value === 'string') {
-        setGolfSettings(JSON.parse(data.value));
-      } else {
-        setGolfSettings(data.value);
-      }
+    } catch (err) {
+      console.error('Error in fetchGolfSettings:', err);
+      // Fallback to default settings
+      setGolfSettings({
+        enabled: false,
+        comingSoonMessage:
+          "Virtual Golf Coming Soon! 🏌️‍♂️\n\nWe're putting the finishing touches on our state-of-the-art virtual golf simulator. Stay tuned for an amazing golf experience!",
+      });
     }
 
     setIsLoadingSettings(false);
@@ -167,16 +176,16 @@ export default function BookingsPage() {
       {/* Coming Soon Banner (shown when golf is not active) */}
       {!isLoadingSettings && golfSettings && !golfSettings.enabled && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80">
-          <div className="max-w-2xl mx-auto text-center p-8 bg-gray-900/90 backdrop-blur-sm rounded-2xl border border-purple-500/30 shadow-2xl">
+          <div className="max-w-2xl mx-auto text-center p-8 bg-gray-800/90 backdrop-blur-sm rounded-2xl border border-neonCyan/30 shadow-2xl">
             <div className="text-6xl mb-6">🏌️‍♂️</div>
-            <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-cyan-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-neonCyan via-neonPink to-neonBlue bg-clip-text text-transparent">
               Virtual Golf Coming Soon!
             </h1>
             <div className="text-gray-300 text-lg whitespace-pre-line mb-8">
               {golfSettings.comingSoonMessage}
             </div>
             <div className="flex justify-center">
-              <div className="animate-pulse bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-4 rounded-full text-white font-semibold">
+              <div className="animate-pulse bg-gradient-to-r from-neonPink to-neonCyan px-8 py-4 rounded-full text-black font-semibold">
                 Stay Tuned for Updates!
               </div>
             </div>
@@ -190,7 +199,7 @@ export default function BookingsPage() {
           {/* Hero Section */}
           <div className="py-12">
             <div className="max-w-7xl mx-auto px-6 text-center">
-              <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-cyan-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
+              <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-neonCyan via-neonPink to-neonBlue bg-clip-text text-transparent">
                 Book Virtual Golf
               </h1>
               <p className="text-xl text-gray-200 mb-8">
@@ -204,7 +213,7 @@ export default function BookingsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Booking Form */}
               <div className="lg:col-span-2">
-                <div className="bg-gray-800/80 backdrop-blur-lg p-8 rounded-xl shadow-2xl border border-purple-500/30">
+                <div className="bg-gray-800/80 backdrop-blur-lg p-8 rounded-xl shadow-2xl border border-neonCyan/30">
                   <h2 className="text-2xl font-semibold mb-6 text-white">
                     Reserve Your Tee Time
                   </h2>
@@ -222,7 +231,7 @@ export default function BookingsPage() {
                         timeIntervals={60}
                         filterTime={filterBusinessHours}
                         dateFormat="MMMM d, yyyy h:mm aa"
-                        className="w-full p-4 rounded-lg bg-gray-700/80 text-white border border-gray-600 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                        className="w-full p-4 rounded-lg bg-gray-700/80 text-white border border-gray-600 focus:border-neonCyan focus:ring-2 focus:ring-neonCyan/20"
                         minDate={new Date()}
                         placeholderText="Choose your preferred time"
                       />
@@ -242,7 +251,7 @@ export default function BookingsPage() {
                         max={8}
                         value={golfPeople}
                         onChange={(e) => setGolfPeople(Number(e.target.value))}
-                        className="bg-gray-700/80 border-gray-600 text-white focus:border-purple-500"
+                        className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan"
                       />
                       <p className="text-sm text-gray-300 mt-2">
                         Maximum 8 players per booking
@@ -256,7 +265,7 @@ export default function BookingsPage() {
                         disabled={
                           isBooking || isTimeSlotBooked(golfDate || new Date())
                         }
-                        className="w-full text-lg py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full text-lg py-4 bg-gradient-to-r from-neonPink to-neonCyan hover:from-neonPink/80 hover:to-neonCyan/80 text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isBooking ? 'Processing...' : 'Reserve Your Tee Time'}
                       </Button>
@@ -272,7 +281,7 @@ export default function BookingsPage() {
 
               {/* Availability Calendar */}
               <div className="lg:col-span-1">
-                <div className="bg-gray-800/80 backdrop-blur-lg p-6 rounded-xl shadow-2xl border border-cyan-500/30 sticky top-6">
+                <div className="bg-gray-800/80 backdrop-blur-lg p-6 rounded-xl shadow-2xl border border-neonBlue/30 sticky top-6">
                   <h3 className="text-xl font-semibold mb-4 text-white flex items-center gap-2">
                     📅 Availability This Month
                   </h3>
@@ -351,7 +360,7 @@ export default function BookingsPage() {
       {isLoadingSettings && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80">
           <div className="text-center text-white">
-            <div className="animate-spin w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <div className="animate-spin w-8 h-8 border-4 border-neonCyan border-t-transparent rounded-full mx-auto mb-4"></div>
             <p>Loading virtual golf settings...</p>
           </div>
         </div>
