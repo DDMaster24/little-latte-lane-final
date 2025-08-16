@@ -105,5 +105,16 @@ export function getEnvVar(key: keyof typeof env, fallback?: string): string {
   return String(value);
 }
 
-// Validate environment on module load
-validateEnvironment();
+// Validate environment on module load (skip during Next.js build and data collection phases)
+if (
+  typeof process !== 'undefined' &&
+  process.env.NODE_ENV !== undefined &&
+  process.env.NEXT_PHASE !== 'phase-production-build' &&
+  process.env.NEXT_PHASE !== 'phase-export'
+) {
+  try {
+    validateEnvironment();
+  } catch (error) {
+    console.warn('Environment validation warning:', error);
+  }
+}

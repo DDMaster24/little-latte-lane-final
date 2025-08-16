@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabaseServer';
 
 export async function POST() {
   try {
     console.log('🧹 === CLEANING UP UNPAID DRAFT ORDERS ===');
+
+    // Dynamic import to avoid build-time execution issues
+    const { supabaseServer } = await import('@/lib/supabaseServer');
 
     // Delete draft orders older than 1 hour (never paid)
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
