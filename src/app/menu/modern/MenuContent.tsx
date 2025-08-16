@@ -14,7 +14,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useCartStore, type CartItem } from '@/stores/cartStore';
-import toast from 'react-hot-toast';
 import {
   ShoppingCart,
   Plus,
@@ -45,27 +44,41 @@ export default function MenuContent() {
     total,
   } = useCartStore();
 
-  // Set initial category from URL or first category
+  // Enhanced initialization logic
   useEffect(() => {
-    if (categoryParam) {
+    if (loading || categories.length === 0) return;
+
+    if (categoryParam && categories.some(cat => cat.id === categoryParam)) {
+      // Valid category from URL
       setSelectedCategory(categoryParam);
-    } else if (
-      categories.length > 0 &&
-      selectedCategory === null &&
-      categories[0]
-    ) {
+    } else if (!selectedCategory && categories.length > 0) {
+      // No category selected, choose first one
       setSelectedCategory(categories[0].id);
     }
-  }, [categoryParam, categories, selectedCategory]);
+  }, [categoryParam, categories, loading, selectedCategory]);
 
-  // Filter items by selected category
-  const currentMenuItems = selectedCategory
+  // Handle category change with proper URL updates
+  const handleCategoryChange = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    // Update URL without page reload
+    const url = new URL(window.location.href);
+    url.searchParams.set('category', categoryId);
+    window.history.pushState({}, '', url.toString());
+  };
+
+  // Filter items by selected category with loading state check
+  const currentMenuItems = selectedCategory && menuItems.length > 0
     ? menuItems.filter((item) => item.category_id === selectedCategory)
     : [];
 
-  // Get category name
+  // Get category name with fallback
   const selectedCategoryName =
     categories.find((cat) => cat.id === selectedCategory)?.name || 'Menu';
+
+  // Get accurate item count for each category
+  const getCategoryItemCount = (categoryId: string) => {
+    return menuItems.filter((item) => item.category_id === categoryId).length;
+  };
 
   const handleAddToCart = (menuItem: MenuItem) => {
     const cartItem: CartItem = {
@@ -77,7 +90,7 @@ export default function MenuContent() {
     };
 
     addItem(cartItem);
-    toast.success(`${menuItem.name} added to cart!`);
+    // Toast is now handled in the store
   };
 
   const getCartQuantity = (itemId: string): number => {
@@ -88,7 +101,7 @@ export default function MenuContent() {
   const updateCartQuantity = (itemId: string, newQuantity: number) => {
     if (newQuantity <= 0) {
       removeItem(itemId);
-      toast.success('Item removed from cart');
+      // Toast is now handled in the store
     } else {
       updateQuantity(itemId, newQuantity);
     }
@@ -158,7 +171,7 @@ export default function MenuContent() {
               {categories.map((category) => (
                 <button
                   key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
+                  onClick={() => handleCategoryChange(category.id)}
                   className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${
                     selectedCategory === category.id
                       ? 'bg-neonCyan text-black font-semibold shadow-lg'
@@ -171,11 +184,7 @@ export default function MenuContent() {
                       variant="secondary"
                       className="bg-gray-600 text-gray-200 text-xs"
                     >
-                      {
-                        menuItems.filter(
-                          (item) => item.category_id === category.id
-                        ).length
-                      }
+                      {getCategoryItemCount(category.id)}
                     </Badge>
                   </div>
                 </button>
@@ -372,11 +381,11 @@ export default function MenuContent() {
                   <Button
                     className="w-full bg-gradient-to-r from-neonPink to-neonCyan text-black font-bold py-3 hover:scale-105 transition-transform"
                     onClick={() => {
-                      // Navigate to checkout
-                      window.location.href = '/checkout';
+                      // Navigate to orders page for now (checkout will be implemented later)
+                      window.location.href = '/orders';
                     }}
                   >
-                    Checkout
+                    View Orders
                   </Button>
                 </div>
               </>
