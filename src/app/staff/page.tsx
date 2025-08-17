@@ -74,7 +74,7 @@ export default function StaffPanel() {
       return;
     }
 
-    if (profile.role !== 'staff' && profile.role !== 'admin') {
+    if (!profile.is_staff && !profile.is_admin) {
       router.push('/');
       return;
     }
@@ -267,7 +267,7 @@ export default function StaffPanel() {
     );
   }
 
-  if (!profile || (profile.role !== 'staff' && profile.role !== 'admin')) {
+  if (!profile || (!profile.is_staff && !profile.is_admin)) {
     return (
       <div className="min-h-screen bg-darkBg flex items-center justify-center">
         <div className="text-center">
@@ -294,7 +294,7 @@ export default function StaffPanel() {
             Staff Panel
           </h1>
           <p className="text-gray-400">
-            Welcome, {profile.username || 'Staff Member'}! Manage orders,
+            Welcome, {profile.full_name || 'Staff Member'}! Manage orders,
             bookings, and requests.
           </p>
         </div>

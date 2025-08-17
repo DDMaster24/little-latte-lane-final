@@ -21,10 +21,11 @@ import { User, Session } from '@supabase/supabase-js';
 
 interface Profile {
   id: string;
-  role: string;
-  address: string | null;
-  phone: string | null;
-  username: string | null;
+  email: string;
+  phone_number: string | null;
+  full_name: string | null;
+  is_admin: boolean;
+  is_staff: boolean;
 }
 
 interface AuthContextType {
@@ -71,23 +72,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('id, role, address, phone, username')
+          .select('id, email, phone_number, full_name, is_admin, is_staff')
           .eq('id', userId)
           .single();
 
         if (error) {
           // If profile doesn't exist, create a default one
           if (error.code === 'PGRST116') {
+            // Get the user's email from auth
+            const { data: { user } } = await supabase.auth.getUser();
+            const userEmail = user?.email || '';
+
             const { data: newProfile, error: insertError } = await supabase
               .from('profiles')
               .insert({
                 id: userId,
-                role: 'customer',
-                address: null,
-                phone: null,
-                username: null,
+                email: userEmail,
+                phone_number: null,
+                full_name: null,
+                is_admin: false,
+                is_staff: false,
               })
-              .select('id, role, address, phone, username')
+              .select('id, email, phone_number, full_name, is_admin, is_staff')
               .single();
 
             return insertError ? null : newProfile;

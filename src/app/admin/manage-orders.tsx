@@ -64,7 +64,7 @@ export default function ManageOrders() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!profile || profile.role !== 'admin') {
+    if (!profile || !profile.is_admin) {
       router.push('/login');
       return;
     }

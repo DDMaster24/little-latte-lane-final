@@ -51,33 +51,26 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   useEffect(() => {
     if (profile && !hasLoadedProfileData) {
       console.log('🔄 Auto-populating checkout form from profile:', {
-        username: profile.username,
-        phone: profile.phone,
-        address: profile.address,
+        full_name: profile.full_name,
+        phone_number: profile.phone_number,
+        email: profile.email,
       });
 
       const fieldsPopulated = [];
 
       // Auto-populate phone number if available
-      if (profile.phone && profile.phone.trim()) {
-        setPhone(profile.phone);
+      if (profile.phone_number && profile.phone_number.trim()) {
+        setPhone(profile.phone_number);
         fieldsPopulated.push('phone number');
-        console.log('📱 Auto-populated phone:', profile.phone);
+        console.log('📱 Auto-populated phone:', profile.phone_number);
       }
 
-      // Auto-populate address if available
-      if (profile.address && profile.address.trim()) {
-        setAddress(profile.address);
-        // If user has a saved address, default to delivery
-        setDeliveryType('delivery');
-        fieldsPopulated.push('address');
-        console.log('🏠 Auto-populated address:', profile.address);
-        console.log('🚚 Auto-set delivery type to: delivery');
+      // Auto-populate full name if available
+      if (profile.full_name && profile.full_name.trim()) {
+        fieldsPopulated.push('name');
+        console.log('👤 Found saved name:', profile.full_name);
       }
 
-      setHasLoadedProfileData(true);
-
-      // Show user-friendly notification
       if (fieldsPopulated.length > 0) {
         toast.success(
           `✅ Filled in your saved ${fieldsPopulated.join(' and ')}!`,
@@ -149,10 +142,10 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         checkoutItems,
         total,
         deliveryType,
-        profile.username || 'customer@example.com',
+        profile.email || 'customer@example.com',
         {
-          firstName: profile.username?.split(' ')[0] || 'Customer',
-          lastName: profile.username?.split(' ').slice(1).join(' ') || 'User',
+          firstName: profile.full_name?.split(' ')[0] || 'Customer',
+          lastName: profile.full_name?.split(' ').slice(1).join(' ') || 'User',
           phone: validFormattedPhone,
           address: deliveryType === 'delivery' ? address : undefined,
         }
@@ -341,7 +334,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                       <p className="text-neon-blue text-sm">
                         {cart.length} items • R{total.toFixed(2)}
                       </p>
-                      {(profile?.phone || profile?.address) && (
+                      {(profile?.phone_number || profile?.full_name) && (
                         <div className="mt-2 pt-2 border-t border-neon-green/20">
                           <p className="text-xs text-neon-green/80 flex items-center gap-1">
                             ✨ Using your saved profile details
@@ -392,9 +385,9 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                               className="text-neon-green flex items-center gap-1"
                             >
                               Delivery Address *
-                              {profile?.address && (
+                              {profile?.full_name && (
                                 <span className="text-xs text-neon-green/60">
-                                  (from profile)
+                                  (saved name available)
                                 </span>
                               )}
                             </Label>
@@ -404,11 +397,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                               value={address}
                               onChange={(e) => setAddress(e.target.value)}
                               className="bg-black/70 border-neon-blue/50 text-neon-blue"
-                              placeholder={
-                                profile?.address
-                                  ? 'Your saved address'
-                                  : 'Enter your delivery address'
-                              }
+                              placeholder="Enter your delivery address"
                               autoComplete="off"
                               autoCorrect="off"
                               autoCapitalize="off"
@@ -426,7 +415,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                             className="text-neon-green flex items-center gap-1"
                           >
                             Phone Number *
-                            {profile?.phone && (
+                            {profile?.phone_number && (
                               <span className="text-xs text-neon-green/60">
                                 (from profile)
                               </span>
@@ -440,7 +429,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                             onChange={(e) => setPhone(e.target.value)}
                             className="bg-black/70 border-neon-blue/50 text-neon-blue"
                             placeholder={
-                              profile?.phone
+                              profile?.phone_number
                                 ? 'Your saved phone number'
                                 : '082 345 6789'
                             }
@@ -512,13 +501,11 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                       itemName={`Little Latte Lane Order #${orderId}`}
                       itemDescription={getItemDescription()}
                       userDetails={{
-                        email: profile?.username
-                          ? `${profile.username}@example.com`
-                          : undefined,
+                        email: profile?.email || undefined,
                         firstName:
-                          profile?.username?.split(' ')[0] || 'Customer',
+                          profile?.full_name?.split(' ')[0] || 'Customer',
                         lastName:
-                          profile?.username?.split(' ').slice(1).join(' ') ||
+                          profile?.full_name?.split(' ').slice(1).join(' ') ||
                           'User',
                         phone: formatSouthAfricanPhone(phone) || phone,
                         deliveryType,
