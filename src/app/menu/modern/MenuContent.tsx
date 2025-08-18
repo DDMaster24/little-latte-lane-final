@@ -29,9 +29,11 @@ import {
 } from '@/components/LoadingComponents';
 import { type MenuItem } from '@/lib/dataClient';
 import PizzaCustomizationPanel from '@/components/PizzaCustomizationPanel';
+import CartSidebar from '@/components/CartSidebar';
 
 export default function MenuContent() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
@@ -394,10 +396,7 @@ export default function MenuContent() {
 
                   <Button
                     className="w-full bg-gradient-to-r from-neonPink to-neonCyan text-black font-bold py-3 hover:scale-105 transition-transform"
-                    onClick={() => {
-                      // Open cart sidebar for checkout
-                      window.dispatchEvent(new CustomEvent('toggleCart'));
-                    }}
+                    onClick={() => setIsCartOpen(true)}
                   >
                     Checkout
                   </Button>
@@ -407,6 +406,12 @@ export default function MenuContent() {
           </div>
         </div>
       </div>
+
+      {/* Cart Sidebar */}
+      <CartSidebar 
+        isOpen={isCartOpen} 
+        onClose={() => setIsCartOpen(false)} 
+      />
     </div>
   );
 }
