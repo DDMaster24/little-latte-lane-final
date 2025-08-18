@@ -22,6 +22,7 @@ interface Profile {
   id: string;
   full_name: string | null;
   phone: string | null;
+  address: string | null;
   is_admin: boolean;
   is_staff: boolean;
   created_at: string;
@@ -74,7 +75,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('id, full_name, phone, is_admin, is_staff, created_at, updated_at')
+          .select('id, full_name, phone, address, is_admin, is_staff, created_at, updated_at')
           .eq('id', userId)
           .single();
 
@@ -87,10 +88,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 id: userId,
                 full_name: null,
                 phone: null,
+                address: null,
                 is_admin: false,
                 is_staff: false,
               })
-              .select('id, full_name, phone, is_admin, is_staff, created_at, updated_at')
+              .select('id, full_name, phone, address, is_admin, is_staff, created_at, updated_at')
               .single();
 
             return insertError ? null : newProfile;

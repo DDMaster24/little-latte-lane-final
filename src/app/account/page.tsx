@@ -59,7 +59,7 @@ export default function AccountPage() {
     defaultValues: {
       full_name: profile?.full_name || '',
       phone: profile?.phone || '',
-      address: '',
+      address: profile?.address || '',
     },
   });
 
@@ -129,7 +129,7 @@ export default function AccountPage() {
       form.reset({
         full_name: profile.full_name || '',
         phone: profile.phone || '',
-        address: '',
+        address: profile.address || '',
       });
     }
   }, [profile, form]);
@@ -144,6 +144,7 @@ export default function AccountPage() {
         .update({
           full_name: data.full_name || null,
           phone: data.phone || null,
+          address: data.address || null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', session.user.id);
@@ -313,7 +314,7 @@ export default function AccountPage() {
                     <div>
                       <p className="text-sm text-gray-400">Address</p>
                       <p className="text-white font-medium">
-                        Not set
+                        {profile?.address || 'Not set'}
                       </p>
                     </div>
                   </div>
@@ -353,7 +354,13 @@ export default function AccountPage() {
                     <div>
                       <p className="text-sm text-gray-400">Member Since</p>
                       <p className="text-white font-medium">
-                        {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'Unknown'}
+                        {profile?.created_at 
+                          ? new Date(profile.created_at).toLocaleDateString('en-ZA', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })
+                          : 'Unknown'}
                       </p>
                     </div>
                   </div>
@@ -424,12 +431,11 @@ export default function AccountPage() {
                   <Input
                     id="address"
                     {...form.register('address')}
-                    placeholder="Enter your address (Coming soon - will be saved for checkout)"
+                    placeholder="Enter your full address"
                     className="bg-gray-700 border-gray-600 text-white focus:border-yellow-500"
-                    disabled
                   />
-                  <p className="text-xs text-gray-500">
-                    Address field will be available once database is updated
+                  <p className="text-xs text-gray-400">
+                    Your address will be auto-filled during checkout
                   </p>
                 </div>
                 <Button
