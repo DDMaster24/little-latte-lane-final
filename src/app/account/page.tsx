@@ -45,10 +45,11 @@ interface Order {
 interface ProfileUpdate {
   full_name: string;
   phone: string;
+  address: string;
 }
 
 export default function AccountPage() {
-  const { session, profile, user } = useAuth();
+  const { session, profile, user, refreshProfile } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
@@ -58,6 +59,7 @@ export default function AccountPage() {
     defaultValues: {
       full_name: profile?.full_name || '',
       phone: profile?.phone || '',
+      address: '',
     },
   });
 
@@ -127,6 +129,7 @@ export default function AccountPage() {
       form.reset({
         full_name: profile.full_name || '',
         phone: profile.phone || '',
+        address: '',
       });
     }
   }, [profile, form]);
@@ -141,13 +144,14 @@ export default function AccountPage() {
         .update({
           full_name: data.full_name || null,
           phone: data.phone || null,
+          updated_at: new Date().toISOString(),
         })
         .eq('id', session.user.id);
 
       if (error) throw error;
 
-      // Refresh the profile data to show updated information
-      await fetchData();
+      // Refresh profile data to show updates immediately
+      await refreshProfile();
 
       toast.success('Profile updated successfully!');
     } catch (error) {
@@ -304,6 +308,15 @@ export default function AccountPage() {
                       </p>
                     </div>
                   </div>
+                  <div className="flex items-center gap-3">
+                    <User className="h-5 w-5 text-purple-400" />
+                    <div>
+                      <p className="text-sm text-gray-400">Address</p>
+                      <p className="text-white font-medium">
+                        Not set
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
@@ -399,6 +412,25 @@ export default function AccountPage() {
                       className="bg-gray-700 border-gray-600 text-white focus:border-neonPink"
                     />
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="address"
+                    className="text-gray-300 flex items-center gap-2"
+                  >
+                    <User className="h-4 w-4" />
+                    Address
+                  </Label>
+                  <Input
+                    id="address"
+                    {...form.register('address')}
+                    placeholder="Enter your address (Coming soon - will be saved for checkout)"
+                    className="bg-gray-700 border-gray-600 text-white focus:border-yellow-500"
+                    disabled
+                  />
+                  <p className="text-xs text-gray-500">
+                    Address field will be available once database is updated
+                  </p>
                 </div>
                 <Button
                   type="submit"

@@ -39,6 +39,7 @@ interface AuthContextType {
 
   // Actions
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -47,6 +48,7 @@ const AuthContext = createContext<AuthContextType>({
   profile: null,
   loading: true,
   signOut: async () => {},
+  refreshProfile: async () => {},
 });
 
 interface AuthProviderProps {
@@ -171,6 +173,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     await supabase.auth.signOut();
   }, [supabase.auth]);
 
+  // Manual refresh profile method
+  const refreshProfile = useCallback(async () => {
+    if (session?.user?.id) {
+      const userProfile = await fetchProfile(session.user.id);
+      setProfile(userProfile);
+    }
+  }, [session, fetchProfile]);
+
   // Don't render children until mounted (prevents hydration mismatch)
   if (!mounted) {
     return <div suppressHydrationWarning>{children}</div>;
@@ -182,6 +192,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     profile,
     loading,
     signOut,
+    refreshProfile,
   };
 
   return (
