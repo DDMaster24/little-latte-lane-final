@@ -73,6 +73,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const fetchProfile = useCallback(
     async (userId: string): Promise<Profile | null> => {
       try {
+        console.log('🔍 AuthProvider: Fetching profile for user:', userId);
         const { data, error } = await supabase
           .from('profiles')
           .select('id, full_name, phone, address, is_admin, is_staff, created_at, updated_at')
@@ -80,8 +81,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
           .single();
 
         if (error) {
+          console.error('❌ AuthProvider: Profile fetch error:', error);
           // If profile doesn't exist, create a default one
           if (error.code === 'PGRST116') {
+            console.log('📝 AuthProvider: Creating new profile...');
             const { data: newProfile, error: insertError } = await supabase
               .from('profiles')
               .insert({
@@ -95,13 +98,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
               .select('id, full_name, phone, address, is_admin, is_staff, created_at, updated_at')
               .single();
 
-            return insertError ? null : newProfile;
+            if (insertError) {
+              console.error('❌ AuthProvider: Profile creation error:', insertError);
+              return null;
+            }
+            console.log('✅ AuthProvider: New profile created:', newProfile);
+            return newProfile;
           }
           return null;
         }
 
+        console.log('✅ AuthProvider: Profile fetched successfully:', data);
         return data;
-      } catch {
+      } catch (err) {
+        console.error('❌ AuthProvider: Unexpected error:', err);
         return null;
       }
     },
@@ -178,8 +188,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Manual refresh profile method
   const refreshProfile = useCallback(async () => {
     if (session?.user?.id) {
+      console.log('🔄 AuthProvider: Refreshing profile for user:', session.user.id);
       const userProfile = await fetchProfile(session.user.id);
+      console.log('✅ AuthProvider: New profile data:', userProfile);
       setProfile(userProfile);
+    } else {
+      console.log('❌ AuthProvider: No session or user ID for refresh');
     }
   }, [session, fetchProfile]);
 

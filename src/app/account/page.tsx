@@ -135,11 +135,18 @@ export default function AccountPage() {
   }, [profile, form]);
 
   const handleProfileUpdate = async (data: ProfileUpdate) => {
-    if (!session) return;
+    if (!session) {
+      toast.error('No session found');
+      return;
+    }
     setIsSaving(true);
 
     try {
-      const { error } = await supabase
+      console.log('🔄 Starting profile update...');
+      console.log('- User ID:', session.user.id);
+      console.log('- Update data:', data);
+
+      const { data: updateResult, error } = await supabase
         .from('profiles')
         .update({
           full_name: data.full_name || null,
@@ -147,17 +154,25 @@ export default function AccountPage() {
           address: data.address || null,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', session.user.id);
+        .eq('id', session.user.id)
+        .select('*')
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Update error:', error);
+        throw error;
+      }
+
+      console.log('✅ Update successful:', updateResult);
 
       // Refresh profile data to show updates immediately
+      console.log('🔄 Refreshing profile...');
       await refreshProfile();
 
       toast.success('Profile updated successfully!');
     } catch (error) {
-      console.error('Profile update error:', error);
-      toast.error('Failed to update profile');
+      console.error('❌ Profile update error:', error);
+      toast.error(`Failed to update profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSaving(false);
     }
