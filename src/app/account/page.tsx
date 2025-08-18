@@ -13,18 +13,19 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import {
   User,
   Mail,
   Phone,
-  Calendar,
+  MapPin,
   ShoppingBag,
   Clock,
   Receipt,
+  Edit2,
+  Save,
+  X,
 } from 'lucide-react';
 
 interface Order {
@@ -42,25 +43,24 @@ interface Order {
   }[];
 }
 
-interface ProfileUpdate {
-  full_name: string;
-  phone: string;
-  address: string;
+// Inline editing state
+interface EditingField {
+  field: 'full_name' | 'phone' | 'address' | null;
+  value: string;
+  saving: boolean;
 }
 
 export default function AccountPage() {
   const { session, profile, user, refreshProfile } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(true);
-
-  const form = useForm<ProfileUpdate>({
-    defaultValues: {
-      full_name: profile?.full_name || '',
-      phone: profile?.phone || '',
-      address: profile?.address || '',
-    },
+  const [activeTab, setActiveTab] = useState('profile');
+  
+  // Inline editing state
+  const [editingField, setEditingField] = useState<EditingField>({
+    field: null,
+    value: '',
+    saving: false,
   });
 
   const fetchData = useCallback(async () => {
@@ -123,96 +123,83 @@ export default function AccountPage() {
     return;
   }, [session, fetchData]);
 
-  // Update form defaults when profile loads
-  useEffect(() => {
-    if (profile) {
-      form.reset({
-        full_name: profile.full_name || '',
-        phone: profile.phone || '',
-        address: profile.address || '',
-      });
-    }
-  }, [profile, form]);
+  // Inline editing functions
+  const startEditing = (field: 'full_name' | 'phone' | 'address') => {
+    const currentValue = field === 'full_name' ? profile?.full_name || '' :
+                        field === 'phone' ? profile?.phone || '' :
+                        profile?.address || '';
+    
+    setEditingField({
+      field,
+      value: currentValue,
+      saving: false,
+    });
+  };
 
-  const handleProfileUpdate = async (data: ProfileUpdate) => {
-    if (!session) {
-      toast.error('No session found');
-      return;
-    }
-    setIsSaving(true);
+  const cancelEditing = () => {
+    setEditingField({
+      field: null,
+      value: '',
+      saving: false,
+    });
+  };
+
+  const saveField = async () => {
+    if (!session || !editingField.field) return;
+    
+    setEditingField(prev => ({ ...prev, saving: true }));
 
     try {
-      console.log('🔄 Starting profile update...');
-      console.log('- User ID:', session.user.id);
-      console.log('- User Email:', session.user.email);
-      console.log('- Update data:', data);
+      console.log('🔄 Updating field:', editingField.field, 'to:', editingField.value);
 
-      // First, check if profile exists
-      const { data: existingProfile, error: checkError } = await supabase
+      // Check if profile exists first
+      const { error: checkError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
         .single();
 
+      const updateData = {
+        [editingField.field]: editingField.value || null,
+        updated_at: new Date().toISOString(),
+      };
+
       if (checkError && checkError.code === 'PGRST116') {
-        console.log('📝 Profile does not exist, creating new profile...');
-        // Create profile first
-        const { data: newProfile, error: createError } = await supabase
+        // Create profile if it doesn't exist
+        const { error: createError } = await supabase
           .from('profiles')
           .insert({
             id: session.user.id,
             email: session.user.email,
-            full_name: data.full_name || null,
-            phone: data.phone || null,
-            address: data.address || null,
+            ...updateData,
             is_admin: false,
             is_staff: false,
-          })
-          .select('*')
-          .single();
+          });
 
-        if (createError) {
-          console.error('❌ Profile creation error:', createError);
-          throw createError;
-        }
-        console.log('✅ Profile created successfully:', newProfile);
-        toast.success('Profile created and updated successfully!');
+        if (createError) throw createError;
+        toast.success(`${editingField.field.replace('_', ' ')} saved successfully!`);
       } else if (checkError) {
-        console.error('❌ Profile check error:', checkError);
         throw checkError;
       } else {
-        console.log('✅ Profile exists, updating...', existingProfile);
         // Update existing profile
-        const { data: updateResult, error: updateError } = await supabase
+        const { error: updateError } = await supabase
           .from('profiles')
-          .update({
-            full_name: data.full_name || null,
-            phone: data.phone || null,
-            address: data.address || null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', session.user.id)
-          .select('*')
-          .single();
+          .update(updateData)
+          .eq('id', session.user.id);
 
-        if (updateError) {
-          console.error('❌ Update error:', updateError);
-          throw updateError;
-        }
-
-        console.log('✅ Update successful:', updateResult);
-        toast.success('Profile updated successfully!');
+        if (updateError) throw updateError;
+        toast.success(`${editingField.field.replace('_', ' ')} updated successfully!`);
       }
 
-      // Refresh profile data to show updates immediately
-      console.log('🔄 Refreshing profile...');
+      // Refresh profile and exit editing mode
       await refreshProfile();
+      cancelEditing();
 
     } catch (error) {
-      console.error('❌ Profile update error:', error);
-      toast.error(`Failed to update profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('❌ Field update error:', error);
+      toast.error(`Failed to update ${editingField.field.replace('_', ' ')}`);
     } finally {
-      setIsSaving(false);
+      setEditingField(prev => ({ ...prev, saving: false }));
     }
   };
 
@@ -289,12 +276,11 @@ export default function AccountPage() {
           </p>
         </div>
 
-        {/* Navigation Tabs - Moved to top */}
+        {/* Navigation Tabs */}
         <div className="flex space-x-1 bg-gray-800 p-1 rounded-lg">
           {[
-            { id: 'profile', label: 'Profile Information', icon: User },
+            { id: 'profile', label: 'My Profile', icon: User },
             { id: 'orders', label: 'Order History', icon: Receipt },
-            { id: 'update', label: 'Update Account', icon: Calendar },
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -317,10 +303,10 @@ export default function AccountPage() {
             <CardHeader>
               <CardTitle className="text-neonCyan flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Profile Information
+                My Profile
               </CardTitle>
               <CardDescription>
-                Your current account information
+                Click the edit button next to any field to update your information
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -337,9 +323,10 @@ export default function AccountPage() {
                 </div>
               </div>
 
-              {/* Current Info Display */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-gray-700 rounded-lg">
-                <div className="space-y-4">
+              {/* Inline Editable Fields */}
+              <div className="space-y-6">
+                {/* Email (Read-only) */}
+                <div className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
                   <div className="flex items-center gap-3">
                     <Mail className="h-5 w-5 text-neonCyan" />
                     <div>
@@ -347,39 +334,174 @@ export default function AccountPage() {
                       <p className="text-white font-medium">{user?.email}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <User className="h-5 w-5 text-neonPink" />
-                    <div>
-                      <p className="text-sm text-gray-400">Full Name</p>
-                      <p className="text-white font-medium">
-                        {profile?.full_name || 'Not set'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-5 w-5 text-yellow-500" />
-                    <div>
-                      <p className="text-sm text-gray-400">Phone Number</p>
-                      <p className="text-white font-medium">
-                        {profile?.phone || 'Not set'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <User className="h-5 w-5 text-purple-400" />
-                    <div>
-                      <p className="text-sm text-gray-400">Address</p>
-                      <p className="text-white font-medium">
-                        {profile?.address || 'Not set'}
-                      </p>
-                    </div>
-                  </div>
+                  <Badge variant="outline" className="border-gray-500 text-gray-400">
+                    Cannot be changed
+                  </Badge>
                 </div>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
+
+                {/* Full Name - Inline Editable */}
+                <div className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
+                  <div className="flex items-center gap-3 flex-1">
+                    <User className="h-5 w-5 text-neonPink" />
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-400">Full Name</p>
+                      {editingField.field === 'full_name' ? (
+                        <div className="flex items-center gap-2 mt-1">
+                          <Input
+                            value={editingField.value}
+                            onChange={(e) => setEditingField(prev => ({ ...prev, value: e.target.value }))}
+                            className="bg-gray-600 border-gray-500 text-white focus:border-neonPink"
+                            placeholder="Enter your full name"
+                            disabled={editingField.saving}
+                          />
+                          <Button
+                            size="sm"
+                            onClick={saveField}
+                            disabled={editingField.saving}
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            {editingField.saving ? <Clock className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={cancelEditing}
+                            disabled={editingField.saving}
+                            className="border-gray-500 text-gray-400 hover:bg-gray-600"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <p className="text-white font-medium">
+                          {profile?.full_name || 'Not set'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  {editingField.field !== 'full_name' && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => startEditing('full_name')}
+                      className="border-neonPink text-neonPink hover:bg-neonPink hover:text-black"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+
+                {/* Phone Number - Inline Editable */}
+                <div className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
+                  <div className="flex items-center gap-3 flex-1">
+                    <Phone className="h-5 w-5 text-yellow-500" />
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-400">Phone Number</p>
+                      {editingField.field === 'phone' ? (
+                        <div className="flex items-center gap-2 mt-1">
+                          <Input
+                            value={editingField.value}
+                            onChange={(e) => setEditingField(prev => ({ ...prev, value: e.target.value }))}
+                            className="bg-gray-600 border-gray-500 text-white focus:border-yellow-500"
+                            placeholder="Enter your phone number"
+                            type="tel"
+                            disabled={editingField.saving}
+                          />
+                          <Button
+                            size="sm"
+                            onClick={saveField}
+                            disabled={editingField.saving}
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            {editingField.saving ? <Clock className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={cancelEditing}
+                            disabled={editingField.saving}
+                            className="border-gray-500 text-gray-400 hover:bg-gray-600"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <p className="text-white font-medium">
+                          {profile?.phone || 'Not set'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  {editingField.field !== 'phone' && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => startEditing('phone')}
+                      className="border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+
+                {/* Address - Inline Editable */}
+                <div className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
+                  <div className="flex items-center gap-3 flex-1">
+                    <MapPin className="h-5 w-5 text-purple-400" />
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-400">Address</p>
+                      {editingField.field === 'address' ? (
+                        <div className="flex items-center gap-2 mt-1">
+                          <Input
+                            value={editingField.value}
+                            onChange={(e) => setEditingField(prev => ({ ...prev, value: e.target.value }))}
+                            className="bg-gray-600 border-gray-500 text-white focus:border-purple-400"
+                            placeholder="Enter your full address"
+                            disabled={editingField.saving}
+                          />
+                          <Button
+                            size="sm"
+                            onClick={saveField}
+                            disabled={editingField.saving}
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            {editingField.saving ? <Clock className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={cancelEditing}
+                            disabled={editingField.saving}
+                            className="border-gray-500 text-gray-400 hover:bg-gray-600"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <p className="text-white font-medium">
+                          {profile?.address || 'Not set'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  {editingField.field !== 'address' && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => startEditing('address')}
+                      className="border-purple-400 text-purple-400 hover:bg-purple-400 hover:text-black"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+
+                {/* Account Info (Read-only) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+                  <div className="flex items-center gap-3 p-4 bg-gray-700 rounded-lg">
                     <Badge
                       variant="outline"
-                      className={`${profile?.is_admin ? 'border-red-500 text-red-400' : profile?.is_staff ? 'border-yellow-500 text-yellow-400' : 'border-green-500 text-green-400'} h-fit`}
+                      className={`${profile?.is_admin ? 'border-red-500 text-red-400' : profile?.is_staff ? 'border-yellow-500 text-yellow-400' : 'border-green-500 text-green-400'}`}
                     >
                       <User className="h-4 w-4 mr-2" />
                       {profile?.is_admin
@@ -388,24 +510,8 @@ export default function AccountPage() {
                           ? 'Staff Member'
                           : 'Customer'}
                     </Badge>
-                    <div>
-                      <p className="text-sm text-gray-400">Account Role</p>
-                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Clock className="h-5 w-5 text-purple-500" />
-                    <div>
-                      <p className="text-sm text-gray-400">Account Type</p>
-                      <p className="text-white font-medium">
-                        {profile?.is_admin
-                          ? 'Administrator'
-                          : profile?.is_staff
-                            ? 'Staff Member'
-                            : 'Customer'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 p-4 bg-gray-700 rounded-lg">
                     <Clock className="h-5 w-5 text-purple-500" />
                     <div>
                       <p className="text-sm text-gray-400">Member Since</p>
@@ -422,86 +528,6 @@ export default function AccountPage() {
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {activeTab === 'update' && (
-          <Card className="bg-gray-800 border-gray-600">
-            <CardHeader>
-              <CardTitle className="text-yellow-500 flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Update Account Information
-              </CardTitle>
-              <CardDescription>
-                Update your personal information and preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Update Form */}
-              <form
-                onSubmit={form.handleSubmit(handleProfileUpdate)}
-                className="space-y-4"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="full_name"
-                      className="text-gray-300 flex items-center gap-2"
-                    >
-                      <User className="h-4 w-4" />
-                      Full Name
-                    </Label>
-                    <Input
-                      id="full_name"
-                      {...form.register('full_name')}
-                      placeholder="Enter your full name"
-                      className="bg-gray-700 border-gray-600 text-white focus:border-neonCyan"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="phone"
-                      className="text-gray-300 flex items-center gap-2"
-                    >
-                      <Phone className="h-4 w-4" />
-                      Phone Number
-                    </Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      {...form.register('phone')}
-                      placeholder="Enter your phone number"
-                      className="bg-gray-700 border-gray-600 text-white focus:border-neonPink"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="address"
-                    className="text-gray-300 flex items-center gap-2"
-                  >
-                    <User className="h-4 w-4" />
-                    Address
-                  </Label>
-                  <Input
-                    id="address"
-                    {...form.register('address')}
-                    placeholder="Enter your full address"
-                    className="bg-gray-700 border-gray-600 text-white focus:border-yellow-500"
-                  />
-                  <p className="text-xs text-gray-400">
-                    Your address will be auto-filled during checkout
-                  </p>
-                </div>
-                <Button
-                  type="submit"
-                  disabled={isSaving}
-                  className="neon-button w-full md:w-auto"
-                >
-                  {isSaving ? 'Saving...' : 'Update Profile'}
-                </Button>
-              </form>
             </CardContent>
           </Card>
         )}
