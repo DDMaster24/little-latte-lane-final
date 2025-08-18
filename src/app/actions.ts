@@ -25,8 +25,10 @@ export async function updateUserProfile(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     console.log('🔧 Server action: Updating profile field', field, 'for user', userId);
+    console.log('🔧 Server action: New value:', value);
     
     const supabase = await getSupabaseServer();
+    console.log('🔧 Server action: Got Supabase server client');
 
     // Check if profile exists
     const { data: _existingProfile, error: checkError } = await supabase
@@ -35,9 +37,15 @@ export async function updateUserProfile(
       .eq('id', userId)
       .single();
 
+    console.log('🔧 Server action: Profile check result:', { 
+      exists: !checkError, 
+      error: checkError?.message,
+      code: checkError?.code 
+    });
+
     if (checkError && checkError.code === 'PGRST116') {
       // Profile doesn't exist, create it first
-      console.log('📝 Creating new profile for user:', userId);
+      console.log('📝 Server action: Creating new profile for user:', userId);
       
       const { error: createError } = await supabase
         .from('profiles')
@@ -49,24 +57,26 @@ export async function updateUserProfile(
         });
 
       if (createError) {
-        console.error('❌ Error creating profile:', createError);
-        return { success: false, error: createError.message };
+        console.error('❌ Server action: Error creating profile:', createError);
+        return { success: false, error: `Create failed: ${createError.message}` };
       }
 
-      console.log('✅ Profile created successfully');
+      console.log('✅ Server action: Profile created successfully');
       return { success: true };
     }
 
     if (checkError) {
-      console.error('❌ Error checking profile:', checkError);
-      return { success: false, error: checkError.message };
+      console.error('❌ Server action: Error checking profile:', checkError);
+      return { success: false, error: `Check failed: ${checkError.message}` };
     }
 
     // Update existing profile
+    console.log('🔧 Server action: Updating existing profile...');
     const updateData = {
       [field]: value,
       updated_at: new Date().toISOString(),
     };
+    console.log('🔧 Server action: Update data:', updateData);
 
     const { error: updateError } = await supabase
       .from('profiles')
@@ -74,18 +84,18 @@ export async function updateUserProfile(
       .eq('id', userId);
 
     if (updateError) {
-      console.error('❌ Error updating profile:', updateError);
-      return { success: false, error: updateError.message };
+      console.error('❌ Server action: Error updating profile:', updateError);
+      return { success: false, error: `Update failed: ${updateError.message}` };
     }
 
-    console.log('✅ Profile updated successfully');
+    console.log('✅ Server action: Profile updated successfully');
     return { success: true };
 
   } catch (error) {
-    console.error('❌ Server action error:', error);
+    console.error('❌ Server action: Unexpected error:', error);
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+      error: `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}` 
     };
   }
 }
