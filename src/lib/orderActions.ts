@@ -21,21 +21,42 @@ export async function performCheckout(
   }
 ) {
   try {
-    // Verify user authentication
+    console.log('🔄 Starting checkout process for user:', userId);
+    
+    // Verify user authentication and session
     const {
       data: { user },
       error: authError,
     } = await supabase.auth.getUser();
 
+    // Get session separately
+    const { data: { session } } = await supabase.auth.getSession();
+
+    console.log('🔍 Auth check result:', {
+      user: user ? { id: user.id, email: user.email } : null,
+      session: session ? 'present' : 'missing',
+      authError: authError?.message,
+      expectedUserId: userId
+    });
+
     if (authError) {
+      console.error('❌ Auth error:', authError);
       throw new Error(`Authentication error: ${authError.message}`);
     }
 
-    if (!user || user.id !== userId) {
+    if (!user) {
+      console.error('❌ No user found in session');
+      throw new Error('Authentication error: Auth session missing!');
+    }
+
+    if (user.id !== userId) {
+      console.error('❌ User ID mismatch:', { sessionUserId: user.id, expectedUserId: userId });
       throw new Error(
         `Authentication mismatch: Please ensure you are logged in correctly`
       );
     }
+
+    console.log('✅ Authentication verified for user:', user.id);
 
     // Separate regular items from customized items (timestamp IDs are longer than regular IDs)
     const regularItems = items.filter((item) => String(item.id).length <= 10);
@@ -180,8 +201,6 @@ export async function performCheckout(
 // New function to handle payment confirmation and stock decrement
 export async function confirmPaymentAndDecrementStock(orderId: number) {
   try {
-    // Use the existing supabase client
-
     // Get order items - only those with menu_item_id (regular items, not customized)
     const { data: orderItems, error: orderItemsError } = await supabase
       .from('order_items')
