@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import AuthRequiredPrompt from '@/components/AuthRequiredPrompt';
 import { supabase } from '@/lib/supabaseClient';
+import { updateUserProfile } from '@/app/actions';
 import {
   Card,
   CardContent,
@@ -152,45 +153,19 @@ export default function AccountPage() {
     try {
       console.log('🔄 Updating field:', editingField.field, 'to:', editingField.value);
 
-      // Check if profile exists first
-      const { error: checkError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
+      // Use server action to update profile
+      const result = await updateUserProfile(
+        session.user.id,
+        editingField.field,
+        editingField.value || null
+      );
 
-      const updateData = {
-        [editingField.field]: editingField.value || null,
-        updated_at: new Date().toISOString(),
-      };
-
-      if (checkError && checkError.code === 'PGRST116') {
-        // Create profile if it doesn't exist
-        const { error: createError } = await supabase
-          .from('profiles')
-          .insert({
-            id: session.user.id,
-            email: session.user.email,
-            ...updateData,
-            is_admin: false,
-            is_staff: false,
-          });
-
-        if (createError) throw createError;
-        toast.success(`${editingField.field.replace('_', ' ')} saved successfully!`);
-      } else if (checkError) {
-        throw checkError;
-      } else {
-        // Update existing profile
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update(updateData)
-          .eq('id', session.user.id);
-
-        if (updateError) throw updateError;
-        toast.success(`${editingField.field.replace('_', ' ')} updated successfully!`);
+      if (!result.success) {
+        throw new Error(result.error || 'Update failed');
       }
 
+      toast.success(`${editingField.field.replace('_', ' ')} updated successfully!`);
+      
       // Refresh profile and exit editing mode
       await refreshProfile();
       cancelEditing();
