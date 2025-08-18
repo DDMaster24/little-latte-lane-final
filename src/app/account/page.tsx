@@ -144,32 +144,70 @@ export default function AccountPage() {
     try {
       console.log('🔄 Starting profile update...');
       console.log('- User ID:', session.user.id);
+      console.log('- User Email:', session.user.email);
       console.log('- Update data:', data);
 
-      const { data: updateResult, error } = await supabase
+      // First, check if profile exists
+      const { data: existingProfile, error: checkError } = await supabase
         .from('profiles')
-        .update({
-          full_name: data.full_name || null,
-          phone: data.phone || null,
-          address: data.address || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', session.user.id)
         .select('*')
+        .eq('id', session.user.id)
         .single();
 
-      if (error) {
-        console.error('❌ Update error:', error);
-        throw error;
-      }
+      if (checkError && checkError.code === 'PGRST116') {
+        console.log('📝 Profile does not exist, creating new profile...');
+        // Create profile first
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            id: session.user.id,
+            email: session.user.email,
+            full_name: data.full_name || null,
+            phone: data.phone || null,
+            address: data.address || null,
+            is_admin: false,
+            is_staff: false,
+          })
+          .select('*')
+          .single();
 
-      console.log('✅ Update successful:', updateResult);
+        if (createError) {
+          console.error('❌ Profile creation error:', createError);
+          throw createError;
+        }
+        console.log('✅ Profile created successfully:', newProfile);
+        toast.success('Profile created and updated successfully!');
+      } else if (checkError) {
+        console.error('❌ Profile check error:', checkError);
+        throw checkError;
+      } else {
+        console.log('✅ Profile exists, updating...', existingProfile);
+        // Update existing profile
+        const { data: updateResult, error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            full_name: data.full_name || null,
+            phone: data.phone || null,
+            address: data.address || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', session.user.id)
+          .select('*')
+          .single();
+
+        if (updateError) {
+          console.error('❌ Update error:', updateError);
+          throw updateError;
+        }
+
+        console.log('✅ Update successful:', updateResult);
+        toast.success('Profile updated successfully!');
+      }
 
       // Refresh profile data to show updates immediately
       console.log('🔄 Refreshing profile...');
       await refreshProfile();
 
-      toast.success('Profile updated successfully!');
     } catch (error) {
       console.error('❌ Profile update error:', error);
       toast.error(`Failed to update profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -245,6 +283,9 @@ export default function AccountPage() {
           <p className="text-gray-400">
             Welcome back,{' '}
             {profile?.full_name || user?.email?.split('@')[0] || 'Customer'}!
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            User ID: {session?.user?.id} | Email: {session?.user?.email}
           </p>
         </div>
 
