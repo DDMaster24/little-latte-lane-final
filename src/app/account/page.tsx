@@ -15,14 +15,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import {
   User,
   Mail,
   Phone,
-  MapPin,
   Calendar,
   ShoppingBag,
   Clock,
@@ -46,8 +44,7 @@ interface Order {
 }
 
 interface ProfileUpdate {
-  username: string;
-  address: string;
+  full_name: string;
   phone: string;
 }
 
@@ -60,8 +57,7 @@ export default function AccountPage() {
 
   const form = useForm<ProfileUpdate>({
     defaultValues: {
-      username: profile?.username || '',
-      address: profile?.address || '',
+      full_name: profile?.full_name || '',
       phone: profile?.phone || '',
     },
   });
@@ -130,8 +126,7 @@ export default function AccountPage() {
   useEffect(() => {
     if (profile) {
       form.reset({
-        username: profile.username || '',
-        address: profile.address || '',
+        full_name: profile.full_name || '',
         phone: profile.phone || '',
       });
     }
@@ -145,10 +140,8 @@ export default function AccountPage() {
       const { error } = await supabase
         .from('profiles')
         .update({
-          username: data.username || null,
-          address: data.address || null,
+          full_name: data.full_name || null,
           phone: data.phone || null,
-          updated_at: new Date().toISOString(),
         })
         .eq('id', session.user.id);
 
@@ -232,7 +225,7 @@ export default function AccountPage() {
           </h1>
           <p className="text-gray-400">
             Welcome back,{' '}
-            {profile?.username || user?.email?.split('@')[0] || 'Customer'}!
+            {profile?.full_name || user?.email?.split('@')[0] || 'Customer'}!
           </p>
         </div>
 
@@ -276,7 +269,7 @@ export default function AccountPage() {
                 <div className="relative">
                   <div className="w-[120px] h-[120px] rounded-full bg-gradient-to-br from-neonCyan to-neonPink flex items-center justify-center border-4 border-neonCyan shadow-lg">
                     <span className="text-black font-bold text-4xl">
-                      {(profile?.username || user?.email || 'U')
+                      {(profile?.full_name || user?.email || 'U')
                         .charAt(0)
                         .toUpperCase()}
                     </span>
@@ -297,9 +290,9 @@ export default function AccountPage() {
                   <div className="flex items-center gap-3">
                     <User className="h-5 w-5 text-neonPink" />
                     <div>
-                      <p className="text-sm text-gray-400">Display Name</p>
+                      <p className="text-sm text-gray-400">Full Name</p>
                       <p className="text-white font-medium">
-                        {profile?.username || 'Not set'}
+                        {profile?.full_name || 'Not set'}
                       </p>
                     </div>
                   </div>
@@ -317,13 +310,14 @@ export default function AccountPage() {
                   <div className="flex items-center gap-3">
                     <Badge
                       variant="outline"
-                      className={`${profile?.role === 'admin' ? 'border-red-500 text-red-400' : profile?.role === 'staff' ? 'border-yellow-500 text-yellow-400' : 'border-green-500 text-green-400'} h-fit`}
+                      className={`${profile?.is_admin ? 'border-red-500 text-red-400' : profile?.is_staff ? 'border-yellow-500 text-yellow-400' : 'border-green-500 text-green-400'} h-fit`}
                     >
                       <User className="h-4 w-4 mr-2" />
-                      {profile?.role
-                        ? profile.role.charAt(0).toUpperCase() +
-                          profile.role.slice(1)
-                        : 'Customer'}
+                      {profile?.is_admin
+                        ? 'Administrator'
+                        : profile?.is_staff
+                          ? 'Staff Member'
+                          : 'Customer'}
                     </Badge>
                     <div>
                       <p className="text-sm text-gray-400">Account Role</p>
@@ -334,19 +328,20 @@ export default function AccountPage() {
                     <div>
                       <p className="text-sm text-gray-400">Account Type</p>
                       <p className="text-white font-medium">
-                        {profile?.role
-                          ? profile.role.charAt(0).toUpperCase() +
-                            profile.role.slice(1)
-                          : 'Customer'}
+                        {profile?.is_admin
+                          ? 'Administrator'
+                          : profile?.is_staff
+                            ? 'Staff Member'
+                            : 'Customer'}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <MapPin className="h-5 w-5 text-orange-500" />
+                    <Clock className="h-5 w-5 text-purple-500" />
                     <div>
-                      <p className="text-sm text-gray-400">Address</p>
+                      <p className="text-sm text-gray-400">Member Since</p>
                       <p className="text-white font-medium">
-                        {profile?.address || 'Not set'}
+                        {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'Unknown'}
                       </p>
                     </div>
                   </div>
@@ -376,16 +371,16 @@ export default function AccountPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label
-                      htmlFor="username"
+                      htmlFor="full_name"
                       className="text-gray-300 flex items-center gap-2"
                     >
                       <User className="h-4 w-4" />
-                      Display Name
+                      Full Name
                     </Label>
                     <Input
-                      id="username"
-                      {...form.register('username')}
-                      placeholder="Enter your display name"
+                      id="full_name"
+                      {...form.register('full_name')}
+                      placeholder="Enter your full name"
                       className="bg-gray-700 border-gray-600 text-white focus:border-neonCyan"
                     />
                   </div>
@@ -405,22 +400,6 @@ export default function AccountPage() {
                       className="bg-gray-700 border-gray-600 text-white focus:border-neonPink"
                     />
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="address"
-                    className="text-gray-300 flex items-center gap-2"
-                  >
-                    <MapPin className="h-4 w-4" />
-                    Address
-                  </Label>
-                  <Textarea
-                    id="address"
-                    {...form.register('address')}
-                    placeholder="Enter your full address"
-                    className="bg-gray-700 border-gray-600 text-white focus:border-yellow-500"
-                    rows={3}
-                  />
                 </div>
                 <Button
                   type="submit"

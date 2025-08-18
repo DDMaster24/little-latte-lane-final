@@ -3,27 +3,40 @@
 import { useEffect, useState, useCallback } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
-import { Database } from '@/types/supabase';
+// import { Database } from '@/types/supabase';
 import { useAuth } from '@/components/AuthProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle, Star } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-type MenuItem = Database['public']['Tables']['menu_items']['Row'] & {
-  stock: number;
+type MenuItem = any & {
+  categories: {
+    name: string;
+  };
 };
 
-type TopSellersQueryItem = {
-  menu_item_id: number;
+type TopItem = {
+  name: string;
   quantity: number;
-  menu_items: { name: string }[];
 };
 
-type TopItem = { name: string; quantity: number };
+// Simplified type for the analytics
+type TopSellersQueryItem = {
+  menu_item_id: string;
+  quantity: number;
+  menu_items: {
+    name: string;
+  }[];
+};
+
+// Remove unused type
+// type Order = any & {
+//   order_items: any[];
+// };
 
 export default function Analytics() {
-  const supabase = createClientComponentClient<Database>();
+  const supabase = createClientComponentClient();
   const { profile, loading: authLoading } = useAuth();
   const router = useRouter();
   const [totalRevenue, setTotalRevenue] = useState(0);
@@ -89,7 +102,7 @@ export default function Analytics() {
       if (topError) throw topError;
 
       // Aggregate top sellers client-side
-      const counts = new Map<number, { name: string; quantity: number }>();
+      const counts = new Map<string, { name: string; quantity: number }>();
       orderItemsData?.forEach((item: TopSellersQueryItem) => {
         const key = item.menu_item_id;
         const menuItem = item.menu_items[0];

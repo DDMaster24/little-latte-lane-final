@@ -163,18 +163,28 @@ Critical production settings:
 4. **Reject scope drift** - if request doesn't match contract, suggest updating contract first
 5. **Reference contract sections** in all responses to maintain alignment
 
-### Database Schema Reference
-**ALWAYS check `DATABASE-SCHEMA.md` BEFORE any database operations:**
-- Contains LIVE database schema (not TypeScript assumptions)
-- Updated August 17, 2025 from actual database audit
-- Exact column names, types, and relationships
-- Prevents wasted time on incorrect assumptions
+### Live Database Reference - NO MORE STATIC FILES!
+**ALWAYS use LIVE database connection for database operations:**
+- NO MORE static SQL files or schema documentation
+- Use the live Supabase connection to get current state
+- TypeScript types in `src/types/supabase.ts` are auto-generated from live DB
+- Create database test scripts when needed (then delete them)
+- **RULE**: If it's not in the live database, it doesn't exist!
 
 ### Critical Files Priority Order
-1. **`PROJECT-CONTRACT.md`** - Single source of truth for project status
-2. **`DATABASE-SCHEMA.md`** - Single source of truth for database structure  
-3. **`src/types/supabase.ts`** - Generated types (auto-updated from database)
+1. **`PROJECT-CONTRACT.md`** - SINGLE source of truth for project status and database contracts
+2. **Live Supabase Database** - SINGLE source of truth for actual database structure  
+3. **`src/types/supabase.ts`** - Generated types (auto-updated from live database)
 4. **`.github/copilot-instructions.md`** - This file (development patterns)
+
+### Database Development Protocol
+**When working with database:**
+1. **Connect to live Supabase** using environment variables in `.env.local`
+2. **Query actual tables** to see current structure and data
+3. **Never trust static files** - they are always outdated
+4. **Update PROJECT-CONTRACT.md** with any findings
+5. **Regenerate TypeScript types** after any schema changes
+6. **Delete temporary scripts** after use
 
 ### Contract Update Protocol
 When completing ANY development work:

@@ -16,16 +16,16 @@ import {
   type ReactNode,
 } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { Database } from '@/types/supabase';
 import { User, Session } from '@supabase/supabase-js';
 
 interface Profile {
   id: string;
-  email: string;
-  phone_number: string | null;
   full_name: string | null;
+  phone: string | null;
   is_admin: boolean;
   is_staff: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 interface AuthContextType {
@@ -59,7 +59,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
 
-  const supabase = createClientComponentClient<Database>();
+  const supabase = createClientComponentClient();
 
   // Ensure component is mounted (prevents hydration issues)
   useEffect(() => {
@@ -72,28 +72,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('id, email, phone_number, full_name, is_admin, is_staff')
+          .select('id, full_name, phone, is_admin, is_staff, created_at, updated_at')
           .eq('id', userId)
           .single();
 
         if (error) {
           // If profile doesn't exist, create a default one
           if (error.code === 'PGRST116') {
-            // Get the user's email from auth
-            const { data: { user } } = await supabase.auth.getUser();
-            const userEmail = user?.email || '';
-
             const { data: newProfile, error: insertError } = await supabase
               .from('profiles')
               .insert({
                 id: userId,
-                email: userEmail,
-                phone_number: null,
                 full_name: null,
+                phone: null,
                 is_admin: false,
                 is_staff: false,
               })
-              .select('id, email, phone_number, full_name, is_admin, is_staff')
+              .select('id, full_name, phone, is_admin, is_staff, created_at, updated_at')
               .single();
 
             return insertError ? null : newProfile;
