@@ -81,12 +81,12 @@ export default function KitchenDashboard() {
       .select('*, order_items(*)')
       .in('status', ['pending', 'preparing'])
       .order('created_at', { ascending: true });
-    setOrders(data || []);
+    setOrders(data || [] as Order[]);
   };
 
   const fetchMenuItems = async () => {
     const { data } = await supabase.from('menu_items').select('*');
-    setMenuItems(data || []);
+    setMenuItems(data || [] as MenuItem[]);
   };
 
   const getItemName = (id: number) => {

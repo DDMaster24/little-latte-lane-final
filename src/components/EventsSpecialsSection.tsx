@@ -54,7 +54,7 @@ export default function EventsSpecialsSection() {
       if (error) {
         console.error('Error fetching events:', error);
       } else {
-        setEvents(data || []);
+        setEvents(data || [] as Event[]);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -118,7 +118,7 @@ export default function EventsSpecialsSection() {
         <p className="text-neonText text-lg">
           No current events or specials. Check back soon for exciting updates!
         </p>
-        {profile?.role === 'admin' && (
+        {profile?.is_admin && (
           <p className="text-neon-blue text-sm mt-4">
             Admin: Use the Admin Panel to add events and specials
           </p>
@@ -179,7 +179,7 @@ export default function EventsSpecialsSection() {
         ))}
       </div>
 
-      {profile?.role === 'admin' && (
+      {profile?.is_admin && (
         <div className="mt-8 text-center">
           <Button
             className="bg-neon-blue text-black hover:bg-neon-blue/80"

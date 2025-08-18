@@ -83,8 +83,7 @@ export default function ManageOrders() {
             *,
             menu_items:menu_item_id (name, price)
           ),
-          profiles!user_id (username),
-          assigned_staff:profiles!assigned_staff_id (username)
+          profiles!user_id (full_name)
         `
         )
         .order('created_at', { ascending: false });
@@ -95,7 +94,7 @@ export default function ManageOrders() {
         return;
       }
 
-      setOrders(ordersData || []);
+      setOrders((ordersData || []) as unknown as Order[]);
       setIsLoading(false);
     };
 
@@ -123,14 +122,13 @@ export default function ManageOrders() {
                   *,
                   menu_items:menu_item_id (name, price)
                 ),
-                profiles!user_id (username),
-                assigned_staff:profiles!assigned_staff_id (username)
+                profiles!user_id (full_name)
               `
               )
               .eq('id', payload.new.id)
               .single()
               .then(({ data }) => {
-                if (data) setOrders((prev) => [data, ...prev]);
+                if (data) setOrders((prev) => [data as unknown as Order, ...prev]);
               });
           } else if (payload.eventType === 'UPDATE') {
             setOrders((prev) =>
@@ -243,9 +241,9 @@ export default function ManageOrders() {
                 <TableCell>{order.id.toString().slice(0, 8)}...</TableCell>
                 <TableCell>{order.profiles.full_name}</TableCell>
                 <TableCell>R{order.total_amount?.toFixed(2) ?? '0.00'}</TableCell>
-                <TableCell>{order.order_type}</TableCell>
+                <TableCell>{order.order_number}</TableCell>
                 <TableCell>
-                  {new Date(order.created_at).toLocaleString()}
+                  {new Date(order.created_at || new Date()).toLocaleString()}
                 </TableCell>
                 <TableCell>
                   {order.order_items.map((item, idx) => (
@@ -271,7 +269,7 @@ export default function ManageOrders() {
                                 : 'bg-red-500/20 text-red-300'
                     }
                   >
-                    {order.status.replace('_', ' ')}
+                    {(order.status || '').replace('_', ' ')}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -302,7 +300,7 @@ export default function ManageOrders() {
                     <DropdownMenuContent className="bg-black/90 border-neon-green/50">
                       <DropdownMenuItem className="p-0">
                         <Select
-                          value={order.status}
+                          value={order.status || ''}
                           onValueChange={(value) =>
                             handleUpdateStatus(
                               order.id,

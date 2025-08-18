@@ -63,7 +63,7 @@ export default function ManageEvents() {
   });
 
   useEffect(() => {
-    if (profile?.role === 'admin') {
+    if (profile?.is_admin) {
       fetchEvents();
     }
   }, [profile]);
@@ -125,9 +125,9 @@ export default function ManageEvents() {
       title: event.title,
       description: event.description || '',
       type: (event.event_type || 'special') as 'event' | 'special' | 'news' | 'promotion',
-      start_date: event.start_date,
+      start_date: event.start_date || '',
       end_date: event.end_date || '',
-      is_active: event.is_active,
+      is_active: event.is_active || false,
     });
     setIsModalOpen(true);
   };
@@ -210,7 +210,7 @@ export default function ManageEvents() {
     }
   };
 
-  if (profile?.role !== 'admin') {
+  if (!profile?.is_admin) {
     return (
       <div className="text-center text-red-400">Access denied. Admin only.</div>
     );
@@ -396,7 +396,7 @@ export default function ManageEvents() {
                       {event.description}
                     </TableCell>
                     <TableCell className="text-gray-300 text-sm">
-                      {new Date(event.start_date).toLocaleDateString()}
+                      {event.start_date ? new Date(event.start_date).toLocaleDateString() : 'No date'}
                       {event.end_date && (
                         <> - {new Date(event.end_date).toLocaleDateString()}</>
                       )}
@@ -405,7 +405,7 @@ export default function ManageEvents() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => toggleActive(event.id, event.is_active)}
+                        onClick={() => toggleActive(event.id, event.is_active || false)}
                         className={
                           event.is_active ? 'text-green-400' : 'text-gray-500'
                         }

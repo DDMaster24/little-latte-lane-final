@@ -77,7 +77,7 @@ export default function ManageBookings() {
         return;
       }
 
-      setBookings(bookingsData || []);
+      setBookings((bookingsData || []) as Booking[]);
       setIsLoading(false);
     };
 
@@ -107,7 +107,7 @@ export default function ManageBookings() {
               .eq('id', payload.new.id)
               .single()
               .then(({ data }) => {
-                if (data) setBookings((prev) => [data, ...prev]);
+                if (data) setBookings((prev) => [data as Booking, ...prev]);
               });
           } else if (payload.eventType === 'UPDATE') {
             setBookings((prev) =>
@@ -219,7 +219,7 @@ export default function ManageBookings() {
               >
                 <TableCell>{booking.id.toString().slice(0, 8)}...</TableCell>
                 <TableCell>{booking.profiles.full_name}</TableCell>
-                <TableCell>{booking.booking_type}</TableCell>
+                <TableCell>{booking.booking_date}</TableCell>
                 <TableCell>
                   {new Date(booking.booking_date).toLocaleDateString()}
                 </TableCell>
@@ -249,7 +249,7 @@ export default function ManageBookings() {
                     <DropdownMenuContent className="bg-black/90 border-neon-green/50">
                       <DropdownMenuItem className="p-0">
                         <Select
-                          value={booking.status}
+                          value={booking.status || ''}
                           onValueChange={(value) =>
                             handleUpdateStatus(
                               booking.id,

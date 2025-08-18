@@ -100,7 +100,7 @@ export default function StaffPanel() {
       .in('status', ['pending', 'confirmed', 'preparing'])
       .order('created_at', { ascending: true });
 
-    setOrders(data || []);
+    setOrders(data || [] as Order[]);
   };
 
   const fetchBookings = async () => {
@@ -402,7 +402,7 @@ export default function StaffPanel() {
                       )}
 
                       <Select
-                        value={order.status}
+                        value={order.status || ''}
                         onValueChange={(value) =>
                           handleUpdateOrderStatus(order.id, value)
                         }
@@ -458,8 +458,8 @@ export default function StaffPanel() {
                             {booking.profiles?.full_name}
                           </p>
                           <p className="text-sm text-gray-400">
-                            {formatDateTime(booking.date, booking.time)} •{' '}
-                            {booking.number_of_people} people
+                            {formatDateTime(booking.date, booking.booking_time)} •{' '}
+                            {booking.party_size} people
                           </p>
                         </div>
                         <Badge
@@ -481,7 +481,7 @@ export default function StaffPanel() {
                       )}
 
                       <Select
-                        value={booking.status}
+                        value={booking.status || ''}
                         onValueChange={(value) =>
                           handleUpdateBookingStatus(booking.id, value)
                         }

@@ -96,8 +96,8 @@ export default function ManageMenu() {
       setIsRefreshing(true);
       const { data: cats } = await supabase.from('menu_categories').select();
       const { data: items } = await supabase.from('menu_items').select();
-      setCategories(cats || []);
-      setMenuItems(items || []);
+      setCategories(cats || [] as Category[]);
+      setMenuItems(items || [] as MenuItem[]);
       if (showToast) {
         toast.success('Data refreshed successfully!');
       }

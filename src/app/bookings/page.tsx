@@ -86,7 +86,7 @@ export default function BookingsPage() {
   // Check if a date/time is already booked
   const isTimeSlotBooked = (date: Date) => {
     return existingBookings.some((booking) => {
-      const bookingDate = new Date(booking.date_time);
+      const bookingDate = new Date(booking.booking_date);
       return Math.abs(bookingDate.getTime() - date.getTime()) < 3600000; // Within 1 hour
     });
   };
@@ -260,7 +260,7 @@ export default function BookingsPage() {
                   {existingBookings.length > 0 ? (
                     <div className="space-y-3 max-h-96 overflow-y-auto">
                       {existingBookings.slice(0, 10).map((booking) => {
-                        const bookingDate = new Date(booking.date_time);
+                        const bookingDate = new Date(booking.booking_date);
                         return (
                           <div
                             key={booking.id}
@@ -282,7 +282,7 @@ export default function BookingsPage() {
                                 Booked
                               </p>
                               <p className="text-gray-400 text-xs">
-                                {booking.number_of_people} players
+                                {booking.party_size} players
                               </p>
                             </div>
                           </div>

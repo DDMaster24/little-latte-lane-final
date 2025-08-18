@@ -43,7 +43,7 @@ export default function ManageRequests() {
       .from('staff_requests')
       .select('*')
       .order('created_at', { ascending: false });
-    setRequests(data || []);
+    setRequests(data || [] as Request[]);
   };
 
   const handleApprove = async (id: number, itemId: number) => {
@@ -79,7 +79,7 @@ export default function ManageRequests() {
               <TableCell>{req.staff_id}</TableCell>
               <TableCell>{req.item_id}</TableCell>
               <TableCell>{req.message}</TableCell>
-              <TableCell>{new Date(req.created_at).toLocaleString()}</TableCell>
+              <TableCell>{new Date(req.created_at || new Date()).toLocaleString()}</TableCell>
               <TableCell>
                 <Button
                   onClick={() => handleApprove(req.id, req.item_id)}
