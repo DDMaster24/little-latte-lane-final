@@ -163,6 +163,24 @@ node debug-auth.js
 
 ## Deployment Notes
 
+### 🔄 AUTOMATIC DEPLOYMENT WORKFLOW
+**CRITICAL:** This project uses automatic deployment:
+- **Platform:** Vercel (Production)
+- **Trigger:** Every push to main branch automatically deploys
+- **No manual deployment needed** - just push to GitHub
+- **Repository:** DDMaster24/little-latte-lane
+- **Branch:** main → production
+
+```bash
+# To deploy changes:
+git add -A
+git commit -m "description"
+git push origin main
+# → Automatic Vercel deployment triggered
+```
+
+**NEVER run manual deployment commands** - the system handles it automatically.
+
 ### Environment Variables
 Critical production settings:
 - `SUPABASE_SERVICE_KEY` - Required for admin operations
