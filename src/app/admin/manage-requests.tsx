@@ -40,7 +40,7 @@ export default function ManageRequests() {
 
   const fetchRequests = async () => {
     const { data } = await supabase
-      .from('requests')
+      .from('staff_requests')
       .select('*')
       .order('created_at', { ascending: false });
     setRequests(data || []);
@@ -49,12 +49,12 @@ export default function ManageRequests() {
   const handleApprove = async (id: number, itemId: number) => {
     // Increase stock by 50 as example; adjust as needed
     await supabase.rpc('increment_stock', { item_id: itemId, amount: 50 });
-    await supabase.from('requests').delete().eq('id', id);
+    await supabase.from('staff_requests').delete().eq('id', id);
     fetchRequests();
   };
 
   const handleReject = async (id: number) => {
-    await supabase.from('requests').delete().eq('id', id);
+    await supabase.from('staff_requests').delete().eq('id', id);
     fetchRequests();
   };
 

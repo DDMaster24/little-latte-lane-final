@@ -1,5 +1,6 @@
-// CLIENT-SIDE ACTION - Use client auth instead of server auth
-import { supabase } from '@/lib/supabaseClient';
+// CLIENT-SIDE ACTION - Use the same client as AuthProvider for consistent auth state
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import type { Database } from '@/types/supabase';
 
 export async function performCheckout(
   userId: string,
@@ -11,7 +12,7 @@ export async function performCheckout(
     customization?: Record<string, unknown>; // Optional customization data - using proper typing
   }[],
   total: number,
-  deliveryType: string,
+  _deliveryType: string, // Not used in current schema but kept for API compatibility
   _email: string,
   _userDetails?: {
     firstName?: string;
@@ -22,6 +23,9 @@ export async function performCheckout(
 ) {
   try {
     console.log('🔄 Starting checkout process for user:', userId);
+    
+    // Create the same client instance as AuthProvider to ensure consistent auth state
+    const supabase = createClientComponentClient<Database>();
     
     // Verify user authentication and session
     const {
@@ -67,8 +71,7 @@ export async function performCheckout(
       .from('orders')
       .insert({
         user_id: userId,
-        total,
-        delivery_type: deliveryType,
+        total_amount: total,
         status: 'pending', // Pending status - will be confirmed after payment
         payment_status: 'pending',
       })
@@ -79,27 +82,27 @@ export async function performCheckout(
 
     const orderId = orderRecord.id;
 
-    // Check stock only for regular menu items (not customized)
+    // Check availability only for regular menu items (not customized)
     for (const item of regularItems) {
-      // Fetch current stock for the menu item
-      const { data: menuItem, error: stockError } = await supabase
+      // Fetch current availability for the menu item
+      const { data: menuItem, error: availabilityError } = await supabase
         .from('menu_items')
-        .select('stock, name')
+        .select('is_available, name')
         .eq('id', item.id)
         .single();
 
-      if (stockError) {
-        throw new Error(`Failed to check stock for item ${item.id}: ${stockError.message}`);
+      if (availabilityError) {
+        throw new Error(`Failed to check availability for item ${item.id}: ${availabilityError.message}`);
       }
 
       if (!menuItem) {
         throw new Error(`Menu item with ID ${item.id} not found in database`);
       }
 
-      // Check if enough stock
-      if (menuItem.stock < item.quantity) {
+      // Check if item is available
+      if (!menuItem.is_available) {
         throw new Error(
-          `Insufficient stock for ${menuItem.name}. Available: ${menuItem.stock}, Requested: ${item.quantity}`
+          `${menuItem.name} is currently unavailable`
         );
       }
     }
@@ -128,7 +131,7 @@ export async function performCheckout(
         order_id: orderId,
         menu_item_id: item.id,
         quantity: item.quantity,
-        unit_price: unitPrice,
+        price: unitPrice,
       });
     }
 
@@ -143,8 +146,8 @@ export async function performCheckout(
         order_id: orderId,
         menu_item_id: null, // Customized items don't reference a menu item
         quantity: item.quantity,
-        unit_price: unitPrice, // Use the actual price from the cart
-        customization: JSON.stringify({
+        price: unitPrice, // Use the actual price from the cart
+        special_instructions: JSON.stringify({
           type: 'pizza',
           customized_id: item.id,
           name: cartItem?.name || 'Custom Pizza',
@@ -198,47 +201,61 @@ export async function performCheckout(
   }
 }
 
-// New function to handle payment confirmation and stock decrement
-export async function confirmPaymentAndDecrementStock(orderId: number) {
+// New function to handle payment confirmation with stock management
+export async function confirmPaymentAndDecrementStock(orderId: string) {
   try {
-    // Get order items - only those with menu_item_id (regular items, not customized)
-    const { data: orderItems, error: orderItemsError } = await supabase
-      .from('order_items')
-      .select('menu_item_id, quantity')
-      .eq('order_id', orderId)
-      .not('menu_item_id', 'is', null); // Only get items that have a menu_item_id
+    // Use the same client instance as AuthProvider for consistency
+    const supabase = createClientComponentClient<Database>();
+    
+    // Update order status to confirmed and payment status to completed
+    const { error: updateError } = await supabase
+      .from('orders')
+      .update({ 
+        status: 'confirmed',
+        payment_status: 'completed',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', orderId);
 
-    if (orderItemsError || !orderItems) {
-      throw new Error('Failed to fetch order items');
+    if (updateError) {
+      throw updateError;
     }
 
-    // Decrement stock for each regular menu item (customized items don't have stock)
-    for (const item of orderItems) {
-      const { data: menuItem, error: stockError } = await supabase
-        .from('menu_items')
-        .select('stock')
-        .eq('id', item.menu_item_id)
-        .single();
+    // Note: Stock management would be implemented here if we had inventory table
+    // For now, just confirm payment
+    return { success: true };
+  } catch (err: unknown) {
+    console.error('Payment confirmation error:', err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Unknown error',
+    };
+  }
+}
 
-      if (stockError || !menuItem) {
-        throw new Error(`Failed to fetch stock for item ${item.menu_item_id}`);
-      }
+// New function to handle payment confirmation 
+export async function confirmPaymentAndUpdateStatus(orderId: string) {
+  try {
+    // Use the same client instance as AuthProvider for consistency
+    const supabase = createClientComponentClient<Database>();
+    
+    // Update order status to confirmed and payment status to completed
+    const { error: updateError } = await supabase
+      .from('orders')
+      .update({ 
+        status: 'confirmed',
+        payment_status: 'completed',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', orderId);
 
-      const newStock = menuItem.stock - item.quantity;
-
-      const { error: updateError } = await supabase
-        .from('menu_items')
-        .update({ stock: newStock })
-        .eq('id', item.menu_item_id);
-
-      if (updateError) {
-        throw updateError;
-      }
+    if (updateError) {
+      throw updateError;
     }
 
     return { success: true };
   } catch (err: unknown) {
-    console.error('Stock decrement error:', err);
+    console.error('Payment confirmation error:', err);
     return {
       success: false,
       error: err instanceof Error ? err.message : 'Unknown error',

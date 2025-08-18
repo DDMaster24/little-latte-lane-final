@@ -99,12 +99,12 @@ export default function Header() {
           <Link href="/account" className="neon-button">
             My Account
           </Link>
-          {user && profile?.role === 'admin' && (
+          {user && profile?.is_admin && (
             <Link href="/admin" className="neon-button">
               Admin Panel
             </Link>
           )}
-          {user && profile?.role === 'staff' && (
+          {user && (profile?.is_staff || profile?.is_admin) && (
             <Link href="/staff" className="neon-button">
               Staff Panel
             </Link>
@@ -120,7 +120,7 @@ export default function Header() {
             <div className="relative">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neonCyan to-neonPink flex items-center justify-center border-2 border-neonCyan shadow-neon">
                 <span className="text-black font-bold text-sm">
-                  {(profile?.username || user.email || 'U')
+                  {(profile?.full_name || user.email || 'U')
                     .charAt(0)
                     .toUpperCase()}
                 </span>
@@ -129,7 +129,7 @@ export default function Header() {
             <div className="flex flex-col text-sm">
               <span className="text-gray-400">Signed in as</span>
               <span className="text-white font-medium">
-                {profile?.username || user.email}
+                {profile?.full_name || user.email}
               </span>
             </div>
             <Button onClick={signOut} className="neon-button bg-neonPink ml-2">
@@ -196,7 +196,7 @@ export default function Header() {
           >
             👤 My Account
           </Link>
-          {user && profile?.role === 'admin' && (
+          {user && profile?.is_admin && (
             <Link
               href="/admin"
               className="neon-button mx-4 text-center py-3 hover:bg-neonPink/10 rounded-lg transition-all duration-300"
@@ -205,7 +205,7 @@ export default function Header() {
               ⚙️ Admin Panel
             </Link>
           )}
-          {user && profile?.role === 'staff' && (
+          {user && (profile?.is_staff || profile?.is_admin) && (
             <Link
               href="/staff"
               className="neon-button mx-4 text-center py-3 hover:bg-neonBlue/10 rounded-lg transition-all duration-300"
@@ -222,11 +222,11 @@ export default function Header() {
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-neonCyan to-neonPink flex items-center justify-center">
                     <span className="text-black font-bold text-xs">
-                      {(profile?.username || user.email || 'U').charAt(0).toUpperCase()}
+                      {(profile?.full_name || user.email || 'U').charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <span className="text-sm text-neonText">
-                    {profile?.username || user.email}
+                    {profile?.full_name || user.email}
                   </span>
                 </div>
                 <Button 

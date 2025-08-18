@@ -9,7 +9,7 @@ export * from './orders';
 export * from './auth';
 export * from './bookings';
 export * from './admin';
-export * from './inventory';
+// Note: inventory table doesn't exist in current database
 
 // Re-export the unified Supabase client
 export { getSupabaseClient, getSupabaseServer, getSupabaseAdmin } from '../supabase';

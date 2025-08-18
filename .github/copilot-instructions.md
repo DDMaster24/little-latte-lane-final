@@ -37,6 +37,39 @@ Use centralized query classes in `src/lib/queries/`:
 - **Helper functions**: `public.is_staff_or_admin()` for RLS policies
 - **Critical**: Never query auth.users directly - always use profiles table
 
+## MANDATORY: Live Database Protocol - NO STATIC FILES!
+
+### 🚨 CRITICAL RULE: Always Use Live Database Connection
+**NEVER reference SQL files, migration files, or static schema documentation!**
+
+### Database Development Protocol - LIVE ONLY!
+**When working with database:**
+1. **Connect to live Supabase** using environment variables in `.env.local`
+2. **Query actual tables** to see current structure and data using Supabase CLI:
+   ```bash
+   # Get complete schema
+   supabase db dump --schema=public --data-only=false
+   
+   # Generate fresh TypeScript types
+   supabase gen types typescript --project-id awytuszmunxvthuizyur > src/types/supabase.ts
+   ```
+3. **Never trust static files** - they are always outdated and incorrect
+4. **Test database operations** immediately on live connection
+5. **Update TypeScript types** after any schema inspection: `npm run db:generate-types`
+6. **Delete temporary scripts** after use - keep nothing static!
+
+### What NOT to Do:
+- ❌ **NO static SQL files** - delete them if found
+- ❌ **NO migration file references** - they're often wrong
+- ❌ **NO static schema documentation** - always outdated
+- ❌ **NO assumptions about database structure** - always verify live
+
+### Live Database Connection Details:
+- **Production Supabase**: `https://awytuszmunxvthuizyur.supabase.co`
+- **Environment File**: `.env.local` (contains live credentials)
+- **Schema Access**: Via Supabase CLI and direct queries only
+- **TypeScript Types**: Auto-generated from live database in `src/types/supabase.ts`
+
 ## PayFast Integration Specifics
 
 ### Signature Generation
@@ -158,18 +191,20 @@ Critical production settings:
    - Active phase objectives and scope
    - Technical constraints and requirements
    - Database schema and API contracts
-2. **Reference** `DATABASE-SCHEMA.md` for exact database structure
+2. **Connect to live database** for exact database structure verification
 3. **Validate** that ANY requested work aligns with contract scope
 4. **Reject scope drift** - if request doesn't match contract, suggest updating contract first
 5. **Reference contract sections** in all responses to maintain alignment
 
 ### Live Database Reference - NO MORE STATIC FILES!
 **ALWAYS use LIVE database connection for database operations:**
-- NO MORE static SQL files or schema documentation
-- Use the live Supabase connection to get current state
+- **NEVER reference static SQL files** - they are always outdated and wrong
+- **NEVER reference migration files** - they don't reflect current state
+- **NEVER reference DATABASE-SCHEMA.md** - it has been deleted for being incorrect
+- Use the live Supabase connection to get current state via `supabase db dump`
 - TypeScript types in `src/types/supabase.ts` are auto-generated from live DB
 - Create database test scripts when needed (then delete them)
-- **RULE**: If it's not in the live database, it doesn't exist!
+- **GOLDEN RULE**: If it's not in the live database, it doesn't exist!
 
 ### Critical Files Priority Order
 1. **`PROJECT-CONTRACT.md`** - SINGLE source of truth for project status and database contracts
@@ -180,10 +215,10 @@ Critical production settings:
 ### Database Development Protocol
 **When working with database:**
 1. **Connect to live Supabase** using environment variables in `.env.local`
-2. **Query actual tables** to see current structure and data
-3. **Never trust static files** - they are always outdated
+2. **Use `supabase db dump --schema=public --data-only=false`** to see current structure
+3. **Never trust any static files** - they are always outdated and incorrect
 4. **Update PROJECT-CONTRACT.md** with any findings
-5. **Regenerate TypeScript types** after any schema changes
+5. **Regenerate TypeScript types** after any schema changes: `supabase gen types typescript --project-id awytuszmunxvthuizyur > src/types/supabase.ts`
 6. **Delete temporary scripts** after use
 
 ### Contract Update Protocol
@@ -237,6 +272,16 @@ When completing ANY development work:
 - `src/components/` - Reusable UI components
 - `src/lib/queries/` - Centralized database operations
 - `src/stores/` - Zustand state management
-- `sql/` - Database migrations and scripts
-- `*.sql` files in root - Database management utilities
+- **NO SQL FILES** - Use live database connection only via Supabase CLI
+- **NO STATIC SCHEMAS** - Always query live database for current structure
 - `PROJECT-CONTRACT.md` - **CRITICAL**: Current phase tracking and scope definition
+
+## Development Discipline
+
+- **Live Database Only** - Never reference static SQL files or migration files
+- **Contract is single source of truth** - if it's not in the contract, it's not approved
+- **Always verify schema** using `supabase db dump --schema=public --data-only=false`
+- **Regenerate types** after schema inspection: `supabase gen types typescript --project-id awytuszmunxvthuizyur > src/types/supabase.ts`
+- **Update contract BEFORE coding** new features
+- **Test on live database** immediately after any database changes
+- **No assumptions** - always verify current database state

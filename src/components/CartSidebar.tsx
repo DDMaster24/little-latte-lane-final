@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { X, ShoppingCart, Plus, Minus, Trash2 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { performCheckout } from '@/lib/orderActions';
 import PayFastPayment from '@/components/PayFastPayment';
 import {
@@ -35,14 +35,14 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
   const total = useCartStore((state) => state.total());
-  const { profile } = useAuth();
+    const { user, profile } = useAuth();
 
   const [deliveryType, setDeliveryType] = useState<'delivery' | 'pickup'>(
     'delivery'
   );
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
-  const [orderId, setOrderId] = useState<number | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [step, setStep] = useState<'cart' | 'checkout'>('cart');
   const [hasLoadedProfileData, setHasLoadedProfileData] = useState(false);
@@ -125,6 +125,9 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
     }
 
     setIsCreatingOrder(true);
+    
+    // Show loading toast
+    toast.loading('Creating your order...', { id: 'create-order' });
 
     try {
       // Transform cart items to match the expected interface
@@ -141,7 +144,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         checkoutItems,
         total,
         deliveryType,
-        'customer@example.com',
+        user?.email || 'customer@example.com',
         {
           firstName: profile.full_name?.split(' ')[0] || 'Customer',
           lastName: profile.full_name?.split(' ').slice(1).join(' ') || 'User',
@@ -152,16 +155,21 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
 
       if (result.success && result.orderId) {
         setOrderId(result.orderId);
-        toast.success('Order created! Ready for payment.');
+        toast.success('Order created! Ready for payment.', { id: 'create-order' });
         // Payment will be handled in the same checkout step
       } else {
         toast.error(
-          'Error creating order: ' + (result.error || 'Unknown error')
+          'Error creating order: ' + (result.error || 'Unknown error'),
+          { id: 'create-order' }
         );
       }
     } catch (error) {
       console.error('Exception in handleCreateOrder:', error);
-      toast.error('Error creating order: ' + (error as Error).message);
+      toast.error(
+        'Failed to create order: ' + 
+        (error instanceof Error ? error.message : 'Unknown error'),
+        { id: 'create-order' }
+      );
     } finally {
       setIsCreatingOrder(false);
     }
@@ -500,7 +508,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                       itemName={`Little Latte Lane Order #${orderId}`}
                       itemDescription={getItemDescription()}
                       userDetails={{
-                        email: 'customer@example.com',
+                        email: user?.email || 'customer@example.com',
                         firstName:
                           profile?.full_name?.split(' ')[0] || 'Customer',
                         lastName:

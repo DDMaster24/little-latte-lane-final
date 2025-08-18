@@ -28,18 +28,17 @@ import {
 } from 'lucide-react';
 
 interface Order {
-  id: number;
-  status: string;
-  total: number;
-  delivery_type: string;
-  created_at: string;
-  special_instructions?: string;
-  payment_status: string;
+  id: string;  // UUID in database
+  status: string | null;
+  total_amount: number | null;  // Database field name
+  created_at: string | null;
+  special_instructions?: string | null;
+  payment_status: string | null;
   order_items: {
-    menu_item_id: number;
+    menu_item_id: string | null;  // UUID in database
     quantity: number;
-    unit_price: number;
-    menu_items?: { name: string };
+    price: number;  // Database field name
+    menu_items?: { name: string } | null;
   }[];
 }
 
@@ -76,7 +75,7 @@ export default function AccountPage() {
           order_items (
             menu_item_id,
             quantity,
-            unit_price,
+            price,
             menu_items (name)
           )
         `
@@ -446,20 +445,18 @@ export default function AccountPage() {
                             Order #{order.id}
                           </h4>
                           <p className="text-sm text-gray-400">
-                            {formatDateTime(order.created_at)} •{' '}
-                            {order.delivery_type.charAt(0).toUpperCase() +
-                              order.delivery_type.slice(1)}
+                            {order.created_at ? formatDateTime(order.created_at) : 'Date unknown'}
+                            • Pickup
                           </p>
                         </div>
                         <div className="text-right">
                           <Badge
-                            className={`${getStatusColor(order.status)} mb-2`}
+                            className={`${getStatusColor(order.status || 'pending')} mb-2`}
                           >
-                            {order.status.charAt(0).toUpperCase() +
-                              order.status.slice(1)}
+                            {order.status ? (order.status.charAt(0).toUpperCase() + order.status.slice(1)) : 'Unknown'}
                           </Badge>
                           <p className="text-lg font-bold text-white">
-                            R{order.total.toFixed(2)}
+                            R{order.total_amount?.toFixed(2) || '0.00'}
                           </p>
                         </div>
                       </div>
@@ -479,7 +476,7 @@ export default function AccountPage() {
                               × {item.quantity}
                             </span>
                             <span className="text-white">
-                              R{(item.unit_price * item.quantity).toFixed(2)}
+                              R{(item.price * item.quantity).toFixed(2)}
                             </span>
                           </div>
                         ))}

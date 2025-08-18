@@ -42,44 +42,15 @@ export default function BookingsPage() {
   async function fetchGolfSettings() {
     setIsLoadingSettings(true);
     try {
-      const { data, error } = await supabase
-        .from('settings')
-        .select('*')
-        .eq('key', 'virtual_golf')
-        .single();
+      // TODO: Implement settings storage solution
+      // Virtual golf settings currently disabled - no settings table in database
+      const defaultSettings = {
+        enabled: false,
+        comingSoonMessage:
+          "Virtual Golf Coming Soon! 🏌️‍♂️\n\nWe're putting the finishing touches on our state-of-the-art virtual golf simulator. Stay tuned for an amazing golf experience!",
+      };
 
-      if (error) {
-        console.log('Settings table error or no data found:', error.message);
-        // If settings don't exist, create default and use fallback
-        const defaultSettings = {
-          enabled: false,
-          comingSoonMessage:
-            "Virtual Golf Coming Soon! 🏌️‍♂️\n\nWe're putting the finishing touches on our state-of-the-art virtual golf simulator. Stay tuned for an amazing golf experience!",
-        };
-
-        setGolfSettings(defaultSettings);
-
-        // Try to create the settings entry
-        const { data: _newSettings, error: insertError } = await supabase
-          .from('settings')
-          .insert({
-            key: 'virtual_golf',
-            value: JSON.stringify(defaultSettings),
-          })
-          .select()
-          .single();
-
-        if (insertError) {
-          console.log('Could not create settings entry:', insertError.message);
-        }
-      } else if (data) {
-        // Check if data.value is already an object (JSONB) or a string
-        if (typeof data.value === 'string') {
-          setGolfSettings(JSON.parse(data.value));
-        } else {
-          setGolfSettings(data.value);
-        }
-      }
+      setGolfSettings(defaultSettings);
     } catch (err) {
       console.error('Error in fetchGolfSettings:', err);
       // Fallback to default settings

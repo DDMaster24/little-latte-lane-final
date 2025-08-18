@@ -8,15 +8,14 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/supabase';
 
-// Consistent type definitions
+// Consistent type definitions matching actual database schema
 export interface Category {
   id: string;  // UUID in our database
   name: string;
   description: string | null;
-  image_url: string | null;
-  display_order: number;  // Changed from sort_order
-  is_active: boolean;
-  created_at: string;
+  display_order: number | null;  // Can be null in database
+  is_active: boolean | null;     // Can be null in database
+  created_at: string | null;
 }
 
 export interface MenuItem {
@@ -26,9 +25,9 @@ export interface MenuItem {
   price: number;
   category_id: string | null;  // UUID in our database
   image_url: string | null;
-  is_available: boolean;
-  created_at: string;
-  updated_at: string;
+  is_available: boolean | null;  // Can be null in database
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 // Response wrapper for consistent API responses
@@ -153,7 +152,7 @@ export class DataClient {
 
   // Fetch menu items with proper error handling and caching
   async getMenuItems(
-    categoryId?: number,
+    categoryId?: string,  // Fixed: UUIDs are strings, not numbers
     useCache = true
   ): Promise<DataResponse<MenuItem[]>> {
     const cacheKey = `menu-items-${categoryId || 'all'}`;

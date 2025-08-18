@@ -55,7 +55,7 @@ export default function MenuCategory() {
       try {
         // Fetch category info
         const { data: categoryData } = await supabase
-          .from('categories')
+          .from('menu_categories')
           .select('name, description')
           .eq('id', categoryId)
           .single();

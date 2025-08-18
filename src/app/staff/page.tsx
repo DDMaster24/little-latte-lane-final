@@ -25,31 +25,30 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
 interface Order {
-  id: number;
-  user_id: string;
-  status: string;
-  total: number;
-  delivery_type: string;
-  special_instructions?: string;
-  created_at: string;
+  id: string;
+  user_id: string | null;
+  status: string | null;
+  total_amount: number | null;
+  special_instructions: string | null;
+  created_at: string | null;
   order_items: {
-    menu_item_id: number;
+    menu_item_id: string | null;
     quantity: number;
-    menu_items: { name: string };
+    menu_items: { name: string } | null;
   }[];
-  profiles: { username: string };
+  profiles: { full_name: string | null } | null;
 }
 
 interface Booking {
-  id: number;
-  user_id: string;
-  type: string;
-  date: string;
-  time: string;
-  number_of_people: number;
-  status: string;
-  special_requests?: string;
-  profiles: { username: string };
+  id: string;
+  user_id: string | null;
+  booking_date: string;
+  booking_time: string;
+  party_size: number;
+  status: string | null;
+  special_requests: string | null;
+  created_at: string | null;
+  profiles: { full_name: string | null } | null;
 }
 
 interface StockRequest {
@@ -95,7 +94,7 @@ export default function StaffPanel() {
           quantity,
           menu_items (name)
         ),
-        profiles (username)
+        profiles (full_name)
       `
       )
       .in('status', ['pending', 'confirmed', 'preparing'])
@@ -110,7 +109,7 @@ export default function StaffPanel() {
       .select(
         `
         *,
-        profiles (username)
+        profiles (full_name)
       `
       )
       .in('status', ['pending', 'confirmed'])
@@ -208,11 +207,10 @@ export default function StaffPanel() {
       return;
     }
 
-    const { error } = await supabase.from('requests').insert({
-      staff_id: profile?.id,
-      type: 'inventory',
-      title: `Stock Request: ${data.item_name}`,
-      description: data.description,
+    const { error } = await supabase.from('staff_requests').insert({
+      user_id: profile?.id,
+      request_type: 'inventory',
+      message: `Stock Request: ${data.item_name} - ${data.description}`,
       priority: data.priority || 'medium',
       status: 'pending',
     });
@@ -365,7 +363,7 @@ export default function StaffPanel() {
                             Order #{order.id}
                           </h4>
                           <p className="text-sm text-gray-400">
-                            {order.profiles?.username} •{' '}
+                            {order.profiles?.full_name} •{' '}
                             {formatDateTime(order.created_at)}
                           </p>
                           <p className="text-sm text-gray-400">
@@ -457,7 +455,7 @@ export default function StaffPanel() {
                             Booking #{booking.id}
                           </h4>
                           <p className="text-sm text-gray-400">
-                            {booking.profiles?.username}
+                            {booking.profiles?.full_name}
                           </p>
                           <p className="text-sm text-gray-400">
                             {formatDateTime(booking.date, booking.time)} •{' '}

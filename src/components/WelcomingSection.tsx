@@ -19,7 +19,7 @@ import {
 
 export default function WelcomingSection() {
   const { user, profile } = useAuth();
-  const username = profile?.username || user?.email?.split('@')[0] || '';
+  const username = profile?.full_name || user?.email?.split('@')[0] || '';
   const [currentIndex, setCurrentIndex] = useState(2); // Start with center card (Virtual Golf)
 
   const carouselItems = [

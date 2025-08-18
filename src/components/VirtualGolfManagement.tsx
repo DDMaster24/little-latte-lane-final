@@ -32,37 +32,15 @@ export default function VirtualGolfManagement() {
   async function fetchSettings() {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('settings')
-        .select('*')
-        .eq('key', 'virtual_golf')
-        .single();
-
-      if (data) {
-        // Check if data.value is already an object (JSONB) or a string that needs parsing
-        let parsedSettings;
-        if (typeof data.value === 'string') {
-          parsedSettings = JSON.parse(data.value);
-        } else {
-          // data.value is already an object from JSONB
-          parsedSettings = data.value;
-        }
-        setSettings(parsedSettings);
-      } else if (error) {
-        // If table doesn't exist or no data, use default settings
-        const defaultSettings = {
-          enabled: false,
-          comingSoonMessage:
-            '🏌️‍♂️ Virtual Golf Coming Soon! Stay tuned for an exciting new experience at Little Latte Lane.',
-        };
-        console.log('🔧 Using default settings:', defaultSettings);
-        setSettings(defaultSettings);
-
-        // Show user-friendly message
-        toast.error(
-          'Settings table not found. Please contact your administrator to set up the database.'
-        );
-      }
+      // TODO: Implement settings storage solution
+      // Virtual golf settings currently disabled - no settings table in database
+      const defaultSettings = {
+        enabled: false,
+        comingSoonMessage:
+          '🏌️‍♂️ Virtual Golf Coming Soon! Stay tuned for an exciting new experience at Little Latte Lane.',
+      };
+      console.log('🔧 Using default settings:', defaultSettings);
+      setSettings(defaultSettings);
     } catch (err) {
       console.error('💥 Failed to fetch settings:', err);
       // Use default settings on any error
@@ -80,19 +58,10 @@ export default function VirtualGolfManagement() {
   }
 
   async function saveSettings() {
-    setIsSaving(true);
-    const { error } = await supabase.from('settings').upsert({
-      key: 'virtual_golf',
-      value: JSON.stringify(settings),
-    });
-
-    if (error) {
-      console.error('Error saving settings:', error);
-      toast.error('Failed to save settings');
-    } else {
-      toast.success('Virtual Golf settings updated successfully!');
-    }
-    setIsSaving(false);
+    // TODO: Implement settings storage solution
+    // Currently disabled - no settings table in database
+    toast.info('Settings storage not implemented yet');
+    return;
   }
 
   if (isLoading) {

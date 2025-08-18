@@ -30,7 +30,7 @@ export async function updateOrderStatus(id: string, status: string) {
  * @param status New status string ('pending', 'confirmed', 'cancelled')
  * @returns { success: boolean, message?: string }
  */
-export async function updateBookingStatus(id: number, status: string) {
+export async function updateBookingStatus(id: string, status: string) {
   const { error } = await supabase
     .from('bookings')
     .update({ status })

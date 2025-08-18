@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       // Get user from the order's user_id
       const { data: profile } = await supabaseServer
         .from('profiles')
-        .select('id, username')
+        .select('id, full_name')
         .eq('id', updatedOrder.user_id)
         .single();
 
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         orderId: updatedOrder.id,
         total: updatedOrder.total,
         userEmail,
-        userName: profile?.username || 'Valued Customer',
+        userName: profile?.full_name || 'Valued Customer',
         items: [], // TODO: Fetch order items from database
         deliveryType: updatedOrder.delivery_type,
         estimatedReadyTime: updatedOrder.estimated_ready_time 

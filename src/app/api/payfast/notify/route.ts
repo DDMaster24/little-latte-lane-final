@@ -122,14 +122,14 @@ export async function POST(request: NextRequest) {
       // Get user details and send confirmation email
       const { data: profile } = await supabaseServer
         .from('profiles')
-        .select('username')
+        .select('full_name')
         .eq('id', userId)
         .single();
 
-      if (profile?.username) {
+      if (profile?.full_name) {
         const emailBody = `
           <h2>Payment Confirmation - Little Latte Lane</h2>
-          <p>Dear ${profile.username},</p>
+          <p>Dear ${profile.full_name},</p>
           <p>Your payment has been successfully processed!</p>
           <p><strong>Order Details:</strong></p>
           <ul>
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
         `;
 
         await sendEmail(
-          `${profile.username}@example.com`, // You may need to get actual email
+          `${profile.full_name}@example.com`, // You may need to get actual email
           `Payment Confirmation - Order #${orderId}`,
           emailBody
         );

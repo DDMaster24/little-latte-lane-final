@@ -50,7 +50,7 @@ export default function AdminDashboard() {
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
-    if (profile?.role !== 'admin') {
+    if (!profile?.is_admin) {
       router.push('/'); // Redirect to home if not admin
     } else {
       // Fetch dashboard stats when user is confirmed admin
@@ -101,7 +101,7 @@ export default function AdminDashboard() {
     }
   };
 
-  if (profile?.role !== 'admin') {
+  if (!profile?.is_admin) {
     return (
       <div className="min-h-screen bg-darkBg flex items-center justify-center">
         <div className="text-center">
@@ -316,7 +316,7 @@ export default function AdminDashboard() {
                 Admin Dashboard
               </h1>
               <p className="text-neonText mt-1">
-                Welcome back, {profile?.username || 'Administrator'}
+                Welcome back, {profile?.full_name || 'Administrator'}
               </p>
             </div>
             <div className="flex items-center space-x-4">

@@ -53,7 +53,7 @@ export default function KitchenDashboard() {
   const requestForm = useForm<StockRequest>();
 
   useEffect(() => {
-    if (profile?.role !== 'staff') {
+    if (!profile?.is_staff && !profile?.is_admin) {
       router.push('/');
       return;
     }
@@ -120,7 +120,7 @@ export default function KitchenDashboard() {
     }
 
     const { error } = await supabase
-      .from('requests')
+      .from('staff_requests')
       .insert({ ...data, staff_id: profile!.id }); // profile.id is now safely available
 
     if (error) {
