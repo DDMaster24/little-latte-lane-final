@@ -52,17 +52,16 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
     if (profile && !hasLoadedProfileData) {
       console.log('🔄 Auto-populating checkout form from profile:', {
         full_name: profile.full_name,
-        phone_number: profile.phone_number,
-        email: profile.email,
+        phone: profile.phone,
       });
 
       const fieldsPopulated = [];
 
       // Auto-populate phone number if available
-      if (profile.phone_number && profile.phone_number.trim()) {
-        setPhone(profile.phone_number);
+      if (profile.phone && profile.phone.trim()) {
+        setPhone(profile.phone);
         fieldsPopulated.push('phone number');
-        console.log('📱 Auto-populated phone:', profile.phone_number);
+        console.log('📱 Auto-populated phone:', profile.phone);
       }
 
       // Auto-populate full name if available
@@ -142,7 +141,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         checkoutItems,
         total,
         deliveryType,
-        profile.email || 'customer@example.com',
+        'customer@example.com',
         {
           firstName: profile.full_name?.split(' ')[0] || 'Customer',
           lastName: profile.full_name?.split(' ').slice(1).join(' ') || 'User',
@@ -314,7 +313,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                         className="w-full bg-neon-green text-black hover:bg-neon-green/80"
                         disabled={cart.length === 0}
                       >
-                        Proceed to Checkout
+                        Checkout
                       </Button>
                     </div>
                   </>
@@ -334,7 +333,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                       <p className="text-neon-blue text-sm">
                         {cart.length} items • R{total.toFixed(2)}
                       </p>
-                      {(profile?.phone_number || profile?.full_name) && (
+                      {(profile?.phone || profile?.full_name) && (
                         <div className="mt-2 pt-2 border-t border-neon-green/20">
                           <p className="text-xs text-neon-green/80 flex items-center gap-1">
                             ✨ Using your saved profile details
@@ -415,7 +414,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                             className="text-neon-green flex items-center gap-1"
                           >
                             Phone Number *
-                            {profile?.phone_number && (
+                            {profile?.phone && (
                               <span className="text-xs text-neon-green/60">
                                 (from profile)
                               </span>
@@ -429,7 +428,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                             onChange={(e) => setPhone(e.target.value)}
                             className="bg-black/70 border-neon-blue/50 text-neon-blue"
                             placeholder={
-                              profile?.phone_number
+                              profile?.phone
                                 ? 'Your saved phone number'
                                 : '082 345 6789'
                             }
@@ -501,7 +500,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                       itemName={`Little Latte Lane Order #${orderId}`}
                       itemDescription={getItemDescription()}
                       userDetails={{
-                        email: profile?.email || undefined,
+                        email: 'customer@example.com',
                         firstName:
                           profile?.full_name?.split(' ')[0] || 'Customer',
                         lastName:

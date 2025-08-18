@@ -395,11 +395,11 @@ export default function MenuContent() {
                   <Button
                     className="w-full bg-gradient-to-r from-neonPink to-neonCyan text-black font-bold py-3 hover:scale-105 transition-transform"
                     onClick={() => {
-                      // Navigate to orders page for now (checkout will be implemented later)
-                      window.location.href = '/orders';
+                      // Open cart sidebar for checkout
+                      window.dispatchEvent(new CustomEvent('toggleCart'));
                     }}
                   >
-                    View Orders
+                    Checkout
                   </Button>
                 </div>
               </>
