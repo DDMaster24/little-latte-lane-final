@@ -1,7 +1,7 @@
 'use server'; // Marks as server actions
 
 import { supabaseServer } from '@/lib/supabaseServer'; // Use server client with service key
-import { getSupabaseServer } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
 import type { Database } from '@/types/supabase';
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
@@ -27,8 +27,8 @@ export async function updateUserProfile(
     console.log('🔧 Server action: Updating profile field', field, 'for user', userId);
     console.log('🔧 Server action: New value:', value);
     
-    const supabase = await getSupabaseServer();
-    console.log('🔧 Server action: Got Supabase server client');
+    const supabase = getSupabaseAdmin();
+    console.log('🔧 Server action: Got Supabase ADMIN client (service role)');
 
     // Check if profile exists
     const { data: _existingProfile, error: checkError } = await supabase
@@ -111,7 +111,7 @@ export async function getOrCreateUserProfile(
   try {
     console.log('🔧 Server action: Getting or creating profile for user', userId);
     
-    const supabase = await getSupabaseServer();
+    const supabase = getSupabaseAdmin();
 
     // Try to get existing profile
     const { data: profile, error: fetchError } = await supabase
