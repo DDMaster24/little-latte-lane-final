@@ -17,6 +17,7 @@ import {
 } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { User, Session } from '@supabase/supabase-js';
+import { getOrCreateUserProfile } from '@/app/actions';
 
 interface Profile {
   id: string;
@@ -69,53 +70,41 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setMounted(true);
   }, []);
 
-  // Fetch user profile
+  // Fetch user profile using server action
   const fetchProfile = useCallback(
     async (userId: string): Promise<Profile | null> => {
       try {
         console.log('🔍 AuthProvider: Fetching profile for user:', userId);
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id, full_name, phone, address, is_admin, is_staff, created_at, updated_at')
-          .eq('id', userId)
-          .single();
+        
+        // Use server action to get or create profile
+        const result = await getOrCreateUserProfile(userId);
 
-        if (error) {
-          console.error('❌ AuthProvider: Profile fetch error:', error);
-          // If profile doesn't exist, create a default one
-          if (error.code === 'PGRST116') {
-            console.log('📝 AuthProvider: Creating new profile...');
-            const { data: newProfile, error: insertError } = await supabase
-              .from('profiles')
-              .insert({
-                id: userId,
-                full_name: null,
-                phone: null,
-                address: null,
-                is_admin: false,
-                is_staff: false,
-              })
-              .select('id, full_name, phone, address, is_admin, is_staff, created_at, updated_at')
-              .single();
-
-            if (insertError) {
-              console.error('❌ AuthProvider: Profile creation error:', insertError);
-              return null;
-            }
-            console.log('✅ AuthProvider: New profile created:', newProfile);
-            return newProfile;
-          }
+        if (!result.success) {
+          console.error('❌ AuthProvider: Profile fetch error:', result.error);
           return null;
         }
 
-        console.log('✅ AuthProvider: Profile fetched successfully:', data);
-        return data;
+        if (result.profile) {
+          console.log('✅ AuthProvider: Profile fetched successfully:', result.profile);
+          return {
+            id: result.profile.id,
+            full_name: result.profile.full_name,
+            phone: result.profile.phone,
+            address: result.profile.address,
+            is_admin: result.profile.is_admin || false,
+            is_staff: result.profile.is_staff || false,
+            created_at: result.profile.created_at || new Date().toISOString(),
+            updated_at: result.profile.updated_at || new Date().toISOString(),
+          };
+        }
+
+        return null;
       } catch (err) {
         console.error('❌ AuthProvider: Unexpected error:', err);
         return null;
       }
     },
-    [supabase]
+    []
   );
 
   // Handle auth state changes
