@@ -42,8 +42,9 @@ export async function POST(request: NextRequest) {
       payment_status,
       m_payment_id,
       pf_payment_id,
-      custom_int1: orderIdString,
-      custom_str1: userId,
+      custom_int1: numericOrderId,
+      custom_str1: orderIdString,
+      custom_str2: userId,
       amount_gross,
     } = notificationData;
 
@@ -51,18 +52,19 @@ export async function POST(request: NextRequest) {
       payment_status,
       m_payment_id,
       pf_payment_id,
+      numericOrderId,
       orderIdString,
       userId,
       amount_gross
     });
 
-    // Validate that we have an order ID
+    // Validate that we have an order ID (now from custom_str1)
     if (!orderIdString) {
-      console.error('❌ No order ID found in PayFast notification');
+      console.error('❌ No order ID found in PayFast notification (custom_str1)');
       return NextResponse.json({ error: 'No order ID provided' }, { status: 400 });
     }
 
-    const orderId = orderIdString; // Keep as string since database uses string IDs
+    const orderId = orderIdString; // This is the actual UUID from custom_str1
 
     if (payment_status === 'COMPLETE') {
       console.log('✅ Payment completed for order:', orderId);

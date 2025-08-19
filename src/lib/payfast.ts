@@ -305,11 +305,16 @@ export class PayFastService {
     }
 
     // PHASE 5: CRITICAL - Add custom fields for webhook identification
-    // These are essential for the webhook to identify the order and user
-    paymentData.custom_int1 = String(orderId); // Order ID for webhook
-    paymentData.custom_str1 = userId || ''; // User ID for webhook
-    this.log('✅ CRITICAL: Added custom_int1 (orderId):', String(orderId));
-    this.log('✅ CRITICAL: Added custom_str1 (userId):', userId || '');
+    // PayFast requires custom_int1 to be numeric, but our order IDs are UUIDs
+    // Solution: Use custom_str1 for order UUID and custom_int1 for timestamp-based ID
+    const numericOrderId = Date.now(); // Unique numeric ID for PayFast
+    paymentData.custom_int1 = String(numericOrderId); // Numeric ID for PayFast validation
+    paymentData.custom_str1 = String(orderId); // Actual order UUID for webhook
+    paymentData.custom_str2 = userId || ''; // User ID for webhook
+    
+    this.log('✅ CRITICAL: Added custom_int1 (numeric):', numericOrderId);
+    this.log('✅ CRITICAL: Added custom_str1 (order UUID):', String(orderId));
+    this.log('✅ CRITICAL: Added custom_str2 (userId):', userId || '');
 
     this.log('Payment data before signature:', paymentData);
     this.log('Total fields before signature:', Object.keys(paymentData).length);
