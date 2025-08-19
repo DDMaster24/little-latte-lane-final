@@ -8,16 +8,78 @@
 'use client';
 
 import Link from 'next/link';
-import NextImage from 'next/image';
 import { ClientOnly } from '@/components/ClientOnly';
 import {
   CategorySkeleton,
   LoadingSpinner,
 } from '@/components/LoadingComponents';
 import { useMenu } from '@/hooks/useMenu';
+import type { Category } from '@/lib/dataClient';
 
 function MenuContent() {
   const { categories, loading, error, refetch } = useMenu();
+
+  // Define main category groupings based on actual data
+  const categoryGroups = {
+    drinks: {
+      title: 'Drinks',
+      description: 'Premium coffee, lattes, cold drinks & smoothies',
+      icon: '☕',
+      keywords: ['hot drinks', 'lattes', 'iced lattes', 'frappes', 'fizzers', 'freezos', 'smoothies'],
+    },
+    mainFood: {
+      title: 'Main Food',
+      description: 'Fresh pizzas, hearty meals & grilled toasties',
+      icon: '🍕',
+      keywords: ['pizza', 'toasties', 'all day meals'],
+    },
+    sidesBreakfast: {
+      title: 'Sides & Breakfast',
+      description: 'All-day breakfast, scones & perfect accompaniments',
+      icon: '🥐',
+      keywords: ['scones', 'all day brekkies', 'sides'],
+    },
+    extras: {
+      title: 'Extras',
+      description: 'Pizza add-ons, extras & specialty items',
+      icon: '🧀',
+      keywords: ['pizza add-ons', 'extras', 'monna & rassies corner'],
+    },
+  };
+
+  // Function to categorize menu categories into main groups
+  const categorizeByGroup = () => {
+    const grouped: {
+      drinks: typeof categories;
+      mainFood: typeof categories;
+      sidesBreakfast: typeof categories;
+      extras: typeof categories;
+    } = {
+      drinks: [],
+      mainFood: [],
+      sidesBreakfast: [],
+      extras: [],
+    };
+
+    categories.forEach((category) => {
+      const categoryName = category.name.toLowerCase();
+      
+      if (categoryGroups.drinks.keywords.some(keyword => categoryName.includes(keyword))) {
+        grouped.drinks.push(category);
+      } else if (categoryGroups.mainFood.keywords.some(keyword => categoryName.includes(keyword))) {
+        grouped.mainFood.push(category);
+      } else if (categoryGroups.sidesBreakfast.keywords.some(keyword => categoryName.includes(keyword))) {
+        grouped.sidesBreakfast.push(category);
+      } else if (categoryGroups.extras.keywords.some(keyword => categoryName.includes(keyword))) {
+        grouped.extras.push(category);
+      } else {
+        // Default to extras for uncategorized items
+        grouped.extras.push(category);
+      }
+    });
+
+    return grouped;
+  };
 
   if (loading) {
     return (
@@ -79,6 +141,8 @@ function MenuContent() {
     );
   }
 
+  const groupedCategories = categorizeByGroup();
+
   return (
     <main className="bg-darkBg py-8 px-6">
       {/* Header */}
@@ -86,54 +150,64 @@ function MenuContent() {
         <h1 className="text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent">
           Menu
         </h1>
+        <p className="text-gray-300 mt-2">Organized by category for easy browsing</p>
       </div>
 
-      {/* Categories Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
-        {categories.map((category) => (
-          <Link
-            key={category.id}
-            href={`/menu/modern?category=${category.id}`}
-            className="bg-gray-800 hover:bg-gray-700 p-4 rounded-lg shadow-neon flex flex-col items-center transition-all duration-200 hover:scale-105 cursor-pointer"
-            prefetch={true}
-          >
-            {category.image_url ? (
-              <div className="relative w-full h-32 mb-3 overflow-hidden rounded bg-gray-700">
-                <NextImage
-                  src={category.image_url}
-                  alt={category.name}
-                  fill
-                  className="object-cover transition-transform duration-300 hover:scale-110"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                  loading="lazy"
-                  placeholder="blur"
-                  blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGBkbHR4f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                  }}
-                />
+      {/* Organized Categories by Main Groups */}
+      <div className="space-y-12">
+        {(Object.entries(categoryGroups) as Array<[keyof typeof categoryGroups, typeof categoryGroups[keyof typeof categoryGroups]]>).map(([groupKey, groupInfo]) => {
+          const categoryList = groupedCategories[groupKey];
+          
+          if (categoryList.length === 0) return null;
+
+          return (
+            <div key={groupKey} className="bg-gray-900/50 rounded-xl p-6 border border-gray-700/50">
+              {/* Group Header */}
+              <div className="text-center mb-8">
+                <div className="flex items-center justify-center gap-3 mb-2">
+                  <span className="text-3xl">{groupInfo.icon}</span>
+                  <h2 className="text-3xl font-bold text-white">{groupInfo.title}</h2>
+                  <span className="text-3xl">{groupInfo.icon}</span>
+                </div>
+                <p className="text-gray-400">{groupInfo.description}</p>
               </div>
-            ) : (
-              <div className="w-full h-32 bg-gray-700 rounded mb-3 flex items-center justify-center">
-                <span className="text-gray-400 text-sm">Category</span>
+
+              {/* Categories Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {categoryList.map((category: Category) => (
+                  <Link
+                    key={category.id}
+                    href={`/menu/modern?category=${category.id}`}
+                    className="bg-gray-800/70 hover:bg-gray-700/70 p-4 rounded-lg shadow-lg border border-gray-700/50 hover:border-neonCyan/50 flex flex-col items-center transition-all duration-200 hover:scale-105 cursor-pointer group"
+                    prefetch={true}
+                  >
+                    <div className="w-full h-24 bg-gray-700/50 rounded mb-3 flex items-center justify-center group-hover:bg-gray-600/50 transition-colors">
+                      <span className="text-gray-400 text-xs">🍽️ Menu</span>
+                    </div>
+                    <p className="text-white font-medium text-center text-sm group-hover:text-neonCyan transition-colors">
+                      {category.name}
+                    </p>
+                    {category.description && (
+                      <p className="text-gray-400 text-xs text-center mt-1 line-clamp-2">
+                        {category.description}
+                      </p>
+                    )}
+                  </Link>
+                ))}
               </div>
-            )}
-            <p className="text-white font-semibold text-center text-lg">
-              {category.name}
-            </p>
-          </Link>
-        ))}
+            </div>
+          );
+        })}
       </div>
 
       {/* View All Items Button */}
-      <div className="flex justify-center">
+      <div className="flex justify-center mt-12">
         <Link
           href="/menu/modern"
-          className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-8 py-3 rounded-lg shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-purple-500/25"
+          className="bg-gradient-to-r from-neonCyan to-neonBlue hover:from-neonBlue hover:to-neonPink text-darkBg font-bold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon"
           prefetch={true}
         >
-          View All Items
+          🍽️ Browse All Menu Items
         </Link>
       </div>
     </main>
