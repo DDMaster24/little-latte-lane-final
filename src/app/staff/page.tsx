@@ -31,12 +31,18 @@ interface Order {
   total_amount: number | null;
   special_instructions: string | null;
   created_at: string | null;
+  order_number: string | null;
+  payment_status: string | null;
+  updated_at: string | null;
   order_items: {
+    id: string;
     menu_item_id: string | null;
     quantity: number;
-    menu_items: { name: string } | null;
+    price: number | null;
+    special_instructions: string | null;
+    menu_items: { name: string; category_id: string | null } | null;
   }[];
-  profiles: { full_name: string | null } | null;
+  profiles: { full_name: string | null; email: string | null } | null;
 }
 
 interface Booking {
@@ -48,7 +54,11 @@ interface Booking {
   status: string | null;
   special_requests: string | null;
   created_at: string | null;
-  profiles: { full_name: string | null } | null;
+  updated_at: string | null;
+  name: string;
+  email: string;
+  phone: string | null;
+  profiles: { full_name: string | null; email: string | null } | null;
 }
 
 interface StockRequest {
@@ -63,6 +73,8 @@ export default function StaffPanel() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [realtimeConnected, setRealtimeConnected] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
   const stockRequestForm = useForm<StockRequest>();
 
@@ -84,40 +96,78 @@ export default function StaffPanel() {
   }, [profile, router]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchOrders = async () => {
-    const { data } = await supabase
-      .from('orders')
-      .select(
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(
+          `
+          *,
+          order_items (
+            id,
+            menu_item_id,
+            quantity,
+            price,
+            special_instructions,
+            menu_items (
+              name,
+              category_id
+            )
+          ),
+          profiles (
+            full_name,
+            email
+          )
         `
-        *,
-        order_items (
-          menu_item_id,
-          quantity,
-          menu_items (name)
-        ),
-        profiles (full_name)
-      `
-      )
-      .in('status', ['pending', 'confirmed', 'preparing'])
-      .order('created_at', { ascending: true });
+        )
+        .in('status', ['pending', 'confirmed', 'preparing'])
+        .order('created_at', { ascending: true });
 
-    setOrders(data || [] as Order[]);
+      if (error) {
+        console.error('Error fetching orders:', error);
+        toast.error('Failed to fetch orders');
+        return;
+      }
+
+      console.log(`Fetched ${data?.length || 0} orders at ${new Date().toLocaleTimeString()}`);
+      setOrders(data || []);
+      setLastUpdate(new Date());
+    } catch (error) {
+      console.error('Unexpected error fetching orders:', error);
+      toast.error('Unexpected error occurred');
+    }
   };
 
   const fetchBookings = async () => {
-    const { data } = await supabase
-      .from('bookings')
-      .select(
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select(
+          `
+          *,
+          profiles (
+            full_name,
+            email
+          )
         `
-        *,
-        profiles (full_name)
-      `
-      )
-      .in('status', ['pending', 'confirmed'])
-      .gte('date', new Date().toISOString().split('T')[0])
-      .order('date', { ascending: true })
-      .order('time', { ascending: true });
+        )
+        .in('status', ['pending', 'confirmed'])
+        .gte('booking_date', new Date().toISOString().split('T')[0])
+        .order('booking_date', { ascending: true })
+        .order('booking_time', { ascending: true });
 
-    setBookings(data || []);
+      if (error) {
+        console.error('Error fetching bookings:', error);
+        toast.error('Failed to fetch bookings');
+        return;
+      }
+
+      console.log(`Fetched ${data?.length || 0} bookings at ${new Date().toLocaleTimeString()}`);
+      setBookings(data || []);
+      setLastUpdate(new Date());
+    } catch (error) {
+      console.error('Unexpected error fetching bookings:', error);
+      toast.error('Unexpected error occurred');
+    }
   };
 
   const fetchData = async () => {
@@ -125,8 +175,12 @@ export default function StaffPanel() {
   };
 
   const setupRealtime = () => {
+    console.log('Setting up real-time subscriptions...');
+    let connectedCount = 0;
+    
+    // Orders subscription with detailed logging
     const orderSub = supabase
-      .channel('staff-orders')
+      .channel('staff-orders-realtime')
       .on(
         'postgres_changes',
         {
@@ -134,12 +188,26 @@ export default function StaffPanel() {
           schema: 'public',
           table: 'orders',
         },
-        fetchOrders
+        (payload) => {
+          console.log('Orders real-time update:', payload);
+          setLastUpdate(new Date());
+          fetchOrders();
+        }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Orders subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          connectedCount++;
+          if (connectedCount === 3) {
+            setRealtimeConnected(true);
+            toast.success('Real-time updates connected');
+          }
+        }
+      });
 
+    // Bookings subscription with detailed logging
     const bookingSub = supabase
-      .channel('staff-bookings')
+      .channel('staff-bookings-realtime')
       .on(
         'postgres_changes',
         {
@@ -147,25 +215,67 @@ export default function StaffPanel() {
           schema: 'public',
           table: 'bookings',
         },
-        fetchBookings
+        (payload) => {
+          console.log('Bookings real-time update:', payload);
+          setLastUpdate(new Date());
+          fetchBookings();
+        }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Bookings subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          connectedCount++;
+          if (connectedCount === 3) {
+            setRealtimeConnected(true);
+            toast.success('Real-time updates connected');
+          }
+        }
+      });
+
+    // Order items subscription for real-time menu updates
+    const orderItemsSub = supabase
+      .channel('staff-order-items-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'order_items',
+        },
+        (payload) => {
+          console.log('Order items real-time update:', payload);
+          setLastUpdate(new Date());
+          fetchOrders(); // Refresh orders when items change
+        }
+      )
+      .subscribe((status) => {
+        console.log('Order items subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          connectedCount++;
+          if (connectedCount === 3) {
+            setRealtimeConnected(true);
+            toast.success('Real-time updates connected');
+          }
+        }
+      });
 
     return () => {
+      console.log('Cleaning up real-time subscriptions...');
+      setRealtimeConnected(false);
       orderSub.unsubscribe();
       bookingSub.unsubscribe();
+      orderItemsSub.unsubscribe();
     };
   };
 
   const handleUpdateOrderStatus = async (
-    orderId: number,
+    orderId: string,
     newStatus: string
   ) => {
     const { error } = await supabase
       .from('orders')
       .update({
         status: newStatus,
-        assigned_staff_id: profile?.id,
         updated_at: new Date().toISOString(),
       })
       .eq('id', orderId);
@@ -174,20 +284,19 @@ export default function StaffPanel() {
       toast.error('Failed to update order status');
       console.error('Order update error:', error);
     } else {
-      toast.success(`Order ${orderId} status updated to ${newStatus}`);
-      fetchOrders();
+      toast.success(`Order #${orderId} status updated to ${newStatus}`);
+      // Don't refetch, let real-time handle it
     }
   };
 
   const handleUpdateBookingStatus = async (
-    bookingId: number,
+    bookingId: string,
     newStatus: string
   ) => {
     const { error } = await supabase
       .from('bookings')
       .update({
         status: newStatus,
-        assigned_staff_id: profile?.id,
         updated_at: new Date().toISOString(),
       })
       .eq('id', bookingId);
@@ -196,8 +305,8 @@ export default function StaffPanel() {
       toast.error('Failed to update booking status');
       console.error('Booking update error:', error);
     } else {
-      toast.success(`Booking ${bookingId} status updated to ${newStatus}`);
-      fetchBookings();
+      toast.success(`Booking #${bookingId} status updated to ${newStatus}`);
+      // Don't refetch, let real-time handle it
     }
   };
 
@@ -224,7 +333,8 @@ export default function StaffPanel() {
     }
   };
 
-  const formatDateTime = (date: string, time?: string) => {
+  const formatDateTime = (date: string | null, time?: string) => {
+    if (!date) return 'Unknown date';
     const dateObj = new Date(`${date}${time ? `T${time}` : ''}`);
     return dateObj.toLocaleString('en-ZA', {
       dateStyle: 'medium',
@@ -232,7 +342,8 @@ export default function StaffPanel() {
     });
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | null) => {
+    if (!status) return 'bg-gray-400';
     switch (status) {
       case 'pending':
         return 'bg-yellow-500';
@@ -295,6 +406,25 @@ export default function StaffPanel() {
             Welcome, {profile.full_name || 'Staff Member'}! Manage orders,
             bookings, and requests.
           </p>
+          
+          {/* Real-time Status Indicator */}
+          <div className="flex justify-center items-center mt-3 space-x-4">
+            <div className="flex items-center space-x-2">
+              <div 
+                className={`w-3 h-3 rounded-full ${
+                  realtimeConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                }`}
+              ></div>
+              <span className="text-sm text-gray-400">
+                {realtimeConnected ? 'Real-time connected' : 'Connecting...'}
+              </span>
+            </div>
+            {lastUpdate && (
+              <span className="text-xs text-gray-500">
+                Last update: {lastUpdate.toLocaleTimeString()}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -340,10 +470,22 @@ export default function StaffPanel() {
           {/* Orders Management */}
           <Card className="bg-gray-800 border-gray-600">
             <CardHeader>
-              <CardTitle className="text-neonCyan">Order Management</CardTitle>
-              <CardDescription>
-                Manage incoming orders and update their status
-              </CardDescription>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle className="text-neonCyan">Order Management</CardTitle>
+                  <CardDescription>
+                    Manage incoming orders and update their status
+                  </CardDescription>
+                </div>
+                <Button
+                  onClick={fetchOrders}
+                  variant="outline"
+                  size="sm"
+                  className="text-neonCyan border-neonCyan hover:bg-neonCyan hover:text-black"
+                >
+                  Refresh
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {orders.length === 0 ? (
@@ -363,19 +505,18 @@ export default function StaffPanel() {
                             Order #{order.id}
                           </h4>
                           <p className="text-sm text-gray-400">
-                            {order.profiles?.full_name} •{' '}
+                            {order.profiles?.full_name || 'Guest'} •{' '}
                             {formatDateTime(order.created_at)}
                           </p>
                           <p className="text-sm text-gray-400">
-                            {order.delivery_type.charAt(0).toUpperCase() +
-                              order.delivery_type.slice(1)}{' '}
-                            • R{order.total.toFixed(2)}
+                            Order #{order.order_number || order.id.slice(0, 8)}{' '}
+                            • R{(order.total_amount || 0).toFixed(2)}
                           </p>
                         </div>
                         <Badge
                           className={`${getStatusColor(order.status)} text-white`}
                         >
-                          {order.status}
+                          {order.status || 'unknown'}
                         </Badge>
                       </div>
 
@@ -428,12 +569,24 @@ export default function StaffPanel() {
           {/* Bookings Management */}
           <Card className="bg-gray-800 border-gray-600">
             <CardHeader>
-              <CardTitle className="text-neonPink">
-                Booking Management
-              </CardTitle>
-              <CardDescription>
-                Manage table and golf simulator bookings
-              </CardDescription>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle className="text-neonPink">
+                    Booking Management
+                  </CardTitle>
+                  <CardDescription>
+                    Manage table and golf simulator bookings
+                  </CardDescription>
+                </div>
+                <Button
+                  onClick={fetchBookings}
+                  variant="outline"
+                  size="sm"
+                  className="text-neonPink border-neonPink hover:bg-neonPink hover:text-black"
+                >
+                  Refresh
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {bookings.length === 0 ? (
@@ -450,22 +603,20 @@ export default function StaffPanel() {
                       <div className="flex justify-between items-start">
                         <div>
                           <h4 className="font-semibold text-white">
-                            {booking.type.charAt(0).toUpperCase() +
-                              booking.type.slice(1)}{' '}
-                            Booking #{booking.id}
+                            Table Booking #{booking.id.slice(0, 8)}
                           </h4>
                           <p className="text-sm text-gray-400">
-                            {booking.profiles?.full_name}
+                            {booking.profiles?.full_name || booking.name}
                           </p>
                           <p className="text-sm text-gray-400">
-                            {formatDateTime(booking.date, booking.booking_time)} •{' '}
+                            {formatDateTime(booking.booking_date, booking.booking_time)} •{' '}
                             {booking.party_size} people
                           </p>
                         </div>
                         <Badge
                           className={`${getStatusColor(booking.status)} text-white`}
                         >
-                          {booking.status}
+                          {booking.status || 'unknown'}
                         </Badge>
                       </div>
 
