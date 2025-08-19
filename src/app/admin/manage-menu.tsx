@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -94,10 +95,11 @@ export default function ManageMenu() {
   const fetchData = async (showToast = false) => {
     try {
       setIsRefreshing(true);
+      // For admin panel, fetch ALL categories including pizza add-ons
       const { data: cats } = await supabase.from('menu_categories').select();
       const { data: items } = await supabase.from('menu_items').select();
-      setCategories(cats || [] as Category[]);
-      setMenuItems(items || [] as MenuItem[]);
+      setCategories((cats || []) as Category[]);
+      setMenuItems((items || []) as MenuItem[]);
       if (showToast) {
         toast.success('Data refreshed successfully!');
       }
@@ -116,13 +118,20 @@ export default function ManageMenu() {
   };
 
   const onSubmitCategory = async (data: Category) => {
-    const method = isEditingCategory ? 'update' : 'insert';
-    const payload = isEditingCategory ? { ...data } : data;
+    let result;
+    
+    if (isEditingCategory && editingCategory) {
+      result = await supabase
+        .from('menu_categories')
+        .update({ ...data })
+        .eq('id', editingCategory.id);
+    } else {
+      result = await supabase
+        .from('menu_categories')
+        .insert(data);
+    }
 
-    const { error } = await supabase
-      .from('menu_categories')
-      [method](payload)
-      .eq('id', editingCategory?.id);
+    const { error } = result;
 
     if (error) {
       toast.error(`Failed: ${error.message}`);
@@ -147,13 +156,20 @@ export default function ManageMenu() {
       data.category_id = selectedCategory.id;
     }
 
-    const method = isEditingItem ? 'update' : 'insert';
-    const payload = isEditingItem ? { ...data } : data;
+    let result;
+    
+    if (isEditingItem && editingItem) {
+      result = await supabase
+        .from('menu_items')
+        .update({ ...data })
+        .eq('id', editingItem.id);
+    } else {
+      result = await supabase
+        .from('menu_items')
+        .insert(data);
+    }
 
-    const { error } = await supabase
-      .from('menu_items')
-      [method](payload)
-      .eq('id', editingItem?.id);
+    const { error } = result;
 
     if (error) {
       toast.error(`Failed: ${error.message}`);
@@ -346,9 +362,19 @@ export default function ManageMenu() {
                           <div>
                             <h3 className="text-lg font-bold text-neonText">
                               {category.name}
+                              {category.name.toLowerCase().includes('pizza add-ons') && (
+                                <Badge className="ml-2 bg-yellow-600 text-yellow-100 text-xs">
+                                  Customization Only
+                                </Badge>
+                              )}
                             </h3>
                             <p className="text-neonText/70 text-sm">
                               {getCategoryItemCount(category.id)} items
+                              {category.name.toLowerCase().includes('pizza add-ons') && (
+                                <span className="text-yellow-400 text-xs ml-1">
+                                  (Not shown to customers)
+                                </span>
+                              )}
                             </p>
                           </div>
                         </div>

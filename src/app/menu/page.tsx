@@ -41,9 +41,9 @@ function MenuContent() {
     },
     extras: {
       title: 'Extras',
-      description: 'Pizza add-ons, extras & specialty items',
+      description: 'Specialty items & unique offerings',
       icon: '🧀',
-      keywords: ['pizza add-ons', 'extras', 'monna & rassies corner'],
+      keywords: ['extras', 'monna & rassies corner'],
     },
   };
 
@@ -172,13 +172,27 @@ function MenuContent() {
                 <p className="text-gray-400">{groupInfo.description}</p>
               </div>
 
-              {/* Categories Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {/* Categories Grid - Full Width, Max 4 Per Row, Centered */}
+              <div 
+                className="flex flex-wrap justify-center gap-4 px-4"
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  justifyContent: 'center',
+                  gap: '16px',
+                  padding: '0 16px'
+                }}
+              >
                 {categoryList.map((category: Category) => (
                   <Link
                     key={category.id}
                     href={`/menu/modern?category=${category.id}`}
                     className="bg-gray-800/70 hover:bg-gray-700/70 p-4 rounded-lg shadow-lg border border-gray-700/50 hover:border-neonCyan/50 flex flex-col items-center transition-all duration-200 hover:scale-105 cursor-pointer group"
+                    style={{
+                      flex: '1 1 calc(25% - 12px)',
+                      minWidth: '280px',
+                      maxWidth: '400px'
+                    }}
                     prefetch={true}
                   >
                     <div className="w-full h-24 bg-gray-700/50 rounded mb-3 flex items-center justify-center group-hover:bg-gray-600/50 transition-colors">

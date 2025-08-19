@@ -38,7 +38,7 @@ export default function CategoriesSection() {
     {
       id: 'extras',
       name: 'Extras',
-      description: 'Pizza add-ons, extras & specialty items',
+      description: 'Specialty items & unique offerings',
       icon: '🧀',
       gradient: 'from-green-900/50 to-emerald-900/50',
       borderColor: 'border-green-500',
@@ -61,12 +61,12 @@ export default function CategoriesSection() {
           View Our Categories
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 justify-items-center max-w-7xl mx-auto">
           {mainCategories.map((category, index) => (
             <Link
               key={category.id}
               href="/menu"
-              className={`group bg-gradient-to-br ${category.gradient} backdrop-blur-sm hover:bg-gray-700/60 p-6 rounded-xl shadow-lg border-2 ${category.borderColor}/50 hover:${category.borderColor} flex flex-col items-center transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in`}
+              className={`group bg-gradient-to-br ${category.gradient} backdrop-blur-sm hover:bg-gray-700/60 p-6 rounded-xl shadow-lg border-2 ${category.borderColor}/50 hover:${category.borderColor} flex flex-col items-center transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in w-full max-w-[320px]`}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="w-full h-32 bg-gradient-to-br from-gray-800/50 to-gray-700/50 rounded-lg mb-4 flex items-center justify-center group-hover:from-gray-700/50 group-hover:to-gray-600/50 transition-all duration-300">

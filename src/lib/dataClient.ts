@@ -30,6 +30,27 @@ export interface MenuItem {
   updated_at: string | null;
 }
 
+// Pizza Add-ons category should not be shown to customers for direct ordering
+const PIZZA_ADDONS_CATEGORY_NAME = 'pizza add-ons';
+
+// Utility function to filter out pizza add-ons from customer-facing displays
+export const filterCustomerCategories = (categories: Category[]): Category[] => {
+  return categories.filter(category => 
+    !category.name.toLowerCase().includes(PIZZA_ADDONS_CATEGORY_NAME)
+  );
+};
+
+// Utility function to filter menu items (exclude items from pizza add-ons category)
+export const filterCustomerMenuItems = (menuItems: MenuItem[], categories: Category[]): MenuItem[] => {
+  const pizzaAddonsCategory = categories.find(cat => 
+    cat.name.toLowerCase().includes(PIZZA_ADDONS_CATEGORY_NAME)
+  );
+  
+  if (!pizzaAddonsCategory) return menuItems;
+  
+  return menuItems.filter(item => item.category_id !== pizzaAddonsCategory.id);
+};
+
 // Response wrapper for consistent API responses
 interface DataResponse<T> {
   data: T | null;
@@ -114,8 +135,11 @@ export class DataClient {
   }
 
   // Fetch categories with proper error handling and caching
-  async getCategories(useCache = true): Promise<DataResponse<Category[]>> {
-    const cacheKey = 'categories';
+  async getCategories(
+    useCache = true, 
+    includeAddons = false  // New parameter to control pizza add-ons visibility
+  ): Promise<DataResponse<Category[]>> {
+    const cacheKey = includeAddons ? 'categories-all' : 'categories-customer';
 
     try {
       // Check cache first
@@ -137,7 +161,12 @@ export class DataClient {
         return { data: null, error: error.message, loading: false };
       }
 
-      const categories = data || [];
+      let categories = data || [];
+
+      // Filter out pizza add-ons for customer-facing displays
+      if (!includeAddons) {
+        categories = filterCustomerCategories(categories);
+      }
 
       // Cache the result
       cache.set(cacheKey, categories);
@@ -198,13 +227,16 @@ export class DataClient {
   }
 
   // Get both categories and menu items in one optimized call
-  async getMenuData(useCache = true): Promise<
+  async getMenuData(
+    useCache = true,
+    includeAddons = false  // New parameter to control pizza add-ons visibility
+  ): Promise<
     DataResponse<{
       categories: Category[];
       menuItems: MenuItem[];
     }>
   > {
-    const cacheKey = 'full-menu-data';
+    const cacheKey = includeAddons ? 'full-menu-data-all' : 'full-menu-data-customer';
 
     try {
       // Check cache first
@@ -220,7 +252,7 @@ export class DataClient {
 
       // Fetch both in parallel for better performance
       const [categoriesResponse, menuItemsResponse] = await Promise.all([
-        this.getCategories(false), // Don't use cache since we're handling it here
+        this.getCategories(false, includeAddons), // Pass includeAddons to getCategories
         this.getMenuItems(undefined, false), // Don't use cache since we're handling it here
       ]);
 
@@ -232,9 +264,17 @@ export class DataClient {
         return { data: null, error: menuItemsResponse.error, loading: false };
       }
 
+      const categories = categoriesResponse.data || [];
+      let menuItems = menuItemsResponse.data || [];
+
+      // Filter menu items to exclude pizza add-ons items for customer-facing displays
+      if (!includeAddons) {
+        menuItems = filterCustomerMenuItems(menuItems, categories);
+      }
+
       const result = {
-        categories: categoriesResponse.data || [],
-        menuItems: menuItemsResponse.data || [],
+        categories,
+        menuItems,
       };
 
       // Cache the combined result
