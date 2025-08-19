@@ -15,7 +15,7 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { getSupabaseClient } from '@/lib/supabaseClient';
 import { User, Session } from '@supabase/supabase-js';
 import { getOrCreateUserProfile } from '@/app/actions';
 
@@ -63,7 +63,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
 
-  const supabase = createClientComponentClient();
+  const supabase = getSupabaseClient();
 
   // Ensure component is mounted (prevents hydration issues)
   useEffect(() => {
@@ -144,7 +144,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+    } = supabase.auth.onAuthStateChange(async (event: string, newSession: Session | null) => {
       if (cancelled) return;
 
       setSession(newSession);

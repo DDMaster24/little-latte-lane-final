@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import AuthRequiredPrompt from '@/components/AuthRequiredPrompt';
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabaseClient';
 import { updateUserProfile } from '@/app/actions';
 import {
   Card,
@@ -71,6 +71,8 @@ export default function AccountPage() {
     try {
       console.log('🔄 Account Page: Fetching orders for user:', session.user.id);
       
+      const supabase = getSupabaseClient();
+      
       // Fetch orders with menu item details
       const { data: orderData, error } = await supabase
         .from('orders')
@@ -96,7 +98,7 @@ export default function AccountPage() {
       }
 
       console.log('✅ Account Page: Orders fetched:', orderData?.length || 0);
-      console.log('📋 Account Page: Order details:', orderData?.map(o => ({
+      console.log('📋 Account Page: Order details:', orderData?.map((o: Order) => ({
         id: o.id,
         status: o.status,
         payment_status: o.payment_status,
@@ -117,6 +119,8 @@ export default function AccountPage() {
     if (session) {
       fetchData();
 
+      const supabase = getSupabaseClient();
+      
       // Set up real-time subscriptions
       const orderSub = supabase
         .channel('user-orders')
