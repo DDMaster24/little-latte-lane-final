@@ -48,26 +48,35 @@ export default function CategoriesSection() {
   return (
     <ClientOnly
       fallback={
-        <section className="bg-darkBg py-8 px-6 shadow-neon rounded-lg m-4">
-          <h2 className="text-2xl font-bold text-center mb-8 bg-neon-gradient">
-            View Our Categories
-          </h2>
-          <CategorySkeleton count={4} />
+        <section className="bg-darkBg shadow-neon rounded-lg m-4">
+          <div className="py-12 px-6">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center bg-neon-gradient">
+              🍽️ View Our Categories
+            </h2>
+            <CategorySkeleton count={4} />
+          </div>
         </section>
       }
     >
-      <section className="bg-darkBg py-8 px-6 shadow-neon rounded-lg m-4">
-        <h2 className="text-2xl font-bold text-center mb-8 bg-neon-gradient">
-          View Our Categories
-        </h2>
+      <section className="bg-darkBg shadow-neon rounded-lg m-4">
+        <div className="py-12 px-6">
+          <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center bg-neon-gradient">
+            🍽️ View Our Categories
+          </h2>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 justify-items-center max-w-7xl mx-auto">
+        <div className="flex flex-wrap gap-3 mb-8 px-3">
           {mainCategories.map((category, index) => (
             <Link
               key={category.id}
               href="/menu"
-              className={`group bg-gradient-to-br ${category.gradient} backdrop-blur-sm hover:bg-gray-700/60 p-6 rounded-xl shadow-lg border-2 ${category.borderColor}/50 hover:${category.borderColor} flex flex-col items-center transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in w-full max-w-[320px]`}
-              style={{ animationDelay: `${index * 0.1}s` }}
+              className={`group bg-gradient-to-br ${category.gradient} backdrop-blur-sm hover:bg-gray-700/60 p-6 rounded-xl shadow-lg border-2 ${category.borderColor}/50 hover:${category.borderColor} flex flex-col items-center transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in`}
+              style={{ 
+                animationDelay: `${index * 0.1}s`,
+                flex: '1 1 calc(25% - 12px)',
+                minWidth: '280px',
+                maxWidth: '400px'
+              }}
             >
               <div className="w-full h-32 bg-gradient-to-br from-gray-800/50 to-gray-700/50 rounded-lg mb-4 flex items-center justify-center group-hover:from-gray-700/50 group-hover:to-gray-600/50 transition-all duration-300">
                 <span className="text-4xl">{category.icon}</span>
@@ -82,7 +91,7 @@ export default function CategoriesSection() {
           ))}
         </div>
 
-        <div className="text-center animate-bounce-in" style={{ animationDelay: '0.5s' }}>
+        <div className="text-center animate-bounce-in py-8" style={{ animationDelay: '0.5s' }}>
           <Link
             href="/menu"
             className="inline-flex items-center gap-2 bg-gradient-to-r from-neonCyan to-neonBlue hover:from-neonBlue hover:to-neonPink text-darkBg px-8 py-4 rounded-xl font-bold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon"
