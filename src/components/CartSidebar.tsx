@@ -64,6 +64,13 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         console.log('📱 Auto-populated phone:', profile.phone);
       }
 
+      // Auto-populate address if available
+      if (profile.address && profile.address.trim()) {
+        setAddress(profile.address);
+        fieldsPopulated.push('delivery address');
+        console.log('🏠 Auto-populated address:', profile.address);
+      }
+
       // Auto-populate full name if available
       if (profile.full_name && profile.full_name.trim()) {
         fieldsPopulated.push('name');
@@ -392,9 +399,9 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                               className="text-neon-green flex items-center gap-1"
                             >
                               Delivery Address *
-                              {profile?.full_name && (
+                              {profile?.address && (
                                 <span className="text-xs text-neon-green/60">
-                                  (saved name available)
+                                  (from profile)
                                 </span>
                               )}
                             </Label>
@@ -404,7 +411,11 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                               value={address}
                               onChange={(e) => setAddress(e.target.value)}
                               className="bg-black/70 border-neon-blue/50 text-neon-blue"
-                              placeholder="Enter your delivery address"
+                              placeholder={
+                                profile?.address
+                                  ? 'Your saved delivery address'
+                                  : 'Enter your delivery address'
+                              }
                               autoComplete="off"
                               autoCorrect="off"
                               autoCapitalize="off"
