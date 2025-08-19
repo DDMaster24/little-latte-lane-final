@@ -2,31 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { payfast } from '@/lib/payfast';
 import { supabaseServer } from '@/lib/supabaseServer';
 import { confirmPaymentAndDecrementStock } from '@/lib/orderActions';
-import { Resend } from 'resend';
-
-async function sendEmail(to: string, subject: string, html: string) {
-  try {
-    // Only initialize Resend if API key is available and valid
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey || apiKey.startsWith('re_YourActual') || apiKey === 're_YourActualResendApiKey_Here') {
-      console.log('Resend API key not configured, skipping email notification');
-      return;
-    }
-
-    const resend = new Resend(apiKey);
-    await resend.emails.send({
-      from: 'Little Latte Lane <no-reply@yourdomain.com>', // Replace with your verified domain
-      to,
-      subject,
-      html,
-    });
-  } catch (error) {
-    console.error('Error sending email:', error);
-  }
-}
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔔 PayFast notification received');
+    
     // Get form data from PayFast notification
     const formData = await request.formData();
     const notificationData: Record<string, string> = {};
@@ -36,123 +16,121 @@ export async function POST(request: NextRequest) {
       notificationData[key] = value.toString();
     });
 
-    console.log('PayFast notification received:', notificationData);
+    console.log('📋 PayFast notification data:', notificationData);
 
     // Verify PayFast signature
     const isValidSignature = payfast.verifyNotification(notificationData);
     if (!isValidSignature) {
-      console.error('PayFast notification signature verification failed');
+      console.error('❌ PayFast notification signature verification failed');
+      console.error('❌ Received data:', JSON.stringify(notificationData, null, 2));
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
+
+    console.log('✅ PayFast signature verified successfully');
 
     // Additional security: verify IP (optional)
     const xff = request.headers.get('x-forwarded-for');
     const requestIP = xff ? xff.split(',')[0].trim() : null;
+    console.log('📍 Request IP:', requestIP);
+    
     if (requestIP && !payfast.isValidPayFastIP(requestIP)) {
-      console.warn('PayFast notification from unverified IP:', requestIP);
-      // Note: Not blocking on IP validation as it can be unreliable
+      console.warn('⚠️ PayFast notification from unverified IP:', requestIP);
+      // Note: Not blocking on IP validation as it can be unreliable in production
     }
 
     const {
       payment_status,
       m_payment_id,
       pf_payment_id,
-      payment_id,
-      custom_int1: orderId,
+      custom_int1: orderIdString,
       custom_str1: userId,
-      custom_str2: deliveryType,
-      custom_str4: address,
       amount_gross,
-      amount_fee,
-      amount_net,
     } = notificationData;
 
+    console.log('💰 Payment details:', {
+      payment_status,
+      m_payment_id,
+      pf_payment_id,
+      orderIdString,
+      userId,
+      amount_gross
+    });
+
+    // Validate that we have an order ID
+    if (!orderIdString) {
+      console.error('❌ No order ID found in PayFast notification');
+      return NextResponse.json({ error: 'No order ID provided' }, { status: 400 });
+    }
+
+    const orderId = orderIdString; // Keep as string since database uses string IDs
+
     if (payment_status === 'COMPLETE') {
+      console.log('✅ Payment completed for order:', orderId);
+      
       // Update order status in database
       const { error: orderError } = await supabaseServer
         .from('orders')
         .update({
           status: 'confirmed',
           payment_status: 'paid',
-          payment_method: 'payfast',
           updated_at: new Date().toISOString(),
         })
         .eq('id', orderId);
 
       if (orderError) {
-        console.error('Error updating order:', orderError);
+        console.error('❌ Error updating order:', orderError);
         return NextResponse.json(
-          { error: 'Database update failed' },
+          { error: 'Database update failed', details: orderError.message },
           { status: 500 }
         );
       }
 
-      // Create payment record
-      const { error: paymentError } = await supabaseServer
-        .from('payments')
-        .insert([
-          {
-            order_id: parseInt(orderId),
-            user_id: userId,
-            amount: parseFloat(amount_gross),
-            fee: parseFloat(amount_fee || '0'),
-            net_amount: parseFloat(amount_net || amount_gross),
-            status: 'completed',
-            payment_method: 'payfast',
-            payfast_payment_id: pf_payment_id,
-            payment_id: payment_id,
-            m_payment_id: m_payment_id,
-            notification_data: notificationData,
-            created_at: new Date().toISOString(),
-          },
-        ]);
-
-      if (paymentError) {
-        console.error('Error creating payment record:', paymentError);
-      }
+      console.log('✅ Order status updated successfully');
 
       // Decrement stock now that payment is confirmed
-      const stockResult = await confirmPaymentAndDecrementStock(
-        parseInt(orderId)
-      );
-      if (!stockResult.success) {
-        console.error('Error decrementing stock:', stockResult.error);
+      try {
+        const stockResult = await confirmPaymentAndDecrementStock(orderId);
+        if (!stockResult.success) {
+          console.error('⚠️ Stock decrement failed:', stockResult.error);
+          // Don't fail the whole process for stock issues
+        } else {
+          console.log('✅ Stock decremented successfully');
+        }
+      } catch (stockError) {
+        console.error('⚠️ Stock decrement error:', stockError);
+        // Don't fail the whole process for stock issues
       }
 
-      // Get user details and send confirmation email
-      const { data: profile } = await supabaseServer
-        .from('profiles')
-        .select('full_name')
-        .eq('id', userId)
-        .single();
+      // Get user details for confirmation (optional)
+      try {
+        const { data: profile } = await supabaseServer
+          .from('profiles')
+          .select('full_name, email')
+          .eq('id', userId)
+          .single();
 
-      if (profile?.full_name) {
-        const emailBody = `
-          <h2>Payment Confirmation - Little Latte Lane</h2>
-          <p>Dear ${profile.full_name},</p>
-          <p>Your payment has been successfully processed!</p>
-          <p><strong>Order Details:</strong></p>
-          <ul>
-            <li>Order #: ${orderId}</li>
-            <li>Amount: R${amount_gross}</li>
-            <li>Payment Method: PayFast</li>
-            <li>Payment ID: ${pf_payment_id}</li>
-            <li>Delivery Type: ${deliveryType}</li>
-            ${address ? `<li>Address: ${address}</li>` : ''}
-          </ul>
-          <p>Your order is now being prepared. We'll notify you when it's ready!</p>
-          <p>Thank you for choosing Little Latte Lane!</p>
-        `;
+        console.log('👤 User profile found:', profile?.full_name);
 
-        await sendEmail(
-          `${profile.full_name}@example.com`, // You may need to get actual email
-          `Payment Confirmation - Order #${orderId}`,
-          emailBody
-        );
+        // Log payment completion for admin records
+        console.log('📝 Payment completed:', {
+          orderId,
+          userId,
+          userEmail: profile?.email,
+          amount: amount_gross,
+          paymentId: pf_payment_id,
+          merchantPaymentId: m_payment_id
+        });
+
+      } catch (profileError) {
+        console.warn('⚠️ Could not fetch user profile:', profileError);
+        // Don't fail for profile fetch issues
       }
 
-      console.log(`Payment completed for order ${orderId}`);
+      console.log('🎉 Payment processing completed successfully for order:', orderId);
+      
     } else {
+      console.log('❌ Payment failed/cancelled for order:', orderId, 'Status:', payment_status);
+      
       // Handle failed/cancelled payments
       const { error: orderError } = await supabaseServer
         .from('orders')
@@ -164,16 +142,21 @@ export async function POST(request: NextRequest) {
         .eq('id', orderId);
 
       if (orderError) {
-        console.error('Error updating failed order:', orderError);
+        console.error('❌ Error updating failed order:', orderError);
+      } else {
+        console.log('✅ Failed order status updated');
       }
-
-      console.log(`Payment ${payment_status} for order ${orderId}`);
     }
 
     // Return 200 OK to PayFast
+    console.log('✅ Sending OK response to PayFast');
     return NextResponse.json({ message: 'OK' }, { status: 200 });
+    
   } catch (error) {
-    console.error('PayFast notification error:', error);
-    return NextResponse.json({ error: 'Processing failed' }, { status: 500 });
+    console.error('💥 PayFast notification processing error:', error);
+    return NextResponse.json({ 
+      error: 'Processing failed', 
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

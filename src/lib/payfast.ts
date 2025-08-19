@@ -199,6 +199,7 @@ export class PayFastService {
    */
   createPaymentData({
     orderId,
+    userId,
     amount,
     itemName,
     itemDescription,
@@ -302,6 +303,13 @@ export class PayFastService {
         this.log('Phone number too short, skipping:', cleanPhone);
       }
     }
+
+    // PHASE 5: CRITICAL - Add custom fields for webhook identification
+    // These are essential for the webhook to identify the order and user
+    paymentData.custom_int1 = String(orderId); // Order ID for webhook
+    paymentData.custom_str1 = userId || ''; // User ID for webhook
+    this.log('✅ CRITICAL: Added custom_int1 (orderId):', String(orderId));
+    this.log('✅ CRITICAL: Added custom_str1 (userId):', userId || '');
 
     this.log('Payment data before signature:', paymentData);
     this.log('Total fields before signature:', Object.keys(paymentData).length);
