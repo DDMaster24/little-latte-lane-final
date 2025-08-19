@@ -18,16 +18,16 @@ export async function POST(request: NextRequest) {
 
     console.log('📋 PayFast notification data:', notificationData);
 
-    // TEMPORARY: Skip signature verification for debugging
-    // TODO: Fix PayFast ITN signature verification
-    const isValidSignature = true; // payfast.verifyNotification(notificationData);
+    // Re-enable signature verification now that we're in production
+    console.log('🔐 Verifying PayFast signature...');
+    const isValidSignature = payfast.verifyNotification(notificationData);
     if (!isValidSignature) {
       console.error('❌ PayFast notification signature verification failed');
       console.error('❌ Received data:', JSON.stringify(notificationData, null, 2));
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
-    console.log('⚠️  PayFast signature verification TEMPORARILY BYPASSED for debugging');
+    console.log('✅ PayFast signature verification passed');
 
     // Additional security: verify IP (optional)
     const xff = request.headers.get('x-forwarded-for');

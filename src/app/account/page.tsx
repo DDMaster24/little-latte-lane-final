@@ -69,8 +69,10 @@ export default function AccountPage() {
     setLoading(true);
 
     try {
+      console.log('🔄 Account Page: Fetching orders for user:', session.user.id);
+      
       // Fetch orders with menu item details
-      const { data: orderData } = await supabase
+      const { data: orderData, error } = await supabase
         .from('orders')
         .select(
           `
@@ -87,6 +89,21 @@ export default function AccountPage() {
         .order('created_at', { ascending: false })
         .limit(10);
 
+      if (error) {
+        console.error('❌ Account Page: Error fetching orders:', error);
+        toast.error('Failed to load orders');
+        return;
+      }
+
+      console.log('✅ Account Page: Orders fetched:', orderData?.length || 0);
+      console.log('📋 Account Page: Order details:', orderData?.map(o => ({
+        id: o.id,
+        status: o.status,
+        payment_status: o.payment_status,
+        total: o.total_amount,
+        created_at: o.created_at
+      })));
+      
       setOrders(orderData || []);
     } catch (error) {
       console.error('Error fetching data:', error);
