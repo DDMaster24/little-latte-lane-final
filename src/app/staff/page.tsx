@@ -119,16 +119,24 @@ export default function StaffPanel() {
           )
         `
         )
-        .in('status', ['pending', 'confirmed', 'preparing'])
+        .in('status', ['confirmed', 'preparing', 'ready'])
+        .eq('payment_status', 'paid')
         .order('created_at', { ascending: true });
 
       if (error) {
-        console.error('Error fetching orders:', error);
+        console.error('❌ Staff Panel: Error fetching orders:', error);
         toast.error('Failed to fetch orders');
         return;
       }
 
-      console.log(`Fetched ${data?.length || 0} orders at ${new Date().toLocaleTimeString()}`);
+      console.log(`✅ Staff Panel: Fetched ${data?.length || 0} orders at ${new Date().toLocaleTimeString()}`);
+      console.log('📋 Staff Panel: Orders data:', data?.map(o => ({ 
+        id: o.id, 
+        order_number: o.order_number,
+        status: o.status, 
+        payment_status: o.payment_status,
+        total: o.total_amount 
+      })));
       setOrders(data || []);
       setLastUpdate(new Date());
     } catch (error) {
