@@ -25,18 +25,22 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
 interface Order {
-  id: number;
-  user_id: string;
-  status: string;
-  total: number;
-  delivery_type: string;
-  created_at: string;
-  order_items: { menu_item_id: number; quantity: number }[];
-}
-
-interface MenuItem {
-  id: number;
-  name: string;
+  id: string;
+  user_id: string | null;
+  status: string | null;
+  payment_status: string | null;
+  total_amount: number | null;
+  created_at: string | null;
+  order_items: {
+    id: string;
+    quantity: number;
+    price: number;
+    menu_item_id: string | null;
+    menu_items: {
+      id: string;
+      name: string;
+    } | null;
+  }[];
 }
 
 interface StockRequest {
@@ -49,7 +53,6 @@ export default function KitchenDashboard() {
   const router = useRouter();
 
   const [orders, setOrders] = useState<Order[]>([]);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const requestForm = useForm<StockRequest>();
 
   useEffect(() => {
@@ -59,7 +62,6 @@ export default function KitchenDashboard() {
     }
 
     fetchOrders();
-    fetchMenuItems();
 
     const orderSub = supabase
       .channel('orders')
@@ -78,29 +80,41 @@ export default function KitchenDashboard() {
   const fetchOrders = async () => {
     const { data } = await supabase
       .from('orders')
-      .select('*, order_items(*)')
-      .in('status', ['pending', 'preparing'])
+      .select(`
+        id,
+        user_id,
+        status,
+        payment_status,
+        total_amount,
+        created_at,
+        order_items (
+          id,
+          quantity,
+          price,
+          menu_item_id,
+          menu_items (
+            id,
+            name
+          )
+        )
+      `)
+      .in('status', ['confirmed', 'preparing', 'ready'])
+      .eq('payment_status', 'paid')
       .order('created_at', { ascending: true });
-    setOrders(data || [] as Order[]);
+    
+    console.log('🍳 Kitchen orders fetched:', data?.length || 0);
+    setOrders(data || []);
   };
 
-  const fetchMenuItems = async () => {
-    const { data } = await supabase.from('menu_items').select('*');
-    setMenuItems(data || [] as MenuItem[]);
-  };
-
-  const getItemName = (id: number) => {
-    const item = menuItems.find((i) => i.id === id);
-    return item?.name || 'Unknown Item';
-  };
-
-  const formatTime = (iso: string) =>
-    new Date(iso).toLocaleString('en-ZA', {
+  const formatTime = (iso: string | null) => {
+    if (!iso) return 'Unknown time';
+    return new Date(iso).toLocaleString('en-ZA', {
       dateStyle: 'medium',
       timeStyle: 'short',
     });
+  };
 
-  const handleUpdateStatus = async (id: number, newStatus: string) => {
+  const handleUpdateStatus = async (id: string, newStatus: string) => {
     const { error } = await supabase
       .from('orders')
       .update({ status: newStatus })
@@ -144,16 +158,19 @@ export default function KitchenDashboard() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
+                <TableHead>Order ID</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead>Items</TableHead>
+                <TableHead>Total</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {orders.map((order) => (
                 <TableRow key={order.id}>
-                  <TableCell>{order.id}</TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {order.id.slice(0, 8)}...
+                  </TableCell>
                   <TableCell className="text-sm text-gray-500">
                     {formatTime(order.created_at)}
                   </TableCell>
@@ -161,25 +178,29 @@ export default function KitchenDashboard() {
                     <ul className="text-sm list-disc list-inside">
                       {order.order_items.map((item, idx) => (
                         <li key={idx}>
-                          {getItemName(item.menu_item_id)} × {item.quantity}
+                          {item.menu_items?.name || 'Unknown Item'} × {item.quantity}
                         </li>
                       ))}
                     </ul>
+                  </TableCell>
+                  <TableCell className="font-semibold">
+                    R{order.total_amount?.toFixed(2) || '0.00'}
                   </TableCell>
                   <TableCell>
                     <Select
                       onValueChange={(value) =>
                         handleUpdateStatus(order.id, value)
                       }
-                      defaultValue={order.status}
+                      defaultValue={order.status || 'confirmed'}
                     >
                       <SelectTrigger className="text-xs text-white bg-gray-800">
                         <SelectValue placeholder="Update" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="confirmed">Confirmed</SelectItem>
                         <SelectItem value="preparing">Preparing</SelectItem>
-                        <SelectItem value="done">Done</SelectItem>
+                        <SelectItem value="ready">Ready</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
