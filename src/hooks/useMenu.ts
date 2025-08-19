@@ -11,7 +11,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { dataClient, type Category, type MenuItem } from '@/lib/dataClient';
 
 interface UseMenuOptions {
-  categoryId?: number;
+  categoryId?: string;  // Fixed: UUIDs are strings, not numbers
   autoFetch?: boolean;
 }
 
