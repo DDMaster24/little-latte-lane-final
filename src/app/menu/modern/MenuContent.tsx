@@ -9,7 +9,6 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -39,6 +38,7 @@ import CartSidebar from '@/components/CartSidebar';
 export default function MenuContent() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({}); // Track selected variant for each item
   const [paymentAlert, setPaymentAlert] = useState<{
     type: 'success' | 'error';
     message: string;
@@ -52,6 +52,13 @@ export default function MenuContent() {
   const paymentReason = searchParams.get('reason');
 
   const { categories, menuItems, loading, error, refetch } = useMenu();
+  
+  // Filter out Pizza Add-Ons category and sort alphabetically
+  const filteredAndSortedCategories = useMemo(() => {
+    return categories
+      .filter(category => !category.name.toLowerCase().includes('pizza add-on'))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [categories]);
   const {
     items: cartItems,
     addItem,
@@ -90,16 +97,16 @@ export default function MenuContent() {
 
   // Enhanced initialization logic
   useEffect(() => {
-    if (loading || categories.length === 0) return;
+    if (loading || filteredAndSortedCategories.length === 0) return;
 
-    if (categoryParam && categories.some(cat => cat.id === categoryParam)) {
+    if (categoryParam && filteredAndSortedCategories.some(cat => cat.id === categoryParam)) {
       // Valid category from URL
       setSelectedCategory(categoryParam);
-    } else if (!selectedCategory && categories.length > 0) {
+    } else if (!selectedCategory && filteredAndSortedCategories.length > 0) {
       // No category selected, choose first one
-      setSelectedCategory(categories[0].id);
+      setSelectedCategory(filteredAndSortedCategories[0].id);
     }
-  }, [categoryParam, categories, loading, selectedCategory]);
+  }, [categoryParam, filteredAndSortedCategories, loading, selectedCategory]);
 
   // Optimized: Handle category change with proper Next.js routing
   const handleCategoryChange = useCallback((categoryId: string) => {
@@ -108,17 +115,53 @@ export default function MenuContent() {
     router.push(`/menu/modern?category=${categoryId}`, { scroll: false });
   }, [router]);
 
-  // Optimized: Filter items by selected category with memoization
+  // Optimized: Filter items by selected category with memoization and consolidate duplicates
   const currentMenuItems = useMemo(() => {
-    return selectedCategory && menuItems.length > 0
-      ? menuItems.filter((item) => item.category_id === selectedCategory)
-      : [];
+    if (!selectedCategory || menuItems.length === 0) return [];
+    
+    const categoryItems = menuItems.filter((item) => item.category_id === selectedCategory);
+    
+    // Group similar items (same base name but different sizes)
+    const itemGroups = new Map<string, MenuItem[]>();
+    
+    categoryItems.forEach(item => {
+      // Extract base name by removing size indicators
+      const baseName = item.name
+        .replace(/\s+(Regular|Large|Small|Medium)$/i, '')
+        .replace(/\s+(R|L|S|M)$/i, '')
+        .trim();
+      
+      if (!itemGroups.has(baseName)) {
+        itemGroups.set(baseName, []);
+      }
+      itemGroups.get(baseName)!.push(item);
+    });
+    
+    // Convert groups back to consolidated items
+    const consolidatedItems: (MenuItem & { variants?: MenuItem[] })[] = [];
+    
+    itemGroups.forEach((items, baseName) => {
+      if (items.length === 1) {
+        // Single item, no variants
+        consolidatedItems.push(items[0]);
+      } else {
+        // Multiple variants - create a consolidated item
+        const baseItem = items[0];
+        consolidatedItems.push({
+          ...baseItem,
+          name: baseName,
+          variants: items.sort((a, b) => a.price - b.price), // Sort by price (small to large)
+        });
+      }
+    });
+    
+    return consolidatedItems;
   }, [selectedCategory, menuItems]);
 
   // Optimized: Get category name with fallback
   const selectedCategoryName = useMemo(() => {
-    return categories.find((cat) => cat.id === selectedCategory)?.name || 'Menu';
-  }, [categories, selectedCategory]);
+    return filteredAndSortedCategories.find((cat) => cat.id === selectedCategory)?.name || 'Menu';
+  }, [filteredAndSortedCategories, selectedCategory]);
 
   // Optimized: Check if current category is Pizza
   const isPizzaCategory = useMemo(() => {
@@ -130,13 +173,18 @@ export default function MenuContent() {
     return menuItems.filter((item) => item.category_id === categoryId).length;
   }, [menuItems]);
 
-  const handleAddToCart = (menuItem: MenuItem) => {
+  const handleAddToCart = (menuItem: MenuItem & { variants?: MenuItem[] }, variantIndex?: number) => {
+    // If item has variants, use the selected variant
+    const itemToAdd = menuItem.variants && variantIndex !== undefined 
+      ? menuItem.variants[variantIndex] 
+      : menuItem;
+
     const cartItem: CartItem = {
-      id: menuItem.id,
-      name: menuItem.name,
-      price: menuItem.price,
+      id: itemToAdd.id,
+      name: itemToAdd.name,
+      price: itemToAdd.price,
       quantity: 1,
-      ...(menuItem.description && { description: menuItem.description }),
+      ...(itemToAdd.description && { description: itemToAdd.description }),
     };
 
     addItem(cartItem);
@@ -266,7 +314,7 @@ export default function MenuContent() {
             </h2>
 
             <div className="space-y-2">
-              {categories.map((category) => (
+              {filteredAndSortedCategories.map((category) => (
                 <button
                   key={category.id}
                   onClick={() => handleCategoryChange(category.id)}
@@ -320,81 +368,116 @@ export default function MenuContent() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {currentMenuItems.map((item) => {
-                    const quantity = getCartQuantity(item.id);
+                    // Get selected variant index for this item
+                    const selectedVariantIndex = selectedVariants[item.name] ? 
+                      parseInt(selectedVariants[item.name]) : 0;
+                    
                     return (
                       <Card
                         key={item.id}
-                        className="bg-gray-800 border-gray-600 hover:border-gray-500 transition-all duration-200 hover:scale-105"
+                        className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in"
+                        style={{ 
+                          background: 'rgba(0, 0, 0, 0.4)',
+                          backdropFilter: 'blur(10px)',
+                          boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)'
+                        }}
                       >
                         <CardHeader className="pb-3">
-                          {item.image_url && (
-                            <div className="relative w-full h-40 mb-3 overflow-hidden rounded bg-gray-700">
-                              <Image
-                                src={item.image_url}
-                                alt={item.name}
-                                width={320}
-                                height={160}
-                                className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
-                                loading="lazy"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.style.display = 'none';
-                                }}
-                              />
-                            </div>
-                          )}
-                          <CardTitle className="text-white text-lg">
+                          <CardTitle className="text-neonCyan group-hover:text-neonPink transition-colors duration-300 text-lg">
                             {item.name}
                           </CardTitle>
                           {item.description && (
-                            <p className="text-gray-400 text-sm mt-1">
+                            <p className="text-gray-300 text-sm mt-1 group-hover:text-gray-200 transition-colors duration-300">
                               {item.description}
                             </p>
                           )}
                         </CardHeader>
 
                         <CardContent>
+                          {/* Size Selection for Items with Variants */}
+                          {item.variants && item.variants.length > 1 && (
+                            <div className="mb-4">
+                              <p className="text-gray-300 text-sm mb-2 group-hover:text-gray-200 transition-colors duration-300">Size:</p>
+                              <div className="flex gap-2">
+                                {item.variants.map((variant, index) => {
+                                  const sizeLabel = variant.name.match(/(Regular|Large|Small|Medium|R|L|S|M)$/i)?.[0] || 
+                                                   (index === 0 ? 'Regular' : 'Large');
+                                  const isSelected = selectedVariantIndex === index;
+                                  
+                                  return (
+                                    <button
+                                      key={variant.id}
+                                      onClick={() => setSelectedVariants(prev => ({
+                                        ...prev,
+                                        [item.name]: index.toString()
+                                      }))}
+                                      className={`px-3 py-1 rounded text-sm font-medium transition-all duration-300 ${
+                                        isSelected
+                                          ? 'bg-neonCyan/80 text-black backdrop-blur-sm shadow-md'
+                                          : 'bg-black/30 text-gray-300 hover:bg-black/50 hover:text-neonCyan backdrop-blur-sm border border-gray-600/50 hover:border-neonCyan/30'
+                                      }`}
+                                    >
+                                      {sizeLabel}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
                           <div className="flex items-center justify-between">
-                            <span className="text-2xl font-bold text-neonPink">
-                              R{item.price.toFixed(2)}
+                            <span className="text-2xl font-bold text-neonPink group-hover:text-neonCyan transition-colors duration-300">
+                              R{(item.variants ? 
+                                item.variants[selectedVariantIndex]?.price || item.price : 
+                                item.price
+                              ).toFixed(2)}
                             </span>
 
-                            {quantity === 0 ? (
-                              <Button
-                                onClick={() => handleAddToCart(item)}
-                                className="bg-neonCyan text-black hover:bg-cyan-400 font-semibold"
-                              >
-                                <Plus className="h-4 w-4 mr-1" />
-                                Add
-                              </Button>
-                            ) : (
-                              <div className="flex items-center gap-2">
+                            {(() => {
+                              // Get quantity for the current item/variant
+                              const currentItem = item.variants ? item.variants[selectedVariantIndex] : item;
+                              const quantity = currentItem ? getCartQuantity(currentItem.id) : 0;
+                              
+                              return quantity === 0 ? (
                                 <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() =>
-                                    updateCartQuantity(item.id, quantity - 1)
-                                  }
-                                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                                  onClick={() => handleAddToCart(item, selectedVariantIndex)}
+                                  className="bg-neonCyan/80 text-black hover:bg-neonPink/80 hover:text-white font-semibold transition-all duration-300 backdrop-blur-sm shadow-md border border-neonCyan/30 hover:border-neonPink/50"
                                 >
-                                  <Minus className="h-3 w-3" />
+                                  <Plus className="h-4 w-4 mr-1" />
+                                  Add
                                 </Button>
-                                <span className="text-white font-semibold min-w-[2rem] text-center">
-                                  {quantity}
-                                </span>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() =>
-                                    updateCartQuantity(item.id, quantity + 1)
-                                  }
-                                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                                >
-                                  <Plus className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            )}
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() =>
+                                      updateCartQuantity(currentItem.id, quantity - 1)
+                                    }
+                                    className="border-neonCyan/30 text-neonCyan hover:bg-neonCyan/20 hover:text-neonPink backdrop-blur-sm transition-all duration-300"
+                                  >
+                                    <Minus className="h-3 w-3" />
+                                  </Button>
+                                  <span className="text-white font-semibold min-w-[2rem] text-center">
+                                    {quantity}
+                                  </span>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() =>
+                                      updateCartQuantity(currentItem.id, quantity + 1)
+                                    }
+                                    className="border-neonCyan/30 text-neonCyan hover:bg-neonCyan/20 hover:text-neonPink backdrop-blur-sm transition-all duration-300"
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              );
+                            })()}
                           </div>
+                          
+                          {/* Hover Effect Glow */}
+                          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-neonCyan/5 to-neonPink/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                         </CardContent>
                       </Card>
                     );

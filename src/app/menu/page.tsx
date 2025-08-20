@@ -47,31 +47,33 @@ function MenuContent() {
     },
   };
 
-  // Function to get icon for individual categories
+  // Function to get specific, realistic icons for individual categories
   const getCategoryIcon = (categoryName: string, groupIcon: string) => {
     const name = categoryName.toLowerCase();
     
-    // Drinks category icons
-    if (name.includes('hot drinks')) return '☕';
-    if (name.includes('lattes') || name.includes('iced lattes')) return '🥤';
-    if (name.includes('frappes')) return '🧊';
-    if (name.includes('fizzers')) return '🥤';
-    if (name.includes('freezos')) return '🍧';
-    if (name.includes('smoothies')) return '🥤';
+    // Drinks category icons - More specific and realistic
+    if (name.includes('hot drinks')) return '☕'; // Classic hot coffee cup
+    if (name.includes('lattes') && !name.includes('iced')) return '🍮'; // Latte with foam art
+    if (name.includes('iced lattes')) return '�'; // Iced bubble tea/iced latte
+    if (name.includes('frappes')) return '�'; // Frappuccino-style drink with straw
+    if (name.includes('fizzers')) return '�'; // Fizzy drinks with bubbles
+    if (name.includes('freezos')) return '🍧'; // Frozen/slush drinks
+    if (name.includes('smoothies')) return '🍓'; // Fresh fruit smoothie
     
-    // Main food category icons
-    if (name.includes('pizza')) return '🍕';
-    if (name.includes('toasties')) return '🥪';
-    if (name.includes('all day meals')) return '🍽️';
+    // Main food category icons - More specific
+    if (name.includes('pizza') && !name.includes('add')) return '🍕'; // Pizza slice
+    if (name.includes('pizza') && name.includes('add')) return '🧄'; // Pizza add-ons/toppings
+    if (name.includes('toasties')) return '🥪'; // Grilled sandwich
+    if (name.includes('all day meals')) return '🍽️'; // Full meal plate
     
-    // Sides & breakfast category icons
-    if (name.includes('scones')) return '🥐';
-    if (name.includes('all day brekkies')) return '🍳';
-    if (name.includes('sides')) return '🍟';
+    // Sides & breakfast category icons - More specific
+    if (name.includes('scones')) return '🥐'; // Pastry/scone
+    if (name.includes('all day brekkies') || name.includes('breakfast')) return '🍳'; // Breakfast eggs
+    if (name.includes('sides')) return '🍟'; // Side dishes
     
-    // Extras category icons
-    if (name.includes('monna') || name.includes('rassies')) return '🧀';
-    if (name.includes('extras')) return '✨';
+    // Extras category icons - More specific
+    if (name.includes('monna') || name.includes('rassies')) return '🧀'; // Specialty cheese items
+    if (name.includes('extras')) return '✨'; // Special extras
     
     // Return group icon as fallback
     return groupIcon;
@@ -206,17 +208,20 @@ function MenuContent() {
                 <p className="text-gray-300 text-lg">{groupInfo.description}</p>
               </div>
 
-              {/* Categories Grid - Full Width Glassmorphic Design (Exact Same as Homepage) */}
-              <div className="flex gap-4 mb-12 w-full px-4">
+              {/* Categories Grid - Fixed Size Panels with 4-per-row max and proper wrapping */}
+              <div className="flex flex-wrap justify-center gap-4 mb-12 w-full px-4">
                 {categoryList.map((category: Category) => (
                   <Link
                     key={category.id}
                     href={`/menu/modern?category=${category.id}`}
-                    className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in flex-1"
+                    className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in"
                     style={{ 
                       background: 'rgba(0, 0, 0, 0.4)',
                       backdropFilter: 'blur(10px)',
-                      boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)'
+                      boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)',
+                      width: 'calc(25% - 12px)', // Fixed width for 4-per-row (accounting for gap)
+                      minWidth: '280px', // Minimum width for responsiveness
+                      maxWidth: '350px'  // Maximum width to maintain consistency
                     }}
                     prefetch={true}
                   >

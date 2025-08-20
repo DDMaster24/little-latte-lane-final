@@ -126,11 +126,11 @@ export default function PayFastPayment({
     <Button
       onClick={initiatePayment}
       disabled={isLoading}
-      className={`${className} bg-gradient-to-r from-neonCyan to-neonBlue text-black font-semibold hover:from-neonCyan/90 hover:to-neonBlue/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
+      className={`${className} bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-500 hover:to-purple-700 text-white font-bold border-2 border-purple-400/50 shadow-lg shadow-purple-500/25 hover:shadow-purple-400/40 transition-all duration-300 text-lg py-3 disabled:opacity-50 disabled:cursor-not-allowed`}
     >
       {isLoading ? (
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
           Preparing Payment...
         </div>
       ) : (
