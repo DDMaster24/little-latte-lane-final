@@ -395,54 +395,67 @@ export async function getStaffBookings() {
 export async function getStaffStats() {
   try {
     const supabase = getSupabaseAdmin();
-    const today = new Date().toISOString().split('T')[0];
     
-    // Get active orders count
+    // Get all active orders
     const { count: activeOrders } = await supabase
       .from('orders')
       .select('*', { count: 'exact', head: true })
       .in('status', ['confirmed', 'preparing', 'ready'])
       .eq('payment_status', 'paid');
 
-    // Get today's bookings count
-    const { count: todayBookings } = await supabase
-      .from('bookings')
-      .select('*', { count: 'exact', head: true })
-      .eq('booking_date', today)
-      .eq('status', 'confirmed');
-
-    // Get pending orders count
-    const { count: pendingOrders } = await supabase
+    // Get confirmed orders (not yet actioned)
+    const { count: confirmedOrders } = await supabase
       .from('orders')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'confirmed')
       .eq('payment_status', 'paid');
 
-    // Get today's revenue
-    const { data: revenueData } = await supabase
+    // Get orders in progress
+    const { count: inProgressOrders } = await supabase
       .from('orders')
-      .select('total_amount')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'preparing')
+      .eq('payment_status', 'paid');
+
+    // Get ready orders
+    const { count: readyOrders } = await supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'ready')
+      .eq('payment_status', 'paid');
+
+    // Get completed orders today
+    const today = new Date().toISOString().split('T')[0];
+    const { count: completedOrders } = await supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'completed')
       .eq('payment_status', 'paid')
       .gte('created_at', today + 'T00:00:00')
       .lt('created_at', today + 'T23:59:59');
 
-    const totalRevenue = revenueData?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
-
     const stats = {
       activeOrders: activeOrders || 0,
-      todayBookings: todayBookings || 0,
-      pendingOrders: pendingOrders || 0,
-      totalRevenue: totalRevenue,
+      confirmedOrders: confirmedOrders || 0,
+      inProgressOrders: inProgressOrders || 0,
+      readyOrders: readyOrders || 0,
+      completedOrders: completedOrders || 0,
     };
 
-    console.log('✅ Staff: Fetched stats via server action:', stats);
+    console.log('✅ Staff: Fetched status-based stats via server action:', stats);
     return { success: true, data: stats };
   } catch (error) {
     console.error('💥 Staff: Unexpected error fetching stats:', error);
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error',
-      data: { activeOrders: 0, todayBookings: 0, pendingOrders: 0, totalRevenue: 0 }
+      data: { 
+        activeOrders: 0, 
+        confirmedOrders: 0, 
+        inProgressOrders: 0, 
+        readyOrders: 0, 
+        completedOrders: 0 
+      }
     };
   }
 }

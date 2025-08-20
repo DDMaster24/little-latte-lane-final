@@ -27,24 +27,22 @@ import {
   LayoutDashboard,
   Package,
   ChefHat,
-  Calendar,
   ShoppingBag,
   Users,
   Clock,
   RefreshCw,
-  ArrowRight,
 } from 'lucide-react';
 
 interface Order {
   id: string;
   user_id: string | null;
   status: string | null;
-  total_amount: number | null;
-  special_instructions: string | null;
-  created_at: string | null;
-  order_number: string | null;
   payment_status: string | null;
+  total_amount: number | null;
+  created_at: string | null;
   updated_at: string | null;
+  order_number: string | null;
+  special_instructions: string | null;
   order_items: {
     id: string;
     menu_item_id: string | null;
@@ -85,17 +83,31 @@ export default function StaffPanel() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [orders, setOrders] = useState<Order[]>([]);
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [_bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [stats, setStats] = useState({
     activeOrders: 0,
-    todayBookings: 0,
-    pendingOrders: 0,
-    totalRevenue: 0,
+    confirmedOrders: 0,
+    inProgressOrders: 0,
+    readyOrders: 0,
+    completedOrders: 0,
   });
 
   const stockRequestForm = useForm<StockRequest>();
+
+  const tabs = [
+    {
+      id: 'overview',
+      label: 'Restaurant Overview',
+      icon: LayoutDashboard,
+    },
+    {
+      id: 'stock-requests',
+      label: 'Stock Requests',
+      icon: Package,
+    },
+  ];
 
   // Define data fetching functions using server actions
   const fetchOrders = useCallback(async () => {
@@ -178,29 +190,13 @@ export default function StaffPanel() {
 
     initializeData();
 
-    // Set up auto-refresh every 30 seconds for live data
-    const interval = setInterval(() => {
-      console.log('🔄 Auto-refreshing staff panel data...');
-      fetchData();
-    }, 30000);
+    // Set up periodic refresh every 30 seconds
+    const interval = setInterval(fetchData, 30000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, [profile, router, fetchData]);
-
-  const tabs = [
-    { id: 'overview', label: 'Restaurant Overview', icon: LayoutDashboard },
-    { id: 'stock-requests', label: 'Stock Requests', icon: Package },
-  ] as const;
-
-  const formatDateTime = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleString();
-  };
-
-  const formatCurrency = (amount: number | null) => {
-    if (!amount) return 'R0.00';
-    return `R${amount.toFixed(2)}`;
-  };
 
   const handleStockRequest = async (data: StockRequest) => {
     try {
@@ -214,177 +210,168 @@ export default function StaffPanel() {
   };
 
   const renderOverviewTab = () => (
-    <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-darkBg/60 backdrop-blur-md border-2 border-neonCyan/50 shadow-[0_0_10px_rgba(0,255,255,0.3)] hover:shadow-[0_0_15px_rgba(0,255,255,0.5)] transition-all duration-300">
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <ShoppingBag className="h-8 w-8 text-neonCyan" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-neonText/70">Active Orders</p>
-                <p className="text-2xl font-bold text-neonCyan">{stats.activeOrders}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-darkBg/60 backdrop-blur-md border-2 border-neonPink/50 shadow-[0_0_10px_rgba(255,0,255,0.3)] hover:shadow-[0_0_15px_rgba(255,0,255,0.5)] transition-all duration-300">
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Calendar className="h-8 w-8 text-neonPink" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-neonText/70">Today&apos;s Bookings</p>
-                <p className="text-2xl font-bold text-neonPink">{stats.todayBookings}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-darkBg/60 backdrop-blur-md border-2 border-purple-400/50 shadow-[0_0_10px_rgba(168,85,247,0.3)] hover:shadow-[0_0_15px_rgba(168,85,247,0.5)] transition-all duration-300">
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Users className="h-8 w-8 text-purple-400" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-neonText/70">Total Orders</p>
-                <p className="text-2xl font-bold text-purple-400">{orders.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-darkBg/60 backdrop-blur-md border-2 border-blue-400/50 shadow-[0_0_10px_rgba(59,130,246,0.3)] hover:shadow-[0_0_15px_rgba(59,130,246,0.5)] transition-all duration-300">
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Clock className="h-8 w-8 text-blue-400" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-neonText/70">Today&apos;s Revenue</p>
-                <p className="text-2xl font-bold text-blue-400">{formatCurrency(stats.totalRevenue)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="space-y-8">
+      {/* Header with Refresh Button */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-neonCyan mb-2">Restaurant Overview</h2>
+          <p className="text-neonText/70">Live order status tracking and management</p>
+        </div>
+        <Button
+          onClick={fetchData}
+          disabled={loading}
+          className="bg-neonPink hover:bg-neonPink/80 text-black font-medium px-6 py-3 rounded-lg transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,20,147,0.5)]"
+        >
+          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+          Refresh Data
+        </Button>
       </div>
 
-      {/* Quick Actions */}
-      <Card className="bg-darkBg/60 backdrop-blur-md border-2 border-neonCyan/50 shadow-neon">
-        <CardHeader>
-          <CardTitle className="text-neonCyan text-xl font-bold">Quick Actions</CardTitle>
-          <CardDescription>Frequently used actions for staff</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button
-              onClick={fetchData}
-              className="bg-transparent border-2 border-neonCyan text-neonCyan hover:bg-neonCyan hover:text-black hover:shadow-[0_0_15px_rgba(0,255,255,0.5)] transition-all duration-300 font-medium"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh Data
-            </Button>
-            
-            <Button
-              onClick={() => router.push('/staff/kitchen-view')}
-              className="bg-transparent border-2 border-neonPink text-neonPink hover:bg-neonPink hover:text-black hover:shadow-[0_0_15px_rgba(255,0,255,0.5)] transition-all duration-300 font-medium"
-            >
-              <ChefHat className="h-4 w-4 mr-2" />
-              Kitchen View
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-
-            <Button
-              onClick={() => setActiveTab('stock-requests')}
-              className="bg-transparent border-2 border-purple-400 text-purple-400 hover:bg-purple-400 hover:text-black hover:shadow-[0_0_15px_rgba(168,85,247,0.5)] transition-all duration-300 font-medium"
-            >
-              <Package className="h-4 w-4 mr-2" />
-              Request Stock
-            </Button>
+      {/* Status-Based Order Cards - Categories Design Pattern */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* Active Orders */}
+        <div
+          className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonCyan/50 p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon"
+          style={{ 
+            background: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(0, 255, 255, 0.05)'
+          }}
+        >
+          <div className="w-full h-16 bg-gradient-to-br from-neonCyan/10 to-neonCyan/20 backdrop-blur-sm rounded-lg mb-4 flex items-center justify-center group-hover:from-neonCyan/20 group-hover:to-neonCyan/30 transition-all duration-300 border border-neonCyan/20">
+            <ShoppingBag className="w-8 h-8 text-neonCyan" />
           </div>
-        </CardContent>
-      </Card>
+          <h3 className="text-neonCyan font-semibold text-center text-lg mb-2">Active Orders</h3>
+          <p className="text-3xl font-bold text-neonCyan text-center mb-2">{stats.activeOrders}</p>
+          <p className="text-gray-300 text-sm text-center">All current orders</p>
+        </div>
 
-      {/* Recent Orders Summary */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        <Card className="bg-darkBg/60 backdrop-blur-md border-2 border-neonCyan/50">
-          <CardHeader>
-            <CardTitle className="text-neonCyan">Recent Orders</CardTitle>
-            <CardDescription>Latest paid orders requiring attention</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {orders.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No active orders</p>
-            ) : (
-              <div className="space-y-4">
-                {orders.slice(0, 5).map((order) => (
-                  <div key={order.id} className="border border-neonCyan/30 rounded-lg p-4 bg-darkBg/30 backdrop-blur-sm">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-semibold text-white">
-                          Order #{order.order_number || order.id.slice(0, 8)}
-                        </h4>
-                        <p className="text-sm text-gray-400">
-                          {order.profiles?.full_name || 'Guest'} • {formatDateTime(order.created_at)}
-                        </p>
-                        <p className="text-lg font-bold text-neonCyan mt-1">
-                          {formatCurrency(order.total_amount)}
-                        </p>
-                      </div>
-                      <Badge
-                        variant={
-                          order.status === 'confirmed'
-                            ? 'default'
-                            : order.status === 'preparing'
-                            ? 'secondary'
-                            : 'outline'
-                        }
-                        className="capitalize bg-neonCyan/20 text-neonCyan border-neonCyan/50"
-                      >
-                        {order.status}
-                      </Badge>
-                    </div>
+        {/* Confirmed Orders */}
+        <div
+          className="group relative bg-black/20 backdrop-blur-md border border-yellow-400/30 hover:border-yellow-400/50 p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon"
+          style={{ 
+            background: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 0 20px rgba(255, 193, 7, 0.1), inset 0 0 20px rgba(255, 193, 7, 0.05)'
+          }}
+        >
+          <div className="w-full h-16 bg-gradient-to-br from-yellow-400/10 to-yellow-400/20 backdrop-blur-sm rounded-lg mb-4 flex items-center justify-center group-hover:from-yellow-400/20 group-hover:to-yellow-400/30 transition-all duration-300 border border-yellow-400/20">
+            <Clock className="w-8 h-8 text-yellow-400" />
+          </div>
+          <h3 className="text-yellow-400 font-semibold text-center text-lg mb-2">Confirmed</h3>
+          <p className="text-3xl font-bold text-yellow-400 text-center mb-2">{stats.confirmedOrders}</p>
+          <p className="text-gray-300 text-sm text-center">Awaiting kitchen action</p>
+        </div>
+
+        {/* In Progress Orders */}
+        <div
+          className="group relative bg-black/20 backdrop-blur-md border border-orange-400/30 hover:border-orange-400/50 p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon"
+          style={{ 
+            background: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 0 20px rgba(255, 152, 0, 0.1), inset 0 0 20px rgba(255, 152, 0, 0.05)'
+          }}
+        >
+          <div className="w-full h-16 bg-gradient-to-br from-orange-400/10 to-orange-400/20 backdrop-blur-sm rounded-lg mb-4 flex items-center justify-center group-hover:from-orange-400/20 group-hover:to-orange-400/30 transition-all duration-300 border border-orange-400/20">
+            <ChefHat className="w-8 h-8 text-orange-400" />
+          </div>
+          <h3 className="text-orange-400 font-semibold text-center text-lg mb-2">In Progress</h3>
+          <p className="text-3xl font-bold text-orange-400 text-center mb-2">{stats.inProgressOrders}</p>
+          <p className="text-gray-300 text-sm text-center">Being prepared</p>
+        </div>
+
+        {/* Ready Orders */}
+        <div
+          className="group relative bg-black/20 backdrop-blur-md border border-green-400/30 hover:border-green-400/50 p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon"
+          style={{ 
+            background: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 0 20px rgba(76, 175, 80, 0.1), inset 0 0 20px rgba(76, 175, 80, 0.05)'
+          }}
+        >
+          <div className="w-full h-16 bg-gradient-to-br from-green-400/10 to-green-400/20 backdrop-blur-sm rounded-lg mb-4 flex items-center justify-center group-hover:from-green-400/20 group-hover:to-green-400/30 transition-all duration-300 border border-green-400/20">
+            <Package className="w-8 h-8 text-green-400" />
+          </div>
+          <h3 className="text-green-400 font-semibold text-center text-lg mb-2">Ready</h3>
+          <p className="text-3xl font-bold text-green-400 text-center mb-2">{stats.readyOrders}</p>
+          <p className="text-gray-300 text-sm text-center">Awaiting pickup</p>
+        </div>
+
+        {/* Completed Orders */}
+        <div
+          className="group relative bg-black/20 backdrop-blur-md border border-neonPink/30 hover:border-neonPink/50 p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon"
+          style={{ 
+            background: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 0 20px rgba(255, 0, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)'
+          }}
+        >
+          <div className="w-full h-16 bg-gradient-to-br from-neonPink/10 to-neonPink/20 backdrop-blur-sm rounded-lg mb-4 flex items-center justify-center group-hover:from-neonPink/20 group-hover:to-neonPink/30 transition-all duration-300 border border-neonPink/20">
+            <Users className="w-8 h-8 text-neonPink" />
+          </div>
+          <h3 className="text-neonPink font-semibold text-center text-lg mb-2">Completed</h3>
+          <p className="text-3xl font-bold text-neonPink text-center mb-2">{stats.completedOrders}</p>
+          <p className="text-gray-300 text-sm text-center">Today&apos;s finished</p>
+        </div>
+      </div>
+
+      {/* Current Orders List */}
+      <div
+        className="bg-black/20 backdrop-blur-md border border-neonCyan/30 p-6 rounded-xl shadow-lg"
+        style={{ 
+          background: 'rgba(0, 0, 0, 0.4)',
+          backdropFilter: 'blur(10px)',
+          boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(0, 255, 255, 0.05)'
+        }}
+      >
+        <h3 className="text-xl font-semibold text-neonCyan mb-4">Current Orders</h3>
+        {orders.length === 0 ? (
+          <div className="text-center py-8">
+            <ShoppingBag className="h-12 w-12 mx-auto mb-4 opacity-50 text-gray-400" />
+            <p className="text-gray-400">No active orders</p>
+            <p className="text-sm text-gray-500 mt-2">Orders will appear here when customers place them</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {orders.slice(0, 5).map((order) => (
+              <div
+                key={order.id}
+                className="bg-darkBg/40 backdrop-blur-sm border border-neonPink/20 rounded-lg p-4 hover:border-neonPink/40 transition-all duration-300"
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-medium text-neonText">Order #{order.id.slice(0, 8)}...</h4>
+                    <p className="text-sm text-gray-400">{order.profiles?.email || 'Unknown Customer'}</p>
+                    <p className="text-sm text-gray-400">
+                      {order.order_items?.length || 0} items • R{order.total_amount?.toFixed(2) || '0.00'}
+                    </p>
                   </div>
-                ))}
+                  <Badge 
+                    className={`${
+                      order.status === 'confirmed' ? 'bg-yellow-400/20 text-yellow-400 border-yellow-400/30' :
+                      order.status === 'preparing' ? 'bg-orange-400/20 text-orange-400 border-orange-400/30' :
+                      order.status === 'ready' ? 'bg-green-400/20 text-green-400 border-green-400/30' :
+                      'bg-neonCyan/20 text-neonCyan border-neonCyan/30'
+                    }`}
+                  >
+                    {order.status || 'Unknown'}
+                  </Badge>
+                </div>
+              </div>
+            ))}
+            {orders.length > 5 && (
+              <div className="text-center pt-4">
+                <Button
+                  onClick={() => router.push('/staff/kitchen-view')}
+                  variant="ghost"
+                  className="text-neonCyan hover:text-neonPink"
+                >
+                  View all {orders.length} orders in Kitchen View →
+                </Button>
               </div>
             )}
-          </CardContent>
-        </Card>
-
-        <Card className="bg-darkBg/60 backdrop-blur-md border-2 border-neonPink/50">
-          <CardHeader>
-            <CardTitle className="text-neonPink">Today&apos;s Bookings</CardTitle>
-            <CardDescription>Reservations for today</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {bookings.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No bookings today</p>
-            ) : (
-              <div className="space-y-4">
-                {bookings.map((booking) => (
-                  <div key={booking.id} className="border border-neonPink/30 rounded-lg p-4 bg-darkBg/30 backdrop-blur-sm">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-semibold text-white">{booking.name}</h4>
-                        <p className="text-sm text-gray-400">
-                          {booking.booking_time} • Party of {booking.party_size}
-                        </p>
-                        {booking.special_requests && (
-                          <p className="text-xs text-neonPink mt-1">
-                            Special: {booking.special_requests}
-                          </p>
-                        )}
-                      </div>
-                      <Badge
-                        variant={booking.status === 'confirmed' ? 'default' : 'outline'}
-                        className="capitalize bg-neonPink/20 text-neonPink border-neonPink/50"
-                      >
-                        {booking.status}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -525,7 +512,7 @@ export default function StaffPanel() {
               )}
               <Button
                 onClick={() => router.push('/staff/kitchen-view')}
-                className="bg-neonPink text-black hover:bg-neonPink/80 hover:shadow-[0_0_15px_#FF00FF] transition-all duration-300 font-medium"
+                className="bg-darkBg/80 backdrop-blur-sm border border-neonCyan/50 text-neonCyan hover:bg-neonCyan/10 hover:border-neonCyan px-6 py-3 rounded-lg transition-all duration-300"
               >
                 <ChefHat className="h-4 w-4 mr-2" />
                 Kitchen View
@@ -535,7 +522,7 @@ export default function StaffPanel() {
         </div>
       </div>
 
-      {/* Navigation Tabs */}
+      {/* Navigation Tabs - Smooth Rounded Design */}
       <div className="bg-darkBg border-b border-neonPink/30">
         <div className="max-w-7xl mx-auto px-6">
           <nav className="flex space-x-1 overflow-x-auto">
@@ -546,10 +533,10 @@ export default function StaffPanel() {
                   key={tab.id}
                   variant="ghost"
                   onClick={() => setActiveTab(tab.id as TabType)}
-                  className={`flex items-center space-x-2 px-6 py-4 rounded-none border-b-3 transition-all duration-300 whitespace-nowrap font-semibold ${
+                  className={`flex items-center space-x-2 px-8 py-4 rounded-xl transition-all duration-300 whitespace-nowrap font-semibold border border-transparent ${
                     activeTab === tab.id
-                      ? 'border-neonCyan text-neonCyan bg-neonCyan/10 shadow-neon'
-                      : 'border-transparent text-neonText hover:text-neonPink hover:bg-neonPink/10 hover:border-neonPink/50'
+                      ? 'bg-neonCyan/10 text-neonCyan border-neonCyan/30 shadow-[0_0_10px_rgba(0,255,255,0.3)]'
+                      : 'text-neonText hover:text-neonPink hover:bg-neonPink/10 hover:border-neonPink/30'
                   }`}
                 >
                   <Icon className="h-5 w-5" />

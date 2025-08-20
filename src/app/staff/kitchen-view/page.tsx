@@ -4,14 +4,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { getStaffOrders, updateOrderStatus } from '@/app/actions';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -19,9 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useForm } from 'react-hook-form';
+import {
+  ArrowLeft,
+  RefreshCw,
+  Clock,
+  ChefHat,
+  Package,
+  CheckCircle,
+  Timer,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Order {
@@ -31,45 +31,43 @@ interface Order {
   payment_status: string | null;
   total_amount: number | null;
   created_at: string | null;
+  updated_at: string | null;
+  order_number: string | null;
+  special_instructions: string | null;
   order_items: {
     id: string;
-    quantity: number;
-    price: number;
     menu_item_id: string | null;
-    menu_items: {
-      name: string;
-      category_id: string | null;
-    } | null;
+    quantity: number;
+    price: number | null;
+    special_instructions: string | null;
+    menu_items: { name: string; category_id: string | null } | null;
   }[];
+  profiles: { full_name: string | null; email: string | null } | null;
 }
 
-interface StockRequest {
-  item_id: number;
-  message: string;
-}
-
-export default function KitchenDashboard() {
+export default function KitchenView() {
   const { profile } = useAuth();
   const router = useRouter();
-
   const [orders, setOrders] = useState<Order[]>([]);
-  const requestForm = useForm<StockRequest>();
+  const [loading, setLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
   const fetchOrders = useCallback(async () => {
     try {
-      console.log('🍳 Kitchen: Fetching orders via server action...');
+      console.log('🍳 Kitchen View: Fetching orders...');
       const result = await getStaffOrders();
       
       if (!result.success) {
-        console.error('❌ Kitchen: Error fetching orders:', result.error);
+        console.error('❌ Kitchen View: Error fetching orders:', result.error);
         toast.error('Failed to fetch orders');
         return;
       }
 
-      console.log(`🍳 Kitchen: Fetched ${result.data.length} orders`);
-      setOrders(result.data as Order[]); // Type assertion for compatibility
+      console.log(`🍳 Kitchen View: Fetched ${result.data.length} orders at ${new Date().toLocaleTimeString()}`);
+      setOrders(result.data);
+      setLastUpdate(new Date());
     } catch (error) {
-      console.error('💥 Kitchen: Unexpected error fetching orders:', error);
+      console.error('💥 Kitchen View: Unexpected error:', error);
       toast.error('Unexpected error occurred');
     }
   }, []);
@@ -80,23 +78,20 @@ export default function KitchenDashboard() {
       return;
     }
 
-    fetchOrders();
+    const initializeData = async () => {
+      await fetchOrders();
+      setLoading(false);
+    };
 
-    // Set up periodic refresh every 30 seconds
-    const interval = setInterval(fetchOrders, 30000);
+    initializeData();
+
+    // Auto-refresh every 15 seconds for kitchen operations
+    const interval = setInterval(fetchOrders, 15000);
 
     return () => {
       clearInterval(interval);
     };
   }, [profile, router, fetchOrders]);
-
-  const formatTime = (iso: string | null) => {
-    if (!iso) return 'Unknown';
-    return new Date(iso).toLocaleString('en-ZA', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    });
-  };
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
     try {
@@ -104,129 +99,250 @@ export default function KitchenDashboard() {
       
       if (!result.success) {
         toast.error('Failed to update order status');
-        console.error('❌ Kitchen: Error updating order:', result.error);
+        console.error('❌ Kitchen View: Error updating order:', result.error);
         return;
       }
 
-      toast.success('Order status updated');
-      fetchOrders(); // Refresh the orders list
+      toast.success(`Order moved to ${newStatus}`);
+      fetchOrders(); // Refresh immediately
     } catch (error) {
       toast.error('Failed to update order status');
-      console.error('💥 Kitchen: Unexpected error updating order:', error);
+      console.error('💥 Kitchen View: Unexpected error updating order:', error);
     }
   };
 
-  const handleStockRequest = async (data: StockRequest) => {
-    // TODO: Create server action for stock requests
-    toast.error('Stock request feature needs implementation');
-    console.log('Stock request data:', data);
+  const getStatusColor = (status: string | null) => {
+    switch (status) {
+      case 'confirmed':
+        return 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400';
+      case 'preparing':
+        return 'bg-orange-500/20 border-orange-500/50 text-orange-400';
+      case 'ready':
+        return 'bg-green-500/20 border-green-500/50 text-green-400';
+      case 'completed':
+        return 'bg-blue-500/20 border-blue-500/50 text-blue-400';
+      default:
+        return 'bg-neonCyan/20 border-neonCyan/50 text-neonCyan';
+    }
   };
 
+  const getStatusIcon = (status: string | null) => {
+    switch (status) {
+      case 'confirmed':
+        return <Clock className="w-4 h-4" />;
+      case 'preparing':
+        return <ChefHat className="w-4 h-4" />;
+      case 'ready':
+        return <Package className="w-4 h-4" />;
+      case 'completed':
+        return <CheckCircle className="w-4 h-4" />;
+      default:
+        return <Timer className="w-4 h-4" />;
+    }
+  };
+
+  const formatOrderTime = (created_at: string | null) => {
+    if (!created_at) return 'Unknown time';
+    const orderTime = new Date(created_at);
+    const now = new Date();
+    const diffMinutes = Math.floor((now.getTime() - orderTime.getTime()) / (1000 * 60));
+    
+    if (diffMinutes < 60) {
+      return `${diffMinutes}m ago`;
+    } else {
+      return orderTime.toLocaleTimeString('en-ZA', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+    }
+  };
+
+  const getQuickActions = (status: string | null) => {
+    const actions = [];
+    
+    if (status === 'confirmed') {
+      actions.push({ label: 'Start Cooking', value: 'preparing', color: 'bg-orange-500 hover:bg-orange-600' });
+    }
+    
+    if (status === 'preparing') {
+      actions.push({ label: 'Mark Ready', value: 'ready', color: 'bg-green-500 hover:bg-green-600' });
+    }
+    
+    if (status === 'ready') {
+      actions.push({ label: 'Complete', value: 'completed', color: 'bg-blue-500 hover:bg-blue-600' });
+    }
+    
+    return actions;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-darkBg flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin text-neonCyan mx-auto mb-4" />
+          <p className="text-neonText">Loading kitchen view...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile?.is_staff && !profile?.is_admin) {
+    return (
+      <div className="min-h-screen bg-darkBg flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-neonPink text-xl">Access Denied</p>
+          <p className="text-gray-400">Staff privileges required</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-darkBg text-neonText p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div className="bg-darkBg/60 backdrop-blur-md border-2 border-neonCyan/50 rounded-lg p-6">
-          <h2 className="text-3xl font-bold text-neonCyan mb-2">Kitchen Dashboard</h2>
-          <p className="text-neonText/70">Real-time order management for kitchen staff</p>
-        </div>
-
-        {/* Orders */}
-        <div className="bg-darkBg/60 backdrop-blur-md border-2 border-neonPink/50 rounded-lg p-6 space-y-4">
-          <h3 className="text-xl font-semibold text-neonPink">Active Orders</h3>
-          {orders.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-400">No active orders</p>
-              <p className="text-sm text-gray-500 mt-2">Orders will appear here when customers place them</p>
+    <div className="min-h-screen bg-darkBg text-neonText">
+      {/* Full-Screen Header - Compact for more order space */}
+      <div className="bg-gray-900/95 backdrop-blur-md border-b border-neonCyan/30 sticky top-0 z-50">
+        <div className="max-w-full px-6 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-4">
+              <Button
+                onClick={() => router.push('/staff')}
+                variant="ghost"
+                className="text-neonCyan hover:text-neonPink"
+              >
+                <ArrowLeft className="h-5 w-5 mr-2" />
+                Back to Staff Panel
+              </Button>
+              <div>
+                <h1 className="text-2xl font-bold text-neonCyan">Kitchen View</h1>
+                <p className="text-neonText/70 text-sm">Full-screen order management</p>
+              </div>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table className="bg-darkBg/30 backdrop-blur-sm rounded-lg">
-                <TableHeader>
-                  <TableRow className="border-neonCyan/30">
-                    <TableHead className="text-neonCyan">Order ID</TableHead>
-                    <TableHead className="text-neonCyan">Created</TableHead>
-                    <TableHead className="text-neonCyan">Items</TableHead>
-                    <TableHead className="text-neonCyan">Total</TableHead>
-                    <TableHead className="text-neonCyan">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {orders.map((order) => (
-                    <TableRow key={order.id} className="border-neonPink/20 hover:bg-neonPink/5">
-                      <TableCell className="font-mono text-xs text-white">
-                        #{order.id.slice(0, 8)}...
-                      </TableCell>
-                      <TableCell className="text-sm text-gray-400">
-                        {formatTime(order.created_at)}
-                      </TableCell>
-                      <TableCell>
-                        <ul className="text-sm list-disc list-inside space-y-1">
-                          {order.order_items.map((item, idx) => (
-                            <li key={idx} className="text-neonText">
-                              <span className="text-neonPink">{item.menu_items?.name || 'Unknown Item'}</span> × {item.quantity}
-                            </li>
-                          ))}
-                        </ul>
-                      </TableCell>
-                      <TableCell className="font-semibold text-neonCyan">
-                        R{order.total_amount?.toFixed(2) || '0.00'}
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          onValueChange={(value) =>
-                            handleUpdateStatus(order.id, value)
-                          }
-                          defaultValue={order.status || 'confirmed'}
-                        >
-                          <SelectTrigger className="text-xs text-neonPink bg-darkBg/80 backdrop-blur-sm border-neonPink/50 focus:border-neonCyan focus:ring-neonCyan/20">
-                            <SelectValue placeholder="Update Status" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-darkBg/95 backdrop-blur-lg border-neonPink/50">
-                            <SelectItem value="confirmed">Confirmed</SelectItem>
-                            <SelectItem value="preparing">Preparing</SelectItem>
-                            <SelectItem value="ready">Ready</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                    </TableRow>
+            <div className="flex items-center space-x-4">
+              {lastUpdate && (
+                <div className="text-sm text-gray-400">
+                  Last update: {lastUpdate.toLocaleTimeString()}
+                </div>
+              )}
+              <Button
+                onClick={fetchOrders}
+                disabled={loading}
+                className="bg-neonPink hover:bg-neonPink/80 text-black font-medium px-4 py-2 rounded-lg transition-all duration-300"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Orders Grid - Square Sticky Note Cards */}
+      <div className="p-6">
+        {orders.length === 0 ? (
+          <div className="text-center py-16">
+            <ChefHat className="h-16 w-16 mx-auto mb-6 text-gray-400 opacity-50" />
+            <h3 className="text-xl text-gray-400 mb-2">No Active Orders</h3>
+            <p className="text-gray-500">Orders will appear here as they come in</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+            {orders.map((order, index) => (
+              <div
+                key={order.id}
+                className="group relative aspect-square bg-yellow-100/95 backdrop-blur-sm border border-yellow-300/50 rounded-lg p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:rotate-1"
+                style={{
+                  background: 'linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%)',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(252, 211, 77, 0.3)',
+                }}
+              >
+                {/* Position Number - Top Left Corner */}
+                <div className="absolute -top-2 -left-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg">
+                  {index + 1}
+                </div>
+
+                {/* Order Header */}
+                <div className="flex justify-between items-start mb-3">
+                  <div className="text-gray-900">
+                    <h4 className="font-bold text-lg leading-tight">
+                      Order #{order.order_number || order.id.slice(0, 8)}
+                    </h4>
+                    <p className="text-xs text-gray-600">
+                      {formatOrderTime(order.created_at)}
+                    </p>
+                  </div>
+                  <Badge className={`${getStatusColor(order.status)} text-xs flex items-center gap-1`}>
+                    {getStatusIcon(order.status)}
+                    {order.status || 'pending'}
+                  </Badge>
+                </div>
+
+                {/* Customer Info */}
+                <div className="mb-3 text-gray-800">
+                  <p className="text-sm font-medium">
+                    {order.profiles?.full_name || order.profiles?.email?.split('@')[0] || 'Walk-in Customer'}
+                  </p>
+                  <p className="text-xs text-gray-600">
+                    Total: R{order.total_amount?.toFixed(2) || '0.00'}
+                  </p>
+                </div>
+
+                {/* Order Items */}
+                <div className="mb-4 flex-1">
+                  <div className="space-y-1 max-h-24 overflow-y-auto">
+                    {order.order_items.map((item, idx) => (
+                      <div key={idx} className="text-sm text-gray-800">
+                        <span className="font-medium">{item.quantity}x</span>{' '}
+                        <span className="text-gray-700">
+                          {item.menu_items?.name || 'Unknown Item'}
+                        </span>
+                        {item.special_instructions && (
+                          <p className="text-xs text-gray-600 italic ml-4">
+                            Note: {item.special_instructions}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {order.special_instructions && (
+                    <div className="mt-2 p-2 bg-yellow-200/50 rounded text-xs text-gray-700">
+                      <strong>Special:</strong> {order.special_instructions}
+                    </div>
+                  )}
+                </div>
+
+                {/* Quick Action Buttons */}
+                <div className="space-y-2">
+                  {getQuickActions(order.status).map((action, idx) => (
+                    <Button
+                      key={idx}
+                      onClick={() => handleUpdateStatus(order.id, action.value)}
+                      className={`w-full ${action.color} text-white text-xs py-2 font-medium transition-all duration-300 hover:shadow-lg`}
+                    >
+                      {action.label}
+                    </Button>
                   ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </div>
-
-        {/* Stock Request - Temporarily disabled */}
-        <div className="bg-darkBg/60 backdrop-blur-md border-2 border-purple-400/50 rounded-lg p-6 space-y-4">
-          <h3 className="text-xl font-semibold text-purple-400">Request Stock</h3>
-          <p className="text-purple-400/70 text-sm">Feature temporarily disabled - needs server action implementation</p>
-          <form
-            onSubmit={requestForm.handleSubmit(handleStockRequest)}
-            className="flex flex-col sm:flex-row gap-4 opacity-50"
-          >
-            <Input
-              type="number"
-              placeholder="Item ID"
-              disabled
-              {...requestForm.register('item_id', { valueAsNumber: true })}
-              className="bg-darkBg/80 backdrop-blur-sm border-purple-400/50 text-purple-400 placeholder:text-purple-400/50 focus:border-neonCyan focus:ring-neonCyan/20"
-            />
-            <Input 
-              placeholder="Message" 
-              disabled
-              {...requestForm.register('message')} 
-              className="bg-darkBg/80 backdrop-blur-sm border-purple-400/50 text-purple-400 placeholder:text-purple-400/50 focus:border-neonCyan focus:ring-neonCyan/20"
-            />
-            <Button 
-              type="submit"
-              disabled
-              className="bg-purple-400 text-black hover:bg-purple-400/80 hover:shadow-[0_0_15px_rgba(168,85,247,0.5)] transition-all duration-300 font-medium"
-            >
-              Request Stock
-            </Button>
-          </form>
-        </div>
+                  
+                  {/* Full Status Selector for Complex Changes */}
+                  <Select
+                    onValueChange={(value) => handleUpdateStatus(order.id, value)}
+                    defaultValue={order.status || 'confirmed'}
+                  >
+                    <SelectTrigger className="w-full text-xs bg-gray-800 text-white border-gray-600">
+                      <SelectValue placeholder="Change Status" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-600">
+                      <SelectItem value="confirmed">⏱️ Confirmed</SelectItem>
+                      <SelectItem value="preparing">👨‍🍳 Preparing</SelectItem>
+                      <SelectItem value="ready">✅ Ready</SelectItem>
+                      <SelectItem value="completed">🎉 Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
