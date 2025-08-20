@@ -28,6 +28,9 @@ import {
   Save,
   X,
 } from 'lucide-react';
+import { 
+  OrderStatusSkeleton
+} from '@/components/LoadingComponents';
 
 interface Order {
   id: string;  // UUID in database
@@ -240,15 +243,49 @@ export default function AccountPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-darkBg p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="animate-pulse space-y-6">
-            <div className="h-12 bg-gray-700 rounded w-1/3 mx-auto"></div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="h-32 bg-gray-700 rounded"></div>
-              <div className="h-32 bg-gray-700 rounded"></div>
-              <div className="h-32 bg-gray-700 rounded"></div>
+        <div className="max-w-6xl mx-auto space-y-8">
+          {/* Enhanced header skeleton */}
+          <div className="text-center space-y-4">
+            <div className="w-48 h-12 bg-gradient-to-r from-neonCyan/30 via-neonPink/30 to-neonCyan/30 rounded-lg shimmer mx-auto" />
+            <div className="w-64 h-4 bg-gray-700 rounded shimmer mx-auto" />
+          </div>
+
+          {/* Tab navigation skeleton */}
+          <div className="flex justify-center">
+            <div className="flex space-x-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="w-24 h-10 bg-gray-700 rounded-lg shimmer" />
+              ))}
             </div>
-            <div className="h-96 bg-gray-700 rounded"></div>
+          </div>
+
+          {/* Enhanced content skeleton */}
+          <div className="space-y-6">
+            {/* Profile/Orders skeleton based on likely content */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div 
+                  key={i} 
+                  className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50 space-y-4 animate-pulse"
+                  style={{ animationDelay: `${i * 0.1}s` }}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-neonCyan/30 to-neonPink/30 rounded-full shimmer" />
+                    <div className="space-y-2 flex-1">
+                      <div className="w-3/4 h-4 bg-gray-700 rounded shimmer" />
+                      <div className="w-1/2 h-3 bg-gray-700 rounded shimmer" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="w-full h-3 bg-gray-700 rounded shimmer" />
+                    <div className="w-2/3 h-3 bg-gray-700 rounded shimmer" />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Order history skeleton */}
+            <OrderStatusSkeleton />
           </div>
         </div>
       </div>

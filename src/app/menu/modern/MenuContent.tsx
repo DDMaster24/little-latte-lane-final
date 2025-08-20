@@ -7,8 +7,8 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,7 @@ import { useMenu } from '@/hooks/useMenu';
 import {
   CategorySkeleton,
   MenuItemSkeleton,
+  ErrorState,
 } from '@/components/LoadingComponents';
 import { type MenuItem } from '@/lib/dataClient';
 import PizzaCustomizationPanel from '@/components/PizzaCustomizationPanel';
@@ -36,6 +37,7 @@ export default function MenuContent() {
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   const searchParams = useSearchParams();
+  const router = useRouter();
   const categoryParam = searchParams.get('category');
 
   const { categories, menuItems, loading, error, refetch } = useMenu();
@@ -60,31 +62,34 @@ export default function MenuContent() {
     }
   }, [categoryParam, categories, loading, selectedCategory]);
 
-  // Handle category change with proper URL updates
-  const handleCategoryChange = (categoryId: string) => {
+  // Optimized: Handle category change with proper Next.js routing
+  const handleCategoryChange = useCallback((categoryId: string) => {
     setSelectedCategory(categoryId);
-    // Update URL without page reload
-    const url = new URL(window.location.href);
-    url.searchParams.set('category', categoryId);
-    window.history.pushState({}, '', url.toString());
-  };
+    // Use Next.js router for proper navigation
+    router.push(`/menu/modern?category=${categoryId}`, { scroll: false });
+  }, [router]);
 
-  // Filter items by selected category with loading state check
-  const currentMenuItems = selectedCategory && menuItems.length > 0
-    ? menuItems.filter((item) => item.category_id === selectedCategory)
-    : [];
+  // Optimized: Filter items by selected category with memoization
+  const currentMenuItems = useMemo(() => {
+    return selectedCategory && menuItems.length > 0
+      ? menuItems.filter((item) => item.category_id === selectedCategory)
+      : [];
+  }, [selectedCategory, menuItems]);
 
-  // Get category name with fallback
-  const selectedCategoryName =
-    categories.find((cat) => cat.id === selectedCategory)?.name || 'Menu';
+  // Optimized: Get category name with fallback
+  const selectedCategoryName = useMemo(() => {
+    return categories.find((cat) => cat.id === selectedCategory)?.name || 'Menu';
+  }, [categories, selectedCategory]);
 
-  // Check if current category is Pizza
-  const isPizzaCategory = selectedCategoryName.toLowerCase().includes('pizza');
+  // Optimized: Check if current category is Pizza
+  const isPizzaCategory = useMemo(() => {
+    return selectedCategoryName.toLowerCase().includes('pizza');
+  }, [selectedCategoryName]);
 
-  // Get accurate item count for each category
-  const getCategoryItemCount = (categoryId: string) => {
+  // Optimized: Get accurate item count for each category with memoization
+  const getCategoryItemCount = useCallback((categoryId: string) => {
     return menuItems.filter((item) => item.category_id === categoryId).length;
-  };
+  }, [menuItems]);
 
   const handleAddToCart = (menuItem: MenuItem) => {
     const cartItem: CartItem = {
@@ -119,22 +124,48 @@ export default function MenuContent() {
         <div className="flex">
           {/* Left Panel - Categories Skeleton */}
           <div className="w-64 bg-gray-900 border-r border-gray-700 p-4">
-            <CategorySkeleton />
+            <div className="mb-4">
+              <div className="w-32 h-6 bg-gradient-to-r from-neonCyan/30 to-neonPink/30 rounded shimmer" />
+            </div>
+            <CategorySkeleton count={8} />
           </div>
 
           {/* Center Panel - Items Skeleton */}
           <div className="flex-1 p-6">
-            <MenuItemSkeleton />
+            <div className="mb-6">
+              <div className="w-48 h-8 bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 rounded shimmer" />
+              <div className="w-32 h-4 bg-gray-700 rounded shimmer mt-2" />
+            </div>
+            <MenuItemSkeleton count={6} />
           </div>
 
-          {/* Right Panel - Cart Skeleton */}
+          {/* Right Panel - Enhanced Cart Skeleton */}
           <div className="w-80 bg-gray-900 border-l border-gray-700 p-4">
-            <div className="animate-pulse space-y-4">
-              <div className="h-8 bg-gray-700 rounded"></div>
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 bg-gray-700 rounded"></div>
-                ))}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="w-20 h-6 bg-gradient-to-r from-neonCyan/30 to-neonPink/30 rounded shimmer" />
+                <div className="w-8 h-8 bg-gray-700 rounded-full shimmer" />
+              </div>
+              
+              {/* Cart items skeleton */}
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center space-x-3 p-3 bg-gray-800/30 rounded-lg animate-pulse" style={{ animationDelay: `${i * 0.1}s` }}>
+                  <div className="w-12 h-12 bg-gray-700 rounded shimmer" />
+                  <div className="flex-1 space-y-2">
+                    <div className="w-3/4 h-4 bg-gray-700 rounded shimmer" />
+                    <div className="w-1/2 h-3 bg-gray-700 rounded shimmer" />
+                  </div>
+                  <div className="w-16 h-6 bg-gray-700 rounded shimmer" />
+                </div>
+              ))}
+              
+              {/* Cart total skeleton */}
+              <div className="border-t border-gray-700 pt-4">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="w-12 h-6 bg-gray-700 rounded shimmer" />
+                  <div className="w-20 h-8 bg-gradient-to-r from-neonCyan/30 to-neonPink/30 rounded shimmer" />
+                </div>
+                <div className="w-full h-12 bg-gradient-to-r from-neonCyan/20 to-neonPink/20 rounded-lg shimmer" />
               </div>
             </div>
           </div>
@@ -145,19 +176,13 @@ export default function MenuContent() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-darkBg flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-red-400 mb-2">
-            Menu temporarily unavailable
-          </h2>
-          <p className="text-gray-300 mb-4">{error}</p>
-          <Button
-            onClick={refetch}
-            className="bg-purple-600 hover:bg-purple-700"
-          >
-            Try Again
-          </Button>
-        </div>
+      <div className="min-h-screen bg-darkBg">
+        <ErrorState
+          title="Menu Temporarily Unavailable"
+          message={`We're having trouble loading the menu. ${error}`}
+          onRetry={refetch}
+          className="min-h-screen"
+        />
       </div>
     );
   }

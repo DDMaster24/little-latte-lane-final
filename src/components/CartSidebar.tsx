@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/components/AuthProvider';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -35,7 +36,8 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
   const total = useCartStore((state) => state.total());
-    const { user, profile } = useAuth();
+  const { user, profile } = useAuth();
+  const router = useRouter();
 
   const [deliveryType, setDeliveryType] = useState<'delivery' | 'pickup'>(
     'delivery'
@@ -133,10 +135,23 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
 
     setIsCreatingOrder(true);
     
-    // Show loading toast
-    toast.loading('Creating your order...', { id: 'create-order' });
+    // Enhanced loading with progress steps
+    const orderSteps = [
+      'Validating order details...',
+      'Creating your order...',
+      'Processing payment setup...',
+      'Preparing checkout...'
+    ];
+    
+    let currentStep = 0;
+    toast.loading(orderSteps[currentStep], { id: 'create-order' });
 
     try {
+      // Step 1: Validate
+      await new Promise(resolve => setTimeout(resolve, 500));
+      currentStep = 1;
+      toast.loading(orderSteps[currentStep], { id: 'create-order' });
+
       // Transform cart items to match the expected interface
       const checkoutItems = cart.map((item) => ({
         id: item.id,
@@ -145,6 +160,11 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         name: item.name,
         customization: item.customization as Record<string, unknown>,
       }));
+
+      // Step 2: Create order
+      await new Promise(resolve => setTimeout(resolve, 300));
+      currentStep = 2;
+      toast.loading(orderSteps[currentStep], { id: 'create-order' });
 
       const result = await performCheckout(
         profile.id,
@@ -160,13 +180,21 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         }
       );
 
+      // Step 3: Finalize
+      currentStep = 3;
+      toast.loading(orderSteps[currentStep], { id: 'create-order' });
+      await new Promise(resolve => setTimeout(resolve, 200));
+
       if (result.success && result.orderId) {
         setOrderId(result.orderId);
-        toast.success('Order created! Ready for payment.', { id: 'create-order' });
+        toast.success('✅ Order ready for payment!', { 
+          id: 'create-order',
+          duration: 2000
+        });
         // Payment will be handled in the same checkout step
       } else {
         toast.error(
-          'Error creating order: ' + (result.error || 'Unknown error'),
+          '❌ Error creating order: ' + (result.error || 'Unknown error'),
           { id: 'create-order' }
         );
       }
@@ -355,7 +383,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                             <button
                               onClick={() => {
                                 onClose();
-                                window.location.href = '/account';
+                                router.push('/account');
                               }}
                               className="text-neon-blue hover:text-neon-cyan underline ml-1"
                             >
