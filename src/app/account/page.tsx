@@ -2,9 +2,10 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/components/AuthProvider';
+import { useRouter } from 'next/navigation';
 import AuthRequiredPrompt from '@/components/AuthRequiredPrompt';
 import { getSupabaseClient } from '@/lib/supabase-client';
-import { updateUserProfile } from '@/app/actions';
+import { updateUserProfile, cancelDraftOrder } from '@/app/actions';
 import {
   Card,
   CardContent,
@@ -15,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { useCartStore } from '@/stores/cartStore';
 import toast from 'react-hot-toast';
 import {
   User,
@@ -34,6 +36,7 @@ import {
 
 interface Order {
   id: string;  // UUID in database
+  order_number: string | null;  // User-friendly order number
   status: string | null;
   total_amount: number | null;  // Database field name
   created_at: string | null;
@@ -56,9 +59,11 @@ interface EditingField {
 
 export default function AccountPage() {
   const { session, profile, user, refreshProfile } = useAuth();
+  const router = useRouter();
+  const { loadOrderToCart } = useCartStore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState('active');
   
   // Inline editing state
   const [editingField, setEditingField] = useState<EditingField>({
@@ -312,6 +317,8 @@ export default function AccountPage() {
         {/* Navigation Tabs */}
         <div className="flex space-x-1 bg-gray-800 p-1 rounded-lg">
           {[
+            { id: 'active', label: 'Active Orders', icon: Clock },
+            { id: 'drafts', label: 'Draft Orders', icon: Edit2 },
             { id: 'profile', label: 'My Profile', icon: User },
             { id: 'orders', label: 'Order History', icon: Receipt },
           ].map(({ id, label, icon: Icon }) => (
@@ -331,6 +338,278 @@ export default function AccountPage() {
         </div>
 
         {/* Tab Content */}
+        {activeTab === 'active' && (
+          <Card className="bg-gray-800 border-gray-600">
+            <CardHeader>
+              <CardTitle className="text-orange-400 flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Active Orders
+              </CardTitle>
+              <CardDescription>
+                Track your current orders from kitchen to pickup/delivery
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {orders.filter(order => 
+                order.status && ['confirmed', 'preparing', 'ready'].includes(order.status.toLowerCase())
+              ).length === 0 ? (
+                <div className="text-center py-12">
+                  <Clock className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-400 mb-2">No active orders</p>
+                  <p className="text-sm text-gray-500">
+                    Your active orders will appear here once you place an order
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {orders
+                    .filter(order => 
+                      order.status && ['confirmed', 'preparing', 'ready'].includes(order.status.toLowerCase())
+                    )
+                    .map((order) => (
+                      <div
+                        key={order.id}
+                        className="border-2 border-orange-500/30 bg-orange-900/10 rounded-lg p-4 space-y-3"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-semibold text-white">
+                              Order #{order.order_number || order.id.slice(-8)}
+                            </h4>
+                            <p className="text-sm text-gray-400">
+                              {order.created_at ? formatDateTime(order.created_at) : 'Date unknown'}
+                              • Pickup
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <Badge
+                              className={`${getStatusColor(order.status || 'pending')} mb-2 animate-pulse`}
+                            >
+                              {order.status ? (order.status.charAt(0).toUpperCase() + order.status.slice(1)) : 'Unknown'}
+                            </Badge>
+                            <p className="text-lg font-bold text-white">
+                              R{order.total_amount?.toFixed(2) || '0.00'}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Progress Indicator */}
+                        <div className="flex items-center justify-between text-xs text-gray-400 bg-gray-700/50 p-3 rounded">
+                          <div className={`flex flex-col items-center ${order.status === 'confirmed' ? 'text-orange-400' : 'text-green-400'}`}>
+                            <div className="w-2 h-2 rounded-full bg-current mb-1"></div>
+                            <span>Confirmed</span>
+                          </div>
+                          <div className="flex-1 h-px bg-gray-600 mx-2"></div>
+                          <div className={`flex flex-col items-center ${order.status === 'preparing' ? 'text-orange-400' : order.status === 'ready' ? 'text-green-400' : 'text-gray-500'}`}>
+                            <div className="w-2 h-2 rounded-full bg-current mb-1"></div>
+                            <span>Preparing</span>
+                          </div>
+                          <div className="flex-1 h-px bg-gray-600 mx-2"></div>
+                          <div className={`flex flex-col items-center ${order.status === 'ready' ? 'text-green-400' : 'text-gray-500'}`}>
+                            <div className="w-2 h-2 rounded-full bg-current mb-1"></div>
+                            <span>Ready</span>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium text-gray-300">
+                            Items:
+                          </p>
+                          {order.order_items.map((item, idx) => (
+                            <div
+                              key={idx}
+                              className="flex justify-between text-sm bg-gray-700 p-2 rounded"
+                            >
+                              <span className="text-gray-300">
+                                {item.menu_items?.name ||
+                                  `Item #${item.menu_item_id}`}{' '}
+                                × {item.quantity}
+                              </span>
+                              <span className="text-white">
+                                R{(item.price * item.quantity).toFixed(2)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {order.special_instructions && (
+                          <div className="bg-gray-700 p-3 rounded">
+                            <p className="text-sm font-medium text-gray-300">
+                              Special Instructions:
+                            </p>
+                            <p className="text-sm text-gray-400">
+                              {order.special_instructions}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === 'drafts' && (
+          <Card className="bg-gray-800 border-gray-600">
+            <CardHeader>
+              <CardTitle className="text-yellow-400 flex items-center gap-2">
+                <Edit2 className="h-5 w-5" />
+                Draft Orders
+              </CardTitle>
+              <CardDescription>
+                Complete payment for these orders to send them to the kitchen
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {orders.filter(order => 
+                order.status && ['draft', 'pending'].includes(order.status.toLowerCase())
+              ).length === 0 ? (
+                <div className="text-center py-12">
+                  <Edit2 className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-400 mb-2">No draft orders</p>
+                  <p className="text-sm text-gray-500">
+                    Orders pending payment will appear here
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {orders
+                    .filter(order => 
+                      order.status && ['draft', 'pending'].includes(order.status.toLowerCase())
+                    )
+                    .map((order) => (
+                      <div
+                        key={order.id}
+                        className="border-2 border-yellow-500/30 bg-yellow-900/10 rounded-lg p-4 space-y-3"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-semibold text-white">
+                              Order #{order.order_number || order.id.slice(-8)}
+                            </h4>
+                            <p className="text-sm text-gray-400">
+                              {order.created_at ? formatDateTime(order.created_at) : 'Date unknown'}
+                              • Pickup
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <Badge
+                              className={`${getStatusColor(order.status || 'pending')} mb-2`}
+                            >
+                              {order.payment_status === 'failed' ? 'Payment Failed' : 'Awaiting Payment'}
+                            </Badge>
+                            <p className="text-lg font-bold text-white">
+                              R{order.total_amount?.toFixed(2) || '0.00'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium text-gray-300">
+                            Items:
+                          </p>
+                          {order.order_items.map((item, idx) => (
+                            <div
+                              key={idx}
+                              className="flex justify-between text-sm bg-gray-700 p-2 rounded"
+                            >
+                              <span className="text-gray-300">
+                                {item.menu_items?.name ||
+                                  `Item #${item.menu_item_id}`}{' '}
+                                × {item.quantity}
+                              </span>
+                              <span className="text-white">
+                                R{(item.price * item.quantity).toFixed(2)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {order.special_instructions && (
+                          <div className="bg-gray-700 p-3 rounded">
+                            <p className="text-sm font-medium text-gray-300">
+                              Special Instructions:
+                            </p>
+                            <p className="text-sm text-gray-400">
+                              {order.special_instructions}
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="flex gap-2 pt-3 border-t border-gray-600">
+                          <Button
+                            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                            onClick={async () => {
+                              try {
+                                console.log('🔄 Loading order to cart for retry:', order.id);
+                                
+                                const response = await fetch('/api/orders/retry', {
+                                  method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                  },
+                                  body: JSON.stringify({
+                                    orderId: order.id,
+                                    userId: session.user.id,
+                                  }),
+                                });
+
+                                const result = await response.json();
+                                
+                                if (result.success && result.orderItems) {
+                                  // Load the order items into the cart
+                                  loadOrderToCart(result.orderItems);
+                                  
+                                  // Redirect to menu page where they can proceed to checkout
+                                  router.push('/menu/modern');
+                                  
+                                  toast.success(`Order #${result.orderNumber || order.order_number || order.id.slice(-8)} loaded to cart!`);
+                                } else {
+                                  toast.error(result.error || 'Failed to load order');
+                                }
+                              } catch (error) {
+                                console.error('❌ Load order error:', error);
+                                toast.error('Failed to load order. Please try again.');
+                              }
+                            }}
+                          >
+                            Complete Payment
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="border-red-500 text-red-400 hover:bg-red-500 hover:text-white"
+                            onClick={async () => {
+                              if (confirm(`Are you sure you want to cancel Order #${order.order_number || order.id.slice(-8)}? This action cannot be undone.`)) {
+                                try {
+                                  console.log('🗑️ Canceling order:', order.id);
+                                  
+                                  const result = await cancelDraftOrder(order.id, session.user.id);
+                                  
+                                  if (result.success) {
+                                    toast.success(`Order #${order.order_number || order.id.slice(-8)} canceled successfully`);
+                                    // Refresh the orders list
+                                    await fetchData();
+                                  } else {
+                                    toast.error(result.error || 'Failed to cancel order');
+                                  }
+                                } catch (error) {
+                                  console.error('❌ Cancel order error:', error);
+                                  toast.error('Failed to cancel order. Please try again.');
+                                }
+                              }
+                            }}
+                          >
+                            Cancel Order
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
         {activeTab === 'profile' && (
           <Card className="bg-gray-800 border-gray-600">
             <CardHeader>
@@ -595,7 +874,7 @@ export default function AccountPage() {
                       <div className="flex justify-between items-start">
                         <div>
                           <h4 className="font-semibold text-white">
-                            Order #{order.id}
+                            Order #{order.order_number || order.id.slice(-8)}
                           </h4>
                           <p className="text-sm text-gray-400">
                             {order.created_at ? formatDateTime(order.created_at) : 'Date unknown'}

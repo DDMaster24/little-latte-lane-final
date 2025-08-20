@@ -173,7 +173,7 @@ export class OrderQueries {
  */
 export class ServerOrderQueries {
   /**
-   * Get all orders (admin only)
+   * Get all orders (admin only) - excludes draft orders by default
    */
   static async getAllOrders(): Promise<OrderWithItems[]> {
     const supabase = await getSupabaseServer();
@@ -187,6 +187,7 @@ export class ServerOrderQueries {
           menu_item:menu_items (*)
         )
       `)
+      .neq('status', 'draft') // Exclude draft orders - they are not real orders until payment confirmed
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -241,29 +242,31 @@ export class ServerOrderQueries {
   static async getOrderAnalytics() {
     const supabase = await getSupabaseServer();
     
-    // Get total orders today
+    // Get total orders today (excluding draft orders)
     const today = new Date().toISOString().split('T')[0];
     const { count: todayOrders } = await supabase
       .from('orders')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', `${today}T00:00:00.000Z`)
-      .lt('created_at', `${today}T23:59:59.999Z`);
+      .lt('created_at', `${today}T23:59:59.999Z`)
+      .neq('status', 'draft'); // Exclude draft orders from analytics
 
-    // Get total revenue today
+    // Get total revenue today (excluding draft orders)
     const { data: todayRevenue } = await supabase
       .from('orders')
       .select('total_amount')
       .gte('created_at', `${today}T00:00:00.000Z`)
       .lt('created_at', `${today}T23:59:59.999Z`)
+      .neq('status', 'draft') // Exclude draft orders from revenue
       .neq('status', 'cancelled');
 
     const revenue = todayRevenue?.reduce((sum: number, order: { total_amount: number | null }) => sum + (order.total_amount || 0), 0) || 0;
 
-    // Get pending orders count
+    // Get confirmed orders count (real pending orders for business operations)
     const { count: pendingOrders } = await supabase
       .from('orders')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending');
+      .eq('status', 'confirmed'); // Confirmed orders are the real "pending" business orders
 
     return {
       todayOrders: todayOrders || 0,

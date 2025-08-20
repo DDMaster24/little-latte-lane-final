@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       orderId,
       userId,
       amount: parsedAmount,
-      itemName,
+      itemName: `${itemName} (Order #${orderId})`, // Include order ID for PayFast tracking
       itemDescription,
       userEmail: userDetails?.email,
       userFirstName: userDetails?.firstName,

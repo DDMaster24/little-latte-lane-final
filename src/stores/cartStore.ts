@@ -42,6 +42,7 @@ interface CartStore {
   clearCart: () => void;
   updateQuantity: (id: string, quantity: number) => void;
   total: () => number;
+  loadOrderToCart: (orderItems: CartItem[]) => void;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -120,6 +121,14 @@ export const useCartStore = create<CartStore>()(
           (acc, item) => acc + item.price * item.quantity,
           0
         );
+      },
+
+      loadOrderToCart: (orderItems) => {
+        const itemCount = orderItems.length;
+        toast.success(`Order loaded to cart! ${itemCount} items added`, {
+          duration: 3000,
+        });
+        set({ items: orderItems });
       },
     }),
     {

@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     if (payment_status === 'COMPLETE') {
       console.log('✅ Payment completed for order:', orderId);
       
-      // Update order status in database
+      // Update order status from 'draft' to 'confirmed' (now visible to kitchen)
       const { error: orderError } = await supabase
         .from('orders')
         .update({
@@ -80,7 +80,8 @@ export async function POST(request: NextRequest) {
           payment_status: 'paid',
           updated_at: new Date().toISOString(),
         })
-        .eq('id', orderId);
+        .eq('id', orderId)
+        .eq('status', 'draft'); // Only update if still in draft status
 
       if (orderError) {
         console.error('❌ Error updating order:', orderError);

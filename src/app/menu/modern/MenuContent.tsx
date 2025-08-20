@@ -13,6 +13,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useCartStore, type CartItem } from '@/stores/cartStore';
 import {
   ShoppingCart,
@@ -21,6 +22,9 @@ import {
   Trash2,
   ChefHat,
   Clock,
+  CheckCircle2,
+  AlertCircle,
+  X,
 } from 'lucide-react';
 import { useMenu } from '@/hooks/useMenu';
 import {
@@ -35,10 +39,17 @@ import CartSidebar from '@/components/CartSidebar';
 export default function MenuContent() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [paymentAlert, setPaymentAlert] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
 
   const searchParams = useSearchParams();
   const router = useRouter();
   const categoryParam = searchParams.get('category');
+  const paymentStatus = searchParams.get('payment');
+  const paymentId = searchParams.get('payment_id');
+  const paymentReason = searchParams.get('reason');
 
   const { categories, menuItems, loading, error, refetch } = useMenu();
   const {
@@ -47,7 +58,35 @@ export default function MenuContent() {
     updateQuantity,
     removeItem,
     total,
+    clearCart,
   } = useCartStore();
+
+  // Handle payment status from URL
+  useEffect(() => {
+    if (paymentStatus === 'success') {
+      setPaymentAlert({
+        type: 'success',
+        message: `Payment successful! ${paymentId ? `Payment ID: ${paymentId}` : 'Your order has been confirmed.'}`,
+      });
+      // Clear cart on successful payment
+      clearCart();
+      // Clean up URL
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('payment');
+      newUrl.searchParams.delete('payment_id');
+      router.replace(newUrl.pathname + newUrl.search);
+    } else if (paymentStatus === 'error') {
+      setPaymentAlert({
+        type: 'error',
+        message: `Payment failed. ${paymentReason ? `Reason: ${paymentReason.replace(/_/g, ' ')}` : 'Please try again.'}`,
+      });
+      // Clean up URL but keep cart intact for retry
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('payment');
+      newUrl.searchParams.delete('reason');
+      router.replace(newUrl.pathname + newUrl.search);
+    }
+  }, [paymentStatus, paymentId, paymentReason, router, clearCart]);
 
   // Enhanced initialization logic
   useEffect(() => {
@@ -189,6 +228,34 @@ export default function MenuContent() {
 
   return (
     <div className="min-h-screen bg-darkBg">
+      {/* Payment Status Alert */}
+      {paymentAlert && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md">
+          <Alert
+            className={`${
+              paymentAlert.type === 'success'
+                ? 'bg-green-900/90 border-green-500 text-green-100'
+                : 'bg-red-900/90 border-red-500 text-red-100'
+            } backdrop-blur-sm`}
+          >
+            {paymentAlert.type === 'success' ? (
+              <CheckCircle2 className="h-4 w-4" />
+            ) : (
+              <AlertCircle className="h-4 w-4" />
+            )}
+            <AlertDescription className="flex items-center justify-between">
+              <span>{paymentAlert.message}</span>
+              <button
+                onClick={() => setPaymentAlert(null)}
+                className="ml-2 hover:opacity-70"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
+
       <div className="flex">
         {/* LEFT PANEL - Categories */}
         <div className="w-64 bg-gray-900 border-r border-gray-700 min-h-screen">

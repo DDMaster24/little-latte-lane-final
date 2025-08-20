@@ -79,15 +79,13 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         console.log('👤 Found saved name:', profile.full_name);
       }
 
+      // Auto-fill completed - no notification needed for better UX
       if (fieldsPopulated.length > 0) {
-        toast.success(
-          `✅ Filled in your saved ${fieldsPopulated.join(' and ')}!`,
-          {
-            duration: 3000,
-            icon: '🚀',
-          }
-        );
+        setHasLoadedProfileData(true);
       }
+      
+      // Always mark as loaded to prevent multiple executions
+      setHasLoadedProfileData(true);
     }
   }, [profile, hasLoadedProfileData]);
 

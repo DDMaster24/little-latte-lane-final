@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { getSupabaseClient } from '@/lib/supabase-client';
@@ -56,29 +56,7 @@ export default function KitchenDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const requestForm = useForm<StockRequest>();
 
-  useEffect(() => {
-    if (!profile?.is_staff && !profile?.is_admin) {
-      router.push('/');
-      return;
-    }
-
-    fetchOrders();
-
-    const orderSub = supabase
-      .channel('orders')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'orders' },
-        fetchOrders
-      )
-      .subscribe();
-
-    return () => {
-      void orderSub.unsubscribe();
-    };
-  }, [profile, router]);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     const { data } = await supabase
       .from('orders')
       .select(`
@@ -101,11 +79,34 @@ export default function KitchenDashboard() {
       `)
       .in('status', ['confirmed', 'preparing', 'ready'])
       .eq('payment_status', 'paid')
+      .neq('status', 'draft') // EXCLUDE draft orders - not visible to kitchen until payment confirmed
       .order('created_at', { ascending: true });
     
     console.log('🍳 Kitchen orders fetched:', data?.length || 0);
     setOrders(data || []);
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    if (!profile?.is_staff && !profile?.is_admin) {
+      router.push('/');
+      return;
+    }
+
+    fetchOrders();
+
+    const orderSub = supabase
+      .channel('orders')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        fetchOrders
+      )
+      .subscribe();
+
+    return () => {
+      void orderSub.unsubscribe();
+    };
+  }, [profile, router, fetchOrders, supabase]);
 
   const formatTime = (iso: string | null) => {
     if (!iso) return 'Unknown time';

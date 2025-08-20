@@ -165,3 +165,139 @@ export async function getOrCreateUserProfile(
     };
   }
 }
+
+export async function cancelDraftOrder(
+  orderId: string,
+  userId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    console.log('🗑️ Server action: Canceling draft order:', orderId, 'for user:', userId);
+    
+    const supabase = getSupabaseAdmin();
+
+    // First verify the order belongs to the user and is a draft
+    const { data: order, error: fetchError } = await supabase
+      .from('orders')
+      .select('id, user_id, status, order_number')
+      .eq('id', orderId)
+      .eq('user_id', userId)
+      .eq('status', 'draft')
+      .single();
+
+    if (fetchError || !order) {
+      console.error('❌ Order not found or not accessible:', fetchError);
+      return { success: false, error: 'Order not found or cannot be canceled' };
+    }
+
+    console.log('✅ Found draft order to cancel:', order.order_number);
+
+    // Delete the order and all related order_items (cascade should handle this)
+    const { error: deleteError } = await supabase
+      .from('orders')
+      .delete()
+      .eq('id', orderId);
+
+    if (deleteError) {
+      console.error('❌ Error deleting order:', deleteError);
+      return { success: false, error: 'Failed to cancel order' };
+    }
+
+    console.log('✅ Order canceled successfully:', order.order_number);
+    return { success: true };
+
+  } catch (error) {
+    console.error('❌ Cancel order error:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
+  }
+}
+
+export async function getOrderForRetry(
+  orderId: string,
+  userId: string
+): Promise<{ 
+  success: boolean; 
+  error?: string; 
+  orderItems?: {
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+    description?: string;
+  }[];
+  orderNumber?: string;
+}> {
+  try {
+    console.log('🔄 Server action: Getting order for retry:', orderId, 'for user:', userId);
+    
+    const supabase = getSupabaseAdmin();
+
+    // Get the draft order with menu items
+    const { data: order, error: fetchError } = await supabase
+      .from('orders')
+      .select(`
+        id,
+        order_number,
+        user_id,
+        status,
+        order_items (
+          menu_item_id,
+          quantity,
+          price,
+          menu_items (
+            id,
+            name,
+            description,
+            price
+          )
+        )
+      `)
+      .eq('id', orderId)
+      .eq('user_id', userId)
+      .eq('status', 'draft')
+      .single();
+
+    if (fetchError || !order) {
+      console.error('❌ Order not found or not accessible:', fetchError);
+      return { success: false, error: 'Order not found or cannot be retried' };
+    }
+
+    console.log('✅ Found draft order for retry:', order.order_number);
+
+    // Convert order items to cart format
+    interface OrderItemWithMenu {
+      menu_item_id: string | null;
+      quantity: number;
+      price: number;
+      menu_items?: {
+        id: string;
+        name: string;
+        description?: string | null;
+        price: number;
+      } | null;
+    }
+    
+    const cartItems = order.order_items.map((item: OrderItemWithMenu) => ({
+      id: item.menu_items?.id || item.menu_item_id || 'unknown',
+      name: item.menu_items?.name || 'Unknown Item',
+      price: item.price,
+      quantity: item.quantity,
+      description: item.menu_items?.description || undefined,
+    }));
+
+    return { 
+      success: true, 
+      orderItems: cartItems,
+      orderNumber: order.order_number || undefined
+    };
+
+  } catch (error) {
+    console.error('❌ Get order for retry error:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
+  }
+}

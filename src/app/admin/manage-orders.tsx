@@ -45,6 +45,7 @@ type Order = Database['public']['Tables']['orders']['Row'] & {
 
 
 const statusOptions = [
+  'draft',
   'pending',
   'confirmed',
   'preparing',
@@ -73,8 +74,8 @@ export default function ManageOrders() {
       setIsLoading(true);
       setError(null);
 
-      // Fetch all orders with joins
-      const { data: ordersData, error: ordersError } = await supabase
+      // Decide query based on filter - only show draft orders when specifically filtering for them
+      let query = supabase
         .from('orders')
         .select(
           `
@@ -85,7 +86,21 @@ export default function ManageOrders() {
           ),
           profiles!user_id (full_name)
         `
-        )
+        );
+
+      // Apply filtering logic
+      if (filterStatus === 'draft') {
+        // Only show draft orders when specifically requested
+        query = query.eq('status', 'draft');
+      } else if (filterStatus !== 'all') {
+        // Show specific status, but never draft unless explicitly requested
+        query = query.eq('status', filterStatus);
+      } else {
+        // Show all orders EXCEPT draft orders by default
+        query = query.neq('status', 'draft');
+      }
+
+      const { data: ordersData, error: ordersError } = await query
         .order('created_at', { ascending: false });
 
       if (ordersError) {
@@ -150,12 +165,10 @@ export default function ManageOrders() {
     return () => {
       supabase.removeChannel(ordersSubscription);
     };
-  }, [authLoading, profile, router, supabase]);
+  }, [authLoading, profile, router, supabase, filterStatus]);
 
-  const filteredOrders =
-    filterStatus === 'all'
-      ? orders
-      : orders.filter((order) => order.status === filterStatus);
+  // No need for additional filtering since we filter in the query
+  const filteredOrders = orders;
 
   const handleUpdateStatus = async (
     id: string,
