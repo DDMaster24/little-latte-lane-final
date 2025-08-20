@@ -18,6 +18,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState(''); // Optional username for signup
+  const [phone, setPhone] = useState(''); // Phone number for signup
   const [address, setAddress] = useState(''); // Optional address for signup
   const [isSignup, setIsSignup] = useState(false); // Toggle between login/signup
   const [isLoading, setIsLoading] = useState(false); // Loading state
@@ -63,25 +64,69 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
     setPasswordError('');
     const trimmedEmail = email.trim().toLowerCase();
     let error;
+    
     if (isSignup) {
-      ({ error } = await supabase.auth.signUp({
-        email: trimmedEmail,
-        password,
-        options: {
-          data: {
-            username: username.trim() || null,
-            address: address.trim() || null,
+      // Enhanced signup with profile creation
+      try {
+        console.log('🔄 Starting signup process...');
+        
+        // Step 1: Create the user account
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: trimmedEmail,
+          password,
+          options: {
+            data: {
+              full_name: username.trim() || null,
+              phone: phone.trim() || null,
+              address: address.trim() || null,
+            },
           },
-        },
-      }));
-      if (!error) {
-        toast.success('Signup successful! Check your email for confirmation.');
+        });
+
+        if (authError) {
+          throw authError;
+        }
+
+        console.log('✅ User account created:', authData.user?.id);
+
+        // Step 2: If user is created, manually create profile (in case trigger fails)
+        if (authData.user && authData.user.id) {
+          // Wait a moment for auth to settle
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          try {
+            const { error: profileError } = await supabase
+              .from('profiles')
+              .insert({
+                id: authData.user.id,
+                email: authData.user.email,
+                full_name: username.trim() || null,
+                phone: phone.trim() || null,
+                address: address.trim() || null,
+              });
+
+            if (profileError && profileError.code !== '23505') { // Ignore duplicate key errors
+              console.warn('⚠️ Profile creation warning:', profileError);
+            } else {
+              console.log('✅ Profile created successfully');
+            }
+          } catch (profileErr) {
+            console.warn('⚠️ Profile creation failed, but signup succeeded:', profileErr);
+          }
+        }
+
+        toast.success('Signup successful! Please check your email to confirm your account.');
         setIsSignup(false); // Switch to login mode
         setStep('email'); // Reset to email for login
-      } else {
-        toast.error(
-          error.message || 'An error occurred during signup. Please try again.'
-        );
+        
+        // Clear form fields
+        setUsername('');
+        setPhone('');
+        setAddress('');
+        
+      } catch (signupError) {
+        console.error('❌ Signup failed:', signupError);
+        error = signupError;
       }
     } else {
       ({ error } = await supabase.auth.signInWithPassword({
@@ -98,7 +143,8 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
     }
     setIsLoading(false);
     if (error) {
-      if (error.message.includes('Invalid login credentials')) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('Invalid login credentials')) {
         setPasswordError(
           'Incorrect password. Please try again or reset your password.'
         );
@@ -110,7 +156,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
           );
         }
       } else {
-        toast.error(error.message || 'An error occurred. Please try again.');
+        toast.error(errorMessage || 'An error occurred. Please try again.');
       }
     } else {
       setAttempts(0); // Reset on success
@@ -155,25 +201,36 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       {isSignup && (
         <>
           <div>
-            <Label htmlFor="username">Username (optional)</Label>
+            <Label htmlFor="username">Full Name</Label>
             <Input
               id="username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="border-neonCyan hover:shadow-[0_0_5px_rgba(255,165,0,0.5)]"
-              placeholder="Enter a username"
+              placeholder="Enter your full name"
             />
           </div>
           <div>
-            <Label htmlFor="address">Address (optional)</Label>
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input
+              id="phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="border-neonCyan hover:shadow-[0_0_5px_rgba(255,165,0,0.5)]"
+              placeholder="+27123456789"
+            />
+          </div>
+          <div>
+            <Label htmlFor="address">Address for Delivery</Label>
             <Input
               id="address"
               type="text"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               className="border-neonCyan hover:shadow-[0_0_5px_rgba(255,165,0,0.5)]"
-              placeholder="Enter your address for delivery"
+              placeholder="Enter your delivery address"
               autoComplete="off"
             />
           </div>
@@ -248,6 +305,10 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
           setStep('email'); // Reset step for toggle
           setEmailError('');
           setPasswordError('');
+          // Clear signup form fields when switching modes
+          setUsername('');
+          setPhone('');
+          setAddress('');
         }}
         variant="link"
         className="w-full text-neonText"

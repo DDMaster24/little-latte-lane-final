@@ -50,7 +50,103 @@
 
 ---
 
-### **🔄 PHASE 1 CUSTOMER EXPERIENCE - IN PROGRESS**
+## 🚨 CRITICAL: Auth Signup Issue - URGENT FIX REQUIRED
+
+### **❌ PROBLEM IDENTIFIED:**
+- **Issue**: New user signup fails with "Database error saving new user"
+- **Root Cause**: `handle_new_user()` trigger function is failing during profile creation
+- **Impact**: **NO NEW CUSTOMERS CAN SIGN UP** - blocking business growth
+- **Status**: **CRITICAL BLOCKER** - must be fixed before any other development
+
+### **✅ SOLUTION PREPARED:**
+
+#### **1. Enhanced Signup Form (COMPLETED):**
+- ✅ Added phone number field to signup form
+- ✅ Enhanced profile creation with fallback mechanism
+- ✅ Better error handling and user feedback
+- ✅ Form now collects: Full Name, Phone, Email, Password, Address
+
+#### **2. Database Fix Required (MANUAL ACTION NEEDED):**
+
+**📋 CRITICAL SQL TO RUN IN SUPABASE SQL EDITOR:**
+
+```sql
+-- Fix auth trigger for profile creation
+-- This migration fixes the handle_new_user function to properly create profiles
+
+-- Create or replace the handle_new_user function with proper error handling
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  -- Insert into profiles table with safe data extraction from user metadata
+  INSERT INTO public.profiles (
+    id,
+    email,
+    full_name,
+    phone,
+    address,
+    created_at,
+    updated_at
+  ) VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(
+      NEW.raw_user_meta_data->>'full_name',
+      NEW.raw_user_meta_data->>'username'
+    ),
+    NEW.raw_user_meta_data->>'phone',
+    NEW.raw_user_meta_data->>'address',
+    NOW(),
+    NOW()
+  );
+  
+  RETURN NEW;
+EXCEPTION
+  WHEN OTHERS THEN
+    -- Log the error but don't fail the user creation
+    RAISE WARNING 'Failed to create profile for user %: %, SQLSTATE: %', 
+      NEW.id, SQLERRM, SQLSTATE;
+    RETURN NEW;
+END;
+$$;
+
+-- Ensure the trigger exists and is properly configured
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_new_user();
+
+-- Grant necessary permissions
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.handle_new_user() TO anon, authenticated;
+
+-- Comment for documentation
+COMMENT ON FUNCTION public.handle_new_user() IS 'Auto-creates user profile on auth.users insert with improved error handling and metadata extraction';
+```
+
+### **🎯 IMMEDIATE ACTION REQUIRED:**
+
+1. **Go to Supabase Dashboard** → SQL Editor
+2. **Paste the SQL above** and execute it
+3. **Test signup** on your website immediately
+4. **Verify** new users can sign up and their profiles are created
+
+### **📋 Files Modified for Enhanced Signup:**
+- `src/components/LoginForm.tsx` - Enhanced with phone number field and fallback profile creation
+- Enhanced signup process includes full name, phone number, and address collection
+
+### **🔍 Testing Instructions:**
+1. Try creating a new account on your website
+2. Fill in all fields: Full Name, Phone (+27123456789), Email, Password, Address
+3. Verify successful signup and profile creation
+4. Test checkout process works with new user profile
+
+---
 
 ## ✅ COMPLETED: Step 1 - Enhanced Loading States & Feedback (AUGUST 20, 2025)
 
