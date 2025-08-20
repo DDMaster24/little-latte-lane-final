@@ -19,7 +19,7 @@ import type { Category } from '@/lib/dataClient';
 function MenuContent() {
   const { categories, loading, error, refetch } = useMenu();
 
-  // Define main category groupings based on actual data
+  // Define main category groupings with proper icons
   const categoryGroups = {
     drinks: {
       title: 'Drinks',
@@ -45,6 +45,36 @@ function MenuContent() {
       icon: '🧀',
       keywords: ['extras', 'monna & rassies corner'],
     },
+  };
+
+  // Function to get icon for individual categories
+  const getCategoryIcon = (categoryName: string, groupIcon: string) => {
+    const name = categoryName.toLowerCase();
+    
+    // Drinks category icons
+    if (name.includes('hot drinks')) return '☕';
+    if (name.includes('lattes') || name.includes('iced lattes')) return '🥤';
+    if (name.includes('frappes')) return '🧊';
+    if (name.includes('fizzers')) return '🥤';
+    if (name.includes('freezos')) return '🍧';
+    if (name.includes('smoothies')) return '🥤';
+    
+    // Main food category icons
+    if (name.includes('pizza')) return '🍕';
+    if (name.includes('toasties')) return '🥪';
+    if (name.includes('all day meals')) return '🍽️';
+    
+    // Sides & breakfast category icons
+    if (name.includes('scones')) return '🥐';
+    if (name.includes('all day brekkies')) return '🍳';
+    if (name.includes('sides')) return '🍟';
+    
+    // Extras category icons
+    if (name.includes('monna') || name.includes('rassies')) return '🧀';
+    if (name.includes('extras')) return '✨';
+    
+    // Return group icon as fallback
+    return groupIcon;
   };
 
   // Function to categorize menu categories into main groups
@@ -145,12 +175,14 @@ function MenuContent() {
 
   return (
     <main className="bg-darkBg py-8 px-6">
-      {/* Header */}
+      {/* Header - Matching Homepage Style */}
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent">
-          Menu
+        <h1 className="text-5xl font-bold bg-gradient-to-r from-neonCyan via-neonBlue to-neonPink bg-clip-text text-transparent mb-4 flex items-center justify-center gap-4">
+          <span className="text-4xl">🍽️</span>
+          <span>Our Full Menu</span>
+          <span className="text-4xl">🍽️</span>
         </h1>
-        <p className="text-gray-300 mt-2">Organized by category for easy browsing</p>
+        <p className="text-gray-300 text-lg">Organized by category for easy browsing</p>
       </div>
 
       {/* Organized Categories by Main Groups */}
@@ -162,50 +194,55 @@ function MenuContent() {
 
           return (
             <div key={groupKey} className="bg-gray-900/50 rounded-xl p-6 border border-gray-700/50">
-              {/* Group Header */}
+              {/* Group Header - Enhanced with glassmorphism */}
               <div className="text-center mb-8">
                 <div className="flex items-center justify-center gap-3 mb-2">
                   <span className="text-3xl">{groupInfo.icon}</span>
-                  <h2 className="text-3xl font-bold text-white">{groupInfo.title}</h2>
+                  <h2 className="text-3xl font-bold bg-gradient-to-r from-neonCyan to-neonPink bg-clip-text text-transparent">
+                    {groupInfo.title}
+                  </h2>
                   <span className="text-3xl">{groupInfo.icon}</span>
                 </div>
-                <p className="text-gray-400">{groupInfo.description}</p>
+                <p className="text-gray-300 text-lg">{groupInfo.description}</p>
               </div>
 
-              {/* Categories Grid - Full Width, Max 4 Per Row, Centered */}
-              <div 
-                className="flex flex-wrap justify-center gap-4 px-4"
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  justifyContent: 'center',
-                  gap: '16px',
-                  padding: '0 16px'
-                }}
-              >
+              {/* Categories Grid - Full Width Glassmorphic Design (Exact Same as Homepage) */}
+              <div className="flex gap-4 mb-12 w-full px-4">
                 {categoryList.map((category: Category) => (
                   <Link
                     key={category.id}
                     href={`/menu/modern?category=${category.id}`}
-                    className="bg-gray-800/70 hover:bg-gray-700/70 p-4 rounded-lg shadow-lg border border-gray-700/50 hover:border-neonCyan/50 flex flex-col items-center transition-all duration-200 hover:scale-105 cursor-pointer group"
-                    style={{
-                      flex: '1 1 calc(25% - 12px)',
-                      minWidth: '280px',
-                      maxWidth: '400px'
+                    className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in flex-1"
+                    style={{ 
+                      background: 'rgba(0, 0, 0, 0.4)',
+                      backdropFilter: 'blur(10px)',
+                      boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)'
                     }}
                     prefetch={true}
                   >
-                    <div className="w-full h-24 bg-gray-700/50 rounded mb-3 flex items-center justify-center group-hover:bg-gray-600/50 transition-colors">
-                      <span className="text-gray-400 text-xs">🍽️ Menu</span>
+                    {/* Category Icon Section */}
+                    <div className="flex flex-col items-center text-center">
+                      <div className="w-24 h-24 mb-4 flex items-center justify-center rounded-xl bg-black/30 backdrop-blur-sm border border-neonCyan/20 group-hover:border-neonPink/40 transition-all duration-300">
+                        <span className="text-4xl">
+                          {getCategoryIcon(category.name, groupInfo.icon)}
+                        </span>
+                      </div>
+                      
+                      {/* Category Name */}
+                      <h3 className="text-xl font-bold text-neonCyan group-hover:text-neonPink transition-colors duration-300 mb-2">
+                        {category.name}
+                      </h3>
+                      
+                      {/* Category Description */}
+                      {category.description && (
+                        <p className="text-gray-300 text-sm leading-relaxed group-hover:text-gray-200 transition-colors duration-300">
+                          {category.description}
+                        </p>
+                      )}
+                      
+                      {/* Hover Effect Glow */}
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-neonCyan/5 to-neonPink/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                     </div>
-                    <p className="text-white font-medium text-center text-sm group-hover:text-neonCyan transition-colors">
-                      {category.name}
-                    </p>
-                    {category.description && (
-                      <p className="text-gray-400 text-xs text-center mt-1 line-clamp-2">
-                        {category.description}
-                      </p>
-                    )}
                   </Link>
                 ))}
               </div>
@@ -214,14 +251,23 @@ function MenuContent() {
         })}
       </div>
 
-      {/* View All Items Button */}
+      {/* View All Items Button - Matching Homepage Style */}
       <div className="flex justify-center mt-12">
         <Link
           href="/menu/modern"
-          className="bg-gradient-to-r from-neonCyan to-neonBlue hover:from-neonBlue hover:to-neonPink text-darkBg font-bold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon"
+          className="neon-button group relative bg-black/20 backdrop-blur-md border border-neonCyan/50 hover:border-neonPink/70 px-8 py-4 rounded-xl font-bold text-neonCyan hover:text-neonPink transition-all duration-300 hover:scale-105 hover:shadow-neon"
+          style={{ 
+            background: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 0 20px rgba(0, 255, 255, 0.2)'
+          }}
           prefetch={true}
         >
-          🍽️ Browse All Menu Items
+          <span className="flex items-center gap-3">
+            <span className="text-2xl">🍽️</span>
+            <span>Browse All Menu Items</span>
+            <span className="text-2xl">🍽️</span>
+          </span>
         </Link>
       </div>
     </main>
