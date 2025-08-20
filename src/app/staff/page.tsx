@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
-import { getSupabaseClient } from '@/lib/supabase-client';
 import {
   Card,
   CardContent,
@@ -23,6 +22,7 @@ import {
 } from '@/components/ui/select';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
+import { getStaffOrders, getStaffBookings, getStaffStats } from '@/app/actions';
 import {
   LayoutDashboard,
   Package,
@@ -83,7 +83,6 @@ type TabType = 'overview' | 'stock-requests';
 export default function StaffPanel() {
   const { profile } = useAuth();
   const router = useRouter();
-  const supabase = getSupabaseClient();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [orders, setOrders] = useState<Order[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -98,6 +97,67 @@ export default function StaffPanel() {
 
   const stockRequestForm = useForm<StockRequest>();
 
+  // Define data fetching functions using server actions
+  const fetchOrders = useCallback(async () => {
+    try {
+      console.log('🔄 Staff Panel: Fetching orders via server action...');
+      const result = await getStaffOrders();
+      
+      if (!result.success) {
+        console.error('❌ Staff Panel: Error fetching orders:', result.error);
+        toast.error('Failed to fetch orders');
+        return;
+      }
+
+      console.log(`✅ Staff Panel: Fetched ${result.data.length} orders at ${new Date().toLocaleTimeString()}`);
+      setOrders(result.data);
+      setLastUpdate(new Date());
+    } catch (error) {
+      console.error('💥 Staff Panel: Unexpected error fetching orders:', error);
+      toast.error('Unexpected error occurred');
+    }
+  }, []);
+
+  const fetchBookings = useCallback(async () => {
+    try {
+      console.log('🔄 Staff Panel: Fetching bookings via server action...');
+      const result = await getStaffBookings();
+      
+      if (!result.success) {
+        console.error('❌ Staff Panel: Error fetching bookings:', result.error);
+        toast.error('Failed to fetch bookings');
+        return;
+      }
+
+      console.log(`✅ Staff Panel: Fetched ${result.data.length} bookings`);
+      setBookings(result.data);
+    } catch (error) {
+      console.error('💥 Staff Panel: Unexpected error fetching bookings:', error);
+      toast.error('Unexpected error occurred');
+    }
+  }, []);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      console.log('🔄 Staff Panel: Fetching stats via server action...');
+      const result = await getStaffStats();
+      
+      if (!result.success) {
+        console.error('❌ Staff Panel: Error fetching stats:', result.error);
+        return;
+      }
+
+      console.log('✅ Staff Panel: Fetched stats:', result.data);
+      setStats(result.data);
+    } catch (error) {
+      console.error('💥 Staff Panel: Unexpected error fetching stats:', error);
+    }
+  }, []);
+
+  const fetchData = useCallback(async () => {
+    await Promise.all([fetchOrders(), fetchBookings(), fetchStats()]);
+  }, [fetchOrders, fetchBookings, fetchStats]);
+
   useEffect(() => {
     // Check if user has staff access
     if (!profile) {
@@ -110,128 +170,27 @@ export default function StaffPanel() {
       return;
     }
 
-    fetchData();
-    setLoading(false);
-  }, [profile, router]);
+    // Initial data fetch
+    const initializeData = async () => {
+      await fetchData();
+      setLoading(false);
+    };
+
+    initializeData();
+
+    // Set up auto-refresh every 30 seconds for live data
+    const interval = setInterval(() => {
+      console.log('🔄 Auto-refreshing staff panel data...');
+      fetchData();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [profile, router, fetchData]);
 
   const tabs = [
     { id: 'overview', label: 'Restaurant Overview', icon: LayoutDashboard },
     { id: 'stock-requests', label: 'Stock Requests', icon: Package },
   ] as const;
-
-  const fetchOrders = async () => {
-    try {
-      console.log('🔄 Staff Panel: Fetching orders...');
-      const { data, error } = await supabase
-        .from('orders')
-        .select(
-          `
-          *,
-          order_items (
-            id,
-            menu_item_id,
-            quantity,
-            price,
-            special_instructions,
-            menu_items (
-              name,
-              category_id
-            )
-          ),
-          profiles (
-            full_name,
-            email
-          )
-        `
-        )
-        .in('status', ['confirmed', 'preparing', 'ready'])
-        .eq('payment_status', 'paid')
-        .order('created_at', { ascending: true });
-
-      if (error) {
-        console.error('❌ Staff Panel: Error fetching orders:', error);
-        toast.error('Failed to fetch orders');
-        return;
-      }
-
-      console.log(`✅ Staff Panel: Fetched ${data?.length || 0} orders at ${new Date().toLocaleTimeString()}`);
-      setOrders(data || []);
-      setLastUpdate(new Date());
-    } catch (error) {
-      console.error('Unexpected error fetching orders:', error);
-      toast.error('Unexpected error occurred');
-    }
-  };
-
-  const fetchBookings = async () => {
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase
-        .from('bookings')
-        .select(
-          `
-          *,
-          profiles (
-            full_name,
-            email
-          )
-        `
-        )
-        .eq('booking_date', today)
-        .order('booking_time', { ascending: true });
-
-      if (error) {
-        console.error('Error fetching bookings:', error);
-        toast.error('Failed to fetch bookings');
-        return;
-      }
-
-      setBookings(data || []);
-    } catch (error) {
-      console.error('Unexpected error fetching bookings:', error);
-      toast.error('Unexpected error occurred');
-    }
-  };
-
-  const fetchStats = async () => {
-    try {
-      // Active orders count
-      const { count: activeOrdersCount } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true })
-        .in('status', ['confirmed', 'preparing', 'ready'])
-        .eq('payment_status', 'paid');
-
-      // Today's bookings count
-      const today = new Date().toISOString().split('T')[0];
-      const { count: todayBookingsCount } = await supabase
-        .from('bookings')
-        .select('*', { count: 'exact', head: true })
-        .eq('booking_date', today);
-
-      // Calculate today's revenue
-      const { data: revenueData } = await supabase
-        .from('orders')
-        .select('total_amount')
-        .eq('payment_status', 'paid')
-        .gte('created_at', today);
-
-      const totalRevenue = revenueData?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
-
-      setStats({
-        activeOrders: activeOrdersCount || 0,
-        todayBookings: todayBookingsCount || 0,
-        pendingOrders: 0, // We'll add this later if needed
-        totalRevenue,
-      });
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    }
-  };
-
-  const fetchData = async () => {
-    await Promise.all([fetchOrders(), fetchBookings(), fetchStats()]);
-  };
 
   const formatDateTime = (dateString: string | null) => {
     if (!dateString) return 'N/A';
@@ -258,7 +217,7 @@ export default function StaffPanel() {
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-darkBg border-2 border-neonCyan shadow-[0_0_10px_#00FFFF] hover:shadow-[0_0_15px_#00FFFF] transition-all duration-300">
+        <Card className="bg-darkBg/60 backdrop-blur-md border-2 border-neonCyan/50 shadow-[0_0_10px_rgba(0,255,255,0.3)] hover:shadow-[0_0_15px_rgba(0,255,255,0.5)] transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex items-center">
               <ShoppingBag className="h-8 w-8 text-neonCyan" />
@@ -270,7 +229,7 @@ export default function StaffPanel() {
           </CardContent>
         </Card>
 
-        <Card className="bg-darkBg border-2 border-neonPink shadow-[0_0_10px_#FF00FF] hover:shadow-[0_0_15px_#FF00FF] transition-all duration-300">
+        <Card className="bg-darkBg/60 backdrop-blur-md border-2 border-neonPink/50 shadow-[0_0_10px_rgba(255,0,255,0.3)] hover:shadow-[0_0_15px_rgba(255,0,255,0.5)] transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex items-center">
               <Calendar className="h-8 w-8 text-neonPink" />
@@ -282,25 +241,25 @@ export default function StaffPanel() {
           </CardContent>
         </Card>
 
-        <Card className="bg-darkBg border-2 border-neon-green shadow-[0_0_10px_#00FF00] hover:shadow-[0_0_15px_#00FF00] transition-all duration-300">
+        <Card className="bg-darkBg/60 backdrop-blur-md border-2 border-purple-400/50 shadow-[0_0_10px_rgba(168,85,247,0.3)] hover:shadow-[0_0_15px_rgba(168,85,247,0.5)] transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex items-center">
-              <Users className="h-8 w-8 text-neon-green" />
+              <Users className="h-8 w-8 text-purple-400" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-neonText/70">Total Orders</p>
-                <p className="text-2xl font-bold text-neon-green">{orders.length + bookings.length}</p>
+                <p className="text-2xl font-bold text-purple-400">{orders.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-darkBg border-2 border-neon-yellow shadow-[0_0_10px_#FFFF00] hover:shadow-[0_0_15px_#FFFF00] transition-all duration-300">
+        <Card className="bg-darkBg/60 backdrop-blur-md border-2 border-blue-400/50 shadow-[0_0_10px_rgba(59,130,246,0.3)] hover:shadow-[0_0_15px_rgba(59,130,246,0.5)] transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex items-center">
-              <Clock className="h-8 w-8 text-neon-yellow" />
+              <Clock className="h-8 w-8 text-blue-400" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-neonText/70">Today&apos;s Revenue</p>
-                <p className="text-2xl font-bold text-neon-yellow">{formatCurrency(stats.totalRevenue)}</p>
+                <p className="text-2xl font-bold text-blue-400">{formatCurrency(stats.totalRevenue)}</p>
               </div>
             </div>
           </CardContent>
@@ -308,7 +267,7 @@ export default function StaffPanel() {
       </div>
 
       {/* Quick Actions */}
-      <Card className="bg-darkBg border-2 border-neonCyan shadow-neon">
+      <Card className="bg-darkBg/60 backdrop-blur-md border-2 border-neonCyan/50 shadow-neon">
         <CardHeader>
           <CardTitle className="text-neonCyan text-xl font-bold">Quick Actions</CardTitle>
           <CardDescription>Frequently used actions for staff</CardDescription>
@@ -317,7 +276,7 @@ export default function StaffPanel() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Button
               onClick={fetchData}
-              className="bg-transparent border-2 border-neon-green text-neon-green hover:bg-neon-green hover:text-black hover:shadow-[0_0_15px_#00FF00] transition-all duration-300 font-medium"
+              className="bg-transparent border-2 border-neonCyan text-neonCyan hover:bg-neonCyan hover:text-black hover:shadow-[0_0_15px_rgba(0,255,255,0.5)] transition-all duration-300 font-medium"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh Data
@@ -325,7 +284,7 @@ export default function StaffPanel() {
             
             <Button
               onClick={() => router.push('/staff/kitchen-view')}
-              className="bg-transparent border-2 border-neonPink text-neonPink hover:bg-neonPink hover:text-black hover:shadow-[0_0_15px_#FF00FF] transition-all duration-300 font-medium"
+              className="bg-transparent border-2 border-neonPink text-neonPink hover:bg-neonPink hover:text-black hover:shadow-[0_0_15px_rgba(255,0,255,0.5)] transition-all duration-300 font-medium"
             >
               <ChefHat className="h-4 w-4 mr-2" />
               Kitchen View
@@ -334,7 +293,7 @@ export default function StaffPanel() {
 
             <Button
               onClick={() => setActiveTab('stock-requests')}
-              className="bg-transparent border-2 border-neon-yellow text-neon-yellow hover:bg-neon-yellow hover:text-black hover:shadow-[0_0_15px_#FFFF00] transition-all duration-300 font-medium"
+              className="bg-transparent border-2 border-purple-400 text-purple-400 hover:bg-purple-400 hover:text-black hover:shadow-[0_0_15px_rgba(168,85,247,0.5)] transition-all duration-300 font-medium"
             >
               <Package className="h-4 w-4 mr-2" />
               Request Stock
@@ -345,7 +304,7 @@ export default function StaffPanel() {
 
       {/* Recent Orders Summary */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        <Card className="bg-gray-800 border-gray-600">
+        <Card className="bg-darkBg/60 backdrop-blur-md border-2 border-neonCyan/50">
           <CardHeader>
             <CardTitle className="text-neonCyan">Recent Orders</CardTitle>
             <CardDescription>Latest paid orders requiring attention</CardDescription>
@@ -356,7 +315,7 @@ export default function StaffPanel() {
             ) : (
               <div className="space-y-4">
                 {orders.slice(0, 5).map((order) => (
-                  <div key={order.id} className="border border-gray-600 rounded-lg p-4">
+                  <div key={order.id} className="border border-neonCyan/30 rounded-lg p-4 bg-darkBg/30 backdrop-blur-sm">
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="font-semibold text-white">
@@ -377,7 +336,7 @@ export default function StaffPanel() {
                             ? 'secondary'
                             : 'outline'
                         }
-                        className="capitalize"
+                        className="capitalize bg-neonCyan/20 text-neonCyan border-neonCyan/50"
                       >
                         {order.status}
                       </Badge>
@@ -389,7 +348,7 @@ export default function StaffPanel() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-800 border-gray-600">
+        <Card className="bg-darkBg/60 backdrop-blur-md border-2 border-neonPink/50">
           <CardHeader>
             <CardTitle className="text-neonPink">Today&apos;s Bookings</CardTitle>
             <CardDescription>Reservations for today</CardDescription>
@@ -400,7 +359,7 @@ export default function StaffPanel() {
             ) : (
               <div className="space-y-4">
                 {bookings.map((booking) => (
-                  <div key={booking.id} className="border border-gray-600 rounded-lg p-4">
+                  <div key={booking.id} className="border border-neonPink/30 rounded-lg p-4 bg-darkBg/30 backdrop-blur-sm">
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="font-semibold text-white">{booking.name}</h4>
@@ -415,7 +374,7 @@ export default function StaffPanel() {
                       </div>
                       <Badge
                         variant={booking.status === 'confirmed' ? 'default' : 'outline'}
-                        className="capitalize"
+                        className="capitalize bg-neonPink/20 text-neonPink border-neonPink/50"
                       >
                         {booking.status}
                       </Badge>
@@ -432,7 +391,7 @@ export default function StaffPanel() {
 
   const renderStockRequestsTab = () => (
     <div className="space-y-6">
-      <Card className="bg-darkBg border-2 border-neonCyan shadow-neon">
+      <Card className="bg-darkBg/60 backdrop-blur-md border-2 border-neonCyan/50 shadow-neon">
         <CardHeader>
           <CardTitle className="text-neonCyan text-xl font-bold">Request Stock from Admin</CardTitle>
           <CardDescription>Submit requests for inventory items that are running low</CardDescription>
@@ -449,7 +408,7 @@ export default function StaffPanel() {
               <Input
                 {...stockRequestForm.register('item_name', { required: true })}
                 placeholder="e.g., Tomatoes, Coffee Beans, Pizza Dough"
-                className="bg-gray-800 border-gray-600 text-white"
+                className="bg-darkBg/80 backdrop-blur-sm border-neonPink/50 text-neonPink placeholder:text-neonPink/50 focus:border-neonCyan focus:ring-neonCyan/20"
               />
             </div>
 
@@ -460,7 +419,7 @@ export default function StaffPanel() {
               <Input
                 {...stockRequestForm.register('description', { required: true })}
                 placeholder="Describe quantity needed, specific brand, etc."
-                className="bg-gray-800 border-gray-600 text-white"
+                className="bg-darkBg/80 backdrop-blur-sm border-neonPink/50 text-neonPink placeholder:text-neonPink/50 focus:border-neonCyan focus:ring-neonCyan/20"
               />
             </div>
 
@@ -471,10 +430,10 @@ export default function StaffPanel() {
               <Select
                 onValueChange={(value) => stockRequestForm.setValue('priority', value)}
               >
-                <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                <SelectTrigger className="bg-darkBg/80 backdrop-blur-sm border-neonPink/50 text-neonPink focus:border-neonCyan focus:ring-neonCyan/20">
                   <SelectValue placeholder="Select priority level" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-darkBg/95 backdrop-blur-lg border-neonPink/50">
                   <SelectItem value="low">Low - Can wait a few days</SelectItem>
                   <SelectItem value="medium">Medium - Needed within 1-2 days</SelectItem>
                   <SelectItem value="high">High - Needed today</SelectItem>
@@ -485,7 +444,7 @@ export default function StaffPanel() {
 
             <Button
               type="submit"
-              className="w-full bg-neonCyan text-black hover:bg-neonCyan/80 hover:shadow-[0_0_15px_#00FFFF] transition-all duration-300 font-medium"
+              className="w-full bg-neonCyan text-black hover:bg-neonCyan/80 hover:shadow-[0_0_15px_rgba(0,255,255,0.5)] transition-all duration-300 font-medium"
             >
               <Package className="h-4 w-4 mr-2" />
               Submit Stock Request
@@ -495,9 +454,9 @@ export default function StaffPanel() {
       </Card>
 
       {/* Previous Requests (placeholder for future implementation) */}
-      <Card className="bg-gray-800 border-gray-600">
+      <Card className="bg-darkBg/60 backdrop-blur-md border-2 border-purple-400/50">
         <CardHeader>
-          <CardTitle className="text-neonText">Recent Stock Requests</CardTitle>
+          <CardTitle className="text-purple-400">Recent Stock Requests</CardTitle>
           <CardDescription>Your submitted requests and their status</CardDescription>
         </CardHeader>
         <CardContent>

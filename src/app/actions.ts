@@ -306,3 +306,168 @@ export async function getOrderForRetry(
     };
   }
 }
+
+// ============================================
+// STAFF PANEL SERVER ACTIONS
+// ============================================
+
+export async function getStaffOrders() {
+  try {
+    const supabase = getSupabaseAdmin();
+    
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items (
+          id,
+          menu_item_id,
+          quantity,
+          price,
+          special_instructions,
+          menu_items (
+            name,
+            category_id
+          )
+        ),
+        profiles (
+          full_name,
+          email
+        )
+      `)
+      .in('status', ['confirmed', 'preparing', 'ready'])
+      .eq('payment_status', 'paid')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('❌ Staff: Error fetching orders:', error);
+      return { success: false, error: error.message, data: [] };
+    }
+
+    console.log(`✅ Staff: Fetched ${data?.length || 0} orders via server action`);
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error('💥 Staff: Unexpected error fetching orders:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      data: [] 
+    };
+  }
+}
+
+export async function getStaffBookings() {
+  try {
+    const supabase = getSupabaseAdmin();
+    
+    const today = new Date().toISOString().split('T')[0];
+    
+    const { data, error } = await supabase
+      .from('bookings')
+      .select(`
+        *,
+        profiles (
+          full_name,
+          email
+        )
+      `)
+      .gte('booking_date', today)
+      .eq('status', 'confirmed')
+      .order('booking_date', { ascending: true });
+
+    if (error) {
+      console.error('❌ Staff: Error fetching bookings:', error);
+      return { success: false, error: error.message, data: [] };
+    }
+
+    console.log(`✅ Staff: Fetched ${data?.length || 0} bookings via server action`);
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error('💥 Staff: Unexpected error fetching bookings:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      data: [] 
+    };
+  }
+}
+
+export async function getStaffStats() {
+  try {
+    const supabase = getSupabaseAdmin();
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Get active orders count
+    const { count: activeOrders } = await supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .in('status', ['confirmed', 'preparing', 'ready'])
+      .eq('payment_status', 'paid');
+
+    // Get today's bookings count
+    const { count: todayBookings } = await supabase
+      .from('bookings')
+      .select('*', { count: 'exact', head: true })
+      .eq('booking_date', today)
+      .eq('status', 'confirmed');
+
+    // Get pending orders count
+    const { count: pendingOrders } = await supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'confirmed')
+      .eq('payment_status', 'paid');
+
+    // Get today's revenue
+    const { data: revenueData } = await supabase
+      .from('orders')
+      .select('total_amount')
+      .eq('payment_status', 'paid')
+      .gte('created_at', today + 'T00:00:00')
+      .lt('created_at', today + 'T23:59:59');
+
+    const totalRevenue = revenueData?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
+
+    const stats = {
+      activeOrders: activeOrders || 0,
+      todayBookings: todayBookings || 0,
+      pendingOrders: pendingOrders || 0,
+      totalRevenue: totalRevenue,
+    };
+
+    console.log('✅ Staff: Fetched stats via server action:', stats);
+    return { success: true, data: stats };
+  } catch (error) {
+    console.error('💥 Staff: Unexpected error fetching stats:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      data: { activeOrders: 0, todayBookings: 0, pendingOrders: 0, totalRevenue: 0 }
+    };
+  }
+}
+
+export async function updateOrderStatus(orderId: string, status: string) {
+  try {
+    const supabase = getSupabaseAdmin();
+    
+    const { error } = await supabase
+      .from('orders')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', orderId);
+
+    if (error) {
+      console.error('❌ Staff: Error updating order status:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log(`✅ Staff: Updated order ${orderId} status to ${status}`);
+    return { success: true };
+  } catch (error) {
+    console.error('💥 Staff: Unexpected error updating order status:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
