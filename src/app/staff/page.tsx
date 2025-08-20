@@ -211,24 +211,41 @@ export default function StaffPanel() {
 
   const renderOverviewTab = () => (
     <div className="space-y-8">
-      {/* Header with Refresh Button */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-neonCyan mb-2">Restaurant Overview</h2>
-          <p className="text-neonText/70">Live order status tracking and management</p>
+      {/* Header Section with Black Background Container */}
+      <div 
+        className="bg-black/40 backdrop-blur-md border border-neonCyan/30 p-6 rounded-xl shadow-lg"
+        style={{ 
+          background: 'rgba(0, 0, 0, 0.4)',
+          backdropFilter: 'blur(10px)',
+          boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(0, 255, 255, 0.05)'
+        }}
+      >
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-neonCyan mb-2">Restaurant Overview</h2>
+            <p className="text-neonText/70">Live order status tracking and management</p>
+          </div>
+          <Button
+            onClick={fetchData}
+            disabled={loading}
+            className="bg-neonPink hover:bg-neonPink/80 text-black font-medium px-6 py-3 rounded-lg transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,20,147,0.5)]"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh Data
+          </Button>
         </div>
-        <Button
-          onClick={fetchData}
-          disabled={loading}
-          className="bg-neonPink hover:bg-neonPink/80 text-black font-medium px-6 py-3 rounded-lg transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,20,147,0.5)]"
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Refresh Data
-        </Button>
       </div>
 
-      {/* Status-Based Order Cards - Categories Design Pattern */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* Status Cards Section with Black Background Container */}
+      <div 
+        className="bg-black/40 backdrop-blur-md border border-neonCyan/30 p-6 rounded-xl shadow-lg"
+        style={{ 
+          background: 'rgba(0, 0, 0, 0.4)',
+          backdropFilter: 'blur(10px)',
+          boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(0, 255, 255, 0.05)'
+        }}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Active Orders */}
         <div
           className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonCyan/50 p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon"
@@ -313,6 +330,7 @@ export default function StaffPanel() {
           <p className="text-3xl font-bold text-neonPink text-center mb-2">{stats.completedOrders}</p>
           <p className="text-gray-300 text-sm text-center">Today&apos;s finished</p>
         </div>
+        </div>
       </div>
 
       {/* Current Orders List */}
@@ -378,82 +396,101 @@ export default function StaffPanel() {
 
   const renderStockRequestsTab = () => (
     <div className="space-y-6">
-      <Card className="bg-darkBg/60 backdrop-blur-md border-2 border-neonCyan/50 shadow-neon">
-        <CardHeader>
-          <CardTitle className="text-neonCyan text-xl font-bold">Request Stock from Admin</CardTitle>
-          <CardDescription>Submit requests for inventory items that are running low</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form
-            onSubmit={stockRequestForm.handleSubmit(handleStockRequest)}
-            className="space-y-4"
-          >
-            <div>
-              <label className="block text-sm font-medium text-neonText mb-2">
-                Item Name
-              </label>
-              <Input
-                {...stockRequestForm.register('item_name', { required: true })}
-                placeholder="e.g., Tomatoes, Coffee Beans, Pizza Dough"
-                className="bg-darkBg/80 backdrop-blur-sm border-neonPink/50 text-neonPink placeholder:text-neonPink/50 focus:border-neonCyan focus:ring-neonCyan/20"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-neonText mb-2">
-                Description / Details
-              </label>
-              <Input
-                {...stockRequestForm.register('description', { required: true })}
-                placeholder="Describe quantity needed, specific brand, etc."
-                className="bg-darkBg/80 backdrop-blur-sm border-neonPink/50 text-neonPink placeholder:text-neonPink/50 focus:border-neonCyan focus:ring-neonCyan/20"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-neonText mb-2">
-                Priority Level
-              </label>
-              <Select
-                onValueChange={(value) => stockRequestForm.setValue('priority', value)}
-              >
-                <SelectTrigger className="bg-darkBg/80 backdrop-blur-sm border-neonPink/50 text-neonPink focus:border-neonCyan focus:ring-neonCyan/20">
-                  <SelectValue placeholder="Select priority level" />
-                </SelectTrigger>
-                <SelectContent className="bg-darkBg/95 backdrop-blur-lg border-neonPink/50">
-                  <SelectItem value="low">Low - Can wait a few days</SelectItem>
-                  <SelectItem value="medium">Medium - Needed within 1-2 days</SelectItem>
-                  <SelectItem value="high">High - Needed today</SelectItem>
-                  <SelectItem value="urgent">Urgent - Critical shortage</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full bg-neonCyan text-black hover:bg-neonCyan/80 hover:shadow-[0_0_15px_rgba(0,255,255,0.5)] transition-all duration-300 font-medium"
+      {/* Stock Request Form Container */}
+      <div 
+        className="bg-black/40 backdrop-blur-md border border-neonCyan/30 p-6 rounded-xl shadow-lg"
+        style={{ 
+          background: 'rgba(0, 0, 0, 0.4)',
+          backdropFilter: 'blur(10px)',
+          boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(0, 255, 255, 0.05)'
+        }}
+      >
+        <Card className="bg-darkBg/60 backdrop-blur-md border-2 border-neonCyan/50 shadow-neon">
+          <CardHeader>
+            <CardTitle className="text-neonCyan text-xl font-bold">Request Stock from Admin</CardTitle>
+            <CardDescription>Submit requests for inventory items that are running low</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form
+              onSubmit={stockRequestForm.handleSubmit(handleStockRequest)}
+              className="space-y-4"
             >
-              <Package className="h-4 w-4 mr-2" />
-              Submit Stock Request
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+              <div>
+                <label className="block text-sm font-medium text-neonText mb-2">
+                  Item Name
+                </label>
+                <Input
+                  {...stockRequestForm.register('item_name', { required: true })}
+                  placeholder="e.g., Tomatoes, Coffee Beans, Pizza Dough"
+                  className="bg-darkBg/80 backdrop-blur-sm border-neonPink/50 text-neonPink placeholder:text-neonPink/50 focus:border-neonCyan focus:ring-neonCyan/20"
+                />
+              </div>
 
-      {/* Previous Requests (placeholder for future implementation) */}
-      <Card className="bg-darkBg/60 backdrop-blur-md border-2 border-purple-400/50">
-        <CardHeader>
-          <CardTitle className="text-purple-400">Recent Stock Requests</CardTitle>
-          <CardDescription>Your submitted requests and their status</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-gray-400">
-            <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No recent stock requests</p>
-            <p className="text-sm">Submitted requests will appear here</p>
-          </div>
-        </CardContent>
-      </Card>
+              <div>
+                <label className="block text-sm font-medium text-neonText mb-2">
+                  Description / Details
+                </label>
+                <Input
+                  {...stockRequestForm.register('description', { required: true })}
+                  placeholder="Describe quantity needed, specific brand, etc."
+                  className="bg-darkBg/80 backdrop-blur-sm border-neonPink/50 text-neonPink placeholder:text-neonPink/50 focus:border-neonCyan focus:ring-neonCyan/20"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neonText mb-2">
+                  Priority Level
+                </label>
+                <Select
+                  onValueChange={(value) => stockRequestForm.setValue('priority', value)}
+                >
+                  <SelectTrigger className="bg-darkBg/80 backdrop-blur-sm border-neonPink/50 text-neonPink focus:border-neonCyan focus:ring-neonCyan/20">
+                    <SelectValue placeholder="Select priority level" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-darkBg/95 backdrop-blur-lg border-neonPink/50">
+                    <SelectItem value="low">Low - Can wait a few days</SelectItem>
+                    <SelectItem value="medium">Medium - Needed within 1-2 days</SelectItem>
+                    <SelectItem value="high">High - Needed today</SelectItem>
+                    <SelectItem value="urgent">Urgent - Critical shortage</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full bg-neonCyan text-black hover:bg-neonCyan/80 hover:shadow-[0_0_15px_rgba(0,255,255,0.5)] transition-all duration-300 font-medium"
+              >
+                <Package className="h-4 w-4 mr-2" />
+                Submit Stock Request
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Previous Requests Container */}
+      <div 
+        className="bg-black/40 backdrop-blur-md border border-neonCyan/30 p-6 rounded-xl shadow-lg"
+        style={{ 
+          background: 'rgba(0, 0, 0, 0.4)',
+          backdropFilter: 'blur(10px)',
+          boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(0, 255, 255, 0.05)'
+        }}
+      >
+        <Card className="bg-darkBg/60 backdrop-blur-md border-2 border-purple-400/50">
+          <CardHeader>
+            <CardTitle className="text-purple-400">Recent Stock Requests</CardTitle>
+            <CardDescription>Your submitted requests and their status</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8 text-gray-400">
+              <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No recent stock requests</p>
+              <p className="text-sm">Submitted requests will appear here</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 
@@ -495,7 +532,7 @@ export default function StaffPanel() {
   return (
     <div className="min-h-screen bg-darkBg text-neonText">
       {/* Header */}
-      <div className="bg-gray-900 border-b border-neonCyan/30">
+      <div className="bg-gray-900">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex justify-between items-center">
             <div>
@@ -522,8 +559,8 @@ export default function StaffPanel() {
         </div>
       </div>
 
-      {/* Navigation Tabs - Smooth Rounded Design */}
-      <div className="bg-darkBg border-b border-neonPink/30">
+      {/* Navigation Tabs - Remove bottom border */}
+      <div className="bg-darkBg">
         <div className="max-w-7xl mx-auto px-6">
           <nav className="flex space-x-1 overflow-x-auto">
             {tabs.map((tab) => {
