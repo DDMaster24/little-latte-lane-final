@@ -4,7 +4,8 @@
  */
 
 import type { Database } from '@/types/supabase';
-import { getSupabaseClient, getSupabaseServer } from '@/lib/supabase';
+import { getSupabaseClient } from '@/lib/supabase-client';
+import { getSupabaseServer } from '@/lib/supabase-server';
 
 type Tables = Database['public']['Tables'];
 type BookingRow = Tables['bookings']['Row'];
@@ -41,7 +42,7 @@ export class BookingQueries {
   /**
    * Get single booking
    */
-  async getBooking(bookingId: number): Promise<BookingRow | null> {
+  async getBooking(bookingId: string): Promise<BookingRow | null> {
     const { data, error } = await this.client
       .from('bookings')
       .select('*')
@@ -77,7 +78,7 @@ export class BookingQueries {
   /**
    * Update booking
    */
-  async updateBooking(bookingId: number, updates: BookingUpdate): Promise<BookingRow> {
+  async updateBooking(bookingId: string, updates: BookingUpdate): Promise<BookingRow> {
     const { data, error } = await this.client
       .from('bookings')
       .update(updates)
@@ -92,7 +93,7 @@ export class BookingQueries {
   /**
    * Cancel booking
    */
-  async cancelBooking(bookingId: number): Promise<BookingRow> {
+  async cancelBooking(bookingId: string): Promise<BookingRow> {
     return this.updateBooking(bookingId, { 
       status: 'cancelled',
       updated_at: new Date().toISOString(),
@@ -102,18 +103,17 @@ export class BookingQueries {
   /**
    * Get available time slots for a date
    */
-  async getAvailableTimeSlots(date: string, type: 'table' | 'golf' | 'event'): Promise<string[]> {
+  async getAvailableTimeSlots(date: string, _type: 'table' | 'golf' | 'event'): Promise<string[]> {
     const { data: bookings, error } = await this.client
       .from('bookings')
-      .select('time')
-      .eq('date', date)
-      .eq('type', type)
+      .select('booking_time')
+      .eq('booking_date', date)
       .neq('status', 'cancelled');
 
     if (error) throw error;
 
     // Remove booked time slots from available slots
-    const bookedTimes = bookings.map(b => b.time);
+    const bookedTimes = bookings.map(b => b.booking_time);
     const allTimeSlots = this.generateTimeSlots();
     
     return allTimeSlots.filter(time => !bookedTimes.includes(time));
@@ -182,7 +182,7 @@ export class ServerBookingQueries {
   /**
    * Update booking status (server-side)
    */
-  static async updateBookingStatus(bookingId: number, status: BookingRow['status']): Promise<BookingRow> {
+  static async updateBookingStatus(bookingId: string, status: BookingRow['status']): Promise<BookingRow> {
     const supabase = await getSupabaseServer();
     
     const { data, error } = await supabase

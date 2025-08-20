@@ -4,7 +4,7 @@
  */
 
 interface OrderConfirmationData {
-  orderId: number;
+  orderId: string; // Changed to string for UUID compatibility
   total: number;
   userEmail: string;
   userName?: string;

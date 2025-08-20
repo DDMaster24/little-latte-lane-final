@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import ManageMenu from './manage-menu';
 import ManageOrders from './manage-orders';
 import ManageBookings from './manage-bookings';
@@ -40,6 +40,7 @@ type TabType =
 export default function AdminDashboard() {
   const { profile } = useAuth();
   const router = useRouter();
+  const supabase = getSupabaseClient();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [stats, setStats] = useState({
     totalOrders: 0,

@@ -5,10 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Star, Gift, Zap } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabase-client';
 
 type Event = {
-  id: number;
+  id: string; // Changed to string for UUID
   title: string;
   description: string;
   type: 'event' | 'special' | 'news';
@@ -22,6 +22,7 @@ export default function EventsSpecialsSection() {
   const { profile } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const supabase = getSupabaseClient();
 
   useEffect(() => {
     fetchEvents();
@@ -54,7 +55,12 @@ export default function EventsSpecialsSection() {
       if (error) {
         console.error('Error fetching events:', error);
       } else {
-        setEvents(data || [] as Event[]);
+        // Map database fields to interface structure
+        const mappedEvents = data?.map(event => ({
+          ...event,
+          type: event.event_type as 'event' | 'special' | 'news' || 'event'
+        })) || [];
+        setEvents(mappedEvents as Event[]);
       }
     } catch (error) {
       console.error('Error:', error);

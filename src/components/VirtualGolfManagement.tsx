@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 // Update the import path if the Switch component exists elsewhere, for example:
@@ -23,7 +22,6 @@ export default function VirtualGolfManagement() {
     comingSoonMessage: '',
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -160,10 +158,10 @@ export default function VirtualGolfManagement() {
         <div className="flex gap-3 pt-4">
           <Button
             onClick={saveSettings}
-            disabled={isSaving}
+            disabled={isLoading}
             className="bg-neonCyan hover:bg-neonCyan/80 text-black flex-1"
           >
-            {isSaving ? 'Saving...' : 'Save Settings'}
+            {isLoading ? 'Saving...' : 'Save Settings'}
           </Button>
           <Button
             onClick={fetchSettings}

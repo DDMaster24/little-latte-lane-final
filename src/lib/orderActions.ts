@@ -1,6 +1,5 @@
 // CLIENT-SIDE ACTION - Use the same client as AuthProvider for consistent auth state
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import type { Database } from '@/types/supabase';
+import { getSupabaseClient } from '@/lib/supabase-client';
 
 export async function performCheckout(
   userId: string,
@@ -25,7 +24,7 @@ export async function performCheckout(
     console.log('🔄 Starting checkout process for user:', userId);
     
     // Create the same client instance as AuthProvider to ensure consistent auth state
-    const supabase = createClientComponentClient<Database>();
+    const supabase = getSupabaseClient();
     
     // Verify user authentication and session
     const {
@@ -62,9 +61,11 @@ export async function performCheckout(
 
     console.log('✅ Authentication verified for user:', user.id);
 
-    // Separate regular items from customized items (timestamp IDs are longer than regular IDs)
-    const regularItems = items.filter((item) => String(item.id).length <= 10);
-    const customizedItems = items.filter((item) => String(item.id).length > 10);
+    // Separate regular items from customized items based on customization field presence
+    // Regular menu items: Have no customization or isCustomized=false
+    // Customized items: Have customization data and/or isCustomized=true
+    const regularItems = items.filter((item) => !item.customization || !item.customization.isCustomized);
+    const customizedItems = items.filter((item) => item.customization && item.customization.isCustomized);
 
     // Create order (pending status until payment is confirmed)
     const { data: orderRecord, error: orderError } = await supabase
@@ -135,23 +136,21 @@ export async function performCheckout(
       });
     }
 
-    // Process customized items (pizzas) - these don't have menu_item_id
+    // Process customized items (pizzas, etc.) - these don't have menu_item_id
     for (const item of customizedItems) {
-      // Get the item from the cart to extract the correct price
-      const cartItem = items.find((cartItem) => cartItem.id === item.id);
-      const unitPrice =
-        cartItem && cartItem.price ? parseFloat(cartItem.price.toString()) : 0;
+      // Get the item price from the cart item itself
+      const unitPrice = item.price ? parseFloat(item.price.toString()) : 0;
 
       orderItems.push({
         order_id: orderId,
         menu_item_id: null, // Customized items don't reference a menu item
         quantity: item.quantity,
-        price: unitPrice, // Use the actual price from the cart
+        price: unitPrice,
         special_instructions: JSON.stringify({
-          type: 'pizza',
+          type: 'customized',
           customized_id: item.id,
-          name: cartItem?.name || 'Custom Pizza',
-          customization_details: cartItem?.customization || {},
+          name: item.name || 'Custom Item',
+          customization_details: item.customization || {},
         }),
       });
     }
@@ -205,7 +204,7 @@ export async function performCheckout(
 export async function confirmPaymentAndDecrementStock(orderId: string) {
   try {
     // Use the same client instance as AuthProvider for consistency
-    const supabase = createClientComponentClient<Database>();
+    const supabase = getSupabaseClient();
     
     // Update order status to confirmed and payment status to completed
     const { error: updateError } = await supabase
@@ -237,7 +236,7 @@ export async function confirmPaymentAndDecrementStock(orderId: string) {
 export async function confirmPaymentAndUpdateStatus(orderId: string) {
   try {
     // Use the same client instance as AuthProvider for consistency
-    const supabase = createClientComponentClient<Database>();
+    const supabase = getSupabaseClient();
     
     // Update order status to confirmed and payment status to completed
     const { error: updateError } = await supabase

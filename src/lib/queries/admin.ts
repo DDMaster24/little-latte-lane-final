@@ -4,7 +4,7 @@
  */
 
 import type { Database } from '@/types/supabase';
-import { getSupabaseServer, getSupabaseAdmin } from '@/lib/supabase';
+import { getSupabaseServer, getSupabaseAdmin } from '@/lib/supabase-server';
 
 type Tables = Database['public']['Tables'];
 type ProfileRow = Tables['profiles']['Row'];
@@ -87,14 +87,14 @@ export class ServerAdminQueries {
     // Revenue analytics
     const { data: todayRevenue } = await supabase
       .from('orders')
-      .select('total')
+      .select('total_amount')
       .gte('created_at', `${today}T00:00:00.000Z`)
       .lt('created_at', `${today}T23:59:59.999Z`)
       .neq('status', 'cancelled');
 
     const { data: monthlyRevenue } = await supabase
       .from('orders')
-      .select('total')
+      .select('total_amount')
       .gte('created_at', `${thisMonth}-01T00:00:00.000Z`)
       .neq('status', 'cancelled');
 
@@ -127,8 +127,8 @@ export class ServerAdminQueries {
         pending: pendingOrders || 0,
       },
       revenue: {
-        today: todayRevenue?.reduce((sum, order) => sum + order.total, 0) || 0,
-        monthly: monthlyRevenue?.reduce((sum, order) => sum + order.total, 0) || 0,
+        today: todayRevenue?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0,
+        monthly: monthlyRevenue?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0,
       },
       bookings: {
         today: todayBookings || 0,
@@ -156,15 +156,17 @@ export class ServerAdminQueries {
 
     // Aggregate quantities by menu item
     const itemQuantities = orderItems.reduce((acc, item) => {
-      acc[item.menu_item_id] = (acc[item.menu_item_id] || 0) + item.quantity;
+      if (item.menu_item_id) {
+        acc[item.menu_item_id] = (acc[item.menu_item_id] || 0) + item.quantity;
+      }
       return acc;
-    }, {} as Record<number, number>);
+    }, {} as Record<string, number>);
 
     // Get menu items details
     const topItemIds = Object.entries(itemQuantities)
       .sort(([, a], [, b]) => b - a)
       .slice(0, limit)
-      .map(([id]) => parseInt(id));
+      .map(([id]) => id); // Keep as string UUIDs
 
     const { data: menuItems, error: menuError } = await supabase
       .from('menu_items')
@@ -214,13 +216,13 @@ export class AdminQueries {
    */
   static async forceUpdate<T>(
     table: keyof Database['public']['Tables'],
-    id: number | string,
+    id: string,
     updates: Record<string, unknown>
   ): Promise<T> {
     const supabase = getSupabaseAdmin();
     
     const { data, error } = await supabase
-      .from(table as string)
+      .from(table)
       .update(updates)
       .eq('id', id)
       .select()
@@ -235,7 +237,7 @@ export class AdminQueries {
    */
   static async bulkUpdate<T>(
     table: keyof Database['public']['Tables'],
-    updates: { id: number | string; data: Record<string, unknown> }[]
+    updates: { id: string; data: Record<string, unknown> }[]
   ): Promise<T[]> {
     const supabase = getSupabaseAdmin();
     
@@ -243,7 +245,7 @@ export class AdminQueries {
     
     for (const update of updates) {
       const { data, error } = await supabase
-        .from(table as string)
+        .from(table)
         .update(update.data)
         .eq('id', update.id)
         .select()

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import {
   Card,
   CardContent,
@@ -83,6 +83,7 @@ type TabType = 'overview' | 'stock-requests';
 export default function StaffPanel() {
   const { profile } = useAuth();
   const router = useRouter();
+  const supabase = getSupabaseClient();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [orders, setOrders] = useState<Order[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -274,7 +275,7 @@ export default function StaffPanel() {
             <div className="flex items-center">
               <Calendar className="h-8 w-8 text-neonPink" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-neonText/70">Today's Bookings</p>
+                <p className="text-sm font-medium text-neonText/70">Today&apos;s Bookings</p>
                 <p className="text-2xl font-bold text-neonPink">{stats.todayBookings}</p>
               </div>
             </div>
@@ -298,7 +299,7 @@ export default function StaffPanel() {
             <div className="flex items-center">
               <Clock className="h-8 w-8 text-neon-yellow" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-neonText/70">Today's Revenue</p>
+                <p className="text-sm font-medium text-neonText/70">Today&apos;s Revenue</p>
                 <p className="text-2xl font-bold text-neon-yellow">{formatCurrency(stats.totalRevenue)}</p>
               </div>
             </div>
@@ -390,7 +391,7 @@ export default function StaffPanel() {
 
         <Card className="bg-gray-800 border-gray-600">
           <CardHeader>
-            <CardTitle className="text-neonPink">Today's Bookings</CardTitle>
+            <CardTitle className="text-neonPink">Today&apos;s Bookings</CardTitle>
             <CardDescription>Reservations for today</CardDescription>
           </CardHeader>
           <CardContent>

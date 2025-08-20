@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import AuthRequiredPrompt from '@/components/AuthRequiredPrompt';
-import { getSupabaseClient } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import { updateUserProfile } from '@/app/actions';
 import {
   Card,

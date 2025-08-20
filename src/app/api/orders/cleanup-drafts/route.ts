@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server';
+import { getSupabaseAdmin } from '@/lib/supabase-server';
 
 export async function POST() {
   try {
     console.log('🧹 === CLEANING UP UNPAID DRAFT ORDERS ===');
 
-    // Dynamic import to avoid build-time execution issues
-    const { supabaseServer } = await import('@/lib/supabaseServer');
+    const supabase = getSupabaseAdmin();
 
     // Delete draft orders older than 1 hour (never paid)
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 
-    const { data: draftOrders, error: fetchError } = await supabaseServer
+    const { data: draftOrders, error: fetchError } = await supabase
       .from('orders')
       .select('id')
       .eq('status', 'draft')
@@ -37,9 +37,9 @@ export async function POST() {
     console.log(`🗑️ Found ${draftOrders.length} draft orders to delete`);
 
     // Delete order items first (foreign key constraint)
-    const orderIds = draftOrders.map((order) => order.id);
+    const orderIds = draftOrders.map((order: { id: string }) => order.id);
 
-    const { error: itemsDeleteError } = await supabaseServer
+    const { error: itemsDeleteError } = await supabase
       .from('order_items')
       .delete()
       .in('order_id', orderIds);
@@ -53,7 +53,7 @@ export async function POST() {
     }
 
     // Delete draft orders
-    const { error: ordersDeleteError } = await supabaseServer
+    const { error: ordersDeleteError } = await supabase
       .from('orders')
       .delete()
       .in('id', orderIds);

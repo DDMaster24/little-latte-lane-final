@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { payfast } from '@/lib/payfast';
-import { supabaseServer } from '@/lib/supabaseServer';
+import { getSupabaseAdmin } from '@/lib/supabase-server';
 import { confirmPaymentAndDecrementStock } from '@/lib/orderActions';
 
 export async function POST(request: NextRequest) {
   try {
     console.log('🔔 PayFast notification received');
+    
+    const supabase = getSupabaseAdmin();
     
     // Get form data from PayFast notification
     const formData = await request.formData();
@@ -71,7 +73,7 @@ export async function POST(request: NextRequest) {
       console.log('✅ Payment completed for order:', orderId);
       
       // Update order status in database
-      const { error: orderError } = await supabaseServer
+      const { error: orderError } = await supabase
         .from('orders')
         .update({
           status: 'confirmed',
@@ -106,7 +108,7 @@ export async function POST(request: NextRequest) {
 
       // Get user details for confirmation (optional)
       try {
-        const { data: profile } = await supabaseServer
+        const { data: profile } = await supabase
           .from('profiles')
           .select('full_name, email')
           .eq('id', userId)
@@ -135,7 +137,7 @@ export async function POST(request: NextRequest) {
       console.log('❌ Payment failed/cancelled for order:', orderId, 'Status:', payment_status);
       
       // Handle failed/cancelled payments
-      const { error: orderError } = await supabaseServer
+      const { error: orderError } = await supabase
         .from('orders')
         .update({
           status: 'cancelled',

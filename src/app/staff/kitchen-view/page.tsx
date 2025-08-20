@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import {
   Table,
   TableBody,
@@ -51,6 +51,7 @@ interface StockRequest {
 export default function KitchenDashboard() {
   const { profile } = useAuth();
   const router = useRouter();
+  const supabase = getSupabaseClient();
 
   const [orders, setOrders] = useState<Order[]>([]);
   const requestForm = useForm<StockRequest>();

@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/components/AuthProvider';
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -9,12 +9,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import NextImage from 'next/image';
-
-interface BookingSlot {
-  id: string;
-  date_time: string;
-  number_of_people: number;
-}
+import type { BookingSlot } from '@/types/app-types';
 
 interface VirtualGolfSettings {
   enabled: boolean;
@@ -23,6 +18,7 @@ interface VirtualGolfSettings {
 
 export default function BookingsPage() {
   const { user } = useAuth();
+  const supabase = getSupabaseClient();
 
   const [golfDate, setGolfDate] = useState<Date | null>(new Date());
   const [golfPeople, setGolfPeople] = useState(1);
@@ -67,10 +63,9 @@ export default function BookingsPage() {
   async function fetchBookings() {
     const { data, error } = await supabase
       .from('bookings')
-      .select('id, date_time, number_of_people')
-      .eq('type', 'golf')
-      .gte('date_time', new Date().toISOString())
-      .order('date_time', { ascending: true });
+      .select('id, booking_date, booking_time, party_size')
+      .gte('booking_date', new Date().toISOString().split('T')[0])
+      .order('booking_date', { ascending: true });
 
     if (!error && data) {
       setExistingBookings(data);
@@ -111,11 +106,12 @@ export default function BookingsPage() {
     setIsBooking(true);
 
     const { error } = await supabase.from('bookings').insert({
-      user_id: user.id,
-      type: 'golf',
-      date_time: golfDate,
-      number_of_people: golfPeople,
-      pre_order: false, // Always false now
+      name: user.email || 'Guest', // Use email as name fallback
+      email: user.email || '',
+      booking_date: golfDate.toISOString().split('T')[0],
+      booking_time: golfDate.toTimeString().split(' ')[0],
+      party_size: golfPeople,
+      special_requests: 'Golf booking',
     });
 
     if (error) {

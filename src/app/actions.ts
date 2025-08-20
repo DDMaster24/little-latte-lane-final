@@ -1,14 +1,14 @@
 'use server'; // Marks as server actions
 
-import { supabaseServer } from '@/lib/supabaseServer'; // Use server client with service key
-import { getSupabaseAdmin } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase-server'; // Use server client with service key
 import type { Database } from '@/types/supabase';
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
 
 export async function checkEmailExists(email: string): Promise<boolean> {
   const trimmedEmail = email.trim().toLowerCase();
-  const { data: users, error } = await supabaseServer.auth.admin.listUsers();
+  const supabase = getSupabaseAdmin();
+  const { data: users, error } = await supabase.auth.admin.listUsers();
 
   if (error) {
     console.error('Error listing users:', error);

@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { useEffect, useState, useCallback } from 'react';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import {
   Table,
   TableBody,
@@ -11,17 +11,19 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-
-interface Request {
-  id: number;
-  staff_id: string;
-  item_id: number;
-  message: string;
-  created_at: string;
-}
+import type { Request } from '@/types/app-types';
 
 export default function ManageRequests() {
   const [requests, setRequests] = useState<Request[]>([]);
+  const supabase = getSupabaseClient();
+
+  const fetchRequests = useCallback(async () => {
+    const { data } = await supabase
+      .from('staff_requests')
+      .select('*')
+      .order('created_at', { ascending: false });
+    setRequests(data || []);
+  }, [supabase]);
 
   useEffect(() => {
     fetchRequests();
@@ -29,31 +31,22 @@ export default function ManageRequests() {
       .channel('requests')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'requests' },
-        fetchRequests
+        { event: '*', schema: 'public', table: 'staff_requests' },
+        () => fetchRequests()
       )
       .subscribe();
     return () => {
       void requestSub.unsubscribe();
     };
-  }, []);
+  }, [supabase, fetchRequests]);
 
-  const fetchRequests = async () => {
-    const { data } = await supabase
-      .from('staff_requests')
-      .select('*')
-      .order('created_at', { ascending: false });
-    setRequests(data || [] as Request[]);
-  };
-
-  const handleApprove = async (id: number, itemId: number) => {
-    // Increase stock by 50 as example; adjust as needed
-    await supabase.rpc('increment_stock', { item_id: itemId, amount: 50 });
+  const handleApprove = async (id: string) => {
+    // Simply delete the request when approved
     await supabase.from('staff_requests').delete().eq('id', id);
     fetchRequests();
   };
 
-  const handleReject = async (id: number) => {
+  const handleReject = async (id: string) => {
     await supabase.from('staff_requests').delete().eq('id', id);
     fetchRequests();
   };
@@ -65,9 +58,10 @@ export default function ManageRequests() {
         <TableHeader>
           <TableRow>
             <TableHead>ID</TableHead>
-            <TableHead>Staff ID</TableHead>
-            <TableHead>Item ID</TableHead>
+            <TableHead>User ID</TableHead>
+            <TableHead>Request Type</TableHead>
             <TableHead>Message</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead>Created At</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -76,16 +70,17 @@ export default function ManageRequests() {
           {requests.map((req) => (
             <TableRow key={req.id}>
               <TableCell>{req.id}</TableCell>
-              <TableCell>{req.staff_id}</TableCell>
-              <TableCell>{req.item_id}</TableCell>
+              <TableCell>{req.user_id}</TableCell>
+              <TableCell>{req.request_type}</TableCell>
               <TableCell>{req.message}</TableCell>
+              <TableCell>{req.status}</TableCell>
               <TableCell>{new Date(req.created_at || new Date()).toLocaleString()}</TableCell>
               <TableCell>
                 <Button
-                  onClick={() => handleApprove(req.id, req.item_id)}
+                  onClick={() => handleApprove(req.id)}
                   className="mr-2"
                 >
-                  Approve (+50 Stock)
+                  Approve
                 </Button>
                 <Button
                   variant="destructive"

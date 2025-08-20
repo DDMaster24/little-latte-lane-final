@@ -11,5 +11,6 @@ export * from './bookings';
 export * from './admin';
 // Note: inventory table doesn't exist in current database
 
-// Re-export the unified Supabase client
-export { getSupabaseClient, getSupabaseServer, getSupabaseAdmin } from '../supabase';
+// Re-export the Supabase clients
+export { getSupabaseClient } from '../supabase-client';
+export { getSupabaseServer, getSupabaseAdmin } from '../supabase-server';

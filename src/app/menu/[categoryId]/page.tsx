@@ -19,7 +19,7 @@ interface MenuItem {
   name: string;
   description: string | null;
   price: number;
-  category_id: number | null;
+  category_id: string | null; // Changed from number to string for UUID
   stock: number | null;
   is_available: boolean | null;
   nutritional_info: {
@@ -60,7 +60,10 @@ export default function MenuCategory() {
           .eq('id', categoryId)
           .single();
 
-        setCategory(categoryData);
+        setCategory(categoryData ? {
+          name: categoryData.name,
+          description: categoryData.description || undefined
+        } : null);
 
         // Fetch menu items
         const { data: itemsData } = await supabase
@@ -70,7 +73,16 @@ export default function MenuCategory() {
           .eq('is_available', true)
           .order('sort_order');
 
-        setItems(itemsData || []);
+        // Map database items to MenuItem interface
+        const mappedItems = itemsData?.map(item => ({
+          ...item,
+          stock: null, // Add missing field
+          nutritional_info: null, // Add missing field
+          ingredients: null, // Add missing field  
+          allergens: null // Add missing field
+        })) || [];
+        
+        setItems(mappedItems);
       } catch (error) {
         console.error('Error fetching menu data:', error);
         toast.error('Failed to load menu items');

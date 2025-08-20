@@ -5,8 +5,7 @@
  * Built with proper TypeScript, error handling, and caching.
  */
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { Database } from '@/types/supabase';
+import { getSupabaseClient } from '@/lib/supabase-client';
 
 // Consistent type definitions matching actual database schema
 export interface Category {
@@ -101,7 +100,7 @@ class DataCache {
 
 // Singleton instances
 const cache = new DataCache();
-const supabase = createClientComponentClient<Database>();
+const supabase = getSupabaseClient();
 
 // Main data client class
 export class DataClient {

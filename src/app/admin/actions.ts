@@ -1,6 +1,6 @@
 'use server';
 
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabaseAdmin } from '@/lib/supabase-server';
 
 /**
  * Update the status of an order by ID
@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabaseClient';
  * @returns { success: boolean, message?: string }
  */
 export async function updateOrderStatus(id: string, status: string) {
+  const supabase = getSupabaseAdmin();
   const { error } = await supabase
     .from('orders')
     .update({ status })
@@ -31,6 +32,7 @@ export async function updateOrderStatus(id: string, status: string) {
  * @returns { success: boolean, message?: string }
  */
 export async function updateBookingStatus(id: string, status: string) {
+  const supabase = getSupabaseAdmin();
   const { error } = await supabase
     .from('bookings')
     .update({ status })

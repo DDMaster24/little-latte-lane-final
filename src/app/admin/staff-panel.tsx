@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import {
   Table,
   TableBody,
@@ -25,6 +25,7 @@ interface UserProfile {
 }
 
 export default function StaffPanel() {
+  const supabase = getSupabaseClient();
   const [users, setUsers] = useState<UserProfile[]>([]);
 
   useEffect(() => {
@@ -40,18 +41,18 @@ export default function StaffPanel() {
     return () => {
       void profileSub.unsubscribe();
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchUsers = async () => {
     const { data } = await supabase
       .from('profiles')
-      .select('id, role, username')
+      .select('id, role, full_name')
       .order('id');
     setUsers(
-      data?.map((d: { id: string; role: string; username: string }) => ({
+      data?.map((d: { id: string; role: string | null; full_name: string | null }) => ({
         id: d.id,
-        email: d.username,
-        role: d.role,
+        email: d.full_name || d.id, // Use full_name or fallback to id
+        role: d.role || 'user', // Default to 'user' if role is null
       })) || []
     );
   };

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabaseServer';
+import { getSupabaseAdmin } from '@/lib/supabase-server';
 
 export async function POST(request: NextRequest) {
   try {
     console.log('🎉 === PAYMENT SUCCESS HANDLER ===');
 
+    const supabase = getSupabaseAdmin();
     const { paymentId } = await request.json();
 
     if (!paymentId) {
@@ -31,11 +32,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const orderId = parseInt(orderIdMatch[1]);
+    const orderId = orderIdMatch[1]; // Keep as string UUID
     console.log('🔍 Extracted Order ID:', orderId);
 
     // Update order status from 'draft' to 'confirmed' and mark payment as 'paid'
-    const { data: updatedOrder, error: updateError } = await supabaseServer
+    const { data: updatedOrder, error: updateError } = await supabase
       .from('orders')
       .update({
         status: 'confirmed', // Convert from draft to confirmed (now ready for kitchen)
@@ -63,39 +64,39 @@ export async function POST(request: NextRequest) {
 
     // Send confirmation notifications
     try {
-      // Get user from the order's user_id
-      const { data: profile } = await supabaseServer
-        .from('profiles')
-        .select('id, full_name')
-        .eq('id', updatedOrder.user_id)
-        .single();
+      if (updatedOrder.user_id) {
+        // Get user from the order's user_id
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .eq('id', updatedOrder.user_id)
+          .single();
 
-      // Get the auth user email (this requires admin access in server-side)
-      const userEmail = `customer-${updatedOrder.user_id}@example.com`; // Fallback since we can't access auth from server
+        // Get the auth user email (this requires admin access in server-side)
+        const userEmail = `customer-${updatedOrder.user_id}@example.com`; // Fallback since we can't access auth from server
       
-      // Send order confirmation email
-      const { sendOrderConfirmationEmail } = await import('@/lib/notifications');
-      
-      await sendOrderConfirmationEmail({
-        orderId: updatedOrder.id,
-        total: updatedOrder.total,
-        userEmail,
-        userName: profile?.full_name || 'Valued Customer',
-        items: [], // TODO: Fetch order items from database
-        deliveryType: updatedOrder.delivery_type,
-        estimatedReadyTime: updatedOrder.estimated_ready_time 
-          ? new Date(updatedOrder.estimated_ready_time).toLocaleString()
-          : undefined,
-      });
+        // Send order confirmation email
+        const { sendOrderConfirmationEmail } = await import('@/lib/notifications');
+        
+        await sendOrderConfirmationEmail({
+          orderId: updatedOrder.id, // Now correctly uses string UUID
+          total: updatedOrder.total_amount || 0,
+          userEmail,
+          userName: profile?.full_name || 'Valued Customer',
+          items: [], // TODO: Fetch order items from database
+          deliveryType: 'delivery', // Default value since field doesn't exist in database
+          estimatedReadyTime: undefined, // Field doesn't exist in current database schema
+        });
 
-      console.log('📧 Order confirmation email sent successfully');
+        console.log('📧 Order confirmation email sent successfully');
+      }
     } catch (notificationError) {
       // Don't fail the payment process if notifications fail
       console.error('⚠️ Failed to send notifications:', notificationError);
     }
     console.log('📊 Payment Analytics:', {
       orderId: updatedOrder.id,
-      total: updatedOrder.total,
+      total: updatedOrder.total_amount,
       paymentId,
       timestamp: new Date().toISOString(),
     });
@@ -104,7 +105,7 @@ export async function POST(request: NextRequest) {
       success: true,
       order: {
         id: updatedOrder.id,
-        total: updatedOrder.total,
+        total: updatedOrder.total_amount,
         status: updatedOrder.status,
         paymentId,
       },

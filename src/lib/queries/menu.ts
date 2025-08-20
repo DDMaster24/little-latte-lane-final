@@ -4,7 +4,8 @@
  */
 
 import type { Database } from '@/types/supabase';
-import { getSupabaseClient, getSupabaseServer } from '@/lib/supabase';
+import { getSupabaseClient } from '@/lib/supabase-client';
+import { getSupabaseServer } from '@/lib/supabase-server';
 
 type Tables = Database['public']['Tables'];
 type MenuItemRow = Tables['menu_items']['Row'];
@@ -63,7 +64,7 @@ export class MenuQueries {
   /**
    * Get menu items by category
    */
-  async getMenuItemsByCategory(categoryId: number): Promise<MenuItemRow[]> {
+  async getMenuItemsByCategory(categoryId: string): Promise<MenuItemRow[]> {
     const { data, error } = await this.client
       .from('menu_items')
       .select('*')
@@ -78,7 +79,7 @@ export class MenuQueries {
   /**
    * Get single menu item with category
    */
-  async getMenuItem(id: number): Promise<MenuItemWithCategory | null> {
+  async getMenuItem(id: string): Promise<MenuItemWithCategory | null> {
     const { data, error } = await this.client
       .from('menu_items')
       .select(`
@@ -142,7 +143,7 @@ export class ServerMenuQueries {
   /**
    * Get menu items by category (server-side)
    */
-  static async getMenuItemsByCategory(categoryId: number): Promise<MenuItemRow[]> {
+  static async getMenuItemsByCategory(categoryId: string): Promise<MenuItemRow[]> {
     const supabase = await getSupabaseServer();
     
     const { data, error } = await supabase

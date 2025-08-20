@@ -4,7 +4,8 @@
  */
 
 import type { Database } from '@/types/supabase';
-import { getSupabaseClient, getSupabaseServer } from '@/lib/supabase';
+import { getSupabaseClient } from '@/lib/supabase-client';
+import { getSupabaseServer } from '@/lib/supabase-server';
 import type { User } from '@supabase/supabase-js';
 
 type Tables = Database['public']['Tables'];

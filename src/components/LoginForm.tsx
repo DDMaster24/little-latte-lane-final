@@ -1,8 +1,7 @@
 'use client'; // Client-side for forms
 
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { Database } from '@/types/supabase';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import toast from 'react-hot-toast'; // For feedback
 import { Input } from '@/components/ui/input'; // Shadcn UI for inputs
 import { Button } from '@/components/ui/button'; // Shadcn UI for buttons
@@ -15,7 +14,7 @@ interface LoginFormProps {
 }
 
 export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
-  const supabase = createClientComponentClient<Database>();
+  const supabase = getSupabaseClient();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState(''); // Optional username for signup

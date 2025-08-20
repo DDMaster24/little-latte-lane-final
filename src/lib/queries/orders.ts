@@ -4,7 +4,8 @@
  */
 
 import type { Database } from '@/types/supabase';
-import { getSupabaseClient, getSupabaseServer, getSupabaseAdmin } from '@/lib/supabase';
+import { getSupabaseClient } from '@/lib/supabase-client';
+import { getSupabaseServer, getSupabaseAdmin } from '@/lib/supabase-server';
 
 type Tables = Database['public']['Tables'];
 type OrderRow = Tables['orders']['Row'];
@@ -67,7 +68,7 @@ export class OrderQueries {
   /**
    * Get single order with items
    */
-  async getOrder(orderId: number): Promise<OrderWithItems | null> {
+  async getOrder(orderId: string): Promise<OrderWithItems | null> {
     const { data, error } = await this.client
       .from('orders')
       .select(`
@@ -100,13 +101,8 @@ export class OrderQueries {
     const orderInsert: OrderInsert = {
       user_id: userId,
       order_number: `ORDER-${Date.now()}`, // Generate a simple order number
-      customer_name: null,
-      customer_email: null,
-      customer_phone: '000-000-0000', // Placeholder - should be provided by orderData
       status: 'pending',
       total_amount: total,
-      order_type: orderData.delivery_type,
-      delivery_address: orderData.delivery_address || null,
       special_instructions: orderData.special_instructions || null,
     };
 
@@ -123,9 +119,8 @@ export class OrderQueries {
       order_id: order.id,
       menu_item_id: item.menu_item_id.toString(),
       quantity: item.quantity,
-      unit_price: item.unit_price || 0,
-      total_price: (item.unit_price || 0) * item.quantity,
-      special_requests: item.special_instructions || null,
+      price: item.unit_price || 0,
+      special_instructions: item.special_instructions || null,
     }));
 
     const { error: itemsError } = await this.client
@@ -141,7 +136,7 @@ export class OrderQueries {
   /**
    * Update order status
    */
-  async updateOrderStatus(orderId: number, status: string): Promise<OrderRow> {
+  async updateOrderStatus(orderId: string, status: string): Promise<OrderRow> {
     const { data, error } = await this.client
       .from('orders')
       .update({ status })
@@ -156,7 +151,7 @@ export class OrderQueries {
   /**
    * Cancel order (if pending)
    */
-  async cancelOrder(orderId: number): Promise<OrderRow> {
+  async cancelOrder(orderId: string): Promise<OrderRow> {
     const { data, error } = await this.client
       .from('orders')
       .update({ 
@@ -223,7 +218,7 @@ export class ServerOrderQueries {
   /**
    * Update order status (server-side)
    */
-  static async updateOrderStatus(orderId: number, status: string): Promise<OrderRow> {
+  static async updateOrderStatus(orderId: string, status: string): Promise<OrderRow> {
     const supabase = await getSupabaseServer();
     
     const { data, error } = await supabase
@@ -257,12 +252,12 @@ export class ServerOrderQueries {
     // Get total revenue today
     const { data: todayRevenue } = await supabase
       .from('orders')
-      .select('total')
+      .select('total_amount')
       .gte('created_at', `${today}T00:00:00.000Z`)
       .lt('created_at', `${today}T23:59:59.999Z`)
       .neq('status', 'cancelled');
 
-    const revenue = todayRevenue?.reduce((sum, order) => sum + order.total, 0) || 0;
+    const revenue = todayRevenue?.reduce((sum: number, order: { total_amount: number | null }) => sum + (order.total_amount || 0), 0) || 0;
 
     // Get pending orders count
     const { count: pendingOrders } = await supabase
@@ -304,7 +299,7 @@ export class AdminOrderQueries {
   /**
    * Force update order (admin operation)
    */
-  static async forceUpdateOrder(orderId: number, updates: OrderUpdate): Promise<OrderRow> {
+  static async forceUpdateOrder(orderId: string, updates: OrderUpdate): Promise<OrderRow> {
     const supabase = getSupabaseAdmin();
     
     const { data, error } = await supabase

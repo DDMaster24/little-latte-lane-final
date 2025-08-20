@@ -15,7 +15,7 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
-import { getSupabaseClient } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import { User, Session } from '@supabase/supabase-js';
 import { getOrCreateUserProfile } from '@/app/actions';
 
