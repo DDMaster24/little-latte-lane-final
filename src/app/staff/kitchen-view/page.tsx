@@ -21,6 +21,10 @@ import {
   Package,
   CheckCircle,
   Timer,
+  Filter,
+  Volume2,
+  VolumeX,
+  Bell,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -51,6 +55,13 @@ export default function KitchenView() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  
+  // Phase 3 Part 3: Enhanced Kitchen Features
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [newOrderCount, setNewOrderCount] = useState(0);
+  const [previousOrderCount, setPreviousOrderCount] = useState(0);
+  const [showOnlyUrgent, setShowOnlyUrgent] = useState(false);
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -64,13 +75,53 @@ export default function KitchenView() {
       }
 
       console.log(`🍳 Kitchen View: Fetched ${result.data.length} orders at ${new Date().toLocaleTimeString()}`);
+      
+      // Phase 3 Part 3: New order detection and sound notification
+      const currentOrderCount = result.data.length;
+      if (previousOrderCount > 0 && currentOrderCount > previousOrderCount && soundEnabled) {
+        // New order detected - play sound notification
+        setNewOrderCount(currentOrderCount - previousOrderCount);
+        try {
+          // Create audio context for sound notification
+          const AudioContext = window.AudioContext || (window as unknown as { webkitAudioContext: typeof window.AudioContext }).webkitAudioContext;
+          const audioContext = new AudioContext();
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+          oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+          
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.3);
+          
+          toast.success(`🔔 ${currentOrderCount - previousOrderCount} new order(s) received!`, {
+            duration: 4000,
+            style: {
+              background: '#10b981',
+              color: 'white',
+            },
+          });
+        } catch (error) {
+          console.log('Audio notification not available:', error);
+        }
+        
+        // Reset new order count after 5 seconds
+        setTimeout(() => setNewOrderCount(0), 5000);
+      }
+      
+      setPreviousOrderCount(currentOrderCount);
       setOrders(result.data);
       setLastUpdate(new Date());
     } catch (error) {
       console.error('💥 Kitchen View: Unexpected error:', error);
       toast.error('Unexpected error occurred');
     }
-  }, []);
+  }, [previousOrderCount, soundEnabled]);
 
   useEffect(() => {
     if (!profile?.is_staff && !profile?.is_admin) {
@@ -175,6 +226,40 @@ export default function KitchenView() {
     return actions;
   };
 
+  // Phase 3 Part 3: Kitchen workflow utilities
+  const isOrderUrgent = (order: Order) => {
+    if (!order.created_at) return false;
+    const orderTime = new Date(order.created_at);
+    const now = new Date();
+    const diffMinutes = Math.floor((now.getTime() - orderTime.getTime()) / (1000 * 60));
+    
+    // Orders are urgent if they've been waiting more than 20 minutes or are marked as ready
+    return diffMinutes > 20 || order.status === 'ready';
+  };
+
+  const getFilteredOrders = () => {
+    let filtered = orders;
+    
+    // Filter by status
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(order => order.status === statusFilter);
+    }
+    
+    // Filter by urgency
+    if (showOnlyUrgent) {
+      filtered = filtered.filter(order => isOrderUrgent(order));
+    }
+    
+    return filtered;
+  };
+
+  const getOrderPriorityColor = (order: Order) => {
+    if (isOrderUrgent(order)) {
+      return 'border-red-500 bg-red-50/95 shadow-red-200';
+    }
+    return 'bg-yellow-100/95 border-yellow-300/50';
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-darkBg flex items-center justify-center">
@@ -199,7 +284,7 @@ export default function KitchenView() {
 
   return (
     <div className="min-h-screen bg-darkBg text-neonText">
-      {/* Full-Screen Header - Compact for more order space */}
+      {/* Full-Screen Header - Enhanced with Kitchen Controls */}
       <div className="bg-gray-900/95 backdrop-blur-md border-b border-neonCyan/30 sticky top-0 z-50">
         <div className="max-w-full px-6 py-4">
           <div className="flex justify-between items-center">
@@ -213,16 +298,59 @@ export default function KitchenView() {
                 Back to Staff Panel
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-neonCyan">Kitchen View</h1>
+                <h1 className="text-2xl font-bold text-neonCyan flex items-center gap-2">
+                  Kitchen View
+                  {newOrderCount > 0 && (
+                    <Badge className="bg-red-500 text-white animate-pulse">
+                      +{newOrderCount} NEW
+                    </Badge>
+                  )}
+                </h1>
                 <p className="text-neonText/70 text-sm">Full-screen order management</p>
               </div>
             </div>
+            
+            {/* Kitchen Controls */}
             <div className="flex items-center space-x-4">
+              {/* Status Filter */}
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-40 bg-gray-800 border-gray-600 text-gray-200">
+                  <Filter className="w-4 h-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-600">
+                  <SelectItem value="all">All Orders</SelectItem>
+                  <SelectItem value="confirmed">⏱️ Confirmed</SelectItem>
+                  <SelectItem value="preparing">👨‍🍳 Preparing</SelectItem>
+                  <SelectItem value="ready">✅ Ready</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Urgent Orders Toggle */}
+              <Button
+                onClick={() => setShowOnlyUrgent(!showOnlyUrgent)}
+                variant={showOnlyUrgent ? "default" : "outline"}
+                className={`${showOnlyUrgent ? 'bg-red-500 hover:bg-red-600' : 'border-gray-600 text-gray-300'}`}
+              >
+                <Bell className="w-4 h-4 mr-2" />
+                Urgent Only
+              </Button>
+
+              {/* Sound Toggle */}
+              <Button
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                variant="outline"
+                className="border-gray-600 text-gray-300"
+              >
+                {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+              </Button>
+
               {lastUpdate && (
                 <div className="text-sm text-gray-400">
                   Last update: {lastUpdate.toLocaleTimeString()}
                 </div>
               )}
+              
               <Button
                 onClick={fetchOrders}
                 disabled={loading}
@@ -236,27 +364,42 @@ export default function KitchenView() {
         </div>
       </div>
 
-      {/* Orders Grid - Square Sticky Note Cards */}
+      {/* Orders Grid - Enhanced with Filtering and Priority */}
       <div className="p-6">
-        {orders.length === 0 ? (
+        {getFilteredOrders().length === 0 ? (
           <div className="text-center py-16">
             <ChefHat className="h-16 w-16 mx-auto mb-6 text-gray-400 opacity-50" />
-            <h3 className="text-xl text-gray-400 mb-2">No Active Orders</h3>
-            <p className="text-gray-500">Orders will appear here as they come in</p>
+            <h3 className="text-xl text-gray-400 mb-2">
+              {statusFilter === 'all' ? 'No Active Orders' : `No ${statusFilter} Orders`}
+            </h3>
+            <p className="text-gray-500">
+              {showOnlyUrgent ? 'No urgent orders at this time' : 'Orders will appear here as they come in'}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-            {orders.map((order, index) => (
+            {getFilteredOrders().map((order, index) => (
               <div
                 key={order.id}
-                className="group relative aspect-square bg-yellow-100/95 backdrop-blur-sm border border-yellow-300/50 rounded-lg p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:rotate-1"
+                className={`group relative aspect-square backdrop-blur-sm border rounded-lg p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:rotate-1 ${getOrderPriorityColor(order)}`}
                 style={{
-                  background: 'linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%)',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(252, 211, 77, 0.3)',
+                  background: isOrderUrgent(order) 
+                    ? 'linear-gradient(135deg, #fef2f2 0%, #fca5a5 100%)'
+                    : 'linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%)',
+                  boxShadow: isOrderUrgent(order)
+                    ? '0 4px 12px rgba(239, 68, 68, 0.25), 0 0 0 1px rgba(239, 68, 68, 0.3)'
+                    : '0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(252, 211, 77, 0.3)',
                 }}
               >
+                {/* Priority Indicator */}
+                {isOrderUrgent(order) && (
+                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold animate-pulse">
+                    !
+                  </div>
+                )}
+
                 {/* Position Number - Top Left Corner */}
-                <div className="absolute -top-2 -left-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg">
+                <div className={`absolute -top-2 -left-2 w-8 h-8 ${isOrderUrgent(order) ? 'bg-red-600' : 'bg-red-500'} text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg`}>
                   {index + 1}
                 </div>
 

@@ -23,6 +23,7 @@ import {
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { getStaffOrders, getStaffBookings, getStaffStats } from '@/app/actions';
+import { useMenu } from '@/hooks/useMenu';
 import {
   LayoutDashboard,
   Package,
@@ -71,9 +72,14 @@ interface Booking {
 }
 
 interface StockRequest {
-  item_name: string;
+  request_type: 'menu_item' | 'general_item';
+  category_id?: string;
+  menu_item_id?: string;
+  menu_item_name?: string;
+  general_item_name?: string;
   description: string;
   priority: string;
+  quantity_needed?: string;
 }
 
 type TabType = 'overview' | 'stock-requests';
@@ -95,6 +101,7 @@ export default function StaffPanel() {
   });
 
   const stockRequestForm = useForm<StockRequest>();
+  const { categories, menuItems } = useMenu();
 
   const tabs = [
     {
@@ -201,7 +208,10 @@ export default function StaffPanel() {
   const handleStockRequest = async (data: StockRequest) => {
     try {
       // For now, we'll just show a toast. Later we can implement actual database storage
-      toast.success(`Stock request submitted: ${data.item_name}`);
+      const itemName = data.request_type === 'menu_item' 
+        ? data.menu_item_name || 'Unknown menu item'
+        : data.general_item_name || 'Unknown item';
+      toast.success(`Stock request submitted: ${itemName}`);
       stockRequestForm.reset();
     } catch (error) {
       console.error('Error submitting stock request:', error);
@@ -415,24 +425,122 @@ export default function StaffPanel() {
               onSubmit={stockRequestForm.handleSubmit(handleStockRequest)}
               className="space-y-4"
             >
+              {/* Request Type Selection */}
               <div>
                 <label className="block text-sm font-medium text-neonText mb-2">
-                  Item Name
+                  Request Type
+                </label>
+                <Select
+                  onValueChange={(value: 'menu_item' | 'general_item') => {
+                    stockRequestForm.setValue('request_type', value);
+                    // Reset related fields when type changes
+                    stockRequestForm.setValue('category_id', '');
+                    stockRequestForm.setValue('menu_item_id', '');
+                    stockRequestForm.setValue('menu_item_name', '');
+                    stockRequestForm.setValue('general_item_name', '');
+                  }}
+                >
+                  <SelectTrigger className="bg-darkBg/80 backdrop-blur-sm border-neonPink/50 text-neonPink focus:border-neonCyan focus:ring-neonCyan/20">
+                    <SelectValue placeholder="Choose request type" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-darkBg/95 backdrop-blur-lg border-neonPink/50">
+                    <SelectItem value="menu_item">📋 Menu Item (from our menu)</SelectItem>
+                    <SelectItem value="general_item">📦 General Item (supplies/ingredients)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Category Selection - Only for menu items */}
+              {stockRequestForm.watch('request_type') === 'menu_item' && (
+                <div>
+                  <label className="block text-sm font-medium text-neonText mb-2">
+                    Menu Category
+                  </label>
+                  <Select
+                    onValueChange={(value) => {
+                      stockRequestForm.setValue('category_id', value);
+                      // Reset menu item when category changes
+                      stockRequestForm.setValue('menu_item_id', '');
+                      stockRequestForm.setValue('menu_item_name', '');
+                    }}
+                  >
+                    <SelectTrigger className="bg-darkBg/80 backdrop-blur-sm border-neonPink/50 text-neonPink focus:border-neonCyan focus:ring-neonCyan/20">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-darkBg/95 backdrop-blur-lg border-neonPink/50">
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Menu Item Selection - Only when category is selected */}
+              {stockRequestForm.watch('request_type') === 'menu_item' && 
+               stockRequestForm.watch('category_id') && (
+                <div>
+                  <label className="block text-sm font-medium text-neonText mb-2">
+                    Menu Item
+                  </label>
+                  <Select
+                    onValueChange={(value) => {
+                      const selectedItem = menuItems.find(item => item.id === value);
+                      stockRequestForm.setValue('menu_item_id', value);
+                      stockRequestForm.setValue('menu_item_name', selectedItem?.name || '');
+                    }}
+                  >
+                    <SelectTrigger className="bg-darkBg/80 backdrop-blur-sm border-neonPink/50 text-neonPink focus:border-neonCyan focus:ring-neonCyan/20">
+                      <SelectValue placeholder="Select menu item" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-darkBg/95 backdrop-blur-lg border-neonPink/50">
+                      {menuItems
+                        .filter(item => item.category_id === stockRequestForm.watch('category_id'))
+                        .map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name} - R{item.price}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* General Item Name - Only for general items */}
+              {stockRequestForm.watch('request_type') === 'general_item' && (
+                <div>
+                  <label className="block text-sm font-medium text-neonText mb-2">
+                    Item Name
+                  </label>
+                  <Input
+                    {...stockRequestForm.register('general_item_name', { required: true })}
+                    placeholder="e.g., Tomatoes, Coffee Beans, Paper Towels"
+                    className="bg-darkBg/80 backdrop-blur-sm border-neonPink/50 text-neonPink placeholder:text-neonPink/50 focus:border-neonCyan focus:ring-neonCyan/20"
+                  />
+                </div>
+              )}
+
+              {/* Quantity Needed */}
+              <div>
+                <label className="block text-sm font-medium text-neonText mb-2">
+                  Quantity Needed
                 </label>
                 <Input
-                  {...stockRequestForm.register('item_name', { required: true })}
-                  placeholder="e.g., Tomatoes, Coffee Beans, Pizza Dough"
+                  {...stockRequestForm.register('quantity_needed')}
+                  placeholder="e.g., 10 kg, 2 cases, 1 box"
                   className="bg-darkBg/80 backdrop-blur-sm border-neonPink/50 text-neonPink placeholder:text-neonPink/50 focus:border-neonCyan focus:ring-neonCyan/20"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-neonText mb-2">
-                  Description / Details
+                  Description / Additional Details
                 </label>
                 <Input
                   {...stockRequestForm.register('description', { required: true })}
-                  placeholder="Describe quantity needed, specific brand, etc."
+                  placeholder="Specific brand, supplier preference, usage notes"
                   className="bg-darkBg/80 backdrop-blur-sm border-neonPink/50 text-neonPink placeholder:text-neonPink/50 focus:border-neonCyan focus:ring-neonCyan/20"
                 />
               </div>
