@@ -8,7 +8,13 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { dataClient, type Category, type MenuItem } from '@/lib/dataClient';
+import type { Category, MenuItem } from '@/lib/dataClient';
+
+// Lazy import to avoid potential circular dependencies
+const getDataClient = async () => {
+  const { dataClient } = await import('@/lib/dataClient');
+  return dataClient;
+};
 
 interface UseMenuOptions {
   categoryId?: string;  // Fixed: UUIDs are strings, not numbers
@@ -42,6 +48,8 @@ export function useMenu(options: UseMenuOptions = {}): UseMenuResult {
     setError(null);
 
     try {
+      const dataClient = await getDataClient();
+      
       if (categoryId) {
         // Fetch specific category items
         const [categoriesResponse, itemsResponse] = await Promise.all([
@@ -86,7 +94,8 @@ export function useMenu(options: UseMenuOptions = {}): UseMenuResult {
     await fetchData();
   }, [fetchData]);
 
-  const clearCache = useCallback(() => {
+  const clearCache = useCallback(async () => {
+    const dataClient = await getDataClient();
     dataClient.clearCache();
   }, []);
 

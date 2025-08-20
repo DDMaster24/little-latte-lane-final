@@ -5,16 +5,23 @@
 
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/supabase';
-import { env } from '@/lib/env';
+
+// Get environment variables directly to avoid circular imports
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 // Singleton client instance for browser use
 let clientInstance: ReturnType<typeof createClient<Database>> | null = null;
 
 export function getSupabaseClient() {
   if (!clientInstance) {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Missing Supabase environment variables');
+    }
+    
     clientInstance = createClient<Database>(
-      env.NEXT_PUBLIC_SUPABASE_URL,
-      env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      supabaseUrl,
+      supabaseAnonKey,
       {
         auth: {
           persistSession: true,

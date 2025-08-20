@@ -1,4 +1,11 @@
 export async function register() {
+  // Skip Sentry initialization if no valid DSN is provided
+  if (!process.env.NEXT_PUBLIC_SENTRY_DSN || 
+      process.env.NEXT_PUBLIC_SENTRY_DSN === 'your_sentry_dsn_here' ||
+      process.env.NEXT_PUBLIC_SENTRY_DSN.includes('placeholder')) {
+    return;
+  }
+
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     // Server-side initialization
     const { init } = await import('@sentry/nextjs');
@@ -6,14 +13,11 @@ export async function register() {
     init({
       dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
       
-      // Adjust this value in production, or use tracesSampler for greater control
-      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+      // Dramatically reduce sampling in development for less noise
+      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 0.01,
       
-      // Setting this option to true will print useful information to the console while you're setting up Sentry
-      debug: process.env.NODE_ENV === 'development',
-      
-      // Uncomment the line below to enable Spotlight (https://spotlightjs.com)
-      // spotlight: process.env.NODE_ENV === 'development',
+      // Disable debug logging in development to reduce console noise
+      debug: false,
       
       environment: process.env.NODE_ENV,
       
@@ -25,9 +29,14 @@ export async function register() {
       
       // Filter out noisy transactions
       beforeSendTransaction(transaction) {
-        // Don't send health check transactions
-        if (transaction.transaction?.includes('/api/health')) {
-          return null;
+        // Don't send health check transactions or common routes in dev
+        if (process.env.NODE_ENV === 'development') {
+          if (transaction.transaction?.includes('/api/health') ||
+              transaction.transaction?.includes('/favicon.ico') ||
+              transaction.transaction?.includes('/_next/') ||
+              transaction.transaction?.includes('/images/')) {
+            return null;
+          }
         }
         return transaction;
       },
@@ -40,8 +49,8 @@ export async function register() {
     
     init({
       dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-      debug: process.env.NODE_ENV === 'development',
+      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 0.01,
+      debug: false,
       environment: process.env.NODE_ENV,
     });
   }

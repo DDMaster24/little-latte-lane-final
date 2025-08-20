@@ -60,17 +60,8 @@ const nextConfig = {
   experimental: {
     scrollRestoration: true,
     optimizePackageImports: ['lucide-react', '@supabase/auth-helpers-nextjs'],
-    // Turbo optimizations for faster builds
-    turbo: {
-      rules: {
-        '*.ts': {
-          loaders: ['swc-loader'],
-          as: 'javascript',
-        },
-      },
-    },
   },
-  // Webpack optimization to handle large strings better
+  // Webpack optimization to handle large strings better and reduce warnings
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   webpack: (config: any, _context: any) => {
     // Optimize caching strategy to reduce large string serialization
@@ -93,6 +84,14 @@ const nextConfig = {
       moduleIds: 'deterministic',
       chunkIds: 'deterministic',
     };
+    
+    // Reduce webpack logging in development
+    if (process.env.NODE_ENV === 'development') {
+      config.infrastructureLogging = {
+        level: 'error',
+      };
+      config.stats = 'errors-warnings';
+    }
     
     return config;
   },

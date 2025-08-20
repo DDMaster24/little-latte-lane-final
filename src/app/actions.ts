@@ -109,7 +109,10 @@ export async function getOrCreateUserProfile(
   error?: string 
 }> {
   try {
-    console.log('🔧 Server action: Getting or creating profile for user', userId);
+    // Only log in production or when debugging
+    if (process.env.NODE_ENV === 'production' || process.env.DEBUG_AUTH) {
+      console.log('🔧 Server action: Getting or creating profile for user', userId);
+    }
     
     const supabase = getSupabaseAdmin();
 
@@ -121,7 +124,9 @@ export async function getOrCreateUserProfile(
       .single();
 
     if (!fetchError) {
-      console.log('✅ Profile found');
+      if (process.env.NODE_ENV === 'production' || process.env.DEBUG_AUTH) {
+        console.log('✅ Profile found');
+      }
       return { success: true, profile };
     }
 

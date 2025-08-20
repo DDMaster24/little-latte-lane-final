@@ -61,13 +61,13 @@ export default function CategoriesSection() {
             </h2>
           </div>
 
-          {/* Centered Category Cards with Glassmorphism */}
-          <div className="flex flex-wrap justify-center gap-6 mb-12 max-w-6xl mx-auto">
+          {/* Full Width Category Cards with Glassmorphism - 4 cards spanning full width */}
+          <div className="flex gap-4 mb-12 w-full px-4">
             {mainCategories.map((category, index) => (
               <Link
                 key={category.id}
                 href="/menu"
-                className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in w-full sm:w-80 md:w-72 lg:w-80"
+                className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in flex-1"
                 style={{ 
                   animationDelay: `${index * 0.1}s`,
                   background: 'rgba(0, 0, 0, 0.4)',
