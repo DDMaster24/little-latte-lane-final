@@ -356,6 +356,58 @@ export async function getStaffOrders() {
   }
 }
 
+export async function getStaffOrderHistory() {
+  try {
+    const supabase = getSupabaseAdmin();
+    
+    // Get today's date range
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+    
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items (
+          id,
+          menu_item_id,
+          quantity,
+          price,
+          special_instructions,
+          menu_items (
+            name,
+            category_id
+          )
+        ),
+        profiles (
+          full_name,
+          email
+        )
+      `)
+      .in('status', ['completed', 'delivered'])
+      .eq('payment_status', 'paid')
+      .gte('updated_at', startOfDay)
+      .lt('updated_at', endOfDay)
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      console.error('❌ Staff: Error fetching order history:', error);
+      return { success: false, error: error.message, data: [] };
+    }
+
+    console.log(`✅ Staff: Fetched ${data?.length || 0} completed orders via server action`);
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error('💥 Staff: Unexpected error fetching order history:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      data: [] 
+    };
+  }
+}
+
 export async function getStaffBookings() {
   try {
     const supabase = getSupabaseAdmin();

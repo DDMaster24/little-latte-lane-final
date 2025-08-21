@@ -22,7 +22,12 @@ import {
 } from '@/components/ui/select';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { getStaffOrders, getStaffBookings, getStaffStats } from '@/app/actions';
+import { 
+  getStaffOrders, 
+  getStaffOrderHistory,
+  getStaffBookings, 
+  getStaffStats
+} from '../actions';
 import { useMenu } from '@/hooks/useMenu';
 import {
   LayoutDashboard,
@@ -89,6 +94,7 @@ export default function StaffPanel() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [orders, setOrders] = useState<Order[]>([]);
+  const [orderHistory, setOrderHistory] = useState<Order[]>([]);
   const [_bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
@@ -156,6 +162,25 @@ export default function StaffPanel() {
     }
   }, []);
 
+  const fetchOrderHistory = useCallback(async () => {
+    try {
+      console.log('🔄 Staff Panel: Fetching order history via server action...');
+      const result = await getStaffOrderHistory();
+      
+      if (!result.success) {
+        console.error('❌ Staff Panel: Error fetching order history:', result.error);
+        toast.error('Failed to fetch order history');
+        return;
+      }
+
+      console.log(`✅ Staff Panel: Fetched ${result.data.length} completed orders`);
+      setOrderHistory(result.data);
+    } catch (error) {
+      console.error('💥 Staff Panel: Unexpected error fetching order history:', error);
+      toast.error('Unexpected error occurred');
+    }
+  }, []);
+
   const fetchStats = useCallback(async () => {
     try {
       console.log('🔄 Staff Panel: Fetching stats via server action...');
@@ -174,8 +199,8 @@ export default function StaffPanel() {
   }, []);
 
   const fetchData = useCallback(async () => {
-    await Promise.all([fetchOrders(), fetchBookings(), fetchStats()]);
-  }, [fetchOrders, fetchBookings, fetchStats]);
+    await Promise.all([fetchOrders(), fetchOrderHistory(), fetchBookings(), fetchStats()]);
+  }, [fetchOrders, fetchOrderHistory, fetchBookings, fetchStats]);
 
   useEffect(() => {
     // Check if user has staff access
@@ -343,63 +368,120 @@ export default function StaffPanel() {
         </div>
       </div>
 
-      {/* Current Orders List */}
-      <div
-        className="bg-black/20 backdrop-blur-md border border-neonCyan/30 p-6 rounded-xl shadow-lg"
-        style={{ 
-          background: 'rgba(0, 0, 0, 0.4)',
-          backdropFilter: 'blur(10px)',
-          boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(0, 255, 255, 0.05)'
-        }}
-      >
-        <h3 className="text-xl font-semibold text-neonCyan mb-4">Current Orders</h3>
-        {orders.length === 0 ? (
-          <div className="text-center py-8">
-            <ShoppingBag className="h-12 w-12 mx-auto mb-4 opacity-50 text-gray-400" />
-            <p className="text-gray-400">No active orders</p>
-            <p className="text-sm text-gray-500 mt-2">Orders will appear here when customers place them</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {orders.slice(0, 5).map((order) => (
-              <div
-                key={order.id}
-                className="bg-darkBg/40 backdrop-blur-sm border border-neonPink/20 rounded-lg p-4 hover:border-neonPink/40 transition-all duration-300"
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="font-medium text-neonText">Order #{order.id.slice(0, 8)}...</h4>
-                    <p className="text-sm text-gray-400">{order.profiles?.email || 'Unknown Customer'}</p>
-                    <p className="text-sm text-gray-400">
-                      {order.order_items?.length || 0} items • R{order.total_amount?.toFixed(2) || '0.00'}
-                    </p>
-                  </div>
-                  <Badge 
-                    className={`${
-                      order.status === 'confirmed' ? 'bg-yellow-400/20 text-yellow-400 border-yellow-400/30' :
-                      order.status === 'preparing' ? 'bg-orange-400/20 text-orange-400 border-orange-400/30' :
-                      order.status === 'ready' ? 'bg-green-400/20 text-green-400 border-green-400/30' :
-                      'bg-neonCyan/20 text-neonCyan border-neonCyan/30'
-                    }`}
-                  >
-                    {order.status || 'Unknown'}
-                  </Badge>
-                </div>
-              </div>
-            ))}
-            {orders.length > 5 && (
-              <div className="text-center pt-4">
-                <Button
-                  onClick={() => router.push('/staff/kitchen-view')}
-                  variant="ghost"
-                  className="text-neonCyan hover:text-neonPink"
+      {/* Split Orders Panel - Current Orders (Left) and Order History (Right) */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Current Orders (Left) */}
+        <div
+          className="bg-black/20 backdrop-blur-md border border-neonCyan/30 p-6 rounded-xl shadow-lg"
+          style={{ 
+            background: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(0, 255, 255, 0.05)'
+          }}
+        >
+          <h3 className="text-xl font-semibold text-neonCyan mb-4">Current Orders</h3>
+          {orders.length === 0 ? (
+            <div className="text-center py-8">
+              <ShoppingBag className="h-12 w-12 mx-auto mb-4 opacity-50 text-gray-400" />
+              <p className="text-gray-400">No active orders</p>
+              <p className="text-sm text-gray-500 mt-2">Orders will appear here when customers place them</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {orders.slice(0, 5).map((order) => (
+                <div
+                  key={order.id}
+                  className="bg-darkBg/40 backdrop-blur-sm border border-neonPink/20 rounded-lg p-4 hover:border-neonPink/40 transition-all duration-300"
                 >
-                  View all {orders.length} orders in Kitchen View →
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-medium text-neonText">Order #{order.id.slice(0, 8)}...</h4>
+                      <p className="text-sm text-gray-400">{order.profiles?.email || 'Unknown Customer'}</p>
+                      <p className="text-sm text-gray-400">
+                        {order.order_items?.length || 0} items • R{order.total_amount?.toFixed(2) || '0.00'}
+                      </p>
+                    </div>
+                    <Badge 
+                      className={`${
+                        order.status === 'confirmed' ? 'bg-yellow-400/20 text-yellow-400 border-yellow-400/30' :
+                        order.status === 'preparing' ? 'bg-orange-400/20 text-orange-400 border-orange-400/30' :
+                        order.status === 'ready' ? 'bg-green-400/20 text-green-400 border-green-400/30' :
+                        'bg-neonCyan/20 text-neonCyan border-neonCyan/30'
+                      }`}
+                    >
+                      {order.status || 'Unknown'}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+              {orders.length > 5 && (
+                <div className="text-center pt-4">
+                  <Button
+                    onClick={() => router.push('/staff/kitchen-view')}
+                    variant="ghost"
+                    className="text-neonCyan hover:text-neonPink"
+                  >
+                    View all {orders.length} orders in Kitchen View →
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Order History (Right) */}
+        <div
+          className="bg-black/20 backdrop-blur-md border border-neonPink/30 p-6 rounded-xl shadow-lg"
+          style={{ 
+            background: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 0 20px rgba(255, 0, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)'
+          }}
+        >
+          <h3 className="text-xl font-semibold text-neonPink mb-4">Order History</h3>
+          {orderHistory.length === 0 ? (
+            <div className="text-center py-8">
+              <Package className="h-12 w-12 mx-auto mb-4 opacity-50 text-gray-400" />
+              <p className="text-gray-400">No completed orders today</p>
+              <p className="text-sm text-gray-500 mt-2">Completed orders will appear here</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {orderHistory.slice(0, 5).map((order) => (
+                <div
+                  key={order.id}
+                  className="bg-darkBg/40 backdrop-blur-sm border border-green-400/20 rounded-lg p-4 hover:border-green-400/40 transition-all duration-300"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-medium text-neonText">Order #{order.id.slice(0, 8)}...</h4>
+                      <p className="text-sm text-gray-400">{order.profiles?.email || 'Unknown Customer'}</p>
+                      <p className="text-sm text-gray-400">
+                        {order.order_items?.length || 0} items • R{order.total_amount?.toFixed(2) || '0.00'}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Completed: {new Date(order.updated_at || order.created_at || '').toLocaleTimeString('en-ZA', { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })}
+                      </p>
+                    </div>
+                    <Badge className="bg-green-400/20 text-green-400 border-green-400/30">
+                      {order.status || 'Completed'}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+              {orderHistory.length > 5 && (
+                <div className="text-center pt-4">
+                  <p className="text-sm text-gray-400">
+                    Showing 5 of {orderHistory.length} completed orders today
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
