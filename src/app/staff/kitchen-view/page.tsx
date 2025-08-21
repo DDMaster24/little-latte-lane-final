@@ -179,15 +179,15 @@ export default function KitchenView() {
   const getStatusColor = (status: string | null) => {
     switch (status) {
       case 'confirmed':
-        return 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400';
-      case 'preparing':
-        return 'bg-orange-500/20 border-orange-500/50 text-orange-400';
-      case 'ready':
-        return 'bg-green-500/20 border-green-500/50 text-green-400';
-      case 'completed':
-        return 'bg-blue-500/20 border-blue-500/50 text-blue-400';
-      default:
         return 'bg-neonCyan/20 border-neonCyan/50 text-neonCyan';
+      case 'preparing':
+        return 'bg-neonPink/20 border-neonPink/50 text-neonPink';
+      case 'ready':
+        return 'bg-emerald-400/20 border-emerald-400/50 text-emerald-300';
+      case 'completed':
+        return 'bg-purple-400/20 border-purple-400/50 text-purple-300';
+      default:
+        return 'bg-gray-500/20 border-gray-500/50 text-gray-300';
     }
   };
 
@@ -222,22 +222,62 @@ export default function KitchenView() {
     }
   };
 
-  const getQuickActions = (status: string | null) => {
-    const actions = [];
-    
-    if (status === 'confirmed') {
-      actions.push({ label: 'Start Cooking', value: 'preparing', color: 'bg-orange-500 hover:bg-orange-600' });
+  const getProgressiveButtons = (currentStatus: string | null) => {
+    const buttons = [
+      { 
+        label: 'Confirmed', 
+        value: 'confirmed', 
+        icon: '⏱️',
+        bgColor: 'bg-neonCyan/20 border-neonCyan/50',
+        textColor: 'text-neonCyan',
+        hoverColor: 'hover:bg-neonCyan/30'
+      },
+      { 
+        label: 'Preparing', 
+        value: 'preparing', 
+        icon: '👨‍🍳',
+        bgColor: 'bg-neonPink/20 border-neonPink/50',
+        textColor: 'text-neonPink',
+        hoverColor: 'hover:bg-neonPink/30'
+      },
+      { 
+        label: 'Ready', 
+        value: 'ready', 
+        icon: '✅',
+        bgColor: 'bg-emerald-400/20 border-emerald-400/50',
+        textColor: 'text-emerald-300',
+        hoverColor: 'hover:bg-emerald-400/30'
+      },
+      { 
+        label: 'Completed', 
+        value: 'completed', 
+        icon: '🎉',
+        bgColor: 'bg-purple-400/20 border-purple-400/50',
+        textColor: 'text-purple-300',
+        hoverColor: 'hover:bg-purple-400/30'
+      }
+    ];
+
+    return buttons.map(button => ({
+      ...button,
+      isActive: currentStatus === button.value,
+      isClickable: getNextClickableStatuses(currentStatus).includes(button.value)
+    }));
+  };
+
+  const getNextClickableStatuses = (currentStatus: string | null) => {
+    switch (currentStatus) {
+      case 'confirmed':
+        return ['preparing'];
+      case 'preparing':
+        return ['ready'];
+      case 'ready':
+        return ['completed'];
+      case 'completed':
+        return []; // No further progression
+      default:
+        return ['confirmed'];
     }
-    
-    if (status === 'preparing') {
-      actions.push({ label: 'Mark Ready', value: 'ready', color: 'bg-green-500 hover:bg-green-600' });
-    }
-    
-    if (status === 'ready') {
-      actions.push({ label: 'Complete', value: 'completed', color: 'bg-blue-500 hover:bg-blue-600' });
-    }
-    
-    return actions;
   };
 
   // Phase 3 Part 3: Kitchen workflow utilities
@@ -468,42 +508,38 @@ export default function KitchenView() {
                   )}
                 </div>
 
-                {/* Quick Action Buttons */}
-                <div className="space-y-2">
-                  {getQuickActions(order.status).map((action, idx) => (
-                    <Button
-                      key={idx}
-                      onClick={() => handleUpdateStatus(order.id, action.value)}
-                      className={`w-full ${action.color} text-white text-xs py-2 font-medium transition-all duration-300 hover:shadow-lg`}
-                    >
-                      {action.label}
-                    </Button>
-                  ))}
+                {/* Progressive Status Buttons */}
+                <div className="space-y-1">
+                  <div className="grid grid-cols-2 gap-1">
+                    {getProgressiveButtons(order.status).map((button, idx) => (
+                      <Button
+                        key={idx}
+                        onClick={() => button.isClickable ? handleUpdateStatus(order.id, button.value) : undefined}
+                        disabled={!button.isClickable && !button.isActive}
+                        className={`
+                          text-xs py-1.5 font-medium transition-all duration-300 border
+                          ${button.isActive 
+                            ? `${button.bgColor} ${button.textColor} border-current shadow-lg` 
+                            : button.isClickable 
+                              ? `bg-transparent border-gray-600 text-gray-400 hover:${button.bgColor.replace('/20', '/10')} hover:${button.textColor} hover:border-current`
+                              : 'bg-gray-800/50 border-gray-700 text-gray-600 cursor-not-allowed'
+                          }
+                        `}
+                      >
+                        <span className="text-xs mr-1">{button.icon}</span>
+                        {button.label}
+                      </Button>
+                    ))}
+                  </div>
                   
                   {/* View Order Details Button */}
                   <Button
                     onClick={() => handleViewOrder(order)}
                     variant="outline"
-                    className="w-full bg-transparent border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white text-xs py-2 font-medium transition-all duration-300"
+                    className="w-full bg-transparent border border-blue-400/50 text-blue-400 hover:bg-blue-400/20 hover:border-blue-400 text-xs py-1.5 font-medium transition-all duration-300"
                   >
-                    👁️ View Order Details
+                    👁️ View Details
                   </Button>
-                  
-                  {/* Full Status Selector for Complex Changes */}
-                  <Select
-                    onValueChange={(value) => handleUpdateStatus(order.id, value)}
-                    defaultValue={order.status || 'confirmed'}
-                  >
-                    <SelectTrigger className="w-full text-xs bg-gray-800 text-white border-gray-600">
-                      <SelectValue placeholder="Change Status" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-600">
-                      <SelectItem value="confirmed">⏱️ Confirmed</SelectItem>
-                      <SelectItem value="preparing">👨‍🍳 Preparing</SelectItem>
-                      <SelectItem value="ready">✅ Ready</SelectItem>
-                      <SelectItem value="completed">🎉 Completed</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
             ))}
