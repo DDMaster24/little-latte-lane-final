@@ -49,6 +49,7 @@ interface Order {
   created_at: string | null;
   updated_at: string | null;
   order_number: string | null;
+  delivery_method?: string | null;
   special_instructions: string | null;
   order_items: {
     id: string;
@@ -408,7 +409,9 @@ export default function StaffPanel() {
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h4 className="font-medium text-neonText">Order #{order.id.slice(0, 8)}...</h4>
+                      <h4 className="font-medium text-neonText">
+                        {order.order_number || `Order #${order.id.slice(0, 8)}...`}
+                      </h4>
                       <p className="text-sm text-gray-400">{order.profiles?.email || 'Unknown Customer'}</p>
                       <p className="text-sm text-gray-400">
                         {order.order_items?.length || 0} items • R{order.total_amount?.toFixed(2) || '0.00'}
@@ -477,7 +480,9 @@ export default function StaffPanel() {
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h4 className="font-medium text-neonText">Order #{order.id.slice(0, 8)}...</h4>
+                      <h4 className="font-medium text-neonText">
+                        {order.order_number || `Order #${order.id.slice(0, 8)}...`}
+                      </h4>
                       <p className="text-sm text-gray-400">{order.profiles?.email || 'Unknown Customer'}</p>
                       <p className="text-sm text-gray-400">
                         {order.order_items?.length || 0} items • R{order.total_amount?.toFixed(2) || '0.00'}

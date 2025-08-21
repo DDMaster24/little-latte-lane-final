@@ -332,7 +332,8 @@ export async function getStaffOrders() {
         ),
         profiles (
           full_name,
-          email
+          email,
+          phone
         )
       `)
       .in('status', ['confirmed', 'preparing', 'ready'])
@@ -382,7 +383,8 @@ export async function getStaffOrderHistory() {
         ),
         profiles (
           full_name,
-          email
+          email,
+          phone
         )
       `)
       .in('status', ['completed', 'delivered'])
@@ -420,7 +422,8 @@ export async function getStaffBookings() {
         *,
         profiles (
           full_name,
-          email
+          email,
+          phone
         )
       `)
       .gte('booking_date', today)

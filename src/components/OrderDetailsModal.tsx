@@ -34,7 +34,7 @@ interface OrderItem {
 interface Profile {
   full_name?: string | null;
   email?: string | null;
-  phone_number?: string | null;
+  phone?: string | null;
 }
 
 interface Order {
@@ -44,7 +44,7 @@ interface Order {
   status: string | null;
   payment_status: string | null;
   payment_method?: string;
-  delivery_method?: string;
+  delivery_method?: string | null;
   delivery_address?: string;
   special_instructions: string | null;
   created_at: string | null;
@@ -125,7 +125,7 @@ export default function OrderDetailsModal({ order, isOpen, onClose }: OrderDetai
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-neonCyan flex items-center gap-3">
             <Package className="h-6 w-6" />
-            Order Details: #{order.id.slice(0, 8)}...
+            Order Details: {order.order_number || `#${order.id.slice(0, 8)}...`}
           </DialogTitle>
         </DialogHeader>
 
@@ -157,12 +157,12 @@ export default function OrderDetailsModal({ order, isOpen, onClose }: OrderDetai
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-300">Payment Method:</span>
-                  <span className="text-neonText">{order.payment_method || 'Not specified'}</span>
-                </div>
-                <div className="flex justify-between items-center">
                   <span className="text-gray-300">Delivery Method:</span>
-                  <span className="text-neonText">{order.delivery_method || 'Not specified'}</span>
+                  <span className="text-neonText">
+                    {order.delivery_method === 'delivery' ? 'Delivery' : 
+                     order.delivery_method === 'pickup' ? 'Pickup' : 
+                     'Not specified'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -228,7 +228,7 @@ export default function OrderDetailsModal({ order, isOpen, onClose }: OrderDetai
                 <div className="flex items-center gap-3">
                   <Phone className="h-4 w-4 text-gray-400" />
                   <span className="text-gray-300">Phone:</span>
-                  <span className="text-neonText">{order.profiles?.phone_number || 'Not provided'}</span>
+                  <span className="text-neonText">{order.profiles?.phone || 'Not provided'}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Hash className="h-4 w-4 text-gray-400" />
@@ -237,7 +237,7 @@ export default function OrderDetailsModal({ order, isOpen, onClose }: OrderDetai
                 </div>
               </div>
             </div>
-            {order.delivery_address && (
+            {order.delivery_method === 'delivery' && order.delivery_address && (
               <div className="mt-3 pt-3 border-t border-gray-600/50">
                 <div className="flex items-start gap-3">
                   <MapPin className="h-4 w-4 text-gray-400 mt-1" />

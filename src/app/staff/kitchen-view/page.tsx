@@ -38,6 +38,7 @@ interface Order {
   created_at: string | null;
   updated_at: string | null;
   order_number: string | null;
+  delivery_method?: string | null;
   special_instructions: string | null;
   order_items: {
     id: string;

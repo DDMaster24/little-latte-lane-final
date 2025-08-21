@@ -1,6 +1,7 @@
 -- Migration: Add delivery_method column to orders table
--- Date: August 21, 2025
--- Purpose: Store delivery type (delivery/pickup) for order details modal
+-- This enables tracking whether orders are for delivery or pickup
+
+BEGIN;
 
 -- Add delivery_method column to orders table
 ALTER TABLE public.orders 
@@ -14,7 +15,12 @@ CHECK (delivery_method IN ('delivery', 'pickup'));
 -- Add index for better query performance
 CREATE INDEX idx_orders_delivery_method ON public.orders(delivery_method);
 
--- Update existing orders to set a default value (pickup since no delivery_method was stored previously)
+-- Set default value for existing orders (assuming they were pickup since no address was required before)
 UPDATE public.orders 
 SET delivery_method = 'pickup' 
 WHERE delivery_method IS NULL;
+
+-- Add comment for documentation
+COMMENT ON COLUMN public.orders.delivery_method IS 'Order fulfillment method: delivery or pickup';
+
+COMMIT;

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -44,6 +45,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   );
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
+  const [specialInstructions, setSpecialInstructions] = useState('');
   const [orderId, setOrderId] = useState<string | null>(null);
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [step, setStep] = useState<'cart' | 'checkout'>('cart');
@@ -181,7 +183,8 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
           lastName: profile.full_name?.split(' ').slice(1).join(' ') || 'User',
           phone: validFormattedPhone,
           address: deliveryType === 'delivery' ? address : undefined,
-        }
+        },
+        specialInstructions.trim() || undefined // Pass special instructions
       );
 
       // Step 3: Finalize
@@ -218,6 +221,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
     clearCart();
     setStep('cart');
     setOrderId(null);
+    setSpecialInstructions(''); // Clear special instructions when payment is initiated
     onClose();
     toast.success('Payment initiated! Redirecting to PayFast...');
   };
@@ -565,6 +569,34 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                                 Please enter a valid SA phone number
                               </p>
                             )}
+                        </div>
+
+                        <div>
+                          <Label
+                            htmlFor="special-instructions"
+                            className="text-neonCyan"
+                          >
+                            Special Instructions
+                            <span className="text-xs text-neonCyan/60 ml-1">(optional)</span>
+                          </Label>
+                          <Textarea
+                            id="special-instructions"
+                            name="special_instructions"
+                            value={specialInstructions}
+                            onChange={(e) => setSpecialInstructions(e.target.value)}
+                            className="bg-darkBg/80 backdrop-blur-md border-neonPink/50 text-neonPink placeholder:text-neonPink/50 focus:border-neonCyan focus:ring-neonCyan/20 min-h-[80px]"
+                            placeholder="Any special requests or dietary requirements..."
+                            autoComplete="off"
+                            autoCorrect="off"
+                            autoCapitalize="off"
+                            spellCheck="false"
+                            data-form-type="other"
+                            data-lpignore="true"
+                            rows={3}
+                          />
+                          <p className="text-xs text-gray-400 mt-1">
+                            Optional: Add any special instructions for your order
+                          </p>
                         </div>
                       </div>
                     </form>
