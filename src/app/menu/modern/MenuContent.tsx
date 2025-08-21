@@ -43,6 +43,7 @@ export default function MenuContent() {
     type: 'success' | 'error';
     message: string;
   } | null>(null);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -75,29 +76,47 @@ export default function MenuContent() {
   // Handle payment status from URL
   useEffect(() => {
     if (paymentStatus === 'success') {
+      setIsProcessingPayment(true);
       setPaymentAlert({
         type: 'success',
         message: `Payment successful! ${paymentId ? `Payment ID: ${paymentId}` : 'Your order has been confirmed.'}`,
       });
       // Clear cart on successful payment
       clearCart();
-      // Clean up URL
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.delete('payment');
-      newUrl.searchParams.delete('payment_id');
-      router.replace(newUrl.pathname + newUrl.search);
+      // Clean up URL immediately using window.history instead of router.replace
+      if (typeof window !== 'undefined') {
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete('payment');
+        newUrl.searchParams.delete('payment_id');
+        window.history.replaceState({}, '', newUrl.pathname + newUrl.search);
+      }
+      // Auto-dismiss alert after 5 seconds and clear processing state
+      const timer = setTimeout(() => {
+        setPaymentAlert(null);
+        setIsProcessingPayment(false);
+      }, 5000);
+      return () => clearTimeout(timer);
     } else if (paymentStatus === 'error') {
+      setIsProcessingPayment(true);
       setPaymentAlert({
         type: 'error',
         message: `Payment failed. ${paymentReason ? `Reason: ${paymentReason.replace(/_/g, ' ')}` : 'Please try again.'}`,
       });
       // Clean up URL but keep cart intact for retry
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.delete('payment');
-      newUrl.searchParams.delete('reason');
-      router.replace(newUrl.pathname + newUrl.search);
+      if (typeof window !== 'undefined') {
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete('payment');
+        newUrl.searchParams.delete('reason');
+        window.history.replaceState({}, '', newUrl.pathname + newUrl.search);
+      }
+      // Auto-dismiss error alert after 7 seconds and clear processing state
+      const timer = setTimeout(() => {
+        setPaymentAlert(null);
+        setIsProcessingPayment(false);
+      }, 7000);
+      return () => clearTimeout(timer);
     }
-  }, [paymentStatus, paymentId, paymentReason, router, clearCart]);
+  }, [paymentStatus, paymentId, paymentReason, clearCart]);
 
   // Enhanced initialization logic
   useEffect(() => {
@@ -209,7 +228,7 @@ export default function MenuContent() {
     }
   };
 
-  if (loading) {
+  if (loading && !isProcessingPayment) {
     return (
       <div className="min-h-screen bg-darkBg">
         <div className="flex">
