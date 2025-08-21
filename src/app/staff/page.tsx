@@ -113,19 +113,6 @@ export default function StaffPanel() {
   const stockRequestForm = useForm<StockRequest>();
   const { categories, menuItems } = useMenu();
 
-  const tabs = [
-    {
-      id: 'overview',
-      label: 'Restaurant Overview',
-      icon: LayoutDashboard,
-    },
-    {
-      id: 'stock-requests',
-      label: 'Stock Requests',
-      icon: Package,
-    },
-  ];
-
   // Define data fetching functions using server actions
   const fetchOrders = useCallback(async () => {
     try {
@@ -248,6 +235,25 @@ export default function StaffPanel() {
     }
   };
 
+  const tabs = [
+    {
+      id: 'overview',
+      label: 'Restaurant Overview',
+      icon: LayoutDashboard,
+    },
+    {
+      id: 'refresh',
+      label: 'Refresh Data',
+      icon: RefreshCw,
+      action: fetchData,
+    },
+    {
+      id: 'stock-requests',
+      label: 'Stock Requests',
+      icon: Package,
+    },
+  ];
+
   const handleViewOrder = (order: Order) => {
     setSelectedOrder(order);
     setIsOrderModalOpen(true);
@@ -260,40 +266,22 @@ export default function StaffPanel() {
 
   const renderOverviewTab = () => (
     <div className="space-y-8">
-      {/* Header Section with Black Background Container */}
+      {/* Enhanced Status Cards Section with Restaurant Overview Header */}
       <div 
-        className="bg-black/40 backdrop-blur-md border border-neonCyan/30 p-6 rounded-xl shadow-lg"
+        className="bg-black/40 backdrop-blur-md border border-neonCyan/30 p-8 rounded-xl shadow-lg"
         style={{ 
           background: 'rgba(0, 0, 0, 0.4)',
           backdropFilter: 'blur(10px)',
           boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(0, 255, 255, 0.05)'
         }}
       >
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold text-neonCyan mb-2">Restaurant Overview</h2>
-            <p className="text-neonText/70">Live order status tracking and management</p>
-          </div>
-          <Button
-            onClick={fetchData}
-            disabled={loading}
-            className="bg-neonPink hover:bg-neonPink/80 text-black font-medium px-6 py-3 rounded-lg transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,20,147,0.5)]"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Refresh Data
-          </Button>
+        {/* Restaurant Overview Header */}
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-neonCyan mb-2">Restaurant Overview</h2>
+          <p className="text-neonText/70">Live order status tracking and management</p>
         </div>
-      </div>
 
-      {/* Status Cards Section with Black Background Container */}
-      <div 
-        className="bg-black/40 backdrop-blur-md border border-neonCyan/30 p-6 rounded-xl shadow-lg"
-        style={{ 
-          background: 'rgba(0, 0, 0, 0.4)',
-          backdropFilter: 'blur(10px)',
-          boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(0, 255, 255, 0.05)'
-        }}
-      >
+        {/* Status Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Active Orders */}
         <div
@@ -787,24 +775,36 @@ export default function StaffPanel() {
         </div>
       </div>
 
-      {/* Navigation Tabs - Remove bottom border */}
+      {/* Navigation Tabs - Centered with consistent styling */}
       <div className="bg-darkBg">
         <div className="max-w-7xl mx-auto px-6">
-          <nav className="flex space-x-1 overflow-x-auto">
+          <nav className="flex justify-center items-center space-x-4 py-4">
             {tabs.map((tab) => {
               const Icon = tab.icon;
+              const isRefreshButton = tab.id === 'refresh';
+              const isActive = activeTab === tab.id;
+              
               return (
                 <Button
                   key={tab.id}
                   variant="ghost"
-                  onClick={() => setActiveTab(tab.id as TabType)}
+                  onClick={() => {
+                    if (isRefreshButton) {
+                      tab.action?.();
+                    } else {
+                      setActiveTab(tab.id as TabType);
+                    }
+                  }}
+                  disabled={isRefreshButton && loading}
                   className={`flex items-center space-x-2 px-8 py-4 rounded-xl transition-all duration-300 whitespace-nowrap font-semibold border border-transparent ${
-                    activeTab === tab.id
+                    isActive && !isRefreshButton
                       ? 'bg-neonCyan/10 text-neonCyan border-neonCyan/30 shadow-[0_0_10px_rgba(0,255,255,0.3)]'
+                      : isRefreshButton
+                      ? 'bg-neonPink/10 text-neonPink border-neonPink/30 hover:bg-neonPink/20 hover:shadow-[0_0_15px_rgba(255,20,147,0.5)]'
                       : 'text-neonText hover:text-neonPink hover:bg-neonPink/10 hover:border-neonPink/30'
                   }`}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon className={`h-5 w-5 ${isRefreshButton && loading ? 'animate-spin' : ''}`} />
                   <span>{tab.label}</span>
                 </Button>
               );
