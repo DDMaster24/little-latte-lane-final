@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { getStaffOrders, updateOrderStatus } from '@/app/actions';
+import OrderDetailsModal from '@/components/OrderDetailsModal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -62,6 +63,8 @@ export default function KitchenView() {
   const [newOrderCount, setNewOrderCount] = useState(0);
   const [previousOrderCount, setPreviousOrderCount] = useState(0);
   const [showOnlyUrgent, setShowOnlyUrgent] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -160,6 +163,16 @@ export default function KitchenView() {
       toast.error('Failed to update order status');
       console.error('💥 Kitchen View: Unexpected error updating order:', error);
     }
+  };
+
+  const handleViewOrder = (order: Order) => {
+    setSelectedOrder(order);
+    setIsOrderModalOpen(true);
+  };
+
+  const handleCloseOrderModal = () => {
+    setIsOrderModalOpen(false);
+    setSelectedOrder(null);
   };
 
   const getStatusColor = (status: string | null) => {
@@ -466,6 +479,15 @@ export default function KitchenView() {
                     </Button>
                   ))}
                   
+                  {/* View Order Details Button */}
+                  <Button
+                    onClick={() => handleViewOrder(order)}
+                    variant="outline"
+                    className="w-full bg-transparent border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white text-xs py-2 font-medium transition-all duration-300"
+                  >
+                    👁️ View Order Details
+                  </Button>
+                  
                   {/* Full Status Selector for Complex Changes */}
                   <Select
                     onValueChange={(value) => handleUpdateStatus(order.id, value)}
@@ -487,6 +509,13 @@ export default function KitchenView() {
           </div>
         )}
       </div>
+
+      {/* Order Details Modal */}
+      <OrderDetailsModal
+        order={selectedOrder}
+        isOpen={isOrderModalOpen}
+        onClose={handleCloseOrderModal}
+      />
     </div>
   );
 }

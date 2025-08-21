@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
+import OrderDetailsModal from '@/components/OrderDetailsModal';
 import {
   Card,
   CardContent,
@@ -98,6 +99,8 @@ export default function StaffPanel() {
   const [_bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [stats, setStats] = useState({
     activeOrders: 0,
     confirmedOrders: 0,
@@ -242,6 +245,16 @@ export default function StaffPanel() {
       console.error('Error submitting stock request:', error);
       toast.error('Failed to submit stock request');
     }
+  };
+
+  const handleViewOrder = (order: Order) => {
+    setSelectedOrder(order);
+    setIsOrderModalOpen(true);
+  };
+
+  const handleCloseOrderModal = () => {
+    setIsOrderModalOpen(false);
+    setSelectedOrder(null);
   };
 
   const renderOverviewTab = () => (
@@ -394,23 +407,33 @@ export default function StaffPanel() {
                   className="bg-darkBg/40 backdrop-blur-sm border border-neonPink/20 rounded-lg p-4 hover:border-neonPink/40 transition-all duration-300"
                 >
                   <div className="flex justify-between items-start">
-                    <div>
+                    <div className="flex-1">
                       <h4 className="font-medium text-neonText">Order #{order.id.slice(0, 8)}...</h4>
                       <p className="text-sm text-gray-400">{order.profiles?.email || 'Unknown Customer'}</p>
                       <p className="text-sm text-gray-400">
                         {order.order_items?.length || 0} items • R{order.total_amount?.toFixed(2) || '0.00'}
                       </p>
                     </div>
-                    <Badge 
-                      className={`${
-                        order.status === 'confirmed' ? 'bg-yellow-400/20 text-yellow-400 border-yellow-400/30' :
-                        order.status === 'preparing' ? 'bg-orange-400/20 text-orange-400 border-orange-400/30' :
-                        order.status === 'ready' ? 'bg-green-400/20 text-green-400 border-green-400/30' :
-                        'bg-neonCyan/20 text-neonCyan border-neonCyan/30'
-                      }`}
-                    >
-                      {order.status || 'Unknown'}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge 
+                        className={`${
+                          order.status === 'confirmed' ? 'bg-yellow-400/20 text-yellow-400 border-yellow-400/30' :
+                          order.status === 'preparing' ? 'bg-orange-400/20 text-orange-400 border-orange-400/30' :
+                          order.status === 'ready' ? 'bg-green-400/20 text-green-400 border-green-400/30' :
+                          'bg-neonCyan/20 text-neonCyan border-neonCyan/30'
+                        }`}
+                      >
+                        {order.status || 'Unknown'}
+                      </Badge>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleViewOrder(order)}
+                        className="text-neonCyan hover:text-neonPink hover:bg-neonCyan/10 border border-neonCyan/30 hover:border-neonPink/30"
+                      >
+                        View Order
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -453,7 +476,7 @@ export default function StaffPanel() {
                   className="bg-darkBg/40 backdrop-blur-sm border border-green-400/20 rounded-lg p-4 hover:border-green-400/40 transition-all duration-300"
                 >
                   <div className="flex justify-between items-start">
-                    <div>
+                    <div className="flex-1">
                       <h4 className="font-medium text-neonText">Order #{order.id.slice(0, 8)}...</h4>
                       <p className="text-sm text-gray-400">{order.profiles?.email || 'Unknown Customer'}</p>
                       <p className="text-sm text-gray-400">
@@ -466,9 +489,19 @@ export default function StaffPanel() {
                         })}
                       </p>
                     </div>
-                    <Badge className="bg-green-400/20 text-green-400 border-green-400/30">
-                      {order.status || 'Completed'}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-green-400/20 text-green-400 border-green-400/30">
+                        {order.status || 'Completed'}
+                      </Badge>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleViewOrder(order)}
+                        className="text-neonPink hover:text-neonCyan hover:bg-neonPink/10 border border-neonPink/30 hover:border-neonCyan/30"
+                      >
+                        View Order
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -777,6 +810,13 @@ export default function StaffPanel() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">{renderTabContent()}</main>
+
+      {/* Order Details Modal */}
+      <OrderDetailsModal
+        order={selectedOrder}
+        isOpen={isOrderModalOpen}
+        onClose={handleCloseOrderModal}
+      />
     </div>
   );
 }
