@@ -227,7 +227,30 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   };
 
   const getItemDescription = () => {
-    return cart.map((item) => `${item.name} x${item.quantity}`).join(', ');
+    if (cart.length === 0) return 'Little Latte Lane Order';
+    
+    if (cart.length === 1) {
+      const item = cart[0];
+      return `${item.name} x${item.quantity}${item.customization ? ' (Customized)' : ''}`;
+    }
+    
+    if (cart.length <= 3) {
+      return cart.map((item) => `${item.name} x${item.quantity}`).join(', ');
+    }
+    
+    // For many items, show count and first item
+    const firstItem = cart[0];
+    return `${cart.length} items: ${firstItem.name}${cart.length > 1 ? ' & more' : ''}`;
+  };
+
+  const getOrderTitle = () => {
+    if (cart.length === 0) return 'Little Latte Lane Order';
+    
+    if (cart.length === 1) {
+      return cart[0].name;
+    }
+    
+    return `Little Latte Lane Order (${cart.length} items)`;
   };
 
   return (
@@ -398,7 +421,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                       orderId={orderId!}
                       userId={profile?.id || ''}
                       amount={total}
-                      itemName={`Little Latte Lane Order #${orderId}`}
+                      itemName={getOrderTitle()}
                       itemDescription={getItemDescription()}
                       userDetails={{
                         email: user?.email || 'customer@example.com',

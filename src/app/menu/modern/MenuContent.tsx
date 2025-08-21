@@ -56,7 +56,11 @@ export default function MenuContent() {
   // Filter out Pizza Add-Ons category and sort alphabetically
   const filteredAndSortedCategories = useMemo(() => {
     return categories
-      .filter(category => !category.name.toLowerCase().includes('pizza add-on'))
+      .filter(category => {
+        const name = category.name.toLowerCase();
+        // Exclude pizza add-ons/add-ons/toppings categories
+        return !(name.includes('pizza add') || name.includes('add-on') || name.includes('add on') || name.includes('addon'));
+      })
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [categories]);
   const {

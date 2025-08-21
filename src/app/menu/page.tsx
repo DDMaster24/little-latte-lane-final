@@ -96,6 +96,11 @@ function MenuContent() {
     categories.forEach((category) => {
       const categoryName = category.name.toLowerCase();
       
+      // Skip Pizza Add-ons category entirely
+      if (categoryName.includes('pizza add') || categoryName.includes('add-on') || categoryName.includes('add on') || categoryName.includes('addon')) {
+        return; // Skip this category
+      }
+      
       if (categoryGroups.drinks.keywords.some(keyword => categoryName.includes(keyword))) {
         grouped.drinks.push(category);
       } else if (categoryGroups.mainFood.keywords.some(keyword => categoryName.includes(keyword))) {
