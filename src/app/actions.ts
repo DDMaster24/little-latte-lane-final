@@ -539,3 +539,148 @@ export async function updateOrderStatus(orderId: string, status: string) {
     };
   }
 }
+
+// ============================================
+// ADMIN PANEL SERVER ACTIONS
+// ============================================
+
+export async function getAdminOrders() {
+  try {
+    const supabase = getSupabaseAdmin();
+    
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        profiles!orders_customer_id_fkey (
+          full_name,
+          email,
+          phone
+        ),
+        order_items (
+          *,
+          menu_items (
+            name,
+            price,
+            category
+          )
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('❌ Admin: Error fetching orders:', error);
+      return { success: false, error: error.message, data: [] };
+    }
+
+    console.log(`✅ Admin: Fetched ${data?.length || 0} orders via server action`);
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error('💥 Admin: Unexpected error fetching orders:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      data: [] 
+    };
+  }
+}
+
+export async function getAdminAnalytics(period: 'day' | 'week' | 'month') {
+  try {
+    const supabase = getSupabaseAdmin();
+    
+    const now = new Date();
+    let startDate: Date;
+    
+    if (period === 'day') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    } else if (period === 'week') {
+      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    } else {
+      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    }
+
+    const { data: periodOrders, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items (
+          *,
+          menu_items (name, price)
+        )
+      `)
+      .gte('created_at', startDate.toISOString())
+      .lte('created_at', now.toISOString());
+
+    if (error) {
+      console.error('❌ Admin Analytics error:', error);
+      return { success: false, error: error.message, data: null };
+    }
+
+    const orders = periodOrders || [];
+    
+    // Calculate analytics
+    const totalOrders = orders.length;
+    const totalRevenue = orders.reduce((sum, order) => {
+      return sum + (order.total_amount || 0);
+    }, 0);
+    const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    
+    const statusBreakdown = orders.reduce((acc: Record<string, number>, order) => {
+      const status = order.status || 'unknown';
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {});
+    
+    const completedOrders = statusBreakdown['completed'] || 0;
+    const pendingOrders = (statusBreakdown['pending'] || 0) + (statusBreakdown['confirmed'] || 0);
+    const cancelledOrders = statusBreakdown['cancelled'] || 0;
+    
+    // Calculate most popular items
+    const itemCounts: Record<string, { quantity: number; revenue: number }> = {};
+    orders.forEach(order => {
+      order.order_items?.forEach(item => {
+        const name = item.menu_items?.name || 'Unknown Item';
+        if (!itemCounts[name]) {
+          itemCounts[name] = { quantity: 0, revenue: 0 };
+        }
+        itemCounts[name].quantity += item.quantity || 0;
+        itemCounts[name].revenue += (item.price || 0) * (item.quantity || 0);
+      });
+    });
+    
+    const mostPopularItems = Object.entries(itemCounts)
+      .map(([name, data]) => ({ name, ...data }))
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 5);
+    
+    // Calculate revenue by period (simplified - just current period)
+    const revenueByPeriod = [{
+      date: startDate.toISOString().split('T')[0],
+      revenue: totalRevenue,
+      orders: totalOrders
+    }];
+
+    const analytics = {
+      totalOrders,
+      totalRevenue,
+      averageOrderValue,
+      statusBreakdown,
+      completedOrders,
+      pendingOrders,
+      cancelledOrders,
+      mostPopularItems,
+      revenueByPeriod
+    };
+
+    console.log(`✅ Admin Analytics for ${period}:`, analytics);
+    return { success: true, data: analytics };
+  } catch (error) {
+    console.error('💥 Admin: Unexpected error calculating analytics:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      data: null 
+    };
+  }
+}

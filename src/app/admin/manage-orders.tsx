@@ -52,7 +52,7 @@ import {
 } from 'lucide-react';
 
 // Import server action
-import { updateOrderStatus } from '../actions';
+import { updateOrderStatus, getAdminOrders } from '../actions';
 
 type Order = Database['public']['Tables']['orders']['Row'] & {
   profiles?: Database['public']['Tables']['profiles']['Row'] | null;
@@ -132,46 +132,26 @@ export default function ManageOrders() {
     setError(null);
     
     try {
-      const query = supabase
-        .from('orders')
-        .select(`
-          *,
-          profiles:user_id (
-            id,
-            full_name,
-            email,
-            phone
-          ),
-          order_items (
-            *,
-            menu_items (
-              id,
-              name,
-              price,
-              description
-            )
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      const { data: ordersData, error: ordersError } = await query;
-
-      if (ordersError) {
-        console.error('Error fetching orders:', ordersError);
-        setError('Failed to load orders');
+      console.log('🔄 Admin Panel: Fetching orders via server action...');
+      const result = await getAdminOrders();
+      
+      if (!result.success) {
+        console.error('❌ Admin Panel: Error fetching orders:', result.error);
+        setError('Failed to load orders: ' + result.error);
         return;
       }
 
-      const orders = (ordersData || []) as unknown as Order[];
+      console.log(`✅ Admin Panel: Fetched ${result.data.length} orders`);
+      const orders = result.data as unknown as Order[];
       setOrders(orders);
       setFilteredOrders(orders);
     } catch (err) {
-      console.error('Error in fetchOrders:', err);
+      console.error('💥 Admin Panel: Unexpected error fetching orders:', err);
       setError('An unexpected error occurred while loading orders');
     } finally {
       setLoading(false);
     }
-  }, [user, profile, supabase]);
+  }, [user, profile]);
 
   // Analytics calculation function
   const calculateAnalytics = useCallback(async (period: 'day' | 'week' | 'month') => {
