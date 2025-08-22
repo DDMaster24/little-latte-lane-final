@@ -307,13 +307,6 @@ export default function KitchenView() {
     return filtered;
   };
 
-  const getOrderPriorityColor = (order: Order) => {
-    if (isOrderUrgent(order)) {
-      return 'border-red-500 bg-red-50/95 shadow-red-200';
-    }
-    return 'bg-yellow-100/95 border-yellow-300/50';
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-darkBg flex items-center justify-center">
@@ -435,15 +428,7 @@ export default function KitchenView() {
             {getFilteredOrders().map((order, index) => (
               <div
                 key={order.id}
-                className={`group relative aspect-square backdrop-blur-sm border rounded-lg p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:rotate-1 ${getOrderPriorityColor(order)}`}
-                style={{
-                  background: isOrderUrgent(order) 
-                    ? 'linear-gradient(135deg, #fef2f2 0%, #fca5a5 100%)'
-                    : 'linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%)',
-                  boxShadow: isOrderUrgent(order)
-                    ? '0 4px 12px rgba(239, 68, 68, 0.25), 0 0 0 1px rgba(239, 68, 68, 0.3)'
-                    : '0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(252, 211, 77, 0.3)',
-                }}
+                className="group relative aspect-square border rounded-lg p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:rotate-1 bg-black border-gray-700"
               >
                 {/* Priority Indicator */}
                 {isOrderUrgent(order) && (
@@ -459,11 +444,11 @@ export default function KitchenView() {
 
                 {/* Order Header */}
                 <div className="flex justify-between items-start mb-3">
-                  <div className="text-gray-900">
+                  <div className="text-white">
                     <h4 className="font-bold text-lg leading-tight">
                       Order #{order.order_number || order.id.slice(0, 8)}
                     </h4>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-gray-300">
                       {formatOrderTime(order.created_at)}
                     </p>
                   </div>
@@ -474,11 +459,11 @@ export default function KitchenView() {
                 </div>
 
                 {/* Customer Info */}
-                <div className="mb-3 text-gray-800">
+                <div className="mb-3 text-white">
                   <p className="text-sm font-medium">
                     {order.profiles?.full_name || order.profiles?.email?.split('@')[0] || 'Walk-in Customer'}
                   </p>
-                  <p className="text-xs text-gray-600">
+                  <p className="text-xs text-gray-300">
                     Total: R{order.total_amount?.toFixed(2) || '0.00'}
                   </p>
                 </div>
@@ -487,13 +472,13 @@ export default function KitchenView() {
                 <div className="mb-4 flex-1">
                   <div className="space-y-1 max-h-24 overflow-y-auto">
                     {order.order_items.map((item, idx) => (
-                      <div key={idx} className="text-sm text-gray-800">
+                      <div key={idx} className="text-sm text-white">
                         <span className="font-medium">{item.quantity}x</span>{' '}
-                        <span className="text-gray-700">
+                        <span className="text-gray-200">
                           {item.menu_items?.name || 'Unknown Item'}
                         </span>
                         {item.special_instructions && (
-                          <p className="text-xs text-gray-600 italic ml-4">
+                          <p className="text-xs text-gray-300 italic ml-4">
                             Note: {item.special_instructions}
                           </p>
                         )}
@@ -502,7 +487,7 @@ export default function KitchenView() {
                   </div>
                   
                   {order.special_instructions && (
-                    <div className="mt-2 p-2 bg-yellow-200/50 rounded text-xs text-gray-700">
+                    <div className="mt-2 p-2 bg-gray-800 rounded text-xs text-gray-200">
                       <strong>Special:</strong> {order.special_instructions}
                     </div>
                   )}
@@ -519,10 +504,10 @@ export default function KitchenView() {
                         className={`
                           text-xs py-1.5 font-medium transition-all duration-300 border
                           ${button.isActive 
-                            ? `${button.bgColor} ${button.textColor} border-current shadow-lg` 
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-lg' 
                             : button.isClickable 
-                              ? `bg-transparent border-gray-600 text-gray-400 hover:${button.bgColor.replace('/20', '/10')} hover:${button.textColor} hover:border-current`
-                              : 'bg-gray-800/50 border-gray-700 text-gray-600 cursor-not-allowed'
+                              ? 'bg-transparent border-blue-500 text-blue-400 hover:bg-blue-600 hover:text-white hover:border-blue-600'
+                              : 'bg-gray-800 border-gray-600 text-gray-500 cursor-not-allowed'
                           }
                         `}
                       >
@@ -536,7 +521,7 @@ export default function KitchenView() {
                   <Button
                     onClick={() => handleViewOrder(order)}
                     variant="outline"
-                    className="w-full bg-transparent border border-blue-400/50 text-blue-400 hover:bg-blue-400/20 hover:border-blue-400 text-xs py-1.5 font-medium transition-all duration-300"
+                    className="w-full bg-transparent border border-blue-500 text-blue-400 hover:bg-blue-600 hover:text-white hover:border-blue-600 text-xs py-1.5 font-medium transition-all duration-300"
                   >
                     👁️ View Details
                   </Button>
