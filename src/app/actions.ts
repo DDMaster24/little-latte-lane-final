@@ -552,7 +552,7 @@ export async function getAdminOrders() {
       .from('orders')
       .select(`
         *,
-        profiles!orders_customer_id_fkey (
+        profiles:user_id (
           full_name,
           email,
           phone
