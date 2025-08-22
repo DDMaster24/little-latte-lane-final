@@ -198,7 +198,7 @@ export default function ManageMenuNew() {
         description: data.description || undefined,
         display_order: data.display_order || 0,
         is_active: data.is_active !== false,
-        parent_id: data.parent_id || undefined,
+        parent_id: data.parent_id === '__none__' ? undefined : data.parent_id || undefined,
         image_url: data.image_url || undefined,
       };
       
@@ -306,13 +306,13 @@ export default function ManageMenuNew() {
         description: category.description || '',
         display_order: category.display_order || 0,
         is_active: category.is_active ?? true,
-        parent_id: category.parent_id || '',
+        parent_id: category.parent_id || '__none__',
         image_url: category.image_url || '',
       });
       setImagePreview(category.image_url || null);
     } else {
       // When creating new category/section, pre-select parent based on context
-      const defaultParentId = viewMode === 'categories' && selectedSection ? selectedSection.id : '';
+      const defaultParentId = viewMode === 'categories' && selectedSection ? selectedSection.id : '__none__';
       categoryForm.reset({
         name: '',
         description: '',
@@ -871,7 +871,7 @@ export default function ManageMenuNew() {
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 border-gray-600">
                     {viewMode === 'sections' ? (
-                      <SelectItem value="">None (Main Section)</SelectItem>
+                      <SelectItem value="__none__">None (Main Section)</SelectItem>
                     ) : (
                       <>
                         {sections.map((section) => (
