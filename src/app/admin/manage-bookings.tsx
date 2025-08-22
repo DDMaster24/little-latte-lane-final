@@ -157,9 +157,9 @@ export default function ManageBookings() {
     return (
       <div className="space-y-8">
         <h2 className="text-2xl font-bold text-neonText">
-          <Skeleton className="h-8 w-48 bg-neon-green/20" />
+          <Skeleton className="h-8 w-48 bg-gray-300/20" />
         </h2>
-        <Skeleton className="h-64 w-full bg-neon-green/20" />
+        <Skeleton className="h-64 w-full bg-gray-300/20" />
       </div>
     );
   }
@@ -194,14 +194,14 @@ export default function ManageBookings() {
 
       <Table>
         <TableHeader>
-          <TableRow className="border-b border-neon-green/20">
-            <TableHead className="text-neon-green">ID</TableHead>
-            <TableHead className="text-neon-green">User</TableHead>
-            <TableHead className="text-neon-green">Type</TableHead>
-            <TableHead className="text-neon-green">Date</TableHead>
-            <TableHead className="text-neon-green">Time Slot</TableHead>
-            <TableHead className="text-neon-green">Status</TableHead>
-            <TableHead className="text-neon-green">Actions</TableHead>
+          <TableRow className="border-b border-gray-600/20">
+            <TableHead className="text-gray-300">ID</TableHead>
+            <TableHead className="text-gray-300">User</TableHead>
+            <TableHead className="text-gray-300">Type</TableHead>
+            <TableHead className="text-gray-300">Date</TableHead>
+            <TableHead className="text-gray-300">Time Slot</TableHead>
+            <TableHead className="text-gray-300">Status</TableHead>
+            <TableHead className="text-gray-300">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -215,7 +215,7 @@ export default function ManageBookings() {
             filteredBookings.map((booking) => (
               <TableRow
                 key={booking.id}
-                className="border-b border-neon-green/10 hover:bg-neon-green/5"
+                className="border-b border-gray-600/10 hover:bg-gray-600/5"
               >
                 <TableCell>{booking.id.toString().slice(0, 8)}...</TableCell>
                 <TableCell>{booking.profiles.full_name}</TableCell>
@@ -243,10 +243,10 @@ export default function ManageBookings() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="h-8 w-8 p-0">
-                        <EllipsisVerticalIcon className="h-4 w-4 text-neon-green" />
+                        <EllipsisVerticalIcon className="h-4 w-4 text-gray-300" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-black/90 border-neon-green/50">
+                    <DropdownMenuContent className="bg-black/90 border-gray-600/50">
                       <DropdownMenuItem className="p-0">
                         <Select
                           value={booking.status || ''}

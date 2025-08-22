@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { useAuth } from '@/components/AuthProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -63,13 +63,7 @@ export default function ManageEvents() {
     is_active: true,
   });
 
-  useEffect(() => {
-    if (profile?.is_admin) {
-      fetchEvents();
-    }
-  }, [profile]);
-
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('events')
@@ -84,7 +78,13 @@ export default function ManageEvents() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    if (profile?.is_admin) {
+      fetchEvents();
+    }
+  }, [profile, fetchEvents]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -218,26 +218,26 @@ export default function ManageEvents() {
   }
 
   return (
-    <Card className="bg-black/50 backdrop-blur-md border-neon-green/50">
+    <Card className="bg-black/70 backdrop-blur-md border border-gray-600/50 shadow-lg">
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle className="text-neon-green flex items-center gap-2">
+          <CardTitle className="text-white flex items-center gap-2">
             <Calendar className="h-5 w-5" />
             Manage Events & Specials
           </CardTitle>
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogTrigger asChild>
               <Button
-                className="bg-neon-green text-black hover:bg-neon-green/80"
+                className="bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300"
                 onClick={resetForm}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Event
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-black/90 border-neon-green/50 text-white max-w-2xl">
+            <DialogContent className="bg-black/90 border border-gray-600/50 text-white max-w-2xl">
               <DialogHeader>
-                <DialogTitle className="text-neon-green">
+                <DialogTitle className="text-white">
                   {editingEvent ? 'Edit Event' : 'Create New Event'}
                 </DialogTitle>
               </DialogHeader>
@@ -349,7 +349,7 @@ export default function ManageEvents() {
                   </Button>
                   <Button
                     type="submit"
-                    className="bg-neon-green text-black hover:bg-neon-green/80"
+                    className="bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300"
                   >
                     {editingEvent ? 'Update' : 'Create'} Event
                   </Button>
@@ -363,25 +363,25 @@ export default function ManageEvents() {
       <CardContent>
         {loading ? (
           <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-neon-green mx-auto"></div>
-            <p className="text-neon-green mt-2">Loading events...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto"></div>
+            <p className="text-blue-400 mt-2">Loading events...</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="border-neon-green/30">
-                  <TableHead className="text-neon-green">Type</TableHead>
-                  <TableHead className="text-neon-green">Title</TableHead>
-                  <TableHead className="text-neon-green">Description</TableHead>
-                  <TableHead className="text-neon-green">Dates</TableHead>
-                  <TableHead className="text-neon-green">Status</TableHead>
-                  <TableHead className="text-neon-green">Actions</TableHead>
+                <TableRow className="border-gray-600/30">
+                  <TableHead className="text-gray-300">Type</TableHead>
+                  <TableHead className="text-gray-300">Title</TableHead>
+                  <TableHead className="text-gray-300">Description</TableHead>
+                  <TableHead className="text-gray-300">Dates</TableHead>
+                  <TableHead className="text-gray-300">Status</TableHead>
+                  <TableHead className="text-gray-300">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {events.map((event) => (
-                  <TableRow key={event.id} className="border-neon-green/20">
+                  <TableRow key={event.id} className="border-gray-600/20">
                     <TableCell>
                       <div
                         className={`flex items-center gap-2 ${getEventColor(event.event_type || 'special')}`}

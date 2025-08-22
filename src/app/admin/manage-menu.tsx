@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { Button } from '@/components/ui/button';
@@ -78,22 +78,7 @@ export default function ManageMenu() {
   const isEditingItem = Boolean(editingItem);
   const isEditingCategory = Boolean(editingCategory);
 
-  useEffect(() => {
-    fetchData();
-
-    const menuChannel = supabase
-      .channel('menu')
-      .on('postgres_changes', { event: '*', schema: 'public' }, () =>
-        fetchData()
-      )
-      .subscribe();
-
-    return () => {
-      void menuChannel.unsubscribe();
-    };
-  }, []);
-
-  const fetchData = async (showToast = false) => {
+  const fetchData = useCallback(async (showToast = false) => {
     try {
       setIsRefreshing(true);
       // For admin panel, fetch ALL categories including pizza add-ons
@@ -112,7 +97,22 @@ export default function ManageMenu() {
     } finally {
       setIsRefreshing(false);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchData();
+
+    const menuChannel = supabase
+      .channel('menu')
+      .on('postgres_changes', { event: '*', schema: 'public' }, () =>
+        fetchData()
+      )
+      .subscribe();
+
+    return () => {
+      void menuChannel.unsubscribe();
+    };
+  }, [fetchData, supabase]);
 
   const handleRefresh = () => {
     fetchData(true); // Show toast for manual refresh
@@ -311,7 +311,7 @@ export default function ManageMenu() {
           <Button
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="neon-button bg-transparent border-2 border-neonCyan text-neonCyan hover:bg-neonCyan hover:text-darkBg hover:shadow-[0_0_15px_#00FFFF] transition-all duration-300"
+            className="bg-transparent border border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black transition-all duration-300"
           >
             <RefreshCw
               className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`}
@@ -325,13 +325,13 @@ export default function ManageMenu() {
       {viewMode === 'categories' && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* Categories Section */}
-          <Card className="bg-darkBg border-2 border-neonCyan shadow-neon">
+          <Card className="bg-black/70 backdrop-blur-md border border-gray-600/50 shadow-lg">
             <CardHeader>
               <div className="flex justify-between items-center">
-                <CardTitle className="text-neonCyan">Categories</CardTitle>
+                <CardTitle className="text-white">Categories</CardTitle>
                 <Button
                   onClick={handleAddNewCategory}
-                  className="neon-button bg-transparent border-2 border-neon-green text-neon-green hover:bg-neon-green hover:text-darkBg hover:shadow-[0_0_15px_#00FF00]"
+                  className="bg-transparent border border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black transition-all duration-300"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Category
@@ -340,7 +340,7 @@ export default function ManageMenu() {
             </CardHeader>
             <CardContent>
               {categories.length === 0 ? (
-                <div className="text-center py-8 text-neonText/70">
+                  <div className="text-center py-8 text-gray-400">
                   <UtensilsCrossed className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p className="mb-2">No categories created yet</p>
                   <p className="text-sm">
@@ -352,7 +352,7 @@ export default function ManageMenu() {
                   {categories.map((category) => (
                     <div
                       key={category.id}
-                      className="bg-darkBg border-2 border-neonPink/50 hover:border-neonPink hover:shadow-[0_0_10px_#FF00FF] transition-all duration-300 rounded-lg p-4 cursor-pointer group"
+                      className="bg-black/70 backdrop-blur-md border border-gray-600/50 hover:border-neonCyan/50 transition-all duration-300 rounded-lg p-4 cursor-pointer group"
                       onClick={() => handleViewCategoryItems(category)}
                     >
                       <div className="flex items-center justify-between">
@@ -361,7 +361,7 @@ export default function ManageMenu() {
                             {getCategoryIcon(category.name)}
                           </div>
                           <div>
-                            <h3 className="text-lg font-bold text-neonText">
+                            <h3 className="text-lg font-bold text-white">
                               {category.name}
                               {category.name.toLowerCase().includes('pizza add-ons') && (
                                 <Badge className="ml-2 bg-yellow-600 text-yellow-100 text-xs">
@@ -369,7 +369,7 @@ export default function ManageMenu() {
                                 </Badge>
                               )}
                             </h3>
-                            <p className="text-neonText/70 text-sm">
+                            <p className="text-gray-400 text-sm">
                               {getCategoryItemCount(category.id)} items
                               {category.name.toLowerCase().includes('pizza add-ons') && (
                                 <span className="text-yellow-400 text-xs ml-1">
@@ -387,7 +387,7 @@ export default function ManageMenu() {
                               e.stopPropagation();
                               handleEditCategory(category);
                             }}
-                            className="text-neonCyan hover:text-neon-green hover:bg-neon-green/10"
+                            className="text-neonCyan hover:text-blue-400 hover:bg-blue-400/10"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -412,15 +412,15 @@ export default function ManageMenu() {
           </Card>
 
           {/* Quick Menu Items Overview */}
-          <Card className="bg-darkBg border-2 border-neonPink shadow-[0_0_10px_#FF00FF]">
+          <Card className="bg-black/70 backdrop-blur-md border border-gray-600/50 shadow-lg">
             <CardHeader>
-              <CardTitle className="text-neonPink">
+              <CardTitle className="text-white">
                 Menu Items Overview
               </CardTitle>
             </CardHeader>
             <CardContent>
               {menuItems.length === 0 ? (
-                <div className="text-center py-8 text-neonText/70">
+                <div className="text-center py-8 text-gray-400">
                   <UtensilsCrossed className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p className="mb-2">No menu items yet</p>
                   <p className="text-sm">
@@ -438,10 +438,10 @@ export default function ManageMenu() {
                     return (
                       <div
                         key={category.id}
-                        className="border-b border-neonText/20 pb-3 mb-3 last:border-b-0"
+                        className="border-b border-gray-600/30 pb-3 mb-3 last:border-b-0"
                       >
                         <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold text-neonText flex items-center gap-2">
+                          <h4 className="font-semibold text-white flex items-center gap-2">
                             {getCategoryIcon(category.name)}
                             {category.name}
                           </h4>
@@ -460,16 +460,16 @@ export default function ManageMenu() {
                               key={item.id}
                               className="flex items-center justify-between text-sm"
                             >
-                              <span className="text-neonText/70">
+                              <span className="text-gray-400">
                                 {item.name}
                               </span>
-                              <span className="text-neon-green font-medium">
+                              <span className="text-blue-400 font-medium">
                                 R{item.price}
                               </span>
                             </div>
                           ))}
                           {categoryItems.length > 3 && (
-                            <div className="text-xs text-neonText/50 italic">
+                            <div className="text-xs text-gray-500 italic">
                               ...and {categoryItems.length - 3} more items
                             </div>
                           )}
@@ -486,16 +486,16 @@ export default function ManageMenu() {
 
       {/* Items View */}
       {viewMode === 'items' && selectedCategory && (
-        <Card className="bg-darkBg border-2 border-neonCyan shadow-neon">
+        <Card className="bg-black/70 backdrop-blur-md border border-gray-600/50 shadow-lg">
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle className="text-neonCyan flex items-center gap-2">
+              <CardTitle className="text-white flex items-center gap-2">
                 {getCategoryIcon(selectedCategory.name)}
                 {selectedCategory.name} Items
               </CardTitle>
               <Button
                 onClick={handleAddNewItem}
-                className="neon-button bg-transparent border-2 border-neon-green text-neon-green hover:bg-neon-green hover:text-darkBg hover:shadow-[0_0_15px_#00FF00]"
+                className="bg-transparent border border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black transition-all duration-300"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Item
@@ -506,17 +506,17 @@ export default function ManageMenu() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-neonCyan/30">
-                    <TableHead className="text-neonCyan">Image</TableHead>
-                    <TableHead className="text-neonCyan">Name</TableHead>
-                    <TableHead className="text-neonCyan">Description</TableHead>
-                    <TableHead className="text-neonCyan">Price</TableHead>
-                    <TableHead className="text-neonCyan">Actions</TableHead>
+                  <TableRow className="border-gray-600/30">
+                    <TableHead className="text-gray-300">Image</TableHead>
+                    <TableHead className="text-gray-300">Name</TableHead>
+                    <TableHead className="text-gray-300">Description</TableHead>
+                    <TableHead className="text-gray-300">Price</TableHead>
+                    <TableHead className="text-gray-300">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {getFilteredMenuItems().map((item) => (
-                    <TableRow key={item.id} className="border-neonCyan/20">
+                    <TableRow key={item.id} className="border-gray-600/20">
                       <TableCell>
                         {item.image_url ? (
                           <Image
@@ -527,18 +527,18 @@ export default function ManageMenu() {
                             className="rounded-lg object-cover border border-neonPink/50"
                           />
                         ) : (
-                          <div className="w-[60px] h-[60px] bg-darkBg border-2 border-neonText/20 rounded-lg flex items-center justify-center">
-                            <UtensilsCrossed className="h-6 w-6 text-neonText/50" />
+                          <div className="w-[60px] h-[60px] bg-black/50 border border-gray-600/50 rounded-lg flex items-center justify-center">
+                            <UtensilsCrossed className="h-6 w-6 text-gray-500" />
                           </div>
                         )}
                       </TableCell>
-                      <TableCell className="text-neonText font-medium">
+                      <TableCell className="text-white font-medium">
                         {item.name}
                       </TableCell>
-                      <TableCell className="text-neonText/70 max-w-xs truncate">
+                      <TableCell className="text-gray-400 max-w-xs truncate">
                         {item.description}
                       </TableCell>
-                      <TableCell className="text-neon-green font-bold">
+                      <TableCell className="text-blue-400 font-bold">
                         R{item.price}
                       </TableCell>
                       <TableCell>
@@ -547,7 +547,7 @@ export default function ManageMenu() {
                             size="sm"
                             variant="ghost"
                             onClick={() => handleEditItem(item)}
-                            className="text-neonCyan hover:text-neon-green hover:bg-neon-green/10"
+                            className="text-neonCyan hover:text-blue-400 hover:bg-blue-400/10"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -616,7 +616,7 @@ export default function ManageMenu() {
               </Button>
               <Button
                 type="submit"
-                className="neon-button bg-transparent border-2 border-neon-green text-neon-green hover:bg-neon-green hover:text-darkBg"
+                className="bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-600 hover:border-blue-700"
               >
                 {isEditingCategory ? 'Update' : 'Create'} Category
               </Button>
@@ -720,7 +720,7 @@ export default function ManageMenu() {
               </Button>
               <Button
                 type="submit"
-                className="neon-button bg-transparent border-2 border-neon-green text-neon-green hover:bg-neon-green hover:text-darkBg"
+                className="bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-600 hover:border-blue-700"
               >
                 {isEditingItem ? 'Update' : 'Create'} Item
               </Button>

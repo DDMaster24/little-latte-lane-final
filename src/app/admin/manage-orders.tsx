@@ -188,9 +188,9 @@ export default function ManageOrders() {
     return (
       <div className="space-y-8">
         <h2 className="text-2xl font-bold text-neonText">
-          <Skeleton className="h-8 w-48 bg-neon-green/20" />
+          <Skeleton className="h-8 w-48 bg-gray-300/20" />
         </h2>
-        <Skeleton className="h-64 w-full bg-neon-green/20" />
+        <Skeleton className="h-64 w-full bg-gray-300/20" />
       </div>
     );
   }
@@ -207,12 +207,12 @@ export default function ManageOrders() {
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-neonText">Manage Orders</h2>
+        <h2 className="text-2xl font-bold text-white">Manage Orders</h2>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-[180px] bg-black/70 border-neon-blue/50 text-neon-blue">
+          <SelectTrigger className="w-[180px] bg-black/70 border-gray-600/50 text-gray-300">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
-          <SelectContent className="bg-black/90 border-neon-blue/50">
+          <SelectContent className="bg-black/90 border-gray-600/50">
             <SelectItem value="all">All</SelectItem>
             {statusOptions.map((status) => (
               <SelectItem key={status} value={status}>
@@ -226,16 +226,16 @@ export default function ManageOrders() {
 
       <Table>
         <TableHeader>
-          <TableRow className="border-b border-neon-green/20">
-            <TableHead className="text-neon-green">ID</TableHead>
-            <TableHead className="text-neon-green">User</TableHead>
-            <TableHead className="text-neon-green">Total</TableHead>
-            <TableHead className="text-neon-green">Delivery</TableHead>
-            <TableHead className="text-neon-green">Date</TableHead>
-            <TableHead className="text-neon-green">Items</TableHead>
-            <TableHead className="text-neon-green">Status</TableHead>
-            <TableHead className="text-neon-green">Assigned Staff</TableHead>
-            <TableHead className="text-neon-green">Actions</TableHead>
+          <TableRow className="border-b border-gray-600/20">
+            <TableHead className="text-gray-300">ID</TableHead>
+            <TableHead className="text-gray-300">User</TableHead>
+            <TableHead className="text-gray-300">Total</TableHead>
+            <TableHead className="text-gray-300">Delivery</TableHead>
+            <TableHead className="text-gray-300">Date</TableHead>
+            <TableHead className="text-gray-300">Items</TableHead>
+            <TableHead className="text-gray-300">Status</TableHead>
+            <TableHead className="text-gray-300">Assigned Staff</TableHead>
+            <TableHead className="text-gray-300">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -249,7 +249,7 @@ export default function ManageOrders() {
             filteredOrders.map((order) => (
               <TableRow
                 key={order.id}
-                className="border-b border-neon-green/10 hover:bg-neon-green/5"
+                className="border-b border-gray-600/10 hover:bg-white/5"
               >
                 <TableCell>{order.id.toString().slice(0, 8)}...</TableCell>
                 <TableCell>{order.profiles.full_name}</TableCell>
@@ -307,10 +307,10 @@ export default function ManageOrders() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="h-8 w-8 p-0">
-                        <EllipsisVerticalIcon className="h-4 w-4 text-neon-green" />
+                        <EllipsisVerticalIcon className="h-4 w-4 text-gray-400" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-black/90 border-neon-green/50">
+                    <DropdownMenuContent className="bg-black/90 border-gray-600/50">
                       <DropdownMenuItem className="p-0">
                         <Select
                           value={order.status || ''}
@@ -321,10 +321,10 @@ export default function ManageOrders() {
                             )
                           }
                         >
-                          <SelectTrigger className="w-full bg-transparent border-none text-neon-blue focus:ring-0">
+                          <SelectTrigger className="w-full bg-transparent border-none text-gray-300 focus:ring-0">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent className="bg-black/90 border-neon-blue/50">
+                          <SelectContent className="bg-black/90 border-gray-600/50">
                             {statusOptions.map((status) => (
                               <SelectItem key={status} value={status}>
                                 Set to{' '}

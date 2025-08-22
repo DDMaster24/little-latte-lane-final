@@ -200,39 +200,39 @@ export default function Analytics() {
     return (
       <div className="space-y-6">
         <h2 className="text-2xl font-bold text-neonText">
-          <Skeleton className="h-8 w-48 bg-neon-green/20" />
+          <Skeleton className="h-8 w-48 bg-gray-300/20" />
         </h2>
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader>
-              <Skeleton className="h-6 w-32 bg-neon-green/20" />
+              <Skeleton className="h-6 w-32 bg-gray-300/20" />
             </CardHeader>
             <CardContent>
-              <Skeleton className="h-10 w-24 bg-neon-green/20" />
+              <Skeleton className="h-10 w-24 bg-gray-300/20" />
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
-              <Skeleton className="h-6 w-32 bg-neon-green/20" />
+              <Skeleton className="h-6 w-32 bg-gray-300/20" />
             </CardHeader>
             <CardContent>
-              <Skeleton className="h-10 w-24 bg-neon-green/20" />
+              <Skeleton className="h-10 w-24 bg-gray-300/20" />
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
-              <Skeleton className="h-6 w-32 bg-neon-green/20" />
+              <Skeleton className="h-6 w-32 bg-gray-300/20" />
             </CardHeader>
             <CardContent>
-              <Skeleton className="h-32 w-full bg-neon-green/20" />
+              <Skeleton className="h-32 w-full bg-gray-300/20" />
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
-              <Skeleton className="h-6 w-32 bg-neon-green/20" />
+              <Skeleton className="h-6 w-32 bg-gray-300/20" />
             </CardHeader>
             <CardContent>
-              <Skeleton className="h-32 w-full bg-neon-green/20" />
+              <Skeleton className="h-32 w-full bg-gray-300/20" />
             </CardContent>
           </Card>
         </div>
@@ -242,7 +242,7 @@ export default function Analytics() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-neonText">Admin Analytics</h2>
+      <h2 className="text-2xl font-bold text-white">Admin Analytics</h2>
 
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
         {/* Total Revenue */}
