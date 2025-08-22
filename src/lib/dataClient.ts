@@ -160,6 +160,44 @@ export class DataClient {
     }
   }
 
+  // Fetch sections only (categories with parent_id = null)
+  async getSections(useCache = true): Promise<DataResponse<Category[]>> {
+    const cacheKey = 'sections';
+
+    try {
+      // Check cache first
+      if (useCache) {
+        const cached = cache.get<Category[]>(cacheKey);
+        if (cached) {
+          return { data: cached, error: null, loading: false };
+        }
+      }
+
+      // Fetch sections from database
+      const { data, error } = await supabase
+        .from('menu_categories')
+        .select('*')
+        .is('parent_id', null)
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+
+      if (error) {
+        return { data: null, error: error.message, loading: false };
+      }
+
+      const sections = data || [];
+
+      // Cache the result
+      cache.set(cacheKey, sections);
+
+      return { data: sections, error: null, loading: false };
+    } catch (err) {
+      const error =
+        err instanceof Error ? err.message : 'Failed to load sections';
+      return { data: null, error, loading: false };
+    }
+  }
+
   // Fetch menu items with proper error handling and caching
   async getMenuItems(
     categoryId?: string,  // Fixed: UUIDs are strings, not numbers

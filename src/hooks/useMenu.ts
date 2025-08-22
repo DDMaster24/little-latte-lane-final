@@ -24,6 +24,7 @@ interface UseMenuOptions {
 interface UseMenuResult {
   // Data
   categories: Category[];
+  sections: Category[];  // Add sections to the return type
   menuItems: MenuItem[];
 
   // State
@@ -39,6 +40,7 @@ export function useMenu(options: UseMenuOptions = {}): UseMenuResult {
   const { categoryId, autoFetch = true } = options;
 
   const [categories, setCategories] = useState<Category[]>([]);
+  const [sections, setSections] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,13 +54,19 @@ export function useMenu(options: UseMenuOptions = {}): UseMenuResult {
       
       if (categoryId) {
         // Fetch specific category items
-        const [categoriesResponse, itemsResponse] = await Promise.all([
+        const [categoriesResponse, sectionsResponse, itemsResponse] = await Promise.all([
           dataClient.getCategories(),
+          dataClient.getSections(),
           dataClient.getMenuItems(categoryId),
         ]);
 
         if (categoriesResponse.error) {
           setError(categoriesResponse.error);
+          return;
+        }
+
+        if (sectionsResponse.error) {
+          setError(sectionsResponse.error);
           return;
         }
 
@@ -68,18 +76,28 @@ export function useMenu(options: UseMenuOptions = {}): UseMenuResult {
         }
 
         setCategories(categoriesResponse.data || []);
+        setSections(sectionsResponse.data || []);
         setMenuItems(itemsResponse.data || []);
       } else {
-        // Fetch all menu data
-        const response = await dataClient.getMenuData();
+        // Fetch all menu data including sections
+        const [menuResponse, sectionsResponse] = await Promise.all([
+          dataClient.getMenuData(),
+          dataClient.getSections(),
+        ]);
 
-        if (response.error) {
-          setError(response.error);
+        if (menuResponse.error) {
+          setError(menuResponse.error);
           return;
         }
 
-        setCategories(response.data?.categories || []);
-        setMenuItems(response.data?.menuItems || []);
+        if (sectionsResponse.error) {
+          setError(sectionsResponse.error);
+          return;
+        }
+
+        setCategories(menuResponse.data?.categories || []);
+        setSections(sectionsResponse.data || []);
+        setMenuItems(menuResponse.data?.menuItems || []);
       }
     } catch (err) {
       const errorMessage =
@@ -108,6 +126,7 @@ export function useMenu(options: UseMenuOptions = {}): UseMenuResult {
 
   return {
     categories,
+    sections,
     menuItems,
     loading,
     error,
