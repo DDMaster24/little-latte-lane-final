@@ -72,6 +72,42 @@ export default function AccountPage() {
     saving: false,
   });
 
+  // Handle URL parameters for payment status and tab selection
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const paymentStatus = urlParams.get('payment');
+      const orderIdParam = urlParams.get('order_id');
+      const _paymentIdParam = urlParams.get('payment_id');
+      const tabParam = urlParams.get('tab');
+
+      // Set active tab from URL parameter
+      if (tabParam && ['active', 'drafts', 'profile', 'orders'].includes(tabParam)) {
+        setActiveTab(tabParam);
+      }
+
+      // Handle payment status notifications
+      if (paymentStatus === 'success') {
+        toast.success(
+          `🎉 Payment successful! ${orderIdParam ? `Order #${orderIdParam}` : 'Your order'} has been confirmed and sent to the kitchen.`,
+          { duration: 6000 }
+        );
+        // Clean up URL parameters after showing notification
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      } else if (paymentStatus === 'error' || paymentStatus === 'cancelled') {
+        const reason = urlParams.get('reason') || 'Unknown error';
+        toast.error(
+          `❌ Payment ${paymentStatus === 'cancelled' ? 'cancelled' : 'failed'}: ${reason}. Your order is saved as a draft - you can complete payment anytime.`,
+          { duration: 8000 }
+        );
+        // Clean up URL parameters after showing notification
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      }
+    }
+  }, []);
+
   const fetchData = useCallback(async () => {
     if (!session) return;
     setLoading(true);

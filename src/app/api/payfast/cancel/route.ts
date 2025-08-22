@@ -6,8 +6,8 @@ export async function GET(request: NextRequest) {
 
   console.log('PayFast cancel:', Object.fromEntries(searchParams));
 
-  // Redirect to menu page with cancellation message
-  return redirect('/menu/modern?payment=cancelled');
+  // Redirect to account page with cancellation message
+  return redirect('/account?payment=cancelled&tab=drafts');
 }
 
 export async function POST(request: NextRequest) {

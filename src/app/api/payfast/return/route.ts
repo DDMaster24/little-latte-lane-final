@@ -15,11 +15,11 @@ export async function GET(request: NextRequest) {
   // So we'll assume success unless explicitly told otherwise
   if (paymentStatus === 'CANCELLED' || paymentStatus === 'FAILED') {
     console.log('❌ PayFast explicitly indicated failure:', paymentStatus);
-    return redirect('/menu/modern?payment=error&reason=payment_cancelled');
+    return redirect('/menu?payment=error&reason=payment_cancelled');
   } else {
-    // Default to success - the webhook will handle the actual payment verification
-    console.log('✅ PayFast return - assuming success, webhook will verify');
-    return redirect(`/menu/modern?payment=success${paymentId ? '&payment_id=' + paymentId : ''}${orderId ? '&order_id=' + orderId : ''}`);
+    // Default to success - redirect to account orders page to show order confirmation
+    console.log('✅ PayFast return - assuming success, redirecting to account orders page');
+    return redirect(`/account?payment=success${paymentId ? '&payment_id=' + paymentId : ''}${orderId ? '&order_id=' + orderId : ''}&tab=active`);
   }
 }
 
