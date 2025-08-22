@@ -304,7 +304,32 @@ export default function KitchenView() {
       filtered = filtered.filter(order => isOrderUrgent(order));
     }
     
+    // Sort by creation time (oldest first) for proper FIFO queue
+    filtered = filtered.sort((a, b) => {
+      const timeA = new Date(a.created_at || 0).getTime();
+      const timeB = new Date(b.created_at || 0).getTime();
+      return timeA - timeB; // Oldest first
+    });
+    
     return filtered;
+  };
+
+  const getActiveOrders = () => {
+    // Orders that need kitchen work: confirmed, preparing, ready
+    return getFilteredOrders().filter(order => 
+      ['confirmed', 'preparing', 'ready'].includes(order.status || '')
+    );
+  };
+
+  const getCompletedOrders = () => {
+    // Orders that are completed but awaiting pickup/delivery
+    return orders
+      .filter(order => order.status === 'completed')
+      .sort((a, b) => {
+        const timeA = new Date(a.updated_at || a.created_at || 0).getTime();
+        const timeB = new Date(b.updated_at || b.created_at || 0).getTime();
+        return timeB - timeA; // Most recently completed first
+      });
   };
 
   if (loading) {
@@ -378,9 +403,10 @@ export default function KitchenView() {
                 onClick={() => setShowOnlyUrgent(!showOnlyUrgent)}
                 variant={showOnlyUrgent ? "default" : "outline"}
                 className={`${showOnlyUrgent ? 'bg-red-500 hover:bg-red-600' : 'border-gray-600 text-gray-300'}`}
+                title="Show only orders that are urgent (over 20 minutes old or ready for pickup)"
               >
                 <Bell className="w-4 h-4 mr-2" />
-                Urgent Only
+                Urgent Only ({showOnlyUrgent ? 'ON' : 'OFF'})
               </Button>
 
               {/* Sound Toggle */}
@@ -401,7 +427,7 @@ export default function KitchenView() {
               <Button
                 onClick={fetchOrders}
                 disabled={loading}
-                className="bg-neonPink hover:bg-neonPink/80 text-black font-medium px-4 py-2 rounded-lg transition-all duration-300"
+                className="neon-button"
               >
                 <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                 Refresh
@@ -411,125 +437,209 @@ export default function KitchenView() {
         </div>
       </div>
 
-      {/* Orders Grid - Enhanced with Filtering and Priority */}
-      <div className="p-6">
-        {getFilteredOrders().length === 0 ? (
-          <div className="text-center py-16">
-            <ChefHat className="h-16 w-16 mx-auto mb-6 text-gray-400 opacity-50" />
-            <h3 className="text-xl text-gray-400 mb-2">
-              {statusFilter === 'all' ? 'No Active Orders' : `No ${statusFilter} Orders`}
-            </h3>
-            <p className="text-gray-500">
-              {showOnlyUrgent ? 'No urgent orders at this time' : 'Orders will appear here as they come in'}
-            </p>
+      {/* Split Layout: Active Orders (Left) + Completed Orders (Right) */}
+      <div className="flex gap-6 p-6">
+        {/* Left Side - Active Orders (2/3 width) */}
+        <div className="flex-1 w-2/3">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-white mb-2">Active Orders - Kitchen Queue</h2>
+            <p className="text-gray-400 text-sm">Orders requiring kitchen preparation (Confirmed → Preparing → Ready)</p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-            {getFilteredOrders().map((order, index) => (
-              <div
-                key={order.id}
-                className="group relative aspect-square border rounded-lg p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:rotate-1 bg-black border-gray-700"
-              >
-                {/* Priority Indicator */}
-                {isOrderUrgent(order) && (
-                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold animate-pulse">
-                    !
-                  </div>
-                )}
-
-                {/* Position Number - Top Left Corner */}
-                <div className={`absolute -top-2 -left-2 w-8 h-8 ${isOrderUrgent(order) ? 'bg-red-600' : 'bg-red-500'} text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg`}>
-                  {index + 1}
-                </div>
-
-                {/* Order Header */}
-                <div className="flex justify-between items-start mb-3">
-                  <div className="text-white">
-                    <h4 className="font-bold text-lg leading-tight">
-                      Order #{order.order_number || order.id.slice(0, 8)}
-                    </h4>
-                    <p className="text-xs text-gray-300">
-                      {formatOrderTime(order.created_at)}
-                    </p>
-                  </div>
-                  <Badge className={`${getStatusColor(order.status)} text-xs flex items-center gap-1`}>
-                    {getStatusIcon(order.status)}
-                    {order.status || 'pending'}
-                  </Badge>
-                </div>
-
-                {/* Customer Info */}
-                <div className="mb-3 text-white">
-                  <p className="text-sm font-medium">
-                    {order.profiles?.full_name || order.profiles?.email?.split('@')[0] || 'Walk-in Customer'}
-                  </p>
-                  <p className="text-xs text-gray-300">
-                    Total: R{order.total_amount?.toFixed(2) || '0.00'}
-                  </p>
-                </div>
-
-                {/* Order Items */}
-                <div className="mb-4 flex-1">
-                  <div className="space-y-1 max-h-24 overflow-y-auto">
-                    {order.order_items.map((item, idx) => (
-                      <div key={idx} className="text-sm text-white">
-                        <span className="font-medium">{item.quantity}x</span>{' '}
-                        <span className="text-gray-200">
-                          {item.menu_items?.name || 'Unknown Item'}
-                        </span>
-                        {item.special_instructions && (
-                          <p className="text-xs text-gray-300 italic ml-4">
-                            Note: {item.special_instructions}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {order.special_instructions && (
-                    <div className="mt-2 p-2 bg-gray-800 rounded text-xs text-gray-200">
-                      <strong>Special:</strong> {order.special_instructions}
+          
+          {getActiveOrders().length === 0 ? (
+            <div className="text-center py-16">
+              <ChefHat className="h-16 w-16 mx-auto mb-6 text-gray-400 opacity-50" />
+              <h3 className="text-xl text-gray-400 mb-2">No Active Orders</h3>
+              <p className="text-gray-500">Orders will appear here as they come in</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {getActiveOrders().map((order, index) => (
+                <div
+                  key={order.id}
+                  className="group relative aspect-square border rounded-lg p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 bg-black border-gray-700"
+                >
+                  {/* Priority Indicator */}
+                  {isOrderUrgent(order) && (
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold animate-pulse">
+                      !
                     </div>
                   )}
-                </div>
 
-                {/* Progressive Status Buttons */}
-                <div className="space-y-1">
-                  <div className="grid grid-cols-2 gap-1">
-                    {getProgressiveButtons(order.status).map((button, idx) => (
-                      <Button
-                        key={idx}
-                        onClick={() => button.isClickable ? handleUpdateStatus(order.id, button.value) : undefined}
-                        disabled={!button.isClickable && !button.isActive}
-                        className={`
-                          text-xs py-1.5 font-medium transition-all duration-300 border
-                          ${button.isActive 
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-lg' 
-                            : button.isClickable 
-                              ? 'bg-transparent border-blue-500 text-blue-400 hover:bg-blue-600 hover:text-white hover:border-blue-600'
-                              : 'bg-gray-800 border-gray-600 text-gray-500 cursor-not-allowed'
-                          }
-                        `}
-                      >
-                        <span className="text-xs mr-1">{button.icon}</span>
-                        {button.label}
-                      </Button>
-                    ))}
+                  {/* Position Number - Top Left Corner */}
+                  <div className={`absolute -top-2 -left-2 w-8 h-8 ${isOrderUrgent(order) ? 'bg-red-600' : 'bg-red-500'} text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg`}>
+                    {index + 1}
                   </div>
-                  
-                  {/* View Order Details Button */}
-                  <Button
-                    onClick={() => handleViewOrder(order)}
-                    variant="outline"
-                    className="w-full bg-transparent border border-blue-500 text-blue-400 hover:bg-blue-600 hover:text-white hover:border-blue-600 text-xs py-1.5 font-medium transition-all duration-300"
-                  >
-                    👁️ View Details
-                  </Button>
+
+                  {/* Order Header */}
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="text-white">
+                      <h4 className="font-bold text-lg leading-tight">
+                        Order #{order.order_number || order.id.slice(0, 8)}
+                      </h4>
+                      <p className="text-xs text-gray-300">
+                        {formatOrderTime(order.created_at)}
+                      </p>
+                    </div>
+                    <Badge className={`${getStatusColor(order.status)} text-sm px-3 py-1 flex items-center gap-2 font-medium`}>
+                      {getStatusIcon(order.status)}
+                      {order.status || 'pending'}
+                    </Badge>
+                  </div>
+
+                  {/* Customer Info */}
+                  <div className="mb-3 text-white">
+                    <p className="text-sm font-medium">
+                      {order.profiles?.full_name || order.profiles?.email?.split('@')[0] || 'Walk-in Customer'}
+                    </p>
+                    <p className="text-xs text-gray-300">
+                      Total: R{order.total_amount?.toFixed(2) || '0.00'}
+                    </p>
+                  </div>
+
+                  {/* Order Items */}
+                  <div className="mb-4 flex-1">
+                    <div className="space-y-1 max-h-24 overflow-y-auto">
+                      {order.order_items.map((item, idx) => (
+                        <div key={idx} className="text-sm text-white">
+                          <span className="font-medium">{item.quantity}x</span>{' '}
+                          <span className="text-gray-200">
+                            {item.menu_items?.name || 'Unknown Item'}
+                          </span>
+                          {item.special_instructions && (
+                            <p className="text-xs text-gray-300 italic ml-4">
+                              Note: {item.special_instructions}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {order.special_instructions && (
+                      <div className="mt-2 p-2 bg-gray-800 rounded text-xs text-gray-200">
+                        <strong>Special:</strong> {order.special_instructions}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Progressive Status Buttons */}
+                  <div className="space-y-1">
+                    <div className="grid grid-cols-2 gap-1">
+                      {getProgressiveButtons(order.status).map((button, idx) => (
+                        <Button
+                          key={idx}
+                          onClick={() => button.isClickable ? handleUpdateStatus(order.id, button.value) : undefined}
+                          disabled={!button.isClickable && !button.isActive}
+                          className={`
+                            text-xs py-1.5 font-medium transition-all duration-300 border
+                            ${button.isActive 
+                              ? 'bg-blue-600 text-white border-blue-600 shadow-lg' 
+                              : button.isClickable 
+                                ? 'bg-transparent border-blue-500 text-blue-400 hover:bg-blue-600 hover:text-white hover:border-blue-600'
+                                : 'bg-gray-800 border-gray-600 text-gray-500 cursor-not-allowed'
+                            }
+                          `}
+                        >
+                          <span className="text-xs mr-1">{button.icon}</span>
+                          {button.label}
+                        </Button>
+                      ))}
+                    </div>
+                    
+                    {/* View Order Details Button */}
+                    <Button
+                      onClick={() => handleViewOrder(order)}
+                      variant="outline"
+                      className="w-full bg-transparent border border-blue-500 text-blue-400 hover:bg-blue-600 hover:text-white hover:border-blue-600 text-xs py-1.5 font-medium transition-all duration-300"
+                    >
+                      👁️ View Details
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Right Side - Completed Orders (1/3 width) */}
+        <div className="w-1/3 border-l border-gray-700 pl-6">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-white mb-2">Completed Orders</h2>
+            <p className="text-gray-400 text-sm">Ready for pickup/delivery - awaiting customer collection</p>
           </div>
-        )}
+
+          {getCompletedOrders().length === 0 ? (
+            <div className="text-center py-8">
+              <CheckCircle className="h-12 w-12 mx-auto mb-4 text-gray-500" />
+              <p className="text-gray-400">No completed orders</p>
+              <p className="text-gray-500 text-sm">Completed orders appear here</p>
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto">
+              {getCompletedOrders().map((order) => (
+                <div
+                  key={order.id}
+                  className="bg-gray-800 border border-gray-600 rounded-lg p-4 hover:border-gray-500 transition-colors"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-bold text-white text-sm">
+                        Order #{order.order_number || order.id.slice(0, 8)}
+                      </h4>
+                      <p className="text-xs text-gray-400">
+                        Completed: {formatOrderTime(order.updated_at || order.created_at)}
+                      </p>
+                    </div>
+                    <Badge className="bg-green-600/20 border-green-600/50 text-green-300 text-xs">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Ready
+                    </Badge>
+                  </div>
+
+                  <div className="mb-3">
+                    <p className="text-sm text-gray-200 font-medium">
+                      {order.profiles?.full_name || order.profiles?.email?.split('@')[0] || 'Walk-in Customer'}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      Total: R{order.total_amount?.toFixed(2) || '0.00'}
+                    </p>
+                  </div>
+
+                  <div className="mb-3">
+                    <div className="text-xs text-gray-300 space-y-1">
+                      {order.order_items.slice(0, 3).map((item, idx) => (
+                        <div key={idx}>
+                          {item.quantity}x {item.menu_items?.name || 'Unknown Item'}
+                        </div>
+                      ))}
+                      {order.order_items.length > 3 && (
+                        <div className="text-gray-500">
+                          +{order.order_items.length - 3} more items
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Button
+                      onClick={() => handleUpdateStatus(order.id, 'picked_up')}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-2 font-medium transition-all duration-300"
+                    >
+                      📦 Mark as Picked Up
+                    </Button>
+                    <Button
+                      onClick={() => handleViewOrder(order)}
+                      variant="outline"
+                      className="w-full bg-transparent border border-gray-600 text-gray-400 hover:bg-gray-700 hover:text-white text-xs py-1.5 font-medium transition-all duration-300"
+                    >
+                      👁️ View Details
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Order Details Modal */}
