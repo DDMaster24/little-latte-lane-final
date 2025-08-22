@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { 
@@ -9,7 +9,8 @@ import {
   deleteMenuCategory,
   createMenuItem,
   updateMenuItem,
-  deleteMenuItem
+  deleteMenuItem,
+  uploadImage
 } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +30,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import toast from 'react-hot-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -39,170 +47,169 @@ import {
   Edit,
   Trash2,
   ArrowLeft,
-  Coffee,
-  Sandwich,
-  Cookie,
-  Salad,
-  Pizza,
+  Upload,
+  X,
   RefreshCw,
+  FolderOpen,
+  ImageIcon,
 } from 'lucide-react';
-
-interface Category {
-  id: string;  // UUID
-  name: string;
-  description?: string;
-  display_order?: number;
-  is_active?: boolean;
-}
-
-interface MenuItem {
-  id: string;  // UUID
-  name: string;
-  description: string;
-  price: number;
-  image_url?: string;
-  category_id: string;  // UUID
-  is_available?: boolean;
-}
+import { Category, MenuItem } from '@/types/app-types';
 
 type ViewMode = 'categories' | 'items';
 
-export default function ManageMenu() {
-  const supabase = getSupabaseClient();
+export default function ManageMenuNew() {
+  // State
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>('categories');
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    null
-  );
-  const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  
+  // Dialog states
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  
+  // Image upload state
+  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const itemForm = useForm<MenuItem>();
-  const categoryForm = useForm<Category>();
-  const isEditingItem = Boolean(editingItem);
-  const isEditingCategory = Boolean(editingCategory);
+  // Forms
+  const categoryForm = useForm<{
+    name: string;
+    description: string;
+    display_order: number;
+    is_active: boolean;
+    parent_id: string;
+    image_url: string;
+  }>({
+    defaultValues: {
+      name: '',
+      description: '',
+      display_order: 0,
+      is_active: true,
+      parent_id: '',
+      image_url: '',
+    },
+  });
 
-  const fetchData = useCallback(async (showToast = false) => {
+  const itemForm = useForm<{
+    name: string;
+    description: string;
+    price: number;
+    category_id: string;
+    is_available: boolean;
+    image_url: string;
+  }>({
+    defaultValues: {
+      name: '',
+      description: '',
+      price: 0,
+      category_id: '',
+      is_available: true,
+      image_url: '',
+    },
+  });
+
+  // Data fetching
+  const fetchData = useCallback(async () => {
     try {
-      setIsRefreshing(true);
-      // For admin panel, fetch ALL categories including pizza add-ons
-      const { data: cats } = await supabase.from('menu_categories').select();
-      const { data: items } = await supabase.from('menu_items').select();
-      setCategories((cats || []) as Category[]);
-      setMenuItems((items || []) as MenuItem[]);
-      if (showToast) {
-        toast.success('Data refreshed successfully!');
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      if (showToast) {
-        toast.error('Failed to refresh data');
-      }
+      const supabase = getSupabaseClient();
+      const { data: cats } = await supabase.from('menu_categories').select(`
+        *,
+        parent:parent_id(name)
+      `).order('display_order', { nullsFirst: false });
+      const { data: items } = await supabase.from('menu_items').select('*');
+      
+      setCategories(cats || []);
+      setMenuItems(items || []);
+    } catch (_error) {
+      toast.error('Failed to fetch data');
     } finally {
-      setIsRefreshing(false);
+      setLoading(false);
     }
-  }, [supabase]);
+  }, []);
 
   useEffect(() => {
     fetchData();
+  }, [fetchData]);
 
-    const menuChannel = supabase
-      .channel('menu')
-      .on('postgres_changes', { event: '*', schema: 'public' }, () =>
-        fetchData()
-      )
-      .subscribe();
+  // Get main categories (no parent)
+  const mainCategories = categories.filter(cat => !cat.parent_id);
+  
+  // Get subcategories for a parent
+  const getSubcategories = (parentId: string) => 
+    categories.filter(cat => cat.parent_id === parentId);
 
-    return () => {
-      void menuChannel.unsubscribe();
-    };
-  }, [fetchData, supabase]);
+  // Get items for a category
+  const getCategoryItems = (categoryId: string) =>
+    menuItems.filter(item => item.category_id === categoryId);
 
-  const handleRefresh = () => {
-    fetchData(true); // Show toast for manual refresh
-  };
-
-  const onSubmitCategory = async (data: Category) => {
+  // Image upload handler
+  const handleImageUpload = async (file: File) => {
+    if (!file) return null;
+    
+    setUploading(true);
     try {
-      let result;
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'categories');
       
-      if (isEditingCategory && editingCategory) {
-        result = await updateMenuCategory(editingCategory.id, {
-          name: data.name,
-          description: data.description,
-          display_order: data.display_order,
-          is_active: data.is_active
-        });
+      const result = await uploadImage(formData);
+      
+      if (result.success && result.data) {
+        setImagePreview(result.data.url);
+        return result.data.url;
       } else {
-        result = await createMenuCategory({
-          name: data.name,
-          description: data.description,
-          display_order: data.display_order || 0,
-          is_active: data.is_active !== false // Default to true
-        });
+        toast.error(result.message || 'Upload failed');
+        return null;
       }
-
-      if (!result.success) {
-        toast.error(`Failed: ${result.message}`);
-      } else {
-        toast.success(`Category ${isEditingCategory ? 'updated' : 'created'}!`);
-        categoryForm.reset();
-        setEditingCategory(null);
-        setIsCategoryDialogOpen(false);
-        // Automatically refresh data after successful operation
-        await fetchData();
-      }
-    } catch (error) {
-      toast.error(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } catch (_error) {
+      toast.error('Upload failed');
+      return null;
+    } finally {
+      setUploading(false);
     }
   };
 
-  const onSubmitItem = async (data: MenuItem) => {
+  // Category operations
+  const onSubmitCategory = async (data: {
+    name: string;
+    description: string;
+    display_order: number;
+    is_active: boolean;
+    parent_id: string;
+    image_url: string;
+  }) => {
     try {
-      if (data.price < 0) {
-        toast.error('Price must be positive.');
-        return;
-      }
-
-      // Set category_id to selected category if creating new item
-      if (!isEditingItem && selectedCategory) {
-        data.category_id = selectedCategory.id;
-      }
-
       let result;
       
-      if (isEditingItem && editingItem) {
-        result = await updateMenuItem(editingItem.id, {
-          name: data.name,
-          description: data.description,
-          price: data.price,
-          category_id: data.category_id,
-          is_available: data.is_available,
-          image_url: data.image_url
-        });
+      // Convert empty strings to null for optional fields
+      const categoryData = {
+        name: data.name,
+        description: data.description || undefined,
+        display_order: data.display_order || 0,
+        is_active: data.is_active !== false,
+        parent_id: data.parent_id || undefined,
+        image_url: data.image_url || undefined,
+      };
+      
+      if (editingCategory) {
+        result = await updateMenuCategory(editingCategory.id, categoryData);
       } else {
-        result = await createMenuItem({
-          name: data.name,
-          description: data.description,
-          price: data.price,
-          category_id: data.category_id,
-          is_available: data.is_available !== false, // Default to true
-          image_url: data.image_url
-        });
+        result = await createMenuCategory(categoryData);
       }
 
       if (!result.success) {
         toast.error(`Failed: ${result.message}`);
       } else {
-        toast.success(`Item ${isEditingItem ? 'updated' : 'created'}!`);
-        itemForm.reset();
-        setEditingItem(null);
-        setIsItemDialogOpen(false);
-        // Automatically refresh data after successful operation
+        toast.success(`Category ${editingCategory ? 'updated' : 'created'}!`);
+        categoryForm.reset();
+        setEditingCategory(null);
+        setIsCategoryDialogOpen(false);
+        setImagePreview(null);
         await fetchData();
       }
     } catch (error) {
@@ -211,12 +218,7 @@ export default function ManageMenu() {
   };
 
   const deleteCategory = async (id: string) => {
-    if (
-      !confirm(
-        'Are you sure? This will also delete all items in this category.'
-      )
-    )
-      return;
+    if (!confirm('Are you sure? This will also delete all items in this category.')) return;
 
     try {
       const result = await deleteMenuCategory(id);
@@ -224,7 +226,48 @@ export default function ManageMenu() {
         toast.error(`Failed: ${result.message}`);
       } else {
         toast.success('Category deleted');
-        // Automatically refresh data after successful deletion
+        await fetchData();
+      }
+    } catch (error) {
+      toast.error(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  // Item operations
+  const onSubmitItem = async (data: {
+    name: string;
+    description: string;
+    price: number;
+    category_id: string;
+    is_available: boolean;
+    image_url: string;
+  }) => {
+    try {
+      let result;
+      
+      const itemData = {
+        name: data.name,
+        description: data.description || undefined,
+        price: data.price,
+        category_id: data.category_id || selectedCategory?.id || '',
+        is_available: data.is_available !== false,
+        image_url: data.image_url || undefined,
+      };
+      
+      if (editingItem) {
+        result = await updateMenuItem(editingItem.id, itemData);
+      } else {
+        result = await createMenuItem(itemData);
+      }
+
+      if (!result.success) {
+        toast.error(`Failed: ${result.message}`);
+      } else {
+        toast.success(`Item ${editingItem ? 'updated' : 'created'}!`);
+        itemForm.reset();
+        setEditingItem(null);
+        setIsItemDialogOpen(false);
+        setImagePreview(null);
         await fetchData();
       }
     } catch (error) {
@@ -241,7 +284,6 @@ export default function ManageMenu() {
         toast.error(`Failed: ${result.message}`);
       } else {
         toast.success('Item deleted');
-        // Automatically refresh data after successful deletion
         await fetchData();
       }
     } catch (error) {
@@ -249,347 +291,301 @@ export default function ManageMenu() {
     }
   };
 
-  const getCategoryIcon = (categoryName: string) => {
-    const name = categoryName.toLowerCase();
-    if (
-      name.includes('coffee') ||
-      name.includes('beverage') ||
-      name.includes('drink')
-    ) {
-      return <Coffee className="h-6 w-6" />;
-    } else if (name.includes('sandwich') || name.includes('burger')) {
-      return <Sandwich className="h-6 w-6" />;
-    } else if (
-      name.includes('dessert') ||
-      name.includes('cake') ||
-      name.includes('sweet')
-    ) {
-      return <Cookie className="h-6 w-6" />;
-    } else if (name.includes('salad') || name.includes('healthy')) {
-      return <Salad className="h-6 w-6" />;
-    } else if (name.includes('pizza') || name.includes('main')) {
-      return <Pizza className="h-6 w-6" />;
+  // UI handlers
+  const openCategoryDialog = (category?: Category) => {
+    setEditingCategory(category || null);
+    if (category) {
+      categoryForm.reset({
+        name: category.name || '',
+        description: category.description || '',
+        display_order: category.display_order || 0,
+        is_active: category.is_active || true,
+        parent_id: category.parent_id || '',
+        image_url: category.image_url || '',
+      });
+      setImagePreview(category.image_url);
+    } else {
+      categoryForm.reset();
+      setImagePreview(null);
     }
-    return <UtensilsCrossed className="h-6 w-6" />;
-  };
-
-  const getCategoryItemCount = (categoryId: string) => {
-    return menuItems.filter((item) => item.category_id === categoryId).length;
-  };
-
-  const getFilteredMenuItems = () => {
-    if (!selectedCategory) return [];
-    return menuItems.filter((item) => item.category_id === selectedCategory.id);
-  };
-
-  const handleEditCategory = (category: Category) => {
-    setEditingCategory(category);
-    categoryForm.reset(category);
     setIsCategoryDialogOpen(true);
   };
 
-  const handleEditItem = (item: MenuItem) => {
-    setEditingItem(item);
-    itemForm.reset(item);
+  const openItemDialog = (item?: MenuItem) => {
+    setEditingItem(item || null);
+    if (item) {
+      itemForm.reset({
+        name: item.name || '',
+        description: item.description || '',
+        price: item.price || 0,
+        category_id: item.category_id || '',
+        is_available: item.is_available || true,
+        image_url: item.image_url || '',
+      });
+      setImagePreview(item.image_url);
+    } else {
+      itemForm.reset({
+        category_id: selectedCategory?.id || '',
+      });
+      setImagePreview(null);
+    }
     setIsItemDialogOpen(true);
   };
 
-  const handleAddNewCategory = () => {
-    setEditingCategory(null);
-    categoryForm.reset();
-    setIsCategoryDialogOpen(true);
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const url = await handleImageUpload(file);
+      if (url) {
+        if (isCategoryDialogOpen) {
+          categoryForm.setValue('image_url', url);
+        } else if (isItemDialogOpen) {
+          itemForm.setValue('image_url', url);
+        }
+      }
+    }
   };
 
-  const handleAddNewItem = () => {
-    setEditingItem(null);
-    itemForm.reset();
-    setIsItemDialogOpen(true);
-  };
-
-  const handleViewCategoryItems = (category: Category) => {
-    setSelectedCategory(category);
-    setViewMode('items');
-  };
-
-  const handleBackToCategories = () => {
-    setViewMode('categories');
-    setSelectedCategory(null);
-  };
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <UtensilsCrossed className="h-6 w-6 text-neonCyan" />
+            <h2 className="text-2xl font-bold text-white">Menu Management</h2>
+          </div>
+        </div>
+        <div className="text-center py-8 text-gray-400">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {viewMode === 'items' && (
-            <Button
-              variant="ghost"
-              onClick={handleBackToCategories}
-              className="text-neonCyan hover:text-neonPink hover:bg-neonPink/10"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Categories
-            </Button>
-          )}
+          <UtensilsCrossed className="h-6 w-6 text-neonCyan" />
           <div>
-            <h2 className="text-2xl font-bold text-neonCyan flex items-center gap-2">
-              <UtensilsCrossed className="h-6 w-6" />
-              Menu Management
-            </h2>
-            <p className="text-neonText/70 mt-1">
-              Organize and manage your menu categories and items
-            </p>
+            <h2 className="text-2xl font-bold text-white">Menu Management</h2>
+            <p className="text-gray-400">Organize and manage your menu categories and items with image support</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Button
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="bg-transparent border border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black transition-all duration-300"
-          >
-            <RefreshCw
-              className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`}
-            />
-            {isRefreshing ? 'Refreshing...' : 'Refresh'}
-          </Button>
-        </div>
+        <Button 
+          onClick={fetchData} 
+          variant="outline" 
+          size="sm"
+          className="border-gray-600 text-gray-300 hover:bg-gray-700"
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh
+        </Button>
       </div>
 
-      {/* Always show both sections when in categories view */}
-      {viewMode === 'categories' && (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {/* Categories Section */}
-          <Card className="bg-black/70 backdrop-blur-md border border-gray-600/50 shadow-lg">
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-white">Categories</CardTitle>
-                <Button
-                  onClick={handleAddNewCategory}
-                  className="bg-transparent border border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black transition-all duration-300"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Category
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {categories.length === 0 ? (
-                  <div className="text-center py-8 text-gray-400">
-                  <UtensilsCrossed className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="mb-2">No categories created yet</p>
-                  <p className="text-sm">
-                    Create your first category to get started!
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {categories.map((category) => (
-                    <div
-                      key={category.id}
-                      className="bg-black/70 backdrop-blur-md border border-gray-600/50 hover:border-neonCyan/50 transition-all duration-300 rounded-lg p-4 cursor-pointer group"
-                      onClick={() => handleViewCategoryItems(category)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="text-neonPink group-hover:text-neonCyan transition-colors duration-300">
-                            {getCategoryIcon(category.name)}
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-bold text-white">
-                              {category.name}
-                              {category.name.toLowerCase().includes('pizza add-ons') && (
-                                <Badge className="ml-2 bg-yellow-600 text-yellow-100 text-xs">
-                                  Customization Only
-                                </Badge>
-                              )}
-                            </h3>
-                            <p className="text-gray-400 text-sm">
-                              {getCategoryItemCount(category.id)} items
-                              {category.name.toLowerCase().includes('pizza add-ons') && (
-                                <span className="text-yellow-400 text-xs ml-1">
-                                  (Not shown to customers)
-                                </span>
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditCategory(category);
-                            }}
-                            className="text-neonCyan hover:text-blue-400 hover:bg-blue-400/10"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteCategory(category.id);
-                            }}
-                            className="text-neonPink hover:text-red-400 hover:bg-red-400/10"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Quick Menu Items Overview */}
-          <Card className="bg-black/70 backdrop-blur-md border border-gray-600/50 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-white">
-                Menu Items Overview
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {menuItems.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
-                  <UtensilsCrossed className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="mb-2">No menu items yet</p>
-                  <p className="text-sm">
-                    Create categories first, then add items!
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {categories.map((category) => {
-                    const categoryItems = menuItems.filter(
-                      (item) => item.category_id === category.id
-                    );
-                    if (categoryItems.length === 0) return null;
-
-                    return (
-                      <div
-                        key={category.id}
-                        className="border-b border-gray-600/30 pb-3 mb-3 last:border-b-0"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold text-white flex items-center gap-2">
-                            {getCategoryIcon(category.name)}
-                            {category.name}
-                          </h4>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleViewCategoryItems(category)}
-                            className="text-neonCyan hover:text-neonPink text-xs"
-                          >
-                            View All ({categoryItems.length})
-                          </Button>
-                        </div>
-                        <div className="space-y-1">
-                          {categoryItems.slice(0, 3).map((item) => (
-                            <div
-                              key={item.id}
-                              className="flex items-center justify-between text-sm"
-                            >
-                              <span className="text-gray-400">
-                                {item.name}
-                              </span>
-                              <span className="text-blue-400 font-medium">
-                                R{item.price}
-                              </span>
-                            </div>
-                          ))}
-                          {categoryItems.length > 3 && (
-                            <div className="text-xs text-gray-500 italic">
-                              ...and {categoryItems.length - 3} more items
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+      {/* Navigation */}
+      {viewMode === 'items' && selectedCategory && (
+        <div className="flex items-center gap-2 text-sm text-gray-400">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setViewMode('categories');
+              setSelectedCategory(null);
+            }}
+            className="text-neonCyan hover:bg-gray-800"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back to Categories
+          </Button>
+          <span>/</span>
+          <span className="text-white">{selectedCategory.name}</span>
         </div>
       )}
 
-      {/* Items View */}
-      {viewMode === 'items' && selectedCategory && (
-        <Card className="bg-black/70 backdrop-blur-md border border-gray-600/50 shadow-lg">
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-white flex items-center gap-2">
-                {getCategoryIcon(selectedCategory.name)}
-                {selectedCategory.name} Items
-              </CardTitle>
-              <Button
-                onClick={handleAddNewItem}
-                className="bg-transparent border border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black transition-all duration-300"
+      {/* Main Content */}
+      {viewMode === 'categories' ? (
+        <div className="space-y-4">
+          {/* Categories Header */}
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-white">Categories</h3>
+            <Button 
+              onClick={() => openCategoryDialog()}
+              className="bg-neonCyan text-black hover:bg-neonCyan/80"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Category
+            </Button>
+          </div>
+
+          {/* Categories Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {mainCategories.map((category) => {
+              const subcategories = getSubcategories(category.id);
+              const itemsCount = getCategoryItems(category.id).length;
+              
+              return (
+                <Card key={category.id} className="bg-gray-800 border-gray-700 hover:border-neonCyan/50 transition-colors">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        {category.image_url ? (
+                          <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-700">
+                            <Image
+                              src={category.image_url}
+                              alt={category.name}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg bg-gray-700 flex items-center justify-center">
+                            <FolderOpen className="h-6 w-6 text-gray-400" />
+                          </div>
+                        )}
+                        <div>
+                          <CardTitle className="text-white text-lg">{category.name}</CardTitle>
+                          {category.description && (
+                            <p className="text-gray-400 text-sm mt-1">{category.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      <Badge variant={category.is_active ? "default" : "secondary"}>
+                        {category.is_active ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-400">Items: {itemsCount}</span>
+                        <span className="text-gray-400">Subcategories: {subcategories.length}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setSelectedCategory(category);
+                            setViewMode('items');
+                          }}
+                          className="flex-1 bg-gray-700 hover:bg-gray-600 text-white"
+                        >
+                          <FolderOpen className="h-4 w-4 mr-2" />
+                          View Items
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openCategoryDialog(category)}
+                          className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => deleteCategory(category.id)}
+                          className="border-red-600 text-red-400 hover:bg-red-900/20"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {mainCategories.length === 0 && (
+            <Card className="bg-gray-800 border-gray-700">
+              <CardContent className="py-8 text-center">
+                <UtensilsCrossed className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-400 mb-4">No categories found. Create your first category to get started.</p>
+                <Button 
+                  onClick={() => openCategoryDialog()}
+                  className="bg-neonCyan text-black hover:bg-neonCyan/80"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add First Category
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      ) : (
+        /* Items View */
+        selectedCategory && (
+          <div className="space-y-4">
+            {/* Items Header */}
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-white">
+                Items in {selectedCategory.name}
+              </h3>
+              <Button 
+                onClick={() => openItemDialog()}
+                className="bg-neonCyan text-black hover:bg-neonCyan/80"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Item
               </Button>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
+
+            {/* Items Table */}
+            <Card className="bg-gray-800 border-gray-700">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-gray-600/30">
+                  <TableRow className="border-gray-700">
                     <TableHead className="text-gray-300">Image</TableHead>
                     <TableHead className="text-gray-300">Name</TableHead>
                     <TableHead className="text-gray-300">Description</TableHead>
                     <TableHead className="text-gray-300">Price</TableHead>
+                    <TableHead className="text-gray-300">Status</TableHead>
                     <TableHead className="text-gray-300">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {getFilteredMenuItems().map((item) => (
-                    <TableRow key={item.id} className="border-gray-600/20">
+                  {getCategoryItems(selectedCategory.id).map((item) => (
+                    <TableRow key={item.id} className="border-gray-700">
                       <TableCell>
                         {item.image_url ? (
-                          <Image
-                            src={item.image_url}
-                            alt={item.name}
-                            width={60}
-                            height={60}
-                            className="rounded-lg object-cover border border-neonPink/50"
-                          />
+                          <div className="relative w-10 h-10 rounded overflow-hidden">
+                            <Image
+                              src={item.image_url}
+                              alt={item.name}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
                         ) : (
-                          <div className="w-[60px] h-[60px] bg-black/50 border border-gray-600/50 rounded-lg flex items-center justify-center">
-                            <UtensilsCrossed className="h-6 w-6 text-gray-500" />
+                          <div className="w-10 h-10 rounded bg-gray-700 flex items-center justify-center">
+                            <ImageIcon className="h-5 w-5 text-gray-400" />
                           </div>
                         )}
                       </TableCell>
-                      <TableCell className="text-white font-medium">
-                        {item.name}
-                      </TableCell>
-                      <TableCell className="text-gray-400 max-w-xs truncate">
-                        {item.description}
-                      </TableCell>
-                      <TableCell className="text-blue-400 font-bold">
-                        R{item.price}
+                      <TableCell className="text-white font-medium">{item.name}</TableCell>
+                      <TableCell className="text-gray-300">{item.description}</TableCell>
+                      <TableCell className="text-neonCyan">R{item.price}</TableCell>
+                      <TableCell>
+                        <Badge variant={item.is_available ? "default" : "secondary"}>
+                          {item.is_available ? 'Available' : 'Unavailable'}
+                        </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-2">
                           <Button
                             size="sm"
-                            variant="ghost"
-                            onClick={() => handleEditItem(item)}
-                            className="text-neonCyan hover:text-blue-400 hover:bg-blue-400/10"
+                            variant="outline"
+                            onClick={() => openItemDialog(item)}
+                            className="border-gray-600 text-gray-300 hover:bg-gray-700"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button
                             size="sm"
-                            variant="ghost"
+                            variant="outline"
                             onClick={() => deleteItem(item.id)}
-                            className="text-neonPink hover:text-red-400 hover:bg-red-400/10"
+                            className="border-red-600 text-red-400 hover:bg-red-900/20"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -599,60 +595,168 @@ export default function ManageMenu() {
                   ))}
                 </TableBody>
               </Table>
-
-              {getFilteredMenuItems().length === 0 && (
-                <div className="text-center py-12 text-neonText/70">
-                  <UtensilsCrossed className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>
-                    No items in this category yet. Add your first item above!
-                  </p>
+              
+              {getCategoryItems(selectedCategory.id).length === 0 && (
+                <div className="py-8 text-center text-gray-400">
+                  <ImageIcon className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+                  <p className="mb-4">No items in this category yet.</p>
+                  <Button 
+                    onClick={() => openItemDialog()}
+                    className="bg-neonCyan text-black hover:bg-neonCyan/80"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add First Item
+                  </Button>
                 </div>
               )}
-            </div>
-          </CardContent>
-        </Card>
+            </Card>
+          </div>
+        )
       )}
 
       {/* Category Dialog */}
-      <Dialog
-        open={isCategoryDialogOpen}
-        onOpenChange={setIsCategoryDialogOpen}
-      >
-        <DialogContent className="bg-darkBg border-2 border-neonCyan text-neonText max-w-md">
+      <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+        <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-neonCyan">
-              {isEditingCategory ? 'Edit Category' : 'Add New Category'}
+            <DialogTitle>
+              {editingCategory ? 'Edit Category' : 'Add New Category'}
             </DialogTitle>
           </DialogHeader>
-          <form
-            onSubmit={categoryForm.handleSubmit(onSubmitCategory)}
-            className="space-y-4"
-          >
-            <div>
-              <Label htmlFor="categoryName" className="text-neonText">
-                Category Name
-              </Label>
-              <Input
-                id="categoryName"
-                placeholder="e.g., Beverages, Sandwiches, Desserts"
-                {...categoryForm.register('name', { required: true })}
-                className="bg-darkBg border-2 border-neonPink/50 text-neonText focus:border-neonPink"
+          
+          <form onSubmit={categoryForm.handleSubmit(onSubmitCategory)} className="space-y-4">
+            {/* Image Upload */}
+            <div className="space-y-2">
+              <Label>Category Image</Label>
+              <div className="flex items-center gap-4">
+                {imagePreview ? (
+                  <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-800">
+                    <Image
+                      src={imagePreview}
+                      alt="Preview"
+                      fill
+                      className="object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImagePreview(null);
+                        categoryForm.setValue('image_url', '');
+                      }}
+                      className="absolute top-1 right-1 p-1 bg-red-600 rounded-full hover:bg-red-700"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-20 h-20 rounded-lg bg-gray-800 border-2 border-dashed border-gray-600 flex items-center justify-center">
+                    <ImageIcon className="h-8 w-8 text-gray-400" />
+                  </div>
+                )}
+                
+                <div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    {uploading ? 'Uploading...' : 'Upload Image'}
+                  </Button>
+                  <p className="text-xs text-gray-400 mt-1">
+                    PNG, JPG, GIF up to 5MB
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name *</Label>
+                <Input
+                  {...categoryForm.register('name', { required: true })}
+                  className="bg-gray-800 border-gray-600 text-white"
+                  placeholder="e.g., Beverages"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="parent_id">Main Category</Label>
+                <Select 
+                  value={categoryForm.watch('parent_id')} 
+                  onValueChange={(value) => categoryForm.setValue('parent_id', value)}
+                >
+                  <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                    <SelectValue placeholder="Select main category (optional)" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-600">
+                    <SelectItem value="">None (Main Category)</SelectItem>
+                    {mainCategories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                {...categoryForm.register('description')}
+                className="bg-gray-800 border-gray-600 text-white"
+                placeholder="Brief description of this category"
+                rows={3}
               />
             </div>
-            <div className="flex justify-end space-x-2 pt-4">
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="display_order">Display Order</Label>
+                <Input
+                  type="number"
+                  {...categoryForm.register('display_order', { valueAsNumber: true })}
+                  className="bg-gray-800 border-gray-600 text-white"
+                  placeholder="0"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <div className="flex items-center space-x-2 pt-2">
+                  <input
+                    type="checkbox"
+                    {...categoryForm.register('is_active')}
+                    className="rounded"
+                  />
+                  <span className="text-sm">Active</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 onClick={() => setIsCategoryDialogOpen(false)}
-                className="text-neonText/70 hover:text-neonText hover:bg-neonText/10"
+                className="border-gray-600 text-gray-300 hover:bg-gray-700"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-600 hover:border-blue-700"
+                className="bg-neonCyan text-black hover:bg-neonCyan/80"
               >
-                {isEditingCategory ? 'Update' : 'Create'} Category
+                {editingCategory ? 'Update' : 'Create'} Category
               </Button>
             </div>
           </form>
@@ -661,102 +765,140 @@ export default function ManageMenu() {
 
       {/* Item Dialog */}
       <Dialog open={isItemDialogOpen} onOpenChange={setIsItemDialogOpen}>
-        <DialogContent className="bg-darkBg border-2 border-neonCyan text-neonText max-w-2xl">
+        <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-neonCyan">
-              {isEditingItem
-                ? 'Edit Menu Item'
-                : `Add New Item to ${selectedCategory?.name}`}
+            <DialogTitle>
+              {editingItem ? 'Edit Item' : 'Add New Item'}
             </DialogTitle>
           </DialogHeader>
-          <form
-            onSubmit={itemForm.handleSubmit(onSubmitItem)}
-            className="space-y-4"
-          >
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="itemName" className="text-neonText">
-                  Item Name
-                </Label>
-                <Input
-                  id="itemName"
-                  placeholder="e.g., Cappuccino, Club Sandwich"
-                  {...itemForm.register('name', { required: true })}
-                  className="bg-darkBg border-2 border-neonPink/50 text-neonText focus:border-neonPink"
-                />
-              </div>
-              <div>
-                <Label htmlFor="itemPrice" className="text-neonText">
-                  Price (R)
-                </Label>
-                <Input
-                  id="itemPrice"
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  {...itemForm.register('price', { required: true })}
-                  className="bg-darkBg border-2 border-neonPink/50 text-neonText focus:border-neonPink"
-                />
+          
+          <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className="space-y-4">
+            {/* Image Upload */}
+            <div className="space-y-2">
+              <Label>Item Image</Label>
+              <div className="flex items-center gap-4">
+                {imagePreview ? (
+                  <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-800">
+                    <Image
+                      src={imagePreview}
+                      alt="Preview"
+                      fill
+                      className="object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImagePreview(null);
+                        itemForm.setValue('image_url', '');
+                      }}
+                      className="absolute top-1 right-1 p-1 bg-red-600 rounded-full hover:bg-red-700"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-20 h-20 rounded-lg bg-gray-800 border-2 border-dashed border-gray-600 flex items-center justify-center">
+                    <ImageIcon className="h-8 w-8 text-gray-400" />
+                  </div>
+                )}
+                
+                <div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    {uploading ? 'Uploading...' : 'Upload Image'}
+                  </Button>
+                  <p className="text-xs text-gray-400 mt-1">
+                    PNG, JPG, GIF up to 5MB
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="itemDescription" className="text-neonText">
-                Description
-              </Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name *</Label>
+                <Input
+                  {...itemForm.register('name', { required: true })}
+                  className="bg-gray-800 border-gray-600 text-white"
+                  placeholder="e.g., Cappuccino"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="category_id">Category *</Label>
+                <Select 
+                  value={itemForm.watch('category_id')} 
+                  onValueChange={(value) => itemForm.setValue('category_id', value)}
+                >
+                  <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-600">
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
               <Textarea
-                id="itemDescription"
-                placeholder="Describe this delicious item..."
                 {...itemForm.register('description')}
-                className="bg-darkBg border-2 border-neonPink/50 text-neonText focus:border-neonPink"
+                className="bg-gray-800 border-gray-600 text-white"
+                placeholder="Description of this menu item"
                 rows={3}
               />
             </div>
 
-            <div>
-              <Label htmlFor="itemCategory" className="text-neonText">
-                Category
-              </Label>
-              <select
-                {...itemForm.register('category_id')}
-                className="w-full p-3 bg-darkBg border-2 border-neonPink/50 text-neonText rounded-md focus:border-neonPink"
-                defaultValue={selectedCategory?.id || ''}
-                >
-                  <option value="">Select Category</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="price">Price (R) *</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  {...itemForm.register('price', { required: true, valueAsNumber: true })}
+                  className="bg-gray-800 border-gray-600 text-white"
+                  placeholder="0.00"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <div className="flex items-center space-x-2 pt-2">
+                  <input
+                    type="checkbox"
+                    {...itemForm.register('is_available')}
+                    className="rounded"
+                  />
+                  <span className="text-sm">Available</span>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="itemImage" className="text-neonText">
-                Image URL (Optional)
-              </Label>
-              <Input
-                id="itemImage"
-                placeholder="https://example.com/image.jpg"
-                {...itemForm.register('image_url')}
-                className="bg-darkBg border-2 border-neonPink/50 text-neonText focus:border-neonPink"
-              />
-            </div>
-
-            <div className="flex justify-end space-x-2 pt-4">
+            <div className="flex justify-end gap-2 pt-4">
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 onClick={() => setIsItemDialogOpen(false)}
-                className="text-neonText/70 hover:text-neonText hover:bg-neonText/10"
+                className="border-gray-600 text-gray-300 hover:bg-gray-700"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-600 hover:border-blue-700"
+                className="bg-neonCyan text-black hover:bg-neonCyan/80"
               >
-                {isEditingItem ? 'Update' : 'Create'} Item
+                {editingItem ? 'Update' : 'Create'} Item
               </Button>
             </div>
           </form>

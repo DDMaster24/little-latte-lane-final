@@ -6,28 +6,10 @@
  */
 
 import { getSupabaseClient } from '@/lib/supabase-client';
+import { Category, MenuItem } from '@/types/app-types';
 
-// Consistent type definitions matching actual database schema
-export interface Category {
-  id: string;  // UUID in our database
-  name: string;
-  description: string | null;
-  display_order: number | null;  // Can be null in database
-  is_active: boolean | null;     // Can be null in database
-  created_at: string | null;
-}
-
-export interface MenuItem {
-  id: string;  // UUID in our database
-  name: string;
-  description: string | null;
-  price: number;
-  category_id: string | null;  // UUID in our database
-  image_url: string | null;
-  is_available: boolean | null;  // Can be null in database
-  created_at: string | null;
-  updated_at: string | null;
-}
+// Re-export types for backward compatibility
+export type { Category, MenuItem };
 
 // Pizza Add-ons category should not be shown to customers for direct ordering
 const PIZZA_ADDONS_CATEGORY_NAME = 'pizza add-ons';

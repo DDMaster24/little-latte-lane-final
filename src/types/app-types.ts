@@ -54,11 +54,17 @@ export interface Booking extends DbBooking {
   } | null;
 }
 
-// Use database types directly - no extensions needed
+// Use database types directly - with extensions for enhanced functionality
 export type MenuItem = DbMenuItem;
-export type Category = DbMenuCategory;
 export type Profile = DbProfile;
 export type Request = DbStaffRequest;
+
+// Enhanced Category interface with hierarchical and image support
+export interface Category extends DbMenuCategory {
+  parent_name?: string | null; // For display purposes
+  subcategories?: Category[]; // For hierarchical display
+  items_count?: number; // For overview display
+}
 
 // Event interface with event_type mapped to type for component compatibility
 export interface Event extends DbEvent {

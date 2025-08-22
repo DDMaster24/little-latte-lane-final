@@ -47,7 +47,7 @@ export async function updateBookingStatus(id: string, status: string) {
 
 /**
  * Create a new menu category
- * @param categoryData Category data (name, description, display_order, is_active)
+ * @param categoryData Category data (name, description, display_order, is_active, parent_id, image_url)
  * @returns { success: boolean, data?: any, message?: string }
  */
 export async function createMenuCategory(categoryData: {
@@ -55,6 +55,8 @@ export async function createMenuCategory(categoryData: {
   description?: string;
   display_order?: number;
   is_active?: boolean;
+  parent_id?: string;
+  image_url?: string;
 }) {
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
@@ -81,6 +83,8 @@ export async function updateMenuCategory(id: string, categoryData: {
   description?: string;
   display_order?: number;
   is_active?: boolean;
+  parent_id?: string;
+  image_url?: string;
 }) {
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
@@ -189,4 +193,60 @@ export async function deleteMenuItem(id: string) {
   }
 
   return { success: true };
+}
+
+/**
+ * Upload an image to Supabase Storage
+ * @param formData FormData containing file and folder
+ * @returns { success: boolean, data?: { url: string, path: string }, message?: string }
+ */
+export async function uploadImage(formData: FormData) {
+  const supabase = getSupabaseAdmin();
+  
+  const file = formData.get('file') as File;
+  const folder = formData.get('folder') as string || 'categories';
+  
+  if (!file) {
+    return { success: false, message: 'No file provided' };
+  }
+
+  // Validate file type
+  const allowedTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif', 'image/webp'];
+  if (!allowedTypes.includes(file.type)) {
+    return { success: false, message: 'Invalid file type. Please upload PNG, JPG, JPEG, GIF, or WebP images.' };
+  }
+
+  // Validate file size (5MB max)
+  if (file.size > 5 * 1024 * 1024) {
+    return { success: false, message: 'File too large. Maximum size is 5MB.' };
+  }
+
+  // Generate unique filename
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+
+  try {
+    const { error } = await supabase.storage
+      .from('menu-images')
+      .upload(fileName, file);
+
+    if (error) {
+      return { success: false, message: error.message };
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('menu-images')
+      .getPublicUrl(fileName);
+
+    return { 
+      success: true, 
+      data: { 
+        url: urlData.publicUrl,
+        path: fileName 
+      } 
+    };
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : 'Upload failed' };
+  }
 }
