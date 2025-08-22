@@ -3,6 +3,14 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { getSupabaseClient } from '@/lib/supabase-client';
+import { 
+  createMenuCategory, 
+  updateMenuCategory, 
+  deleteMenuCategory,
+  createMenuItem,
+  updateMenuItem,
+  deleteMenuItem
+} from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -119,68 +127,86 @@ export default function ManageMenu() {
   };
 
   const onSubmitCategory = async (data: Category) => {
-    let result;
-    
-    if (isEditingCategory && editingCategory) {
-      result = await supabase
-        .from('menu_categories')
-        .update({ ...data })
-        .eq('id', editingCategory.id);
-    } else {
-      result = await supabase
-        .from('menu_categories')
-        .insert(data);
-    }
+    try {
+      let result;
+      
+      if (isEditingCategory && editingCategory) {
+        result = await updateMenuCategory(editingCategory.id, {
+          name: data.name,
+          description: data.description,
+          display_order: data.display_order,
+          is_active: data.is_active
+        });
+      } else {
+        result = await createMenuCategory({
+          name: data.name,
+          description: data.description,
+          display_order: data.display_order || 0,
+          is_active: data.is_active !== false // Default to true
+        });
+      }
 
-    const { error } = result;
-
-    if (error) {
-      toast.error(`Failed: ${error.message}`);
-    } else {
-      toast.success(`Category ${isEditingCategory ? 'updated' : 'created'}!`);
-      categoryForm.reset();
-      setEditingCategory(null);
-      setIsCategoryDialogOpen(false);
-      // Automatically refresh data after successful operation
-      await fetchData();
+      if (!result.success) {
+        toast.error(`Failed: ${result.message}`);
+      } else {
+        toast.success(`Category ${isEditingCategory ? 'updated' : 'created'}!`);
+        categoryForm.reset();
+        setEditingCategory(null);
+        setIsCategoryDialogOpen(false);
+        // Automatically refresh data after successful operation
+        await fetchData();
+      }
+    } catch (error) {
+      toast.error(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
   const onSubmitItem = async (data: MenuItem) => {
-    if (data.price < 0) {
-      toast.error('Price must be positive.');
-      return;
-    }
+    try {
+      if (data.price < 0) {
+        toast.error('Price must be positive.');
+        return;
+      }
 
-    // Set category_id to selected category if creating new item
-    if (!isEditingItem && selectedCategory) {
-      data.category_id = selectedCategory.id;
-    }
+      // Set category_id to selected category if creating new item
+      if (!isEditingItem && selectedCategory) {
+        data.category_id = selectedCategory.id;
+      }
 
-    let result;
-    
-    if (isEditingItem && editingItem) {
-      result = await supabase
-        .from('menu_items')
-        .update({ ...data })
-        .eq('id', editingItem.id);
-    } else {
-      result = await supabase
-        .from('menu_items')
-        .insert(data);
-    }
+      let result;
+      
+      if (isEditingItem && editingItem) {
+        result = await updateMenuItem(editingItem.id, {
+          name: data.name,
+          description: data.description,
+          price: data.price,
+          category_id: data.category_id,
+          is_available: data.is_available,
+          image_url: data.image_url
+        });
+      } else {
+        result = await createMenuItem({
+          name: data.name,
+          description: data.description,
+          price: data.price,
+          category_id: data.category_id,
+          is_available: data.is_available !== false, // Default to true
+          image_url: data.image_url
+        });
+      }
 
-    const { error } = result;
-
-    if (error) {
-      toast.error(`Failed: ${error.message}`);
-    } else {
-      toast.success(`Item ${isEditingItem ? 'updated' : 'created'}!`);
-      itemForm.reset();
-      setEditingItem(null);
-      setIsItemDialogOpen(false);
-      // Automatically refresh data after successful operation
-      await fetchData();
+      if (!result.success) {
+        toast.error(`Failed: ${result.message}`);
+      } else {
+        toast.success(`Item ${isEditingItem ? 'updated' : 'created'}!`);
+        itemForm.reset();
+        setEditingItem(null);
+        setIsItemDialogOpen(false);
+        // Automatically refresh data after successful operation
+        await fetchData();
+      }
+    } catch (error) {
+      toast.error(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -192,26 +218,34 @@ export default function ManageMenu() {
     )
       return;
 
-    const { error } = await supabase.from('menu_categories').delete().eq('id', id);
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success('Category deleted');
-      // Automatically refresh data after successful deletion
-      await fetchData();
+    try {
+      const result = await deleteMenuCategory(id);
+      if (!result.success) {
+        toast.error(`Failed: ${result.message}`);
+      } else {
+        toast.success('Category deleted');
+        // Automatically refresh data after successful deletion
+        await fetchData();
+      }
+    } catch (error) {
+      toast.error(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
   const deleteItem = async (id: string) => {
     if (!confirm('Are you sure you want to delete this item?')) return;
 
-    const { error } = await supabase.from('menu_items').delete().eq('id', id);
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success('Item deleted');
-      // Automatically refresh data after successful deletion
-      await fetchData();
+    try {
+      const result = await deleteMenuItem(id);
+      if (!result.success) {
+        toast.error(`Failed: ${result.message}`);
+      } else {
+        toast.success('Item deleted');
+        // Automatically refresh data after successful deletion
+        await fetchData();
+      }
+    } catch (error) {
+      toast.error(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
