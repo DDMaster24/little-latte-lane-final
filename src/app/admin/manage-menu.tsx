@@ -311,8 +311,13 @@ export default function ManageMenuNew() {
       });
       setImagePreview(category.image_url || null);
     } else {
-      // When creating new category/section, pre-select parent based on context
-      const defaultParentId = viewMode === 'categories' && selectedSection ? selectedSection.id : '__none__';
+      // When creating new item, determine parent based on view mode:
+      // - sections view: create top-level section (no parent)
+      // - categories view: create category under selected section
+      const defaultParentId = viewMode === 'sections' 
+        ? '__none__'  // Creating a new section
+        : selectedSection?.id || '__none__'; // Creating category under section
+      
       categoryForm.reset({
         name: '',
         description: '',
