@@ -22,7 +22,7 @@ const CSP_DIRECTIVES = [
   "worker-src 'self' blob:",
   "child-src 'self' blob:",
   "form-action 'self' https: http:",
-  "frame-ancestors 'none'",
+  "frame-ancestors 'self'",
 ].join('; ');
 
 /** @type {import('next').NextConfig} */
@@ -113,9 +113,10 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: CSP_DIRECTIVES,
           },
+          // Allow iframes for same origin (needed for visual editor)
           {
             key: 'X-Frame-Options',
-            value: 'DENY',
+            value: 'SAMEORIGIN',
           },
           {
             key: 'X-Content-Type-Options',

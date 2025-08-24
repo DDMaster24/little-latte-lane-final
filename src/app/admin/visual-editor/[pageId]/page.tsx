@@ -89,7 +89,9 @@ export default function VisualEditorPage({ params }: VisualEditorProps) {
   };
 
   // Construct the URL for the iframe with editor mode
-  const editorUrl = `${targetUrl}${targetUrl.includes('?') ? '&' : '?'}editor=true&admin=true`;
+  // Use current window location to ensure we're using the right domain/port
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const editorUrl = `${baseUrl}${targetUrl}${targetUrl.includes('?') ? '&' : '?'}editor=true&admin=true`;
 
   return (
     <ThemeProvider>
