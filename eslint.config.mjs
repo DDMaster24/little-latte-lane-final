@@ -23,6 +23,7 @@ const eslintConfig = [
       'public/workbox-*',
       '.next/**',
       'node_modules/**',
+      'src/types/supabase.ts', // Auto-generated file, ignore linting
     ],
     rules: {
       // Remove unused imports

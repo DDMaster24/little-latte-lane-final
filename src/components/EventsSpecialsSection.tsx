@@ -4,7 +4,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Star, Gift, Zap } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getSupabaseClient } from '@/lib/supabase-client';
 
 type Event = {
@@ -24,6 +24,34 @@ export default function EventsSpecialsSection() {
   const [loading, setLoading] = useState(true);
   const supabase = getSupabaseClient();
 
+  const fetchEvents = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('is_active', true)
+        .gte('end_date', new Date().toISOString().split('T')[0]) // Only show current/future events
+        .order('start_date', { ascending: true })
+        .limit(6); // Show max 6 events
+
+      if (error) {
+        console.error('Error fetching events:', error);
+        return;
+      }
+
+      // Map database fields to interface structure
+      const mappedEvents = data?.map(event => ({
+        ...event,
+        type: event.event_type as 'event' | 'special' | 'news' || 'event'
+      })) || [];
+      setEvents(mappedEvents as Event[]);
+    } catch (err) {
+      console.error('Unexpected error fetching events:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
+
   useEffect(() => {
     fetchEvents();
 
@@ -40,34 +68,7 @@ export default function EventsSpecialsSection() {
     return () => {
       eventsSubscription.unsubscribe();
     };
-  }, []);
-
-  const fetchEvents = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .eq('is_active', true)
-        .gte('end_date', new Date().toISOString().split('T')[0]) // Only show current/future events
-        .order('start_date', { ascending: true })
-        .limit(6); // Show max 6 events
-
-      if (error) {
-        console.error('Error fetching events:', error);
-      } else {
-        // Map database fields to interface structure
-        const mappedEvents = data?.map(event => ({
-          ...event,
-          type: event.event_type as 'event' | 'special' | 'news' || 'event'
-        })) || [];
-        setEvents(mappedEvents as Event[]);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchEvents, supabase]);
 
   const getEventIcon = (type: string) => {
     switch (type) {

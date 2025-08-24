@@ -55,16 +55,14 @@ import {
 } from 'lucide-react';
 import { Category, MenuItem } from '@/types/app-types';
 
-type ViewMode = 'sections' | 'categories' | 'items';
+type ViewMode = 'categories' | 'items';
 
 export default function ManageMenuNew() {
   // State
   const [categories, setCategories] = useState<Category[]>([]);
-  const [sections, setSections] = useState<Category[]>([]); // Top-level sections like "Drinks", "Food"
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<ViewMode>('sections');
-  const [selectedSection, setSelectedSection] = useState<Category | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('categories');
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   
   // Dialog states
@@ -119,16 +117,13 @@ export default function ManageMenuNew() {
   const fetchData = useCallback(async () => {
     try {
       const supabase = getSupabaseClient();
-      const { data: cats } = await supabase.from('menu_categories').select('*').order('display_order', { nullsFirst: false });
+      const { data: cats } = await supabase.from('menu_categories').select(`
+        *,
+        parent:parent_id(name)
+      `).order('display_order', { nullsFirst: false });
       const { data: items } = await supabase.from('menu_items').select('*');
       
-      const allCategories = cats || [];
-      setCategories(allCategories);
-      
-      // Separate sections (top-level, no parent) from categories (have parent)
-      const menuSections = allCategories.filter(cat => !cat.parent_id);
-      
-      setSections(menuSections);
+      setCategories(cats || []);
       setMenuItems(items || []);
     } catch (_error) {
       toast.error('Failed to fetch data');
@@ -141,13 +136,11 @@ export default function ManageMenuNew() {
     fetchData();
   }, [fetchData]);
 
-  // Get main categories (no parent) - these are now sections
-  const mainCategories = categories.filter(cat => !cat.parent_id);
+  // Since database has flat structure, all categories are main categories
+  const mainCategories = categories;
   
-  // Get categories for selected section
-  const categoriesInSection = selectedSection 
-    ? categories.filter(cat => cat.parent_id === selectedSection.id)
-    : [];
+  // For now, no subcategories since the database has flat structure
+  const getSubcategories = (_parentId: string) => [];
 
   // Get items for a category
   const getCategoryItems = (categoryId: string) =>
@@ -183,11 +176,11 @@ export default function ManageMenuNew() {
   // Category operations
   const onSubmitCategory = async (data: {
     name: string;
-    description: string;
-    display_order: number;
-    is_active: boolean;
-    parent_id: string;
-    image_url: string;
+    description?: string;
+    display_order?: number;
+    is_active?: boolean;
+    parent_id?: string;
+    image_url?: string;
   }) => {
     try {
       let result;
@@ -198,7 +191,7 @@ export default function ManageMenuNew() {
         description: data.description || undefined,
         display_order: data.display_order || 0,
         is_active: data.is_active !== false,
-        parent_id: data.parent_id === '__none__' ? undefined : data.parent_id || undefined,
+        parent_id: data.parent_id || undefined,
         image_url: data.image_url || undefined,
       };
       
@@ -242,11 +235,11 @@ export default function ManageMenuNew() {
   // Item operations
   const onSubmitItem = async (data: {
     name: string;
-    description: string;
+    description?: string;
     price: number;
-    category_id: string;
-    is_available: boolean;
-    image_url: string;
+    category_id?: string;
+    is_available?: boolean;
+    image_url?: string;
   }) => {
     try {
       let result;
@@ -305,27 +298,11 @@ export default function ManageMenuNew() {
         name: category.name || '',
         description: category.description || '',
         display_order: category.display_order || 0,
-        is_active: category.is_active ?? true,
-        parent_id: category.parent_id || '__none__',
-        image_url: category.image_url || '',
+        is_active: category.is_active || true,
       });
-      setImagePreview(category.image_url || null);
+      // No parent_id or image_url in actual database schema
     } else {
-      // When creating new item, determine parent based on view mode:
-      // - sections view: create top-level section (no parent)
-      // - categories view: create category under selected section
-      const defaultParentId = viewMode === 'sections' 
-        ? '__none__'  // Creating a new section
-        : selectedSection?.id || '__none__'; // Creating category under section
-      
-      categoryForm.reset({
-        name: '',
-        description: '',
-        display_order: 0,
-        is_active: true,
-        parent_id: defaultParentId,
-        image_url: '',
-      });
+      categoryForm.reset();
       setImagePreview(null);
     }
     setIsCategoryDialogOpen(true);
@@ -403,172 +380,27 @@ export default function ManageMenuNew() {
       </div>
 
       {/* Navigation */}
-      <div className="flex items-center gap-2 text-sm text-gray-400">
-        {viewMode === 'categories' && selectedSection && (
-          <>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setViewMode('sections');
-                setSelectedSection(null);
-              }}
-              className="text-neonCyan hover:bg-gray-800"
-            >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back to Sections
-            </Button>
-            <span>/</span>
-            <span className="text-white">{selectedSection.name}</span>
-          </>
-        )}
-        {viewMode === 'items' && selectedCategory && (
-          <>
-            {selectedSection && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setViewMode('sections');
-                    setSelectedSection(null);
-                    setSelectedCategory(null);
-                  }}
-                  className="text-neonCyan hover:bg-gray-800"
-                >
-                  Sections
-                </Button>
-                <span>/</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setViewMode('categories');
-                    setSelectedCategory(null);
-                  }}
-                  className="text-neonCyan hover:bg-gray-800"
-                >
-                  {selectedSection.name}
-                </Button>
-                <span>/</span>
-              </>
-            )}
-            <span className="text-white">{selectedCategory.name}</span>
-          </>
-        )}
-      </div>
+      {viewMode === 'items' && selectedCategory && (
+        <div className="flex items-center gap-2 text-sm text-gray-400">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setViewMode('categories');
+              setSelectedCategory(null);
+            }}
+            className="text-neonCyan hover:bg-gray-800"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back to Categories
+          </Button>
+          <span>/</span>
+          <span className="text-white">{selectedCategory.name}</span>
+        </div>
+      )}
 
       {/* Main Content */}
-      {viewMode === 'sections' ? (
-        <div className="space-y-4">
-          {/* Sections Header */}
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-white">Menu Sections</h3>
-            <Button 
-              onClick={() => openCategoryDialog()}
-              className="bg-neonCyan text-black hover:bg-neonCyan/80"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Section
-            </Button>
-          </div>
-
-          {/* Sections Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {sections.map((section) => {
-              const sectionCategories = categories.filter(cat => cat.parent_id === section.id);
-              const totalItems = sectionCategories.reduce((acc, cat) => 
-                acc + getCategoryItems(cat.id).length, 0
-              );
-              
-              return (
-                <Card key={section.id} className="bg-gray-800 border-gray-700 hover:border-neonCyan/50 transition-colors">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        {section.image_url ? (
-                          <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-700">
-                            <Image
-                              src={section.image_url}
-                              alt={section.name}
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-12 h-12 rounded-lg bg-gray-700 flex items-center justify-center">
-                            <FolderOpen className="h-6 w-6 text-gray-400" />
-                          </div>
-                        )}
-                        <div>
-                          <CardTitle className="text-white text-base">{section.name}</CardTitle>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline" className="border-gray-600 text-gray-300">
-                              {sectionCategories.length} categories
-                            </Badge>
-                            <Badge variant="outline" className="border-gray-600 text-gray-300">
-                              {totalItems} items
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openCategoryDialog(section)}
-                          className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-gray-700"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteCategory(section.id)}
-                          className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    {section.description && (
-                      <p className="text-gray-400 text-sm mb-3">{section.description}</p>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedSection(section);
-                          setViewMode('categories');
-                        }}
-                        className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                      >
-                        View Categories
-                      </Button>
-                      <Badge 
-                        variant={section.is_active ? "default" : "secondary"}
-                        className={section.is_active ? "bg-green-600" : "bg-gray-600"}
-                      >
-                        {section.is_active ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-
-          {sections.length === 0 && (
-            <div className="text-center py-8 text-gray-400">
-              <FolderOpen className="h-12 w-12 mx-auto mb-3 text-gray-500" />
-              <p>No menu sections found. Create your first section to get started!</p>
-            </div>
-          )}
-        </div>
-      ) : viewMode === 'categories' ? (
+      {viewMode === 'categories' ? (
         <div className="space-y-4">
           {/* Categories Header */}
           <div className="flex items-center justify-between">
@@ -584,7 +416,8 @@ export default function ManageMenuNew() {
 
           {/* Categories Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {categoriesInSection.map((category) => {
+            {mainCategories.map((category) => {
+              const subcategories = getSubcategories(category.id);
               const itemsCount = getCategoryItems(category.id).length;
               
               return (
@@ -592,20 +425,12 @@ export default function ManageMenuNew() {
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
-                        {category.image_url ? (
-                          <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-700">
-                            <Image
-                              src={category.image_url}
-                              alt={category.name}
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-12 h-12 rounded-lg bg-gray-700 flex items-center justify-center">
-                            <FolderOpen className="h-6 w-6 text-gray-400" />
-                          </div>
-                        )}
+                        {/* No image support in current database schema */}
+                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-neonCyan/20 to-neonPink/20 flex items-center justify-center">
+                          <span className="text-lg font-bold text-neonCyan">
+                            {category.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
                         <div>
                           <CardTitle className="text-white text-lg">{category.name}</CardTitle>
                           {category.description && (
@@ -622,9 +447,7 @@ export default function ManageMenuNew() {
                     <div className="space-y-3">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-gray-400">Items: {itemsCount}</span>
-                        <Badge variant="outline" className="border-gray-600 text-gray-300">
-                          {category.is_active ? 'Active' : 'Inactive'}
-                        </Badge>
+                        <span className="text-gray-400">Subcategories: {subcategories.length}</span>
                       </div>
                       
                       <div className="flex items-center gap-2">
@@ -785,10 +608,7 @@ export default function ManageMenuNew() {
         <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingCategory 
-                ? `Edit ${editingCategory.parent_id ? 'Category' : 'Section'}` 
-                : `Add New ${viewMode === 'sections' ? 'Section' : 'Category'}`
-              }
+              {editingCategory ? 'Edit Category' : 'Add New Category'}
             </DialogTitle>
           </DialogHeader>
           
@@ -858,42 +678,23 @@ export default function ManageMenuNew() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="parent_id">
-                  {viewMode === 'sections' ? 'Parent Section' : 'Section'}
-                </Label>
+                <Label htmlFor="parent_id">Main Category</Label>
                 <Select 
                   value={categoryForm.watch('parent_id')} 
                   onValueChange={(value) => categoryForm.setValue('parent_id', value)}
                 >
                   <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
-                    <SelectValue placeholder={
-                      viewMode === 'sections' 
-                        ? "None (Main Section)" 
-                        : selectedSection 
-                          ? `${selectedSection.name} (current section)` 
-                          : "Select section"
-                    } />
+                    <SelectValue placeholder="Select main category (optional)" />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 border-gray-600">
-                    {viewMode === 'sections' ? (
-                      <SelectItem value="__none__">None (Main Section)</SelectItem>
-                    ) : (
-                      <>
-                        {sections.map((section) => (
-                          <SelectItem key={section.id} value={section.id}>
-                            {section.name}
-                          </SelectItem>
-                        ))}
-                      </>
-                    )}
+                    <SelectItem value="">None (Main Category)</SelectItem>
+                    {mainCategories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-gray-400">
-                  {viewMode === 'sections' 
-                    ? "Leave empty to create a main section (like 'Drinks', 'Food')"
-                    : "Categories must belong to a section"
-                  }
-                </p>
               </div>
             </div>
 

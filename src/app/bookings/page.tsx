@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/components/AuthProvider';
 import { getSupabaseClient } from '@/lib/supabase-client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { toast } from 'sonner';
@@ -30,12 +30,7 @@ export default function BookingsPage() {
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
 
   // Fetch virtual golf settings and existing bookings
-  useEffect(() => {
-    fetchGolfSettings();
-    fetchBookings();
-  }, []);
-
-  async function fetchGolfSettings() {
+  const fetchGolfSettings = useCallback(async () => {
     setIsLoadingSettings(true);
     try {
       // TODO: Implement settings storage solution
@@ -58,9 +53,9 @@ export default function BookingsPage() {
     }
 
     setIsLoadingSettings(false);
-  }
+  }, []);
 
-  async function fetchBookings() {
+  const fetchBookings = useCallback(async () => {
     const { data, error } = await supabase
       .from('bookings')
       .select('id, booking_date, booking_time, party_size')
@@ -70,7 +65,12 @@ export default function BookingsPage() {
     if (!error && data) {
       setExistingBookings(data);
     }
-  }
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchGolfSettings();
+    fetchBookings();
+  }, [fetchGolfSettings, fetchBookings]);
 
   // Filter time to business hours (07:00 - 17:00)
   const filterBusinessHours = (time: Date) => {
