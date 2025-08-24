@@ -70,16 +70,20 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       try {
         console.log('🔄 Starting signup process...');
         
-        // Step 1: Create the user account
+        // Step 1: Create the user account with enhanced metadata
+        const signupMetadata = {
+          full_name: username.trim() || null,
+          phone: phone.trim() || null,
+          address: address.trim() || null,
+        };
+        
+        console.log('📋 Signup metadata being sent:', signupMetadata);
+        
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: trimmedEmail,
           password,
           options: {
-            data: {
-              full_name: username.trim() || null,
-              phone: phone.trim() || null,
-              address: address.trim() || null,
-            },
+            data: signupMetadata,
           },
         });
 
@@ -88,30 +92,64 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
         }
 
         console.log('✅ User account created:', authData.user?.id);
+        console.log('📋 User metadata saved:', authData.user?.user_metadata);
 
-        // Step 2: If user is created, manually create profile (in case trigger fails)
+        // Step 2: Enhanced profile creation with better error handling
         if (authData.user && authData.user.id) {
           // Wait a moment for auth to settle
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          console.log('🔄 Creating/updating profile...');
+          
+          const profileData = {
+            id: authData.user.id,
+            email: authData.user.email || trimmedEmail,
+            full_name: username.trim() || null,
+            phone: phone.trim() || null,
+            address: address.trim() || null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+          
+          console.log('📋 Profile data being inserted:', profileData);
           
           try {
-            const { error: profileError } = await supabase
+            // Try to insert the profile
+            const { data: insertedProfile, error: profileError } = await supabase
               .from('profiles')
-              .insert({
-                id: authData.user.id,
-                email: authData.user.email,
-                full_name: username.trim() || null,
-                phone: phone.trim() || null,
-                address: address.trim() || null,
-              });
+              .insert(profileData)
+              .select()
+              .single();
 
-            if (profileError && profileError.code !== '23505') { // Ignore duplicate key errors
-              console.warn('⚠️ Profile creation warning:', profileError);
+            if (profileError) {
+              if (profileError.code === '23505') {
+                // Profile already exists, update it instead
+                console.log('⚠️ Profile exists, updating instead...');
+                const { data: updatedProfile, error: updateError } = await supabase
+                  .from('profiles')
+                  .update({
+                    full_name: username.trim() || null,
+                    phone: phone.trim() || null,
+                    address: address.trim() || null,
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq('id', authData.user.id)
+                  .select()
+                  .single();
+                
+                if (updateError) {
+                  console.error('❌ Profile update failed:', updateError);
+                } else {
+                  console.log('✅ Profile updated successfully:', updatedProfile);
+                }
+              } else {
+                console.error('❌ Profile creation failed:', profileError);
+              }
             } else {
-              console.log('✅ Profile created successfully');
+              console.log('✅ Profile created successfully:', insertedProfile);
             }
           } catch (profileErr) {
-            console.warn('⚠️ Profile creation failed, but signup succeeded:', profileErr);
+            console.error('❌ Profile operation failed:', profileErr);
           }
         }
 
