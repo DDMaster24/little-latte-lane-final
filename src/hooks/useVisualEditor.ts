@@ -7,6 +7,7 @@ import { saveVisualEdit } from '@/lib/actions/visualEditorActions';
 declare global {
   interface Window {
     applyTextEdit?: () => void;
+    applyStyles?: () => void;
     saveChanges?: () => void;
     cancelEdit?: () => void;
   }
@@ -159,7 +160,7 @@ export function useVisualEditor() {
           setSelectedElement(element);
           setCurrentElementId(elementId);
           
-          // Show editing toolbar
+          // Show enhanced editing toolbar
           const existingToolbar = document.getElementById('visual-editor-toolbar');
           if (existingToolbar) {
             existingToolbar.remove();
@@ -170,25 +171,152 @@ export function useVisualEditor() {
           toolbar.className = 'visual-editor-toolbar';
 
           toolbar.innerHTML = `
-            <div style="margin-bottom: 10px; font-weight: bold; color: #00ffff; font-size: 12px;">
-              Editing: ${elementId}
+            <div style="margin-bottom: 10px; font-weight: bold; color: #00ffff; font-size: 12px; text-align: center;">
+              🎨 Visual Editor Pro - ${elementId}
             </div>
-            <label style="display: block; margin-bottom: 5px; font-size: 11px;">Text Content:</label>
-            <textarea id="editor-text-input" class="visual-editor-control" rows="3">${element.textContent || ''}</textarea>
-            <div style="margin-top: 8px;">
-              <button id="apply-btn" onclick="window.applyTextEdit()" class="visual-editor-button">Apply</button>
-              <button id="save-btn" onclick="window.saveChanges()" class="visual-editor-button">Save to DB</button>
+            
+            <!-- Content Tab -->
+            <div class="editor-section">
+              <label style="display: block; margin-bottom: 5px; font-size: 11px; color: #00ffff;">📝 Content:</label>
+              <textarea id="editor-text-input" class="visual-editor-control" rows="2" style="width: 100%; margin-bottom: 8px;">${element.textContent || ''}</textarea>
             </div>
-            <button onclick="window.cancelEdit()" class="visual-editor-button" style="width: 100%; background: #666 !important; margin-top: 5px;">Cancel</button>
+            
+            <!-- Colors Tab -->
+            <div class="editor-section">
+              <label style="display: block; margin-bottom: 5px; font-size: 11px; color: #00ffff;">🎨 Colors:</label>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                <div>
+                  <label style="font-size: 10px; color: #ccc;">Text Color:</label>
+                  <input type="color" id="text-color-input" value="${getComputedStyle(element).color === 'rgb(255, 255, 255)' ? '#ffffff' : '#00ffff'}" style="width: 100%; height: 24px;">
+                </div>
+                <div>
+                  <label style="font-size: 10px; color: #ccc;">Background:</label>
+                  <input type="color" id="bg-color-input" value="#000000" style="width: 100%; height: 24px;">
+                </div>
+              </div>
+            </div>
+            
+            <!-- Typography Tab -->
+            <div class="editor-section">
+              <label style="display: block; margin-bottom: 5px; font-size: 11px; color: #00ffff;">🔤 Typography:</label>
+              <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px; margin-bottom: 8px;">
+                <select id="font-family-input" style="padding: 4px; background: #333; color: white; border: 1px solid #555; border-radius: 4px;">
+                  <option value="">Default Font</option>
+                  <option value="Inter, sans-serif">Inter (Modern)</option>
+                  <option value="Roboto, sans-serif">Roboto</option>
+                  <option value="Poppins, sans-serif">Poppins</option>
+                  <option value="Montserrat, sans-serif">Montserrat</option>
+                  <option value="Georgia, serif">Georgia (Serif)</option>
+                </select>
+                <select id="font-weight-input" style="padding: 4px; background: #333; color: white; border: 1px solid #555; border-radius: 4px;">
+                  <option value="400">Normal</option>
+                  <option value="500">Medium</option>
+                  <option value="600">Semi Bold</option>
+                  <option value="700">Bold</option>
+                </select>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                <div>
+                  <label style="font-size: 10px; color: #ccc;">Size:</label>
+                  <input type="range" id="font-size-input" min="10" max="48" value="16" style="width: 100%;">
+                  <span id="font-size-display" style="font-size: 10px; color: #ccc;">16px</span>
+                </div>
+                <div>
+                  <label style="font-size: 10px; color: #ccc;">Line Height:</label>
+                  <input type="range" id="line-height-input" min="1" max="3" step="0.1" value="1.5" style="width: 100%;">
+                  <span id="line-height-display" style="font-size: 10px; color: #ccc;">1.5</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Effects Tab -->
+            <div class="editor-section">
+              <label style="display: block; margin-bottom: 5px; font-size: 11px; color: #00ffff;">✨ Effects:</label>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                <div>
+                  <label style="font-size: 10px; color: #ccc;">Border Radius:</label>
+                  <input type="range" id="border-radius-input" min="0" max="20" value="0" style="width: 100%;">
+                  <span id="border-radius-display" style="font-size: 10px; color: #ccc;">0px</span>
+                </div>
+                <div>
+                  <label style="font-size: 10px; color: #ccc;">Opacity:</label>
+                  <input type="range" id="opacity-input" min="0.1" max="1" step="0.1" value="1" style="width: 100%;">
+                  <span id="opacity-display" style="font-size: 10px; color: #ccc;">100%</span>
+                </div>
+              </div>
+            </div>
+            
+            <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <button id="apply-btn" onclick="window.applyStyles()" class="visual-editor-button" style="background: #0066ff !important;">Apply Preview</button>
+              <button id="save-btn" onclick="window.saveChanges()" class="visual-editor-button" style="background: linear-gradient(45deg, #00ffff, #ff00ff) !important; color: black !important; font-weight: bold;">Save All</button>
+            </div>
+            <button onclick="window.cancelEdit()" class="visual-editor-button" style="width: 100%; background: #666 !important; margin-top: 8px;">Cancel</button>
           `;
 
           document.body.appendChild(toolbar);
 
-          window.applyTextEdit = () => {
+          // Add event listeners for real-time updates
+          const fontSizeInput = document.getElementById('font-size-input') as HTMLInputElement;
+          const fontSizeDisplay = document.getElementById('font-size-display') as HTMLSpanElement;
+          const lineHeightInput = document.getElementById('line-height-input') as HTMLInputElement;
+          const lineHeightDisplay = document.getElementById('line-height-display') as HTMLSpanElement;
+          const borderRadiusInput = document.getElementById('border-radius-input') as HTMLInputElement;
+          const borderRadiusDisplay = document.getElementById('border-radius-display') as HTMLSpanElement;
+          const opacityInput = document.getElementById('opacity-input') as HTMLInputElement;
+          const opacityDisplay = document.getElementById('opacity-display') as HTMLSpanElement;
+
+          fontSizeInput?.addEventListener('input', () => {
+            fontSizeDisplay.textContent = fontSizeInput.value + 'px';
+          });
+
+          lineHeightInput?.addEventListener('input', () => {
+            lineHeightDisplay.textContent = lineHeightInput.value;
+          });
+
+          borderRadiusInput?.addEventListener('input', () => {
+            borderRadiusDisplay.textContent = borderRadiusInput.value + 'px';
+          });
+
+          opacityInput?.addEventListener('input', () => {
+            opacityDisplay.textContent = Math.round(parseFloat(opacityInput.value) * 100) + '%';
+          });
+
+          // Function to collect all style properties
+          const collectStyles = () => {
+            const textColorInput = document.getElementById('text-color-input') as HTMLInputElement;
+            const bgColorInput = document.getElementById('bg-color-input') as HTMLInputElement;
+            const fontFamilyInput = document.getElementById('font-family-input') as HTMLSelectElement;
+            const fontWeightInput = document.getElementById('font-weight-input') as HTMLSelectElement;
+
+            return {
+              color: textColorInput?.value || '#ffffff',
+              backgroundColor: bgColorInput?.value || 'transparent',
+              fontFamily: fontFamilyInput?.value || '',
+              fontWeight: fontWeightInput?.value || '400',
+              fontSize: fontSizeInput?.value + 'px' || '16px',
+              lineHeight: lineHeightInput?.value || '1.5',
+              borderRadius: borderRadiusInput?.value + 'px' || '0px',
+              opacity: opacityInput?.value || '1'
+            };
+          };
+
+          // Enhanced apply function
+          window.applyStyles = () => {
             const input = document.getElementById('editor-text-input') as HTMLTextAreaElement;
-            if (element && input) {
-              element.textContent = input.value;
-            }
+            if (!element || !input) return;
+
+            // Apply text content
+            element.textContent = input.value;
+
+            // Apply all styles
+            const styles = collectStyles();
+            Object.entries(styles).forEach(([property, value]) => {
+              if (value && value !== '' && value !== 'transparent') {
+                element.style.setProperty(property, value);
+              }
+            });
+
+            console.log('✅ Applied preview styles:', styles);
           };
 
           window.saveChanges = async () => {
@@ -201,7 +329,7 @@ export function useVisualEditor() {
               return;
             }
             
-            console.log('🚀 Client: Starting save process...', {
+            console.log('🚀 Client: Starting enhanced save process...', {
               elementId,
               newContent: input.value.substring(0, 50) + '...',
               pageScope: getCurrentPageScope()
@@ -214,33 +342,42 @@ export function useVisualEditor() {
             saveBtn.classList.add('visual-editor-saving');
             
             try {
-              // Apply the change locally first
-              element.textContent = input.value;
-              console.log('✅ Client: Applied change locally');
+              // Collect all styles
+              const styleProperties = collectStyles();
               
-              // Save to database
-              console.log('📡 Client: Calling server action...');
+              // Apply the changes locally first
+              element.textContent = input.value;
+              Object.entries(styleProperties).forEach(([property, value]) => {
+                if (value && value !== '' && value !== 'transparent') {
+                  element.style.setProperty(property, value);
+                }
+              });
+              console.log('✅ Client: Applied changes locally');
+              
+              // Save to database with style properties
+              console.log('📡 Client: Calling enhanced server action...');
               const result = await saveVisualEdit(
                 elementId,
                 input.value,
                 getCurrentPageScope(),
-                'text'
+                'text',
+                styleProperties
               );
               
               console.log('📨 Client: Server response:', result);
               
               if (result.success) {
-                console.log('✅ Client: Save successful!');
-                saveBtn.textContent = '✅ Saved!';
-                saveBtn.style.background = '#00ff00 !important';
+                console.log('✅ Client: Enhanced save successful!');
+                saveBtn.innerHTML = '✅ Saved All!';
+                saveBtn.style.background = 'linear-gradient(45deg, #00ff00, #00cc00) !important';
                 setTimeout(() => {
                   const toolbarEl = document.getElementById('visual-editor-toolbar');
                   if (toolbarEl) toolbarEl.remove();
                   setSelectedElement(null);
                   setCurrentElementId('');
-                }, 1500);
+                }, 2000);
               } else {
-                console.error('❌ Client: Save failed:', result);
+                console.error('❌ Client: Enhanced save failed:', result);
                 saveBtn.textContent = '❌ Failed';
                 saveBtn.style.background = '#ff0000 !important';
                 alert(`Failed to save: ${result.message}\nError: ${result.error}`);
@@ -248,12 +385,7 @@ export function useVisualEditor() {
                 applyBtn.disabled = false;
               }
             } catch (error) {
-              console.error('❌ Client: Exception during save:', error);
-              console.error('❌ Client: Error type:', typeof error);
-              console.error('❌ Client: Error details:', {
-                message: error instanceof Error ? error.message : String(error),
-                stack: error instanceof Error ? error.stack : 'No stack trace'
-              });
+              console.error('❌ Client: Exception during enhanced save:', error);
               saveBtn.textContent = '❌ Error';
               saveBtn.style.background = '#ff0000 !important';
               alert(`An error occurred while saving: ${error instanceof Error ? error.message : String(error)}`);
@@ -314,7 +446,7 @@ export function useVisualEditor() {
     return () => {
       cleanupEditor();
     };
-  }, [searchParams]); // Remove initializeVisualEditor from dependencies to prevent infinite loop
+  }, [searchParams, initializeVisualEditor]);
 
   return {
     isEditorMode,

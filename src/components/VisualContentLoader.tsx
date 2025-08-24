@@ -70,6 +70,43 @@ export function VisualContentLoader({ pageScope }: VisualContentLoaderProps) {
               }
             }
           });
+          
+          // Apply saved styles if available
+          if (result.styles) {
+            console.log('🎨 VisualContentLoader: Found saved styles for', Object.keys(result.styles).length, 'elements');
+            
+            Object.entries(result.styles).forEach(([elementId, styles]) => {
+              console.log('🎨 Applying styles to element:', elementId, styles);
+              
+              // Find the element
+              let element = document.querySelector(`[data-visual-id="${elementId}"]`) as HTMLElement;
+              
+              if (!element) {
+                // Fallback: try to match by reconstructing the ID pattern
+                const [tagName] = elementId.split('_');
+                const elements = document.querySelectorAll(tagName);
+                
+                elements.forEach((el, index) => {
+                  const reconstructedId = `${tagName}_${(el.textContent || '').slice(0, 20).replace(/\s+/g, '_').toLowerCase()}_${index}`;
+                  if (reconstructedId === elementId) {
+                    element = el as HTMLElement;
+                  }
+                });
+              }
+              
+              if (element) {
+                // Apply each style property
+                Object.entries(styles).forEach(([property, value]) => {
+                  if (value && value !== '' && value !== 'transparent') {
+                    element.style.setProperty(property, value);
+                    console.log('✅ Applied style:', property, '=', value);
+                  }
+                });
+              } else {
+                console.log('❌ Could not find element for styles:', elementId);
+              }
+            });
+          }
         } else {
           console.log('⚠️ VisualContentLoader: No content to apply or load failed:', result.error);
         }
