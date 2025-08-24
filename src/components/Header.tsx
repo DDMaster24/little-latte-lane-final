@@ -31,36 +31,36 @@ export default function Header() {
   if (!mounted) {
     return (
       <header
-        className="bg-darkBg text-neonText section-padding-sm shadow-neon relative z-40"
+        className="bg-darkBg text-neonText py-3 xs:py-4 shadow-neon relative z-40"
         suppressHydrationWarning={true}
       >
-        <div className="container-wide flex items-center justify-between">
-          <div className="flex items-center space-x-3 xs:space-x-4 sm:space-x-6 lg:space-x-8 min-w-0 flex-1 max-w-md">
+        <div className="container-full flex items-center justify-between">
+          <div className="flex items-center space-x-2 xs:space-x-3 sm:space-x-4 min-w-0">
             <Image
               src="/images/logo.png"
               alt="Little Latte Lane Logo"
-              width={60}
-              height={60}
-              className="w-12 h-12 xs:w-16 xs:h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 xl:w-28 xl:h-28 shadow-neon flex-shrink-0"
+              width={48}
+              height={48}
+              className="w-10 h-10 xs:w-12 xs:h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 shadow-neon flex-shrink-0"
             />
-            <div className="min-w-0 flex-1">
-              <h1 className="text-fluid-lg xs:text-fluid-xl sm:text-fluid-2xl lg:text-fluid-3xl xl:text-fluid-4xl font-bold bg-neon-gradient bg-clip-text text-transparent truncate">
+            <div className="min-w-0">
+              <h1 className="text-fluid-base xs:text-fluid-lg sm:text-fluid-xl lg:text-fluid-2xl font-bold bg-neon-gradient bg-clip-text text-transparent truncate">
                 Little Latte Lane
               </h1>
-              <p className="text-fluid-xs xs:text-fluid-sm sm:text-fluid-base text-gray-300 truncate">Roberts&apos; Cafe and Deli</p>
+              <p className="text-fluid-xs sm:text-fluid-sm text-gray-300 truncate">Roberts&apos; Cafe and Deli</p>
             </div>
           </div>
 
-          <div className="hidden lg:flex flex-grow justify-center max-w-2xl">
-            <nav className="flex items-center space-x-4 xl:space-x-6">
-              <div className="w-12 h-8 bg-gray-700 animate-pulse rounded"></div>
-              <div className="w-12 h-8 bg-gray-700 animate-pulse rounded"></div>
-              <div className="w-16 h-8 bg-gray-700 animate-pulse rounded"></div>
+          <div className="hidden lg:flex items-center">
+            <nav className="flex items-center space-x-3 xl:space-x-4">
+              <div className="w-12 h-6 bg-gray-700 animate-pulse rounded"></div>
+              <div className="w-12 h-6 bg-gray-700 animate-pulse rounded"></div>
+              <div className="w-16 h-6 bg-gray-700 animate-pulse rounded"></div>
             </nav>
           </div>
 
-          <div className="flex items-center justify-end space-x-2 xs:space-x-3 sm:space-x-4">
-            <div className="w-16 xs:w-20 h-8 bg-gray-700 animate-pulse rounded"></div>
+          <div className="flex items-center justify-end space-x-2 xs:space-x-3">
+            <div className="w-16 xs:w-20 h-6 bg-gray-700 animate-pulse rounded"></div>
           </div>
         </div>
       </header>
@@ -68,64 +68,64 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-darkBg text-neonText section-padding-sm shadow-neon relative z-40">
-      <div className="container-wide flex items-center justify-between">
+    <header className="bg-darkBg text-neonText py-3 xs:py-4 shadow-neon relative z-40">
+      <div className="container-full flex items-center justify-between">
         
-        {/* Left Section - Logo + Title - Responsive Sizing */}
-        <div className="flex items-center space-x-3 xs:space-x-4 sm:space-x-6 lg:space-x-8 min-w-0 flex-1 max-w-md">
+        {/* Left Section - Logo + Title - Compact Sizing */}
+        <div className="flex items-center space-x-2 xs:space-x-3 sm:space-x-4 min-w-0">
           <Image
             src="/images/logo.png"
             alt="Little Latte Lane Logo"
-            width={60}
-            height={60}
-            className="w-12 h-12 xs:w-16 xs:h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 xl:w-28 xl:h-28 shadow-neon flex-shrink-0"
+            width={48}
+            height={48}
+            className="w-10 h-10 xs:w-12 xs:h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 shadow-neon flex-shrink-0"
           />
-          <div className="min-w-0 flex-1">
-            <h1 className="text-fluid-lg xs:text-fluid-xl sm:text-fluid-2xl lg:text-fluid-3xl xl:text-fluid-4xl font-bold bg-neon-gradient bg-clip-text text-transparent truncate">
+          <div className="min-w-0">
+            <h1 className="text-fluid-base xs:text-fluid-lg sm:text-fluid-xl lg:text-fluid-2xl font-bold bg-neon-gradient bg-clip-text text-transparent truncate">
               Little Latte Lane
             </h1>
-            <p className="text-fluid-xs xs:text-fluid-sm sm:text-fluid-base text-gray-300 truncate">
+            <p className="text-fluid-xs sm:text-fluid-sm text-gray-300 truncate">
               Roberts&apos; Cafe and Deli
             </p>
           </div>
         </div>
 
         {/* Center Section - Navigation Links - Hidden on Mobile */}
-        <div className="hidden lg:flex flex-grow justify-center max-w-2xl">
-          <nav className="flex items-center space-x-4 xl:space-x-6">
-            <Link href="/" className="neon-button touch-target">
+        <div className="hidden lg:flex items-center">
+          <nav className="flex items-center space-x-3 xl:space-x-4">
+            <Link href="/" className="neon-button text-sm px-3 py-2">
               Home
             </Link>
-            <Link href="/menu" className="neon-button touch-target">
+            <Link href="/menu" className="neon-button text-sm px-3 py-2">
               Menu
             </Link>
-            <Link href="/bookings" className="neon-button touch-target">
+            <Link href="/bookings" className="neon-button text-sm px-3 py-2">
               Bookings
             </Link>
-            <Link href="/account" className="neon-button touch-target">
+            <Link href="/account" className="neon-button text-sm px-3 py-2">
               My Account
             </Link>
             {user && profile?.is_admin && (
-              <Link href="/admin" className="neon-button touch-target">
+              <Link href="/admin" className="neon-button text-sm px-3 py-2">
                 Admin Panel
               </Link>
             )}
             {user && (profile?.is_staff || profile?.is_admin) && (
-              <Link href="/staff" className="neon-button touch-target">
+              <Link href="/staff" className="neon-button text-sm px-3 py-2">
                 Staff Panel
               </Link>
             )}
           </nav>
         </div>
 
-        {/* Right Section - Auth Area - Responsive */}
-        <div className="flex items-center justify-end space-x-2 xs:space-x-3 sm:space-x-4 min-w-0">
+        {/* Right Section - Auth Area - Compact */}
+        <div className="flex items-center justify-end space-x-2 xs:space-x-3 min-w-0">
           {user ? (
-            <div className="flex items-center space-x-2 xs:space-x-3">
-              {/* Profile Picture - Responsive Sizing */}
+            <div className="flex items-center space-x-2">
+              {/* Profile Picture - Compact */}
               <div className="relative">
-                <div className="w-8 h-8 xs:w-10 xs:h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-neonCyan to-neonPink flex items-center justify-center border-2 border-neonCyan shadow-neon">
-                  <span className="text-black font-bold text-xs xs:text-sm sm:text-base">
+                <div className="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-neonCyan to-neonPink flex items-center justify-center border-2 border-neonCyan shadow-neon">
+                  <span className="text-black font-bold text-xs xs:text-sm">
                     {(profile?.full_name || user.email || 'U')
                       .charAt(0)
                       .toUpperCase()}
@@ -133,26 +133,26 @@ export default function Header() {
                 </div>
               </div>
               
-              {/* User Info - Hidden on xs screens */}
-              <div className="hidden sm:flex flex-col text-xs sm:text-sm min-w-0">
-                <span className="text-gray-400 truncate">Signed in as</span>
-                <span className="text-white font-medium truncate max-w-32 lg:max-w-48">
+              {/* User Info - Hidden on small screens */}
+              <div className="hidden md:flex flex-col text-xs min-w-0">
+                <span className="text-gray-400 truncate">Signed in</span>
+                <span className="text-white font-medium truncate max-w-28 lg:max-w-32">
                   {profile?.full_name || user.email}
                 </span>
               </div>
               
               <Button 
                 onClick={signOut} 
-                className="neon-button bg-neonPink touch-target text-xs xs:text-sm px-2 xs:px-3 sm:px-4"
+                className="neon-button bg-neonPink text-xs px-3 py-2"
               >
-                <span className="hidden xs:inline">Logout</span>
-                <span className="xs:hidden">Exit</span>
+                <span className="hidden sm:inline">Logout</span>
+                <span className="sm:hidden">Exit</span>
               </Button>
             </div>
           ) : (
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
               <DialogTrigger asChild>
-                <Button className="neon-button touch-target text-xs xs:text-sm px-3 xs:px-4 sm:px-6">
+                <Button className="neon-button text-xs xs:text-sm px-3 xs:px-4 py-2">
                   Login
                 </Button>
               </DialogTrigger>
@@ -172,7 +172,7 @@ export default function Header() {
           <div className="lg:hidden">
             <button 
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="touch-target p-2"
+              className="p-2"
             >
               {isMobileMenuOpen ? (
                 <X className="h-5 w-5 xs:h-6 xs:w-6 text-neonCyan hover:text-neonPink hover:shadow-neon transition-colors" />
