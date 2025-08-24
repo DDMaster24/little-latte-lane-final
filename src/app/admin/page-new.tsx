@@ -3,7 +3,7 @@
 import { useAuth } from '@/components/AuthProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings, Menu, Users, BarChart3, ShoppingBag, Calendar, Palette, Eye } from 'lucide-react';
+import { Settings, Menu, Users, BarChart3, ShoppingBag, Calendar } from 'lucide-react';
 
 export default function AdminPage() {
   const { profile } = useAuth();
@@ -120,37 +120,6 @@ export default function AdminPage() {
               <Button disabled className="w-full bg-gray-700 text-gray-400">
                 Coming Soon
               </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gray-800 border-gray-700 hover:border-purple-500/50 transition-colors">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-purple-500">
-                <Palette className="h-5 w-5" />
-                Visual Theme Editor
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-300 mb-4">
-                Customize website appearance - colors, fonts, images, and layout in real-time.
-              </p>
-              <div className="space-y-2">
-                <Button 
-                  onClick={() => window.location.href = '/admin/visual-editor'}
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-                >
-                  <Eye className="h-4 w-4 mr-2" />
-                  Open Visual Editor
-                </Button>
-                <Button 
-                  onClick={() => window.open('/visual-editor-test?editor=true', '_blank')}
-                  variant="outline"
-                  className="w-full border-gray-600 text-gray-300 hover:bg-gray-700"
-                >
-                  <Palette className="h-4 w-4 mr-2" />
-                  Test Color Editor
-                </Button>
-              </div>
             </CardContent>
           </Card>
 
