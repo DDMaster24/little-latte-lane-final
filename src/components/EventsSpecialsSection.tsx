@@ -134,15 +134,19 @@ export default function EventsSpecialsSection() {
   }
 
   return (
-    <section className="bg-darkBg py-12 px-6 shadow-neon rounded-lg m-4 animate-fade-in">
-      <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center bg-neon-gradient">
-        🎉 Events & Specials
-      </h2>
+    <section className="container-responsive section-padding-sm">
+      <div className="bg-darkBg shadow-neon rounded-xl overflow-hidden animate-fade-in">
+        <div className="text-center py-8 xs:py-12 px-6">
+          <h2 className="text-fluid-2xl xs:text-fluid-3xl md:text-fluid-4xl font-bold bg-neon-gradient bg-clip-text text-transparent">
+            🎉 Events & Specials
+          </h2>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        {events.map((event) => (
-          <Card
-            key={event.id}
+        <div className="px-4 xs:px-6 sm:px-8 pb-8 xs:pb-12">
+          <div className="grid-responsive-3 max-w-6xl mx-auto">
+            {events.map((event) => (
+              <Card
+                key={event.id}
             className={`bg-black/50 backdrop-blur-md border-2 ${getEventColor(event.type)} hover:shadow-neon transition-all duration-300 transform hover:scale-105`}
           >
             <CardHeader className="pb-3">
@@ -195,6 +199,8 @@ export default function EventsSpecialsSection() {
           </Button>
         </div>
       )}
+        </div>
+      </div>
     </section>
   );
 }

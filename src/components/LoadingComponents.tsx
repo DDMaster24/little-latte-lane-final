@@ -56,18 +56,23 @@ export function CategorySkeleton({
   count = 6,
   className = '',
 }: LoadingSkeletonProps) {
+  const gridClass = className.includes('grid') ? className : `grid-responsive-4 ${className}`;
+  
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 ${className}`}>
+    <div className={gridClass}>
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700/50 flex flex-col items-center space-y-4 animate-pulse"
-          style={{ animationDelay: `${i * 0.1}s` }}
+          className="bg-gray-800/50 backdrop-blur-sm p-4 xs:p-6 rounded-xl shadow-lg border border-gray-700/50 flex flex-col items-center space-y-3 xs:space-y-4 animate-pulse touch-target"
+          style={{ 
+            animationDelay: `${i * 0.1}s`,
+            minHeight: '200px' // Match our category cards
+          }}
         >
-          {/* Image skeleton with enhanced shimmer */}
-          <div className="w-full h-32 bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 rounded-lg shimmer" />
+          {/* Image skeleton with responsive sizing */}
+          <div className="w-full h-20 xs:h-24 sm:h-32 bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 rounded-lg shimmer" />
           {/* Title skeleton */}
-          <div className="w-3/4 h-5 bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 rounded shimmer" />
+          <div className="w-3/4 h-4 xs:h-5 bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 rounded shimmer" />
           {/* Description skeleton */}
           <div className="w-full h-3 bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 rounded shimmer" />
           {/* Button skeleton */}

@@ -2,6 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Enhanced Responsive Container System */
+@layer components {
+  .container-responsive {
+    @apply w-full mx-auto px-4 xs:px-6 sm:px-8 lg:px-12;
+    max-width: min(100% - 2rem, 1280px);
+  }
+
+  .container-narrow {
+    @apply w-full mx-auto px-4 xs:px-6 sm:px-8;
+    max-width: min(100% - 1rem, 768px);
+  }
+
+  .container-wide {
+    @apply w-full mx-auto px-4 xs:px-6 sm:px-8 lg:px-12 xl:px-16;
+    max-width: min(100% - 2rem, 1536px);
+  }
+
+  .container-full {
+    @apply w-full mx-auto px-3 xs:px-4 sm:px-6 md:px-8 lg:px-12;
+    max-width: 100%;
+  }
+
+  /* Responsive Section Spacing */
+  .section-padding {
+    @apply py-8 xs:py-12 sm:py-16 lg:py-20;
+  }
+
+  .section-padding-sm {
+    @apply py-6 xs:py-8 sm:py-12 lg:py-16;
+  }
+
+  /* Touch-friendly Interactive Elements */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+
+  /* Responsive Grid Systems */
+  .grid-responsive-2 {
+    @apply grid grid-cols-1 xs:grid-cols-2 gap-4 xs:gap-6;
+  }
+
+  .grid-responsive-3 {
+    @apply grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-4 xs:gap-6;
+  }
+
+  .grid-responsive-4 {
+    @apply grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-3 xs:gap-4 sm:gap-6;
+  }
+
+  .grid-responsive-auto {
+    @apply grid gap-4 xs:gap-6;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
 /* Enhanced custom animations for loading states */
 @keyframes slide-up {
   0% {
@@ -171,6 +226,8 @@ body {
   align-items: center !important;
   justify-content: center !important;
   line-height: 1.5 !important; /* Prevent text shifting */
+  min-height: 44px; /* Touch-friendly minimum */
+  min-width: 44px; /* Touch-friendly minimum */
 }
 
 .neon-button:hover {
@@ -187,6 +244,25 @@ body {
     0 0 35px rgba(0, 255, 255, 0.3) !important;
   font-weight: 500 !important; /* Keep same font weight to prevent jumping */
   transform: none !important; /* Prevent any transform animations */
+}
+
+/* Responsive button sizes */
+.neon-button-sm {
+  @apply text-fluid-xs xs:text-fluid-sm px-2 xs:px-3 py-1 xs:py-2;
+  min-height: 40px;
+  min-width: 40px;
+}
+
+.neon-button-lg {
+  @apply text-fluid-base xs:text-fluid-lg px-6 xs:px-8 py-3 xs:py-4;
+  min-height: 48px;
+  min-width: 48px;
+}
+
+.neon-button-xl {
+  @apply text-fluid-lg xs:text-fluid-xl px-8 xs:px-12 py-4 xs:py-6;
+  min-height: 56px;
+  min-width: 56px;
 }
 
 /* Special styling for logout/danger buttons */

@@ -64,7 +64,10 @@ export default function WelcomingSection() {
               alt="Menu Items"
               width={160}
               height={90}
-              className="rounded-lg mx-auto object-cover"
+              className="rounded-lg mx-auto object-cover w-full h-16 xs:h-20 sm:h-24 max-w-40 xs:max-w-48"
+              sizes="(max-width: 475px) 160px, (max-width: 640px) 180px, 200px"
+              priority={false}
+              loading="lazy"
             />
           </div>
           <div className="grid grid-cols-2 gap-1 text-xs flex-1">
@@ -102,7 +105,10 @@ export default function WelcomingSection() {
               alt="Virtual Golf Coming Soon"
               width={160}
               height={90}
-              className="rounded-lg mx-auto object-cover"
+              className="rounded-lg mx-auto object-cover w-full h-16 xs:h-20 sm:h-24 max-w-40 xs:max-w-48"
+              sizes="(max-width: 475px) 160px, (max-width: 640px) 180px, 200px"
+              priority={false}
+              loading="lazy"
             />
           </div>
           <div className="text-center flex-1 flex flex-col justify-center">
@@ -255,24 +261,24 @@ export default function WelcomingSection() {
   }, [currentIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <section className="bg-gradient-to-br from-darkBg via-gray-900 to-darkBg py-16 px-6 overflow-hidden">
-      <div className="max-w-7xl mx-auto animate-fade-in">
-        {/* Hero Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-neon-gradient bg-clip-text text-transparent">
+    <section className="bg-gradient-to-br from-darkBg via-gray-900 to-darkBg section-padding overflow-hidden">
+      <div className="container-wide animate-fade-in">
+        {/* Hero Header - Fully Responsive */}
+        <div className="text-center section-padding-sm">
+          <h1 className="text-fluid-3xl xs:text-fluid-4xl sm:text-fluid-5xl lg:text-fluid-6xl font-bold mb-4 xs:mb-6 bg-neon-gradient bg-clip-text text-transparent">
             {username
               ? `Welcome Back, ${username}!`
               : 'Welcome to Little Latte Lane'}
           </h1>
-          <p className="text-xl md:text-2xl text-gray-300 mb-6">
+          <p className="text-fluid-lg xs:text-fluid-xl sm:text-fluid-2xl text-gray-300 mb-4 xs:mb-6 max-w-4xl mx-auto">
             Roberts&apos; Café and Deli - Where Great Food Meets Amazing
             Experiences
           </p>
-          <div className="flex justify-center gap-3 mb-12">
-            <Badge className="bg-neonCyan text-black px-4 py-2 text-sm font-medium">
+          <div className="flex flex-wrap justify-center gap-2 xs:gap-3 mb-8 xs:mb-12">
+            <Badge className="bg-neonCyan text-black px-3 xs:px-4 py-2 text-fluid-xs xs:text-fluid-sm font-medium">
               Now Open
             </Badge>
-            <Badge className="bg-neonPink text-black px-4 py-2 text-sm font-medium">
+            <Badge className="bg-neonPink text-black px-3 xs:px-4 py-2 text-fluid-xs xs:text-fluid-sm font-medium">
               Dine In • Takeaway • Delivery
             </Badge>
           </div>
