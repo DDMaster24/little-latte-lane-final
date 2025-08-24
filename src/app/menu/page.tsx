@@ -17,10 +17,44 @@ import { useMenu } from '@/hooks/useMenu';
 import type { Category } from '@/lib/dataClient';
 
 function MenuContent() {
-  const { categories, sections, loading, error, refetch } = useMenu();
+  const { categories, loading, error, refetch } = useMenu();
 
-  // Filter child categories (have parent_id)
-  const childCategories = categories.filter(category => category.parent_id !== null);
+  // Since the database doesn't have parent_id, we'll display all categories directly
+  // Group them by logical sections for better UX
+  const groupCategoriesByType = () => {
+    const drinks = categories.filter(cat => 
+      cat.name.toLowerCase().includes('drink') || 
+      cat.name.toLowerCase().includes('latte') ||
+      cat.name.toLowerCase().includes('frappe') ||
+      cat.name.toLowerCase().includes('smoothie') ||
+      cat.name.toLowerCase().includes('coke')
+    );
+    
+    const food = categories.filter(cat => 
+      cat.name.toLowerCase().includes('pizza') || 
+      cat.name.toLowerCase().includes('toastie') ||
+      cat.name.toLowerCase().includes('meal')
+    );
+    
+    const breakfast = categories.filter(cat => 
+      cat.name.toLowerCase().includes('scone') || 
+      cat.name.toLowerCase().includes('breakfast') ||
+      cat.name.toLowerCase().includes('side')
+    );
+    
+    const extras = categories.filter(cat => 
+      !drinks.includes(cat) && !food.includes(cat) && !breakfast.includes(cat)
+    );
+
+    return [
+      { name: 'Drinks & Beverages', categories: drinks, icon: '☕' },
+      { name: 'Main Food', categories: food, icon: '🍕' },
+      { name: 'Breakfast & Sides', categories: breakfast, icon: '🥐' },
+      { name: 'Extras & Specialties', categories: extras, icon: '✨' }
+    ].filter(section => section.categories.length > 0);
+  };
+
+  const sections = groupCategoriesByType();
 
   // Function to get specific, realistic icons for categories
   const getCategoryIcon = (categoryName: string) => {
@@ -63,10 +97,8 @@ function MenuContent() {
     return '🏠'; // Default fallback
   };
 
-  // Function to get categories for a specific section
-  const getCategoriesForSection = (sectionId: string) => {
-    return childCategories.filter(category => category.parent_id === sectionId);
-  };
+  // Function to get categories for a specific section (now handled by our grouping)
+  // This function is no longer needed since we group categories directly
 
   if (loading) {
     return (
@@ -140,29 +172,25 @@ function MenuContent() {
         <p className="text-gray-300 text-lg">Organized by category for easy browsing</p>
       </div>
 
-      {/* Sections - Display actual database sections */}
+      {/* Sections - Display organized categories */}
       <div className="space-y-12">
-        {sections.map((section) => {
-          const sectionCategories = getCategoriesForSection(section.id);
+        {sections.map((section, index) => {
+          const sectionCategories = section.categories;
           
-          // Show all sections, even empty ones, but with different styling
           return (
-            <div key={section.id} className="bg-gray-900/50 rounded-xl p-6 border border-gray-700/50">
+            <div key={`section-${index}`} className="bg-gray-900/50 rounded-xl p-6 border border-gray-700/50">
               {/* Section Header - Enhanced with glassmorphism */}
               <div className="text-center mb-8">
                 <div className="flex items-center justify-center gap-3 mb-2">
-                  <span className="text-3xl">{getCategoryIcon(section.name)}</span>
+                  <span className="text-3xl">{section.icon}</span>
                   <h2 className="text-3xl font-bold bg-gradient-to-r from-neonCyan to-neonPink bg-clip-text text-transparent">
                     {section.name}
                   </h2>
-                  <span className="text-3xl">{getCategoryIcon(section.name)}</span>
+                  <span className="text-3xl">{section.icon}</span>
                 </div>
-                {section.description && (
-                  <p className="text-gray-300 text-lg">{section.description}</p>
-                )}
               </div>
 
-              {/* Categories Grid or Empty State */}
+              {/* Categories Grid */}
               {sectionCategories.length === 0 ? (
                 <div className="text-center py-8">
                   <div className="text-6xl mb-4">🚧</div>

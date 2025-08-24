@@ -160,7 +160,7 @@ export class DataClient {
     }
   }
 
-  // Fetch sections only (categories with parent_id = null)
+  // Fetch sections only (use all categories as sections since parent_id doesn't exist)
   async getSections(useCache = true): Promise<DataResponse<Category[]>> {
     const cacheKey = 'sections';
 
@@ -173,11 +173,11 @@ export class DataClient {
         }
       }
 
-      // Fetch sections from database
+      // Since parent_id doesn't exist in the database, use all categories as sections
+      // This matches the actual database schema we discovered
       const { data, error } = await supabase
         .from('menu_categories')
         .select('*')
-        .is('parent_id', null)
         .eq('is_active', true)
         .order('display_order', { ascending: true });
 
