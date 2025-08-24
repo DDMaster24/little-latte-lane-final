@@ -85,7 +85,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
 
         if (result.profile) {
-          console.log('✅ AuthProvider: Profile fetched successfully:', result.profile);
+          console.log('✅ AuthProvider: Profile fetched successfully');
           return {
             id: result.profile.id,
             full_name: result.profile.full_name,
@@ -104,7 +104,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return null;
       }
     },
-    []
+    [] // Remove profile dependency to prevent infinite loop
   );
 
   // Handle auth state changes
@@ -112,6 +112,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (!mounted) return;
 
     let cancelled = false;
+    let profileFetchInProgress = false;
 
     // Get initial session
     const getInitialSession = async () => {
@@ -124,11 +125,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         setSession(initialSession);
 
-        if (initialSession?.user) {
+        if (initialSession?.user && !profile && !profileFetchInProgress) {
+          profileFetchInProgress = true;
           const userProfile = await fetchProfile(initialSession.user.id);
           if (!cancelled) {
             setProfile(userProfile);
           }
+          profileFetchInProgress = false;
         }
       } catch (error) {
         console.error('Error getting initial session:', error);
@@ -149,12 +152,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       setSession(newSession);
 
-      if (newSession?.user) {
-        const userProfile = await fetchProfile(newSession.user.id);
-        if (!cancelled) {
-          setProfile(userProfile);
+      if (newSession?.user && !profileFetchInProgress) {
+        // Only fetch profile if we don't have one or if it's a different user
+        if (!profile || profile.id !== newSession.user.id) {
+          profileFetchInProgress = true;
+          const userProfile = await fetchProfile(newSession.user.id);
+          if (!cancelled) {
+            setProfile(userProfile);
+          }
+          profileFetchInProgress = false;
         }
-      } else {
+      } else if (!newSession?.user) {
         setProfile(null);
       }
 
@@ -167,7 +175,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       cancelled = true;
       subscription.unsubscribe();
     };
-  }, [mounted, fetchProfile, supabase.auth]);
+  }, [mounted, fetchProfile, supabase.auth]); // Remove profile dependency to prevent infinite loop
 
   // Sign out function
   const signOut = useCallback(async () => {

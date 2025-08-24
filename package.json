@@ -26,6 +26,8 @@
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f",
     "docker:reset": "docker-compose down -v && docker-compose up -d",
+    "docker:test": "powershell -ExecutionPolicy Bypass -File ./docker/test-connection.ps1",
+    "docker:test-bash": "bash ./docker/test-connection.sh",
     "db:backup": "docker exec little-latte-postgres pg_dump -U postgres little_latte_lane > backup.sql",
     "dev:docker": "npm run docker:up && npm run dev"
   },

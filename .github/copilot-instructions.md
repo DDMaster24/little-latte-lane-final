@@ -37,6 +37,37 @@ Use centralized query classes in `src/lib/queries/`:
 - **Helper functions**: `public.is_staff_or_admin()` for RLS policies
 - **Critical**: Never query auth.users directly - always use profiles table
 
+## 🚨 CRITICAL: DOCKER-FIRST DATABASE PROTOCOL - MANDATORY
+
+### **🔴 DOCKER-FIRST DATABASE RULE (ADDED DUE TO REPEATED ISSUES)**
+
+**BEFORE ANY DATABASE OPERATIONS:**
+1. **ALWAYS START WITH DOCKER CONNECTION** - No exceptions
+2. **VERIFY DOCKER DATABASE ACCESS** - Test connection works properly  
+3. **USE DIRECT SQL EXECUTION** - Provide SQL scripts for manual execution if needed
+4. **NEVER ATTEMPT MIGRATIONS FIRST** - They consistently fail and waste time
+
+#### **Mandatory Docker Workflow:**
+```bash
+# Step 1: Start Docker services
+npm run docker:up
+
+# Step 2: Verify database connection
+npm run docker:logs
+
+# Step 3: Use direct SQL execution or provide SQL scripts
+# Step 4: Only attempt other approaches if Docker fails
+```
+
+#### **SQL Script Fallback:**
+If Docker approach fails, **IMMEDIATELY** provide SQL scripts for manual execution in Supabase SQL Editor.
+
+**This protocol prevents the recurring pattern of:**
+1. Try migration → fails
+2. Try different approach → fails  
+3. Try another approach → fails
+4. User stops and asks to use Docker → works
+
 ## MANDATORY: Live Database Protocol - NO STATIC FILES!
 
 ### 🚨 CRITICAL RULE: Always Use Live Database Connection

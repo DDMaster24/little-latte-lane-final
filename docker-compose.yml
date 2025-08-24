@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for local development
+  postgres:
+    image: postgres:15-alpine
+    container_name: little-latte-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: little_latte_lane
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init:/docker-entrypoint-initdb.d
+    networks:
+      - little-latte-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d little_latte_lane"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # pgAdmin for database management (optional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: little-latte-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@littlelattlane.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_LISTEN_PORT: 80
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - little-latte-network
+    depends_on:
+      - postgres
+
+  # Supabase local development stack
+  supabase-db:
+    image: supabase/postgres:15.1.0.117
+    container_name: little-latte-supabase-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: supabase_admin
+      POSTGRES_PASSWORD: your-super-secret-and-long-postgres-password
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5433
+    ports:
+      - "5433:5432"
+    volumes:
+      - supabase_db_data:/var/lib/postgresql/data
+    networks:
+      - little-latte-network
+
+  # Supabase API Gateway
+  supabase-kong:
+    image: kong:2.8.1
+    container_name: little-latte-supabase-kong
+    restart: unless-stopped
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth
+      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
+      KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./docker/supabase/kong.yml:/var/lib/kong/kong.yml:ro
+    networks:
+      - little-latte-network
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+  supabase_db_data:
+    driver: local
+
+networks:
+  little-latte-network:
+    driver: bridge
