@@ -1,14 +1,15 @@
 'use client';
 
-import { useVisualEditor } from '@/hooks/useVisualEditor';
+import { InlineVisualEditor } from './VisualEditor/InlineVisualEditor';
 
 interface VisualEditorWrapperProps {
   children: React.ReactNode;
 }
 
 export function VisualEditorWrapper({ children }: VisualEditorWrapperProps) {
-  // Initialize the visual editor hook
-  useVisualEditor();
-
-  return <>{children}</>;
+  return (
+    <InlineVisualEditor>
+      {children}
+    </InlineVisualEditor>
+  );
 }
