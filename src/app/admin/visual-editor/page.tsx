@@ -15,7 +15,12 @@ import {
   ImageIcon, 
   Layout,
   ArrowLeft,
-  ExternalLink
+  ExternalLink,
+  Sparkles,
+  Zap,
+  Shield,
+  MousePointer,
+  Save
 } from 'lucide-react';
 
 interface EditablePage {
@@ -65,7 +70,7 @@ const EDITABLE_PAGES: EditablePage[] = [
     id: 'ordering',
     title: 'Ordering Flow',
     description: 'Cart, checkout, and order confirmation pages',
-    url: '/menu/pizza', // Example starting point
+    url: '/menu/pizza',
     icon: ShoppingCart,
     editableElements: [
       'Cart design & layout',
@@ -110,10 +115,13 @@ export default function AdminVisualEditorPage() {
 
   if (!profile?.is_admin) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-red-400">Access Denied</CardTitle>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+        <Card className="bg-gray-900/50 border-red-500/30 backdrop-blur-xl shadow-2xl">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-red-400 text-xl flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Access Denied
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-gray-300">You need admin privileges to access the visual editor.</p>
@@ -124,206 +132,250 @@ export default function AdminVisualEditorPage() {
   }
 
   const openVisualEditor = (pageId: string, pageUrl: string) => {
-    // Navigate to the visual editor for a specific page in the same tab
     const editorUrl = `/admin/visual-editor/${pageId}?target=${encodeURIComponent(pageUrl)}`;
     window.location.href = editorUrl;
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-500';
-      case 'medium': return 'bg-yellow-500'; 
-      case 'low': return 'bg-green-500';
+      case 'high': return 'bg-gradient-to-r from-red-500 to-orange-500';
+      case 'medium': return 'bg-gradient-to-r from-yellow-500 to-amber-500'; 
+      case 'low': return 'bg-gradient-to-r from-green-500 to-emerald-500';
       default: return 'bg-gray-500';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <Button 
-              onClick={() => window.location.href = '/admin'}
-              variant="outline"
-              className="border-gray-600 text-gray-300 hover:bg-gray-800"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Admin Dashboard
-            </Button>
-          </div>
-          
-          <h1 className="text-4xl font-bold text-white mb-2">Visual Editor</h1>
-          <p className="text-gray-400 text-lg">
-            Customize the appearance and content of your website pages
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-4 -left-4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-1/2 -right-4 w-96 h-96 bg-neonCyan/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute -bottom-4 left-1/2 w-96 h-96 bg-neonPink/5 rounded-full blur-3xl animate-pulse delay-2000"></div>
+      </div>
 
-        {/* Instructions */}
-        <Card className="bg-gradient-to-r from-neonCyan/10 to-neonPink/10 border-neonCyan/30 mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-neonCyan">
-              <Palette className="h-5 w-5" />
-              How Visual Editing Works
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="font-semibold text-white mb-2">✨ Click-to-Edit Interface</h3>
-                <ul className="text-gray-300 text-sm space-y-1">
-                  <li>• Click any text to edit content</li>
-                  <li>• Click color swatches to change colors</li>
-                  <li>• Drag and drop to rearrange elements</li>
-                  <li>• Upload images by clicking on existing images</li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-semibold text-white mb-2">💾 Safe & Secure</h3>
-                <ul className="text-gray-300 text-sm space-y-1">
-                  <li>• All changes save automatically</li>
-                  <li>• Only admins can access this editor</li>
-                  <li>• Changes apply to live site immediately</li>
-                  <li>• Undo/redo functionality available</li>
-                </ul>
-              </div>
+      <div className="relative z-10 p-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-12">
+            <div className="flex items-center gap-4 mb-6">
+              <Button 
+                onClick={() => window.location.href = '/admin'}
+                variant="outline"
+                className="border-gray-600/50 text-gray-300 hover:bg-gray-800/50 hover:border-neonCyan/50 transition-all duration-300 backdrop-blur-sm"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Admin Dashboard
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+            
+            <div className="text-center">
+              <div className="inline-flex items-center gap-3 mb-6 px-4 py-2 bg-gradient-to-r from-purple-500/10 to-neonPink/10 border border-purple-500/20 rounded-full backdrop-blur-sm">
+                <Sparkles className="h-5 w-5 text-purple-400 animate-pulse" />
+                <span className="text-sm font-medium text-purple-400">DESIGN STUDIO</span>
+              </div>
+              <h1 className="text-6xl font-bold bg-gradient-to-r from-white via-purple-400 to-neonPink bg-clip-text text-transparent mb-4">
+                Visual Editor
+              </h1>
+              <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                Professional design tools to customize your website&apos;s appearance and content with pixel-perfect precision
+              </p>
+            </div>
+          </div>
 
-        {/* Page Editors */}
-        <div className="grid lg:grid-cols-2 gap-6 mb-8">
-          {EDITABLE_PAGES.map((page) => {
-            const IconComponent = page.icon;
-            return (
-              <Card key={page.id} className="bg-gray-800 border-gray-700 hover:border-neonCyan/50 transition-colors">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-3 text-white">
-                      <IconComponent className="h-6 w-6 text-neonCyan" />
-                      {page.title}
-                    </CardTitle>
-                    <Badge className={`${getPriorityColor(page.priority)} text-white text-xs`}>
-                      {page.priority} priority
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-300 mb-4">{page.description}</p>
-                  
-                  <div className="mb-4">
-                    <h4 className="text-sm font-semibold text-gray-200 mb-2">Editable Elements:</h4>
-                    <div className="flex flex-wrap gap-1">
-                      {page.editableElements.slice(0, 3).map((element, index) => (
-                        <span 
-                          key={index}
-                          className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded"
-                        >
-                          {element}
-                        </span>
-                      ))}
-                      {page.editableElements.length > 3 && (
-                        <span className="text-xs text-gray-400">
-                          +{page.editableElements.length - 3} more
-                        </span>
-                      )}
+          {/* Features Overview */}
+          <Card className="bg-gradient-to-r from-purple-500/10 via-neonCyan/10 to-neonPink/10 border-purple-500/30 mb-12 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-2xl bg-gradient-to-r from-purple-400 to-neonPink bg-clip-text text-transparent flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-r from-purple-500/20 to-neonPink/20 rounded-lg">
+                  <Zap className="h-6 w-6 text-purple-400" />
+                </div>
+                How Visual Editing Works
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-gradient-to-r from-neonCyan/20 to-blue-500/20 rounded-lg mt-1">
+                      <MousePointer className="h-5 w-5 text-neonCyan" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white mb-2">✨ Click-to-Edit Interface</h3>
+                      <ul className="text-gray-300 text-sm space-y-1 leading-relaxed">
+                        <li>• Click any text to edit content instantly</li>
+                        <li>• Click color swatches to change themes</li>
+                        <li>• Drag and drop to rearrange elements</li>
+                        <li>• Upload images by clicking existing ones</li>
+                      </ul>
                     </div>
                   </div>
-
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={() => openVisualEditor(page.id, page.url)}
-                      className="flex-1 bg-gradient-to-r from-neonCyan to-neonBlue hover:from-neonCyan/80 hover:to-neonBlue/80 text-black font-medium"
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      Edit Page
-                    </Button>
-                    
-                    <Button 
-                      onClick={() => window.open(page.url, '_blank')}
-                      variant="outline"
-                      className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-lg mt-1">
+                      <Save className="h-5 w-5 text-green-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white mb-2">💾 Safe & Secure</h3>
+                      <ul className="text-gray-300 text-sm space-y-1 leading-relaxed">
+                        <li>• All changes save automatically</li>
+                        <li>• Only admins can access this editor</li>
+                        <li>• Changes apply to live site immediately</li>
+                        <li>• Undo/redo functionality available</li>
+                      </ul>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* Global Elements */}
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-neonPink">
-              <Layout className="h-5 w-5" />
-              Global Elements
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-300 mb-4">
-              Elements that appear across all pages (header, footer, contact info)
-            </p>
-            
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-2 mb-6">
-              {GLOBAL_ELEMENTS.map((element, index) => (
-                <span 
-                  key={index}
-                  className="text-sm bg-gray-700 text-gray-300 px-3 py-2 rounded text-center"
-                >
-                  {element}
-                </span>
-              ))}
-            </div>
+          {/* Page Editors */}
+          <div className="grid lg:grid-cols-2 gap-8 mb-12">
+            {EDITABLE_PAGES.map((page) => {
+              const IconComponent = page.icon;
+              return (
+                <Card key={page.id} className="group bg-gradient-to-br from-gray-800/30 to-gray-900/30 border-gray-700/50 hover:border-purple-500/50 transition-all duration-500 backdrop-blur-sm hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-2">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-3 bg-gradient-to-br from-purple-500/20 to-neonPink/20 rounded-xl group-hover:scale-110 transition-transform duration-300">
+                          <IconComponent className="h-6 w-6 text-purple-400" />
+                        </div>
+                        <CardTitle className="text-white text-xl group-hover:text-purple-400 transition-colors duration-300">
+                          {page.title}
+                        </CardTitle>
+                      </div>
+                      <Badge className={`${getPriorityColor(page.priority)} text-white text-xs font-medium px-3 py-1 shadow-lg`}>
+                        {page.priority} priority
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-gray-300 leading-relaxed">{page.description}</p>
+                    
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-200 mb-3">Editable Elements:</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {page.editableElements.slice(0, 3).map((element, index) => (
+                          <span 
+                            key={index}
+                            className="text-xs bg-gradient-to-r from-gray-700/50 to-gray-600/50 text-gray-300 px-3 py-1 rounded-full border border-gray-600/30"
+                          >
+                            {element}
+                          </span>
+                        ))}
+                        {page.editableElements.length > 3 && (
+                          <span className="text-xs text-gray-400 flex items-center">
+                            +{page.editableElements.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
 
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => openVisualEditor('global', '/')}
-                className="bg-gradient-to-r from-neonPink to-purple-600 hover:from-neonPink/80 hover:to-purple-600/80 text-white"
-              >
-                <Layout className="h-4 w-4 mr-2" />
-                Edit Global Elements
-              </Button>
+                    <div className="flex gap-3 pt-2">
+                      <Button 
+                        onClick={() => openVisualEditor(page.id, page.url)}
+                        className="flex-1 bg-gradient-to-r from-purple-600 to-neonPink hover:from-purple-700 hover:to-neonPink/80 text-white font-medium shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Edit Page
+                      </Button>
+                      
+                      <Button 
+                        onClick={() => window.open(page.url, '_blank')}
+                        variant="outline"
+                        className="border-gray-600/50 text-gray-300 hover:bg-gray-700/50 hover:border-purple-500/50 transition-all duration-300"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Global Elements */}
+          <Card className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 border-gray-700/50 backdrop-blur-sm mb-8">
+            <CardHeader>
+              <CardTitle className="text-2xl bg-gradient-to-r from-neonCyan to-neonPink bg-clip-text text-transparent flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-r from-neonCyan/20 to-neonPink/20 rounded-lg">
+                  <Layout className="h-6 w-6 text-neonCyan" />
+                </div>
+                Global Elements
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-300 mb-6 text-lg leading-relaxed">
+                Elements that appear across all pages (header, footer, contact info) - customize once, apply everywhere
+              </p>
               
-              <Button 
-                onClick={() => openVisualEditor('theme', '/visual-editor-test')}
-                variant="outline"
-                className="border-gray-600 text-gray-300 hover:bg-gray-700"
-              >
-                <Palette className="h-4 w-4 mr-2" />
-                Theme Settings
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+                {GLOBAL_ELEMENTS.map((element, index) => (
+                  <div 
+                    key={index}
+                    className="text-sm bg-gradient-to-r from-gray-700/30 to-gray-600/30 text-gray-300 px-4 py-3 rounded-lg text-center border border-gray-600/30 hover:border-neonCyan/50 transition-colors duration-300"
+                  >
+                    {element}
+                  </div>
+                ))}
+              </div>
 
-        {/* Quick Actions */}
-        <div className="mt-8 grid md:grid-cols-3 gap-4">
-          <Card className="bg-gray-800/50 border-gray-700">
-            <CardContent className="p-4 text-center">
-              <Type className="h-8 w-8 text-neonBlue mx-auto mb-2" />
-              <h3 className="font-semibold text-white mb-1">Typography</h3>
-              <p className="text-sm text-gray-400">Fonts, sizes, spacing</p>
+              <div className="flex gap-4">
+                <Button 
+                  onClick={() => openVisualEditor('global', '/')}
+                  className="bg-gradient-to-r from-neonCyan to-neonPink hover:from-neonCyan/80 hover:to-neonPink/80 text-black font-medium shadow-lg hover:shadow-neonCyan/25 transition-all duration-300"
+                >
+                  <Layout className="h-4 w-4 mr-2" />
+                  Edit Global Elements
+                </Button>
+                
+                <Button 
+                  onClick={() => openVisualEditor('theme', '/visual-editor-test')}
+                  variant="outline"
+                  className="border-gray-600/50 text-gray-300 hover:bg-gray-700/50 hover:border-neonCyan/50 transition-all duration-300"
+                >
+                  <Palette className="h-4 w-4 mr-2" />
+                  Theme Settings
+                </Button>
+              </div>
             </CardContent>
           </Card>
-          
-          <Card className="bg-gray-800/50 border-gray-700">
-            <CardContent className="p-4 text-center">
-              <Palette className="h-8 w-8 text-neonPink mx-auto mb-2" />
-              <h3 className="font-semibold text-white mb-1">Colors</h3>
-              <p className="text-sm text-gray-400">Brand colors, themes</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gray-800/50 border-gray-700">
-            <CardContent className="p-4 text-center">
-              <ImageIcon className="h-8 w-8 text-neonCyan mx-auto mb-2" />
-              <h3 className="font-semibold text-white mb-1">Images</h3>
-              <p className="text-sm text-gray-400">Logos, backgrounds</p>
-            </CardContent>
-          </Card>
+
+          {/* Quick Design Tools */}
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="group bg-gradient-to-br from-gray-800/30 to-gray-900/30 border-gray-700/50 hover:border-blue-500/50 transition-all duration-500 backdrop-blur-sm hover:-translate-y-1">
+              <CardContent className="p-6 text-center">
+                <div className="p-4 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl mx-auto mb-4 w-fit group-hover:scale-110 transition-transform duration-300">
+                  <Type className="h-8 w-8 text-blue-400" />
+                </div>
+                <h3 className="font-semibold text-white mb-2 text-lg group-hover:text-blue-400 transition-colors duration-300">Typography</h3>
+                <p className="text-sm text-gray-400">Professional fonts, sizes, and spacing controls</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="group bg-gradient-to-br from-gray-800/30 to-gray-900/30 border-gray-700/50 hover:border-neonPink/50 transition-all duration-500 backdrop-blur-sm hover:-translate-y-1">
+              <CardContent className="p-6 text-center">
+                <div className="p-4 bg-gradient-to-r from-neonPink/20 to-purple-500/20 rounded-xl mx-auto mb-4 w-fit group-hover:scale-110 transition-transform duration-300">
+                  <Palette className="h-8 w-8 text-neonPink" />
+                </div>
+                <h3 className="font-semibold text-white mb-2 text-lg group-hover:text-neonPink transition-colors duration-300">Colors & Themes</h3>
+                <p className="text-sm text-gray-400">Brand colors, gradients, and visual themes</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="group bg-gradient-to-br from-gray-800/30 to-gray-900/30 border-gray-700/50 hover:border-neonCyan/50 transition-all duration-500 backdrop-blur-sm hover:-translate-y-1">
+              <CardContent className="p-6 text-center">
+                <div className="p-4 bg-gradient-to-r from-neonCyan/20 to-blue-500/20 rounded-xl mx-auto mb-4 w-fit group-hover:scale-110 transition-transform duration-300">
+                  <ImageIcon className="h-8 w-8 text-neonCyan" />
+                </div>
+                <h3 className="font-semibold text-white mb-2 text-lg group-hover:text-neonCyan transition-colors duration-300">Media & Assets</h3>
+                <p className="text-sm text-gray-400">Logos, backgrounds, and image optimization</p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
