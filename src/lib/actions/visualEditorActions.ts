@@ -1,6 +1,5 @@
 'use server';
 
-import { ServerThemeQueries } from '@/lib/queries/ThemeQueries';
 import { revalidatePath } from 'next/cache';
 import { authenticateForVisualEditor, getAuthenticatedSupabaseClient } from '@/lib/auth/visualEditorAuth';
 
@@ -166,24 +165,39 @@ export async function saveVisualEdit(
 }
 
 /**
- * Load visual content for a specific page
+ * Load visual content for a specific page (public access)
  */
 export async function loadVisualContent(pageScope: string) {
   try {
-    // Use robust authentication for loading as well
-    const authResult = await authenticateForVisualEditor();
+    // This is a public function that anyone can use to load visual content
+    // We don't need admin authentication for reading visual content
+    const { getSupabaseClient } = await import('@/lib/supabase-client');
+    const supabase = getSupabaseClient();
     
-    if (!authResult.isAuthenticated || !authResult.isAdmin) {
-      throw new Error(`Access denied: ${authResult.error || 'Admin authentication required'}`);
+    console.log('📖 Loading visual content for page:', pageScope);
+    
+    const { data: settings, error } = await supabase
+      .from('theme_settings')
+      .select('setting_key, setting_value')
+      .eq('page_scope', pageScope)
+      .eq('category', 'visual_editor');
+
+    if (error) {
+      console.error('❌ Error loading visual content:', error);
+      return {
+        success: false,
+        error: error.message,
+        data: {}
+      };
     }
-    
-    const settings = await ServerThemeQueries.getPageThemeSettings(pageScope, 'visual_editor');
-    
+
     // Convert to a map for easy lookup
     const contentMap: Record<string, string> = {};
-    settings.forEach(setting => {
+    settings?.forEach(setting => {
       contentMap[setting.setting_key] = setting.setting_value;
     });
+    
+    console.log('✅ Loaded visual content:', Object.keys(contentMap).length, 'items');
     
     return {
       success: true,
