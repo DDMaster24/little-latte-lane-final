@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/components/AuthProvider';
-import { visualEditorDB, type VisualChange } from '@/lib/visual-editor-db';
+import { visualEditorDb } from '@/lib/visual-editor-db';
 import { toast } from 'sonner';
 
 // CSS for visual editor hover effects and Photoshop-style interface
@@ -201,13 +201,34 @@ const InlineVisualEditor: React.FC<InlineVisualEditorProps> = ({
     window.getSelection()?.removeAllRanges();
   }, [selectedElement, isTextEditing]);
 
-  // Enhanced hover detection targeting specific text elements
+  // Enhanced hover detection targeting specific text elements - FIXED: Single selection + exclude toolbar
   const addElementIndicators = useCallback(() => {
     if (!isEnabled || !editorRef.current) return;
 
-    const textElements = editorRef.current.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div, a, li, td, th, label, button:not(.visual-editor-tool):not(.visual-editor-close)');
-    
-    textElements.forEach((element) => {
+    // Get ALL elements but filter out visual editor components
+    const allElements = editorRef.current.querySelectorAll('*');
+    const validElements = Array.from(allElements).filter((element) => {
+      const htmlElement = element as HTMLElement;
+      
+      // Exclude visual editor toolbar and controls
+      if (htmlElement.classList.contains('visual-editor-toolbar') || 
+          htmlElement.classList.contains('visual-editor-tool') ||
+          htmlElement.classList.contains('visual-editor-close') ||
+          htmlElement.closest('.visual-editor-toolbar') ||
+          htmlElement.closest('[class*="visual-editor"]')) {
+        return false;
+      }
+      
+      // Only include content elements (exclude script, style, meta, etc.)
+      const tagName = htmlElement.tagName.toLowerCase();
+      const validTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'div', 'a', 'li', 'td', 'th', 'label', 'button', 'section', 'article', 'main', 'header', 'footer', 'nav', 'aside'];
+      
+      return validTags.includes(tagName) && 
+             htmlElement.offsetWidth > 0 && 
+             htmlElement.offsetHeight > 0;
+    });
+
+    validElements.forEach((element) => {
       const htmlElement = element as HTMLElement;
       
       const handleMouseEnter = () => {
@@ -224,8 +245,12 @@ const InlineVisualEditor: React.FC<InlineVisualEditorProps> = ({
         e.preventDefault();
         e.stopPropagation();
         
-        if (isTextEditing && selectedElement && selectedElement !== htmlElement) {
-          stopTextEditing();
+        // FIXED: Clear any existing selection first (SINGLE SELECTION)
+        if (selectedElement && selectedElement !== htmlElement) {
+          selectedElement.classList.remove('visual-editor-selected', 'visual-editor-editing');
+          if (isTextEditing) {
+            stopTextEditing();
+          }
         }
         
         selectElement(htmlElement);
@@ -310,7 +335,7 @@ const InlineVisualEditor: React.FC<InlineVisualEditorProps> = ({
     // Auto-save if enabled
     if (editorState.isAutoSaveEnabled) {
       try {
-        const savedChange = await visualEditorDB.saveChange(
+        const savedChange = await visualEditorDb.saveChange(
           selectedElement,
           property,
           value,
@@ -395,7 +420,7 @@ const InlineVisualEditor: React.FC<InlineVisualEditorProps> = ({
     let savedCount = 0;
     for (const change of unsavedChanges) {
       try {
-        const savedChange = await visualEditorDB.saveChange(
+        const savedChange = await visualEditorDb.saveChange(
           change.element,
           change.property,
           change.newValue,
@@ -433,12 +458,12 @@ const InlineVisualEditor: React.FC<InlineVisualEditorProps> = ({
     if (!profile) return;
 
     try {
-      const changes = await visualEditorDB.loadPageChanges(
+      const changes = await visualEditorDb.loadPageChanges(
         window.location.pathname,
         !editorState.isDraftMode // Load published only if not in draft mode
       );
 
-      const appliedCount = await visualEditorDB.applyChangesToPage(changes);
+      const appliedCount = await visualEditorDb.applyChangesToPage(changes);
       
       if (appliedCount > 0) {
         toast.success(`Applied ${appliedCount} saved changes`);
@@ -454,7 +479,7 @@ const InlineVisualEditor: React.FC<InlineVisualEditorProps> = ({
     if (!profile || !editorState.isDraftMode) return;
 
     try {
-      const success = await visualEditorDB.publishChanges(
+      const success = await visualEditorDb.publishChanges(
         window.location.pathname,
         profile.id
       );
@@ -480,7 +505,7 @@ const InlineVisualEditor: React.FC<InlineVisualEditorProps> = ({
     if (!profile) return;
 
     try {
-      const success = await visualEditorDB.revertToPublished(
+      const success = await visualEditorDb.revertToPublished(
         window.location.pathname,
         profile.id
       );
@@ -961,3 +986,4 @@ const InlineVisualEditor: React.FC<InlineVisualEditorProps> = ({
 };
 
 export default InlineVisualEditor;
+
