@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
   Menu, Users, BarChart3, ShoppingBag, Calendar, 
-  Palette, Shield, Activity, CheckCircle, CreditCard
+  Palette, Shield, Activity, CheckCircle, CreditCard, QrCode
 } from 'lucide-react';
 
 // Tab Components (will be moved to separate files later)
@@ -18,6 +18,7 @@ import {
   UserManagement,
   AnalyticsDashboard
 } from '@/components/Admin';
+import QRCodeGenerator from '@/components/QRCodeGenerator';
 
 const tabs = [
   { id: 'overview', label: 'Overview', icon: BarChart3, color: 'neonCyan' },
@@ -26,6 +27,7 @@ const tabs = [
   { id: 'bookings', label: 'Bookings', icon: Calendar, color: 'blue-500' },
   { id: 'users', label: 'User Management', icon: Users, color: 'yellow-500' },
   { id: 'analytics', label: 'Analytics', icon: BarChart3, color: 'green-500' },
+  { id: 'qrcode', label: 'QR Code & App', icon: QrCode, color: 'purple-500' },
 ];
 
 export default function AdminPage() {
@@ -64,6 +66,22 @@ export default function AdminPage() {
         return <UserManagement />;
       case 'analytics':
         return <AnalyticsDashboard />;
+      case 'qrcode':
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-white mb-2">QR Code & App Installation</h2>
+              <p className="text-gray-400">Generate QR codes for customers to easily access and install your app</p>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              <QRCodeGenerator 
+                url="https://little-latte-lane.vercel.app" 
+                size={300}
+                className="md:col-span-2"
+              />
+            </div>
+          </div>
+        );
       default:
         return <AdminOverview />;
     }

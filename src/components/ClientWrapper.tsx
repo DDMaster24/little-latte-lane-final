@@ -7,6 +7,7 @@ import { Toaster } from 'react-hot-toast';
 import { VisualEditorWrapper } from '@/components/VisualEditorWrapper';
 import Header from '@/components/Header';
 import FooterSection from '@/components/FooterSection';
+import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 
 export function ClientWrapper({ children }: { children: ReactNode }) {
   const [isOnline, setIsOnline] = useState(true);
@@ -79,6 +80,9 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
           <FooterSection />
         </>
       )}
+      
+      {/* PWA Install Prompt - shows when triggered */}
+      <PWAInstallPrompt source="auto" />
       
       <Toaster
         position="top-right"
