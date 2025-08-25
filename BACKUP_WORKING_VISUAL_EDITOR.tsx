@@ -1,9 +1,11 @@
+// 🔒 BACKUP OF WORKING VISUAL EDITOR - DO NOT DELETE!
+// Date: August 25, 2025
+// Status: PERFECT FOUNDATION - Toolbar + Highlighting + Selection working
+// If InlineVisualEditor.tsx ever gets corrupted, restore from this file!
+
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useAuth } from '@/components/AuthProvider';
-import { visualEditorDB, type VisualChange } from '@/lib/visual-editor-db';
-import { toast } from 'sonner';
 
 // CSS for visual editor hover effects and Photoshop-style interface
 const visualEditorStyles = `
@@ -80,14 +82,11 @@ const visualEditorStyles = `
 `;
 
 interface ElementChange {
-  id?: string;
   element: HTMLElement;
   property: string;
   oldValue: string;
   newValue: string;
   timestamp: number;
-  changeType: 'style' | 'content' | 'attribute';
-  saved?: boolean;
 }
 
 interface InlineVisualEditorProps {
@@ -104,31 +103,15 @@ interface ListenerStore {
   click: (e: Event) => void;
 }
 
-interface EditorState {
-  isDraftMode: boolean;
-  hasUnsavedChanges: boolean;
-  isAutoSaveEnabled: boolean;
-  lastSaved?: Date;
-}
-
 const InlineVisualEditor: React.FC<InlineVisualEditorProps> = ({
   children,
   isEnabled,
   onClose
 }) => {
-  const { user, profile } = useAuth();
   const [activeTool, setActiveTool] = useState<ToolType>('cursor');
   const [selectedElement, setSelectedElement] = useState<HTMLElement | null>(null);
   const [isTextEditing, setIsTextEditing] = useState(false);
   const [changeHistory, setChangeHistory] = useState<ElementChange[]>([]);
-  const [editorState, setEditorState] = useState<EditorState>({
-    isDraftMode: true,
-    hasUnsavedChanges: false,
-    isAutoSaveEnabled: true,
-    lastSaved: undefined
-  });
-  const [undoStack, setUndoStack] = useState<ElementChange[]>([]);
-  const [redoStack, setRedoStack] = useState<ElementChange[]>([]);
   const editorRef = useRef<HTMLDivElement>(null);
 
   // Add styles to document
@@ -283,235 +266,25 @@ const InlineVisualEditor: React.FC<InlineVisualEditorProps> = ({
     }
   }, [isEnabled, addElementIndicators, removeElementIndicators]);
 
-  const applyStyle = useCallback(async (property: string, value: string, changeType: 'style' | 'content' | 'attribute' = 'style') => {
-    if (!selectedElement || !profile) return;
+  const applyStyle = (property: string, value: string) => {
+    if (!selectedElement) return;
 
     const oldValue = selectedElement.style.getPropertyValue(property) || 
                      window.getComputedStyle(selectedElement).getPropertyValue(property);
 
     selectedElement.style.setProperty(property, value);
 
-    // Create change record
+    // Record change
     const change: ElementChange = {
       element: selectedElement,
       property,
       oldValue,
       newValue: value,
-      timestamp: Date.now(),
-      changeType,
-      saved: false
+      timestamp: Date.now()
     };
 
-    // Update change history and undo stack
     setChangeHistory(prev => [...prev, change]);
-    setUndoStack(prev => [...prev, change]);
-    setRedoStack([]); // Clear redo stack when new change is made
-
-    // Auto-save if enabled
-    if (editorState.isAutoSaveEnabled) {
-      try {
-        const savedChange = await visualEditorDB.saveChange(
-          selectedElement,
-          property,
-          value,
-          oldValue,
-          changeType,
-          window.location.pathname,
-          profile.id,
-          editorState.isDraftMode
-        );
-
-        if (savedChange) {
-          change.saved = true;
-          change.id = savedChange.id;
-          toast.success('Change saved automatically');
-          setEditorState(prev => ({ ...prev, lastSaved: new Date() }));
-        } else {
-          toast.error('Failed to save change');
-        }
-      } catch (error) {
-        console.error('Auto-save failed:', error);
-        toast.error('Auto-save failed');
-      }
-    } else {
-      setEditorState(prev => ({ ...prev, hasUnsavedChanges: true }));
-    }
-  }, [selectedElement, profile, editorState]);
-
-  // Undo functionality
-  const undoLastChange = useCallback(() => {
-    if (undoStack.length === 0) return;
-
-    const lastChange = undoStack[undoStack.length - 1];
-    
-    // Revert the change on the element
-    if (lastChange.changeType === 'style') {
-      lastChange.element.style.setProperty(lastChange.property, lastChange.oldValue);
-    } else if (lastChange.changeType === 'content') {
-      if (lastChange.property === 'textContent') {
-        lastChange.element.textContent = lastChange.oldValue;
-      }
-    }
-
-    // Move to redo stack
-    setRedoStack(prev => [...prev, lastChange]);
-    setUndoStack(prev => prev.slice(0, -1));
-    
-    toast.success('Change undone');
-  }, [undoStack]);
-
-  // Redo functionality
-  const redoLastChange = useCallback(() => {
-    if (redoStack.length === 0) return;
-
-    const lastUndo = redoStack[redoStack.length - 1];
-    
-    // Reapply the change
-    if (lastUndo.changeType === 'style') {
-      lastUndo.element.style.setProperty(lastUndo.property, lastUndo.newValue);
-    } else if (lastUndo.changeType === 'content') {
-      if (lastUndo.property === 'textContent') {
-        lastUndo.element.textContent = lastUndo.newValue;
-      }
-    }
-
-    // Move back to undo stack
-    setUndoStack(prev => [...prev, lastUndo]);
-    setRedoStack(prev => prev.slice(0, -1));
-    
-    toast.success('Change redone');
-  }, [redoStack]);
-
-  // Save all changes manually
-  const saveAllChanges = useCallback(async () => {
-    if (!profile) return;
-
-    const unsavedChanges = changeHistory.filter(change => !change.saved);
-    if (unsavedChanges.length === 0) {
-      toast.info('No unsaved changes');
-      return;
-    }
-
-    let savedCount = 0;
-    for (const change of unsavedChanges) {
-      try {
-        const savedChange = await visualEditorDB.saveChange(
-          change.element,
-          change.property,
-          change.newValue,
-          change.oldValue,
-          change.changeType,
-          window.location.pathname,
-          profile.id,
-          editorState.isDraftMode
-        );
-
-        if (savedChange) {
-          change.saved = true;
-          change.id = savedChange.id;
-          savedCount++;
-        }
-      } catch (error) {
-        console.error('Failed to save change:', error);
-      }
-    }
-
-    if (savedCount > 0) {
-      toast.success(`Saved ${savedCount} changes`);
-      setEditorState(prev => ({ 
-        ...prev, 
-        hasUnsavedChanges: false,
-        lastSaved: new Date()
-      }));
-    } else {
-      toast.error('Failed to save changes');
-    }
-  }, [changeHistory, profile, editorState.isDraftMode]);
-
-  // Load and apply changes from database
-  const loadPageChanges = useCallback(async () => {
-    if (!profile) return;
-
-    try {
-      const changes = await visualEditorDB.loadPageChanges(
-        window.location.pathname,
-        !editorState.isDraftMode // Load published only if not in draft mode
-      );
-
-      const appliedCount = await visualEditorDB.applyChangesToPage(changes);
-      
-      if (appliedCount > 0) {
-        toast.success(`Applied ${appliedCount} saved changes`);
-      }
-    } catch (error) {
-      console.error('Failed to load changes:', error);
-      toast.error('Failed to load changes');
-    }
-  }, [profile, editorState.isDraftMode]);
-
-  // Publish draft changes
-  const publishChanges = useCallback(async () => {
-    if (!profile || !editorState.isDraftMode) return;
-
-    try {
-      const success = await visualEditorDB.publishChanges(
-        window.location.pathname,
-        profile.id
-      );
-
-      if (success) {
-        toast.success('Changes published successfully!');
-        setEditorState(prev => ({ 
-          ...prev, 
-          isDraftMode: false,
-          hasUnsavedChanges: false
-        }));
-      } else {
-        toast.error('Failed to publish changes');
-      }
-    } catch (error) {
-      console.error('Failed to publish changes:', error);
-      toast.error('Failed to publish changes');
-    }
-  }, [profile, editorState.isDraftMode]);
-
-  // Revert to published version
-  const revertToPublished = useCallback(async () => {
-    if (!profile) return;
-
-    try {
-      const success = await visualEditorDB.revertToPublished(
-        window.location.pathname,
-        profile.id
-      );
-
-      if (success) {
-        toast.success('Reverted to published version');
-        setChangeHistory([]);
-        setUndoStack([]);
-        setRedoStack([]);
-        setEditorState(prev => ({ 
-          ...prev, 
-          hasUnsavedChanges: false
-        }));
-        
-        // Reload the page to show published changes
-        window.location.reload();
-      } else {
-        toast.error('Failed to revert changes');
-      }
-    } catch (error) {
-      console.error('Failed to revert changes:', error);
-      toast.error('Failed to revert changes');
-    }
-  }, [profile]);
-
-  // Load changes when editor is enabled
-  useEffect(() => {
-    if (isEnabled && profile) {
-      loadPageChanges();
-    }
-  }, [isEnabled, profile, loadPageChanges]);
+  };
 
   const getToolName = (tool: ToolType): string => {
     switch (tool) {
@@ -799,91 +572,22 @@ const InlineVisualEditor: React.FC<InlineVisualEditorProps> = ({
             <div className="text-xs text-gray-400">
               Hover elements to highlight
             </div>
-            
-            {/* Undo/Redo Controls */}
-            <button
-              onClick={undoLastChange}
-              disabled={undoStack.length === 0}
-              className="px-3 py-1 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded text-xs transition-colors"
-              title="Undo last change"
-            >
-              ↶ Undo
-            </button>
-            <button
-              onClick={redoLastChange}
-              disabled={redoStack.length === 0}
-              className="px-3 py-1 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded text-xs transition-colors"
-              title="Redo last change"
-            >
-              ↷ Redo
-            </button>
-
-            {/* Save Controls */}
-            <div className="w-px h-4 bg-gray-600"></div>
-            
             <button
               onClick={() => addElementIndicators()}
               className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs transition-colors"
             >
-              🔄 Refresh
+              Refresh
             </button>
-            
             <button
-              onClick={() => setEditorState(prev => ({ ...prev, isAutoSaveEnabled: !prev.isAutoSaveEnabled }))}
-              className={`px-3 py-1 rounded text-xs transition-colors ${
-                editorState.isAutoSaveEnabled 
-                  ? 'bg-green-600 hover:bg-green-700 text-white' 
-                  : 'bg-gray-700 hover:bg-gray-600 text-white'
-              }`}
-              title="Toggle auto-save"
+              onClick={() => setChangeHistory([])}
+              disabled={changeHistory.length === 0}
+              className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded text-xs transition-colors"
             >
-              {editorState.isAutoSaveEnabled ? '💾 Auto-Save: ON' : '💾 Auto-Save: OFF'}
+              Clear Changes ({changeHistory.length})
             </button>
-
-            <button
-              onClick={saveAllChanges}
-              disabled={changeHistory.filter(c => !c.saved).length === 0}
-              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded text-xs transition-colors"
-            >
-              💾 Save All ({changeHistory.filter(c => !c.saved).length})
+            <button className="px-3 py-1 bg-neonCyan hover:bg-cyan-400 text-black rounded text-xs font-medium transition-colors">
+              Save All
             </button>
-
-            {/* Publishing Controls */}
-            <div className="w-px h-4 bg-gray-600"></div>
-            
-            <div className="flex items-center space-x-1">
-              <span className={`px-2 py-1 rounded text-xs font-medium ${
-                editorState.isDraftMode 
-                  ? 'bg-yellow-600 text-white' 
-                  : 'bg-green-600 text-white'
-              }`}>
-                {editorState.isDraftMode ? '📝 DRAFT' : '✅ LIVE'}
-              </span>
-            </div>
-
-            {editorState.isDraftMode && (
-              <button
-                onClick={publishChanges}
-                className="px-3 py-1 bg-neonCyan hover:bg-cyan-400 text-black rounded text-xs font-medium transition-colors"
-              >
-                🚀 Publish Changes
-              </button>
-            )}
-
-            <button
-              onClick={revertToPublished}
-              className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs transition-colors"
-              title="Revert all changes to last published version"
-            >
-              ↩️ Revert to Published
-            </button>
-
-            {/* Status Info */}
-            {editorState.lastSaved && (
-              <div className="text-xs text-gray-400">
-                Last saved: {editorState.lastSaved.toLocaleTimeString()}
-              </div>
-            )}
           </div>
         </div>
 
@@ -926,32 +630,6 @@ const InlineVisualEditor: React.FC<InlineVisualEditorProps> = ({
                   </div>
                 </>
               )}
-
-              {/* Save Status */}
-              <div className="w-px h-6 bg-gray-600"></div>
-              <div className="flex items-center space-x-1">
-                {editorState.hasUnsavedChanges ? (
-                  <>
-                    <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></span>
-                    <span className="text-red-400 text-sm">Unsaved</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                    <span className="text-green-400 text-sm">Saved</span>
-                  </>
-                )}
-              </div>
-
-              {/* Draft/Live Status */}
-              <div className="w-px h-6 bg-gray-600"></div>
-              <div className="text-sm">
-                {editorState.isDraftMode ? (
-                  <span className="text-yellow-400">📝 Draft Mode</span>
-                ) : (
-                  <span className="text-green-400">✅ Live Mode</span>
-                )}
-              </div>
             </div>
           </div>
         </div>
