@@ -11,7 +11,7 @@ interface QRCodeGeneratorProps {
 }
 
 export default function QRCodeGenerator({ 
-  url = 'https://little-latte-lane.vercel.app', 
+  url = 'https://littlelattelane.co.za', 
   size = 256,
   className = ''
 }: QRCodeGeneratorProps) {

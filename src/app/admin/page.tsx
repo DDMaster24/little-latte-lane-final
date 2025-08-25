@@ -75,7 +75,7 @@ export default function AdminPage() {
             </div>
             <div className="grid md:grid-cols-2 gap-6">
               <QRCodeGenerator 
-                url="https://little-latte-lane.vercel.app" 
+                url="https://littlelattelane.co.za" 
                 size={300}
                 className="md:col-span-2"
               />
