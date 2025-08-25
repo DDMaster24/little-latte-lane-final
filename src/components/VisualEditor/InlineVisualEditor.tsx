@@ -99,8 +99,8 @@ interface InlineVisualEditorProps {
 type ToolType = 'cursor' | 'text' | 'color' | 'typography' | 'spacing';
 
 interface ListenerStore {
-  mouseenter: () => void;
-  mouseleave: () => void;
+  mouseenter: (e: Event) => void;
+  mouseleave: (e: Event) => void;
   click: (e: Event) => void;
 }
 
@@ -201,150 +201,226 @@ const InlineVisualEditor: React.FC<InlineVisualEditorProps> = ({
     window.getSelection()?.removeAllRanges();
   }, [selectedElement, isTextEditing]);
 
-  // Enhanced element scanning with better filtering and debugging
-  const addElementIndicators = useCallback(() => {
-    if (!isEnabled || !editorRef.current) {
-      console.log('❌ Visual Editor: Not enabled or no editor ref');
-      return;
-    }
-
-    console.log('🔍 Visual Editor: Scanning for elements...');
-    
-    // Get ALL elements from the editor ref (which should be the whole page)
-    const allElements = editorRef.current.querySelectorAll('*');
-    console.log(`Found ${allElements.length} total elements`);
-    
-    // Filter for valid editable elements
-    const validElements = Array.from(allElements).filter((element) => {
-      const htmlElement = element as HTMLElement;
-      
-      // Skip if already has visual editor listeners
-      if ((htmlElement as HTMLElement & { _visualEditorListeners?: ListenerStore })._visualEditorListeners) {
-        return false;
-      }
-      
-      // Exclude visual editor UI components
-      if (htmlElement.classList.contains('visual-editor-toolbar') || 
-          htmlElement.classList.contains('visual-editor-tool') ||
-          htmlElement.classList.contains('visual-editor-close') ||
-          htmlElement.closest('.visual-editor-toolbar') ||
-          htmlElement.closest('[class*="visual-editor"]')) {
-        return false;
-      }
-      
-      // Only include content elements that are visible
-      const tagName = htmlElement.tagName.toLowerCase();
-      const validTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'div', 'a', 'li', 'td', 'th', 'label', 'button', 'section', 'article', 'main', 'header', 'footer', 'nav', 'aside'];
-      
-      const isValidTag = validTags.includes(tagName);
-      const isVisible = htmlElement.offsetWidth > 0 && htmlElement.offsetHeight > 0;
-      const hasContent = htmlElement.textContent?.trim()?.length && htmlElement.textContent.trim().length > 0;
-      
-      return isValidTag && isVisible && hasContent;
-    });
-
-    console.log(`✅ Found ${validElements.length} valid editable elements`);
-
-    // Add event listeners to valid elements
-    let addedCount = 0;
-    validElements.forEach((element) => {
-      const htmlElement = element as HTMLElement;
-      
-      const handleMouseEnter = () => {
-        if (!isTextEditing && activeTool !== 'cursor') {
-          htmlElement.classList.add('visual-editor-hover');
-          console.log('🎯 Hovering:', htmlElement.tagName, htmlElement.textContent?.slice(0, 30));
-        }
-      };
-
-      const handleMouseLeave = () => {
-        htmlElement.classList.remove('visual-editor-hover');
-      };
-
-      const handleClick = (e: Event) => {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        console.log('🖱️ Clicked element:', htmlElement.tagName, htmlElement.textContent?.slice(0, 30));
-        
-        // Clear any existing selection first (SINGLE SELECTION)
-        if (selectedElement && selectedElement !== htmlElement) {
-          selectedElement.classList.remove('visual-editor-selected', 'visual-editor-editing');
-          if (isTextEditing) {
-            stopTextEditing();
-          }
-        }
-        
-        selectElement(htmlElement);
-        
-        // Auto-switch to text tool if clicking on text element
-        if (activeTool === 'cursor' || activeTool === 'text') {
-          setActiveTool('text');
-          if (activeTool === 'text') {
-            startTextEditing();
-          }
-        }
-      };
-
-      try {
-        htmlElement.addEventListener('mouseenter', handleMouseEnter);
-        htmlElement.addEventListener('mouseleave', handleMouseLeave);
-        htmlElement.addEventListener('click', handleClick);
-
-        // Store event listeners for cleanup
-        (htmlElement as HTMLElement & { _visualEditorListeners?: ListenerStore })._visualEditorListeners = {
-          mouseenter: handleMouseEnter,
-          mouseleave: handleMouseLeave,
-          click: handleClick
-        };
-        
-        addedCount++;
-      } catch (error) {
-        console.warn('Failed to add listeners to element:', htmlElement, error);
-      }
-    });
-
-    console.log(`✅ Visual Editor: Added listeners to ${addedCount} elements`);
-    
-    // Show a temporary indicator that scanning is complete
-    if (addedCount > 0) {
-      const indicator = document.createElement('div');
-      indicator.textContent = `🎯 ${addedCount} elements ready for editing`;
-      indicator.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: linear-gradient(45deg, #00ffff, #0099cc);
-        color: black;
-        padding: 10px 15px;
-        border-radius: 8px;
-        font-weight: bold;
-        z-index: 10000;
-        box-shadow: 0 4px 15px rgba(0, 255, 255, 0.5);
-      `;
-      document.body.appendChild(indicator);
-      setTimeout(() => indicator.remove(), 3000);
-    }
-  }, [isEnabled, isTextEditing, selectedElement, activeTool, selectElement, startTextEditing, stopTextEditing]);
-
   const removeElementIndicators = useCallback(() => {
     if (!editorRef.current) return;
 
+    console.log('🧹 Cleaning up visual editor listeners...');
+    
     const elements = editorRef.current.querySelectorAll('*');
     elements.forEach((element) => {
       const htmlElement = element as HTMLElement & { _visualEditorListeners?: ListenerStore };
       const listeners = htmlElement._visualEditorListeners;
       
       if (listeners) {
-        htmlElement.removeEventListener('mouseenter', listeners.mouseenter);
-        htmlElement.removeEventListener('mouseleave', listeners.mouseleave);
-        htmlElement.removeEventListener('click', listeners.click);
+        htmlElement.removeEventListener('mouseenter', listeners.mouseenter, { capture: true });
+        htmlElement.removeEventListener('mouseleave', listeners.mouseleave, { capture: true });
+        htmlElement.removeEventListener('click', listeners.click, { capture: true });
         delete htmlElement._visualEditorListeners;
       }
       
+      // Clean all visual editor classes
       htmlElement.classList.remove('visual-editor-hover', 'visual-editor-selected', 'visual-editor-editing');
+      
+      // Remove contenteditable if set
+      if (htmlElement.hasAttribute('contenteditable')) {
+        htmlElement.removeAttribute('contenteditable');
+      }
     });
+    
+    console.log('✅ Cleanup completed');
   }, []);
+
+  // BULLETPROOF Element Scanner - Simplified and guaranteed to work
+  const addElementIndicators = useCallback(() => {
+    if (!isEnabled || !editorRef.current) {
+      console.log('❌ Visual Editor: Not enabled or no editor ref');
+      return;
+    }
+
+    console.log('🔍 Visual Editor: Starting bulletproof scan...');
+    
+    // Clear any existing listeners first
+    removeElementIndicators();
+    
+    // Get ALL text-containing elements - but be more selective for better targeting
+    const allElements = editorRef.current.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span:not(.visual-editor-tool), div:not(.visual-editor-toolbar):not(.visual-editor-overlay), a, button:not(.visual-editor-tool):not(.visual-editor-close)');
+    console.log(`🔍 Found ${allElements.length} potential elements`);
+    
+    let validCount = 0;
+    
+    Array.from(allElements).forEach((element) => {
+      const htmlElement = element as HTMLElement;
+      
+      // Skip if it's part of our visual editor UI
+      if (htmlElement.closest('.visual-editor-toolbar') || 
+          htmlElement.closest('.visual-editor-sidebar') ||
+          htmlElement.closest('[data-visual-editor="true"]') ||
+          htmlElement.classList.contains('visual-editor-tool') ||
+          htmlElement.classList.contains('visual-editor-close') ||
+          htmlElement.hasAttribute('data-visual-editor-ignore')) {
+        console.log(`⏭️ Skipping UI element: ${htmlElement.tagName}`);
+        return;
+      }
+      
+      // Must have direct text content (not just from children)
+      const text = htmlElement.textContent?.trim();
+      const directText = htmlElement.childNodes[0]?.nodeType === Node.TEXT_NODE ? 
+                        htmlElement.childNodes[0].textContent?.trim() : '';
+      
+      if (!text || text.length === 0) {
+        console.log(`⏭️ Skipping empty element: ${htmlElement.tagName}`);
+        return;
+      }
+      
+      // Prefer elements with direct text content
+      if (!directText && text.length < 5) {
+        console.log(`⏭️ Skipping element with minimal text: ${htmlElement.tagName}`);
+        return;
+      }
+      
+      // Must be visible
+      if (htmlElement.offsetWidth === 0 || htmlElement.offsetHeight === 0) {
+        console.log(`⏭️ Skipping hidden element: ${htmlElement.tagName}`);
+        return;
+      }
+      
+      console.log(`✅ Adding listeners to: ${htmlElement.tagName} - "${text.substring(0, 30)}..."`);
+      
+      const handleMouseEnter = (e: Event) => {
+        e.preventDefault();
+        e.stopPropagation(); // Stop event bubbling
+        
+        // Remove hover from any other elements
+        const currentHovered = document.querySelectorAll('.visual-editor-hover');
+        currentHovered.forEach(el => el.classList.remove('visual-editor-hover'));
+        
+        if (!isTextEditing && htmlElement !== selectedElement) {
+          htmlElement.classList.add('visual-editor-hover');
+          console.log(`👆 Hovering: ${htmlElement.tagName} - "${text.substring(0, 20)}..."`);
+        }
+      };
+
+      const handleMouseLeave = (e: Event) => {
+        e.preventDefault();
+        e.stopPropagation(); // Stop event bubbling
+        htmlElement.classList.remove('visual-editor-hover');
+      };
+
+      const handleClick = (e: Event) => {
+        e.preventDefault();
+        e.stopPropagation(); // Stop event bubbling to prevent multiple selections
+        
+        console.log(`🖱️ CLICKED: ${htmlElement.tagName} - "${text.substring(0, 30)}..."`);
+        
+        // Clear all hover states
+        const allHovered = document.querySelectorAll('.visual-editor-hover');
+        allHovered.forEach(el => el.classList.remove('visual-editor-hover'));
+        
+        // Clear previous selection
+        const allSelected = document.querySelectorAll('.visual-editor-selected, .visual-editor-editing');
+        allSelected.forEach(el => {
+          el.classList.remove('visual-editor-selected', 'visual-editor-editing');
+          if (el.hasAttribute('contenteditable')) {
+            el.removeAttribute('contenteditable');
+          }
+        });
+        
+        // Stop any existing text editing
+        if (isTextEditing) {
+          setIsTextEditing(false);
+        }
+        
+        // Select this element
+        setSelectedElement(htmlElement);
+        htmlElement.classList.add('visual-editor-selected');
+        
+        console.log(`✅ Element selected: ${htmlElement.tagName}`);
+      };
+
+      // Add event listeners with capture to prevent bubbling issues
+      htmlElement.addEventListener('mouseenter', handleMouseEnter, { capture: true, passive: false });
+      htmlElement.addEventListener('mouseleave', handleMouseLeave, { capture: true, passive: false });
+      htmlElement.addEventListener('click', handleClick, { capture: true, passive: false });
+      
+      // Store for cleanup
+      (htmlElement as HTMLElement & { _visualEditorListeners?: ListenerStore })._visualEditorListeners = {
+        mouseenter: handleMouseEnter,
+        mouseleave: handleMouseLeave,
+        click: handleClick
+      };
+      
+      validCount++;
+    });
+
+    console.log(`🎯 SUCCESS: Added listeners to ${validCount} elements`);
+    
+    // Show success message
+    if (validCount > 0) {
+      console.log(`🎉 Visual Editor Ready! ${validCount} elements can be edited`);
+      
+      // Show temporary success indicator
+      const notification = document.createElement('div');
+      notification.innerHTML = `🎯 ${validCount} elements ready for editing!<br><small>Hover over text to highlight • Click to select</small>`;
+      notification.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background: linear-gradient(45deg, #00ffff, #0099cc);
+        color: black;
+        padding: 15px 20px;
+        border-radius: 10px;
+        font-weight: bold;
+        z-index: 10000;
+        box-shadow: 0 4px 15px rgba(0, 255, 255, 0.7);
+        border: 2px solid #00ffff;
+        animation: slideIn 0.3s ease-out;
+        max-width: 300px;
+        text-align: center;
+      `;
+      
+      // Add animation
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes slideIn {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+      `;
+      document.head.appendChild(style);
+      
+      document.body.appendChild(notification);
+      setTimeout(() => {
+        notification.remove();
+        style.remove();
+      }, 5000);
+    } else {
+      console.log('❌ No valid elements found');
+      
+      // Show no elements message
+      const notification = document.createElement('div');
+      notification.innerHTML = `⚠️ No editable elements found<br><small>Make sure you're on a content page</small>`;
+      notification.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        font-weight: bold;
+        z-index: 10000;
+        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.7);
+        border: 2px solid #ff6b6b;
+        max-width: 300px;
+        text-align: center;
+      `;
+      
+      document.body.appendChild(notification);
+      setTimeout(() => {
+        notification.remove();
+      }, 4000);
+    }
+  }, [isEnabled, isTextEditing, selectedElement, removeElementIndicators]);
 
   useEffect(() => {
     if (isEnabled) {

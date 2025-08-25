@@ -5,12 +5,11 @@ import BookingsSection from '@/components/BookingsSection';
 import { Suspense } from 'react';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { CategorySkeleton, LoadingSpinner } from '@/components/LoadingComponents';
-import { VisualEditorWrapper } from '@/components/VisualEditorWrapper';
 import VisualContentLoader from '@/components/VisualContentLoader';
 
 export default function Home() {
   return (
-    <VisualEditorWrapper>
+    <>
       <VisualContentLoader pageScope="homepage" />
       <main className="min-h-screen animate-fade-in">
         <ErrorBoundary>
@@ -80,6 +79,6 @@ export default function Home() {
           </ErrorBoundary>
         </div>
       </main>
-    </VisualEditorWrapper>
+    </>
   );
 }
