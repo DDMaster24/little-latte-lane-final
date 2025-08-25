@@ -9,6 +9,13 @@ import {
   ChevronRight, ArrowUp, ArrowDown
 } from 'lucide-react';
 
+// Import server actions for live data
+import { 
+  getAdminDashboardStats,
+  getAdminPopularItems,
+  getAdminRecentActivity
+} from '@/app/actions';
+
 interface OverviewStats {
   totalRevenue: number;
   totalOrders: number;
@@ -35,49 +42,84 @@ export default function AdminOverview() {
   });
   
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // TODO: Replace with actual API calls to fetch real data
-    const fetchStats = async () => {
+    const fetchLiveData = async () => {
       try {
-        // Simulated data - replace with actual Supabase queries
-        setTimeout(() => {
-          setStats({
-            totalRevenue: 145720.50,
-            totalOrders: 1847,
-            activeUsers: 392,
-            pendingOrders: 12,
-            averageOrderValue: 78.95,
-            todayRevenue: 2840.75,
-            todayOrders: 23,
-            popularItems: [
-              { name: "Margherita Pizza", orders: 156 },
-              { name: "Chicken Alfredo", orders: 134 },
-              { name: "Caesar Salad", orders: 98 },
-              { name: "Beef Burger", orders: 87 }
-            ],
-            recentActivity: [
-              { time: "2 mins ago", action: "New order #LL1089 - R285.50", type: "order" },
-              { time: "5 mins ago", action: "Payment completed for order #LL1088", type: "payment" },
-              { time: "8 mins ago", action: "New user registration: john@example.com", type: "user" },
-              { time: "12 mins ago", action: "Order #LL1087 marked as completed", type: "order" },
-              { time: "15 mins ago", action: "Payment failed for order #LL1086", type: "payment" }
-            ]
-          });
-          setLoading(false);
-        }, 1000);
+        setLoading(true);
+        setError(null);
+
+        // Fetch dashboard stats
+        const statsResult = await getAdminDashboardStats();
+        if (!statsResult.success) {
+          throw new Error(statsResult.error || 'Failed to fetch dashboard stats');
+        }
+
+        // Fetch popular items
+        const popularResult = await getAdminPopularItems();
+        if (!popularResult.success) {
+          throw new Error(popularResult.error || 'Failed to fetch popular items');
+        }
+
+        // Fetch recent activity
+        const activityResult = await getAdminRecentActivity();
+        if (!activityResult.success) {
+          throw new Error(activityResult.error || 'Failed to fetch recent activity');
+        }
+
+        // Combine all data
+        setStats({
+          totalRevenue: statsResult.data?.totalRevenue || 0,
+          totalOrders: statsResult.data?.totalOrders || 0,
+          activeUsers: statsResult.data?.activeUsers || 0,
+          pendingOrders: statsResult.data?.pendingOrders || 0,
+          averageOrderValue: statsResult.data?.averageOrderValue || 0,
+          todayRevenue: statsResult.data?.todayRevenue || 0,
+          todayOrders: statsResult.data?.todayOrders || 0,
+          popularItems: popularResult.data || [],
+          recentActivity: activityResult.data || []
+        });
+
+        console.log('✅ Admin Overview: Live data loaded successfully');
       } catch (error) {
-        console.error('Error fetching stats:', error);
+        console.error('❌ Admin Overview: Error loading live data:', error);
+        setError(error instanceof Error ? error.message : 'Unknown error');
+        
+        // Fallback to minimal default data on error
+        setStats({
+          totalRevenue: 0,
+          totalOrders: 0,
+          activeUsers: 0,
+          pendingOrders: 0,
+          averageOrderValue: 0,
+          todayRevenue: 0,
+          todayOrders: 0,
+          popularItems: [],
+          recentActivity: []
+        });
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchStats();
+    fetchLiveData();
   }, []);
 
   if (loading) {
     return (
       <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold text-white mb-2">Dashboard Overview</h2>
+            <p className="text-gray-400">Loading live data from database...</p>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+            <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+            <span className="text-yellow-400 text-sm font-medium">LOADING DATA</span>
+          </div>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
             <Card key={i} className="bg-gray-800/50 border-gray-700/50 animate-pulse">
@@ -88,6 +130,23 @@ export default function AdminOverview() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold text-white mb-2">Dashboard Overview</h2>
+            <p className="text-red-400">Error loading live data: {error}</p>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-lg">
+            <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+            <span className="text-red-400 text-sm font-medium">DATA ERROR</span>
+          </div>
         </div>
       </div>
     );

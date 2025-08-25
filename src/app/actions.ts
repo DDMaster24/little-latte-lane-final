@@ -1,9 +1,48 @@
 'use server'; // Marks as server actions
 
 import { getSupabaseAdmin } from '@/lib/supabase-server'; // Use server client with service key
-import type { Database } from '@/types/supabase';
 
-type ProfileRow = Database['public']['Tables']['profiles']['Row'];
+// Define types for better type safety
+interface ActivityItem {
+  time: string;
+  action: string;
+  type: 'order' | 'payment' | 'user';
+}
+
+interface PopularItem {
+  name: string;
+  orders: number;
+}
+
+interface DashboardStats {
+  totalRevenue: number;
+  totalOrders: number;
+  activeUsers: number;
+  pendingOrders: number;
+  averageOrderValue: number;
+  todayRevenue: number;
+  todayOrders: number;
+}
+
+interface OrderItem {
+  menu_items?: {
+    name?: string;
+  } | null;
+  quantity?: number;
+  price?: number;
+}
+
+interface ProfileRow {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  is_admin: boolean | null;
+  is_staff: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
 
 export async function checkEmailExists(email: string): Promise<boolean> {
   const trimmedEmail = email.trim().toLowerCase();
@@ -544,6 +583,255 @@ export async function updateOrderStatus(orderId: string, status: string) {
 // ADMIN PANEL SERVER ACTIONS
 // ============================================
 
+export async function getAdminDashboardStats() {
+  try {
+    const supabase = getSupabaseAdmin();
+    
+    // Get today's date range for today-specific stats
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+    
+    // Get all paid orders for total stats
+    const { data: allOrders, error: ordersError } = await supabase
+      .from('orders')
+      .select('id, total_amount, status, created_at')
+      .eq('payment_status', 'paid');
+
+    if (ordersError) {
+      console.error('❌ Admin: Error fetching orders for stats:', ordersError);
+      return { success: false, error: ordersError.message };
+    }
+
+    // Get today's orders
+    const { data: todayOrders, error: todayError } = await supabase
+      .from('orders')
+      .select('id, total_amount')
+      .eq('payment_status', 'paid')
+      .gte('created_at', startOfDay)
+      .lt('created_at', endOfDay);
+
+    if (todayError) {
+      console.error('❌ Admin: Error fetching today orders:', todayError);
+      return { success: false, error: todayError.message };
+    }
+
+    // Get active users count (users who have placed orders)
+    const { count: activeUsers, error: usersError } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true });
+
+    if (usersError) {
+      console.error('❌ Admin: Error fetching users count:', usersError);
+    }
+
+    // Get pending orders
+    const { count: pendingOrders, error: pendingError } = await supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .in('status', ['pending', 'confirmed'])
+      .eq('payment_status', 'paid');
+
+    if (pendingError) {
+      console.error('❌ Admin: Error fetching pending orders:', pendingError);
+    }
+
+    // Calculate stats
+    const totalOrders = allOrders?.length || 0;
+    const totalRevenue = allOrders?.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0) || 0;
+    const todayOrdersCount = todayOrders?.length || 0;
+    const todayRevenue = todayOrders?.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0) || 0;
+    const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+    const stats = {
+      totalRevenue,
+      totalOrders,
+      activeUsers: activeUsers || 0,
+      pendingOrders: pendingOrders || 0,
+      averageOrderValue,
+      todayRevenue,
+      todayOrders: todayOrdersCount,
+    };
+
+    console.log('✅ Admin: Fetched dashboard stats:', stats);
+    return { success: true, data: stats };
+  } catch (error) {
+    console.error('💥 Admin: Unexpected error fetching dashboard stats:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+export async function getAdminPopularItems() {
+  try {
+    const supabase = getSupabaseAdmin();
+    
+    const { data, error } = await supabase
+      .from('order_items')
+      .select(`
+        quantity,
+        menu_items (
+          name
+        )
+      `)
+      .limit(1000); // Reasonable limit for aggregation
+
+    if (error) {
+      console.error('❌ Admin: Error fetching popular items:', error);
+      return { success: false, error: error.message, data: [] };
+    }
+
+    // Aggregate popular items
+    const itemCounts: Record<string, number> = {};
+    data?.forEach(item => {
+      const name = item.menu_items?.name || 'Unknown Item';
+      itemCounts[name] = (itemCounts[name] || 0) + (item.quantity || 0);
+    });
+
+    const popularItems = Object.entries(itemCounts)
+      .map(([name, orders]) => ({ name, orders }))
+      .sort((a, b) => b.orders - a.orders)
+      .slice(0, 4);
+
+    console.log('✅ Admin: Fetched popular items:', popularItems);
+    return { success: true, data: popularItems };
+  } catch (error) {
+    console.error('💥 Admin: Unexpected error fetching popular items:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      data: [] 
+    };
+  }
+}
+
+export async function getAdminRecentActivity() {
+  try {
+    const supabase = getSupabaseAdmin();
+    
+    // Get recent orders
+    const { data: recentOrders, error: ordersError } = await supabase
+      .from('orders')
+      .select(`
+        id,
+        order_number,
+        status,
+        total_amount,
+        payment_status,
+        created_at,
+        updated_at,
+        profiles (
+          full_name,
+          email
+        )
+      `)
+      .order('updated_at', { ascending: false })
+      .limit(10);
+
+    if (ordersError) {
+      console.error('❌ Admin: Error fetching recent orders:', ordersError);
+      return { success: false, error: ordersError.message, data: [] };
+    }
+
+    // Get recent user registrations
+    const { data: recentUsers, error: usersError } = await supabase
+      .from('profiles')
+      .select('email, full_name, created_at')
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (usersError) {
+      console.error('❌ Admin: Error fetching recent users:', usersError);
+    }
+
+    // Combine and format activity
+    const activities: ActivityItem[] = [];
+
+    // Add order activities
+    recentOrders?.forEach(order => {
+      const dateString = order.updated_at || order.created_at;
+      if (!dateString) return;
+      
+      const timeAgo = getTimeAgo(new Date(dateString));
+      
+      if (order.payment_status === 'paid' && order.status === 'confirmed') {
+        activities.push({
+          time: timeAgo,
+          action: `New order ${order.order_number || order.id.slice(0, 8)} - R${Number(order.total_amount || 0).toFixed(2)}`,
+          type: 'order' as const
+        });
+      } else if (order.status === 'completed') {
+        activities.push({
+          time: timeAgo,
+          action: `Order ${order.order_number || order.id.slice(0, 8)} completed`,
+          type: 'order' as const
+        });
+      } else if (order.payment_status === 'paid') {
+        activities.push({
+          time: timeAgo,
+          action: `Payment completed for order ${order.order_number || order.id.slice(0, 8)}`,
+          type: 'payment' as const
+        });
+      }
+    });
+
+    // Add user registration activities
+    recentUsers?.forEach(user => {
+      if (!user.created_at) return;
+      
+      const timeAgo = getTimeAgo(new Date(user.created_at));
+      activities.push({
+        time: timeAgo,
+        action: `New user registration: ${user.email}`,
+        type: 'user' as const
+      });
+    });
+
+    // Sort by most recent and limit
+    const sortedActivities = activities
+      .sort((a, b) => {
+        // Simple time comparison - newer activities first
+        const aTime = a.time.includes('min') ? parseInt(a.time) : 
+                     a.time.includes('hour') ? parseInt(a.time) * 60 : 
+                     parseInt(a.time) * 60 * 24;
+        const bTime = b.time.includes('min') ? parseInt(b.time) : 
+                     b.time.includes('hour') ? parseInt(b.time) * 60 : 
+                     parseInt(b.time) * 60 * 24;
+        return aTime - bTime;
+      })
+      .slice(0, 5);
+
+    console.log('✅ Admin: Fetched recent activity:', sortedActivities);
+    return { success: true, data: sortedActivities };
+  } catch (error) {
+    console.error('💥 Admin: Unexpected error fetching recent activity:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      data: [] 
+    };
+  }
+}
+
+// Helper function to calculate time ago
+function getTimeAgo(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMins < 60) {
+    return `${diffMins} mins ago`;
+  } else if (diffHours < 24) {
+    return `${diffHours} hours ago`;
+  } else {
+    return `${diffDays} days ago`;
+  }
+}
+
 export async function getAdminOrders() {
   try {
     const supabase = getSupabaseAdmin();
@@ -639,7 +927,7 @@ export async function getAdminAnalytics(period: 'day' | 'week' | 'month') {
     // Calculate most popular items
     const itemCounts: Record<string, { quantity: number; revenue: number }> = {};
     orders.forEach(order => {
-      order.order_items?.forEach(item => {
+      order.order_items?.forEach((item: OrderItem) => {
         const name = item.menu_items?.name || 'Unknown Item';
         if (!itemCounts[name]) {
           itemCounts[name] = { quantity: 0, revenue: 0 };
