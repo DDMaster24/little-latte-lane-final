@@ -20,7 +20,7 @@ import {
 import { X, ShoppingCart, Plus, Minus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { performCheckout } from '@/lib/orderActions';
-import PayFastPayment from '@/components/PayFastPayment';
+import YocoPayment from '@/components/YocoPayment';
 import {
   formatSouthAfricanPhone,
   isValidSouthAfricanPhone,
@@ -290,7 +290,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
     setOrderId(null);
     setSpecialInstructions(''); // Clear special instructions when payment is initiated
     onClose();
-    toast.success('Payment initiated! Redirecting to PayFast...');
+    toast.success('Payment initiated! Redirecting to payment gateway...');
   };
 
   const getItemDescription = () => {
@@ -454,7 +454,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                         className="w-full neon-button"
                         disabled={cart.length === 0}
                       >
-                        Checkout
+                        Proceed to Checkout
                       </Button>
                     </div>
                   </>
@@ -465,21 +465,40 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
             {step === 'checkout' && (
               <div className="space-y-4">
                 {orderId ? (
-                  // Show payment section when order exists
+                  // STEP 3: PAYMENT PAGE - Final confirmation + Pay Now
                   <>
-                    <div className="bg-neonCyan/20 border border-neonCyan/40 rounded p-3 backdrop-blur-md">
-                      <h3 className="text-neonCyan font-medium mb-2">
-                        Order Created!
+                    <div className="bg-gradient-to-r from-neonCyan/20 to-neonPink/20 border border-neonCyan/40 rounded-lg p-4 backdrop-blur-md">
+                      <h3 className="text-neonCyan font-bold text-lg mb-3 flex items-center gap-2">
+                        💳 Payment
                       </h3>
-                      <p className="text-white font-semibold text-sm">
-                        Order #{orderData?.order_number || orderId}
-                      </p>
-                      <p className="text-neonPink text-sm">
-                        Total: R{orderData?.total_amount?.toFixed(2) || total.toFixed(2)}
-                      </p>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-300">Order:</span>
+                          <span className="text-white font-medium">#{orderData?.order_number || orderId.slice(-8)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-300">Total:</span>
+                          <span className="text-neonPink font-bold text-lg">R{orderData?.total_amount?.toFixed(2) || total.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-300">Type:</span>
+                          <span className="text-white">{deliveryType === 'delivery' ? '🚚 Delivery' : '🏪 Pickup'}</span>
+                        </div>
+                        {deliveryType === 'delivery' && address && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-300">Address:</span>
+                            <span className="text-white text-right flex-1 ml-2">{address}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between">
+                          <span className="text-gray-300">Phone:</span>
+                          <span className="text-white">{displaySouthAfricanPhone(phone)}</span>
+                        </div>
+                      </div>
+                      
                       {orderData?.items && orderData.items.length > 0 && (
-                        <div className="mt-2 pt-2 border-t border-neonCyan/30">
-                          <p className="text-white text-xs mb-1">Order Details:</p>
+                        <div className="mt-4 pt-3 border-t border-neonCyan/30">
+                          <p className="text-white font-medium text-sm mb-2">Order Items:</p>
                           <div className="space-y-1">
                             {orderData.items.map((item, index) => (
                               <div key={index} className="text-xs text-gray-300 flex justify-between">
@@ -492,14 +511,13 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                       )}
                     </div>
 
-                    <div className="bg-neonPink/20 border border-neonPink/40 rounded p-3 backdrop-blur-md">
-                      <p className="text-neonPink text-sm">
-                        Your order is ready for payment. Click below to pay
-                        securely with PayFast.
+                    <div className="bg-neonPink/10 border border-neonPink/30 rounded-lg p-3 backdrop-blur-md">
+                      <p className="text-neonPink text-sm text-center">
+                        🔒 Secure payment powered by Yoco
                       </p>
                     </div>
 
-                    <PayFastPayment
+                    <YocoPayment
                       orderId={orderId!}
                       userId={profile?.id || ''}
                       amount={total}
@@ -518,7 +536,6 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                           deliveryType === 'delivery' ? address : undefined,
                       }}
                       onPaymentInitiated={handlePaymentInitiated}
-                      className="w-full"
                     />
 
                     <div className="flex gap-2">
@@ -542,17 +559,38 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                     </div>
                   </>
                 ) : (
-                  // Show checkout form when no order exists
+                  // STEP 2: CHECKOUT DETAILS - Order summary + Customer details + Address
                   <>
-                    <div className="bg-neonCyan/20 border border-neonCyan/40 rounded p-3 backdrop-blur-md">
-                      <h3 className="text-neonCyan font-medium mb-2">
-                        Order Summary
+                    <div className="bg-gradient-to-r from-neonCyan/20 to-neonPink/20 border border-neonCyan/40 rounded-lg p-4 backdrop-blur-md">
+                      <h3 className="text-neonCyan font-bold text-lg mb-3 flex items-center gap-2">
+                        📋 Checkout Details
                       </h3>
-                      <p className="text-neonPink text-sm">
-                        {cart.length} items • R{total.toFixed(2)}
-                      </p>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-300">Items:</span>
+                          <span className="text-white">{cart.length} item{cart.length > 1 ? 's' : ''}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-300">Total:</span>
+                          <span className="text-neonPink font-bold text-lg">R{total.toFixed(2)}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Show cart items summary */}
+                      <div className="mt-3 pt-3 border-t border-neonCyan/30">
+                        <p className="text-white font-medium text-sm mb-2">Your Order:</p>
+                        <div className="space-y-1 max-h-24 overflow-y-auto">
+                          {cart.map((item) => (
+                            <div key={item.id} className="text-xs text-gray-300 flex justify-between">
+                              <span>{item.quantity}x {item.name}</span>
+                              <span>R{(item.price * item.quantity).toFixed(2)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
                       {(profile?.phone || profile?.full_name) && (
-                        <div className="mt-2 pt-2 border-t border-neonCyan/30">
+                        <div className="mt-3 pt-2 border-t border-neonCyan/30">
                           <p className="text-xs text-neonCyan/80 flex items-center gap-1">
                             ✨ Using your saved profile details
                             <button
@@ -719,7 +757,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                         disabled={isCreatingOrder}
                         className="flex-1 neon-button"
                       >
-                        {isCreatingOrder ? 'Processing...' : 'Pay Now'}
+                        {isCreatingOrder ? 'Creating Order...' : 'Proceed to Payment'}
                       </Button>
                     </div>
                   </>

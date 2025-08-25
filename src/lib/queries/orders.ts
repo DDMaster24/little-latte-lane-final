@@ -6,6 +6,7 @@
 import type { Database } from '@/types/supabase';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { getSupabaseServer, getSupabaseAdmin } from '@/lib/supabase-server';
+import { updateOrderStatusWithNotifications } from '@/lib/orderStatusNotifications';
 
 type Tables = Database['public']['Tables'];
 type OrderRow = Tables['orders']['Row'];
@@ -217,19 +218,33 @@ export class ServerOrderQueries {
   }
 
   /**
-   * Update order status (server-side)
+   * Update order status (server-side) with notifications
    */
-  static async updateOrderStatus(orderId: string, status: string): Promise<OrderRow> {
+  static async updateOrderStatus(
+    orderId: string, 
+    status: string,
+    additionalData?: {
+      estimatedReadyTime?: string;
+      completionTime?: string;
+    }
+  ): Promise<OrderRow> {
+    // Use the notification system for status updates
+    const success = await updateOrderStatusWithNotifications(
+      orderId,
+      status as any,
+      additionalData
+    );
+
+    if (!success) {
+      throw new Error('Failed to update order status');
+    }
+
+    // Return the updated order data
     const supabase = await getSupabaseServer();
-    
     const { data, error } = await supabase
       .from('orders')
-      .update({ 
-        status,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', orderId)
       .select()
+      .eq('id', orderId)
       .single();
 
     if (error) throw error;

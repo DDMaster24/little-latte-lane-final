@@ -25,15 +25,14 @@ const envSchema = z.object({
     .min(1, 'Supabase service key is required')
     .optional(),
 
-  // PayFast configuration (optional in development)
-  NEXT_PUBLIC_PAYFAST_SANDBOX: z
+  // Yoco payment configuration (optional in development)
+  NEXT_PUBLIC_YOCO_TEST_MODE: z
     .string()
     .default('true')
     .transform((val) => val === 'true'),
-
-  PAYFAST_MERCHANT_ID: z.string().optional(),
-  PAYFAST_MERCHANT_KEY: z.string().optional(),
-  PAYFAST_PASSPHRASE: z.string().optional(),
+    
+  YOCO_SECRET_KEY: z.string().optional(),
+  YOCO_PUBLIC_KEY: z.string().optional(),
 
   // Project metadata
   NEXT_PUBLIC_SUPABASE_PROJECT_ID: z.string().optional(),
@@ -48,10 +47,9 @@ export const env = envSchema.parse({
   NEXT_PUBLIC_SUPABASE_URL: process.env['NEXT_PUBLIC_SUPABASE_URL'],
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'],
   SUPABASE_SERVICE_KEY: process.env['SUPABASE_SERVICE_KEY'],
-  NEXT_PUBLIC_PAYFAST_SANDBOX: process.env['NEXT_PUBLIC_PAYFAST_SANDBOX'],
-  PAYFAST_MERCHANT_ID: process.env['PAYFAST_MERCHANT_ID'],
-  PAYFAST_MERCHANT_KEY: process.env['PAYFAST_MERCHANT_KEY'],
-  PAYFAST_PASSPHRASE: process.env['PAYFAST_PASSPHRASE'],
+  NEXT_PUBLIC_YOCO_TEST_MODE: process.env['NEXT_PUBLIC_YOCO_TEST_MODE'],
+  YOCO_SECRET_KEY: process.env['YOCO_SECRET_KEY'],
+  YOCO_PUBLIC_KEY: process.env['YOCO_PUBLIC_KEY'],
   NEXT_PUBLIC_SUPABASE_PROJECT_ID:
     process.env['NEXT_PUBLIC_SUPABASE_PROJECT_ID'],
 });
@@ -78,10 +76,10 @@ export function validateEnvironment(): void {
       errors.push('SUPABASE_SERVICE_KEY is required in production');
     }
 
-    if (!env.PAYFAST_MERCHANT_ID || !env.PAYFAST_MERCHANT_KEY) {
-      // Warning for PayFast in production
+    if (!env.YOCO_SECRET_KEY) {
+      // Warning for Yoco in production
       console.warn(
-        '⚠️ PayFast credentials missing - payment features will be disabled'
+        '⚠️ Yoco credentials missing - payment features will be disabled'
       );
     }
   }
@@ -115,6 +113,7 @@ if (
   try {
     validateEnvironment();
   } catch (error) {
+    // Don't throw during module initialization to avoid breaking the app
     console.warn('Environment validation warning:', error);
   }
 }

@@ -1,25 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { env } from '@/lib/env';
 
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
-  // Handle PayFast-related requests
-  if (
-    request.nextUrl.pathname.includes('/api/payfast') ||
-    request.nextUrl.pathname.includes('/cart')
-  ) {
-    // Set secure cookie settings for PayFast compatibility
+  // Handle cart-related requests for secure payments
+  if (request.nextUrl.pathname.includes('/cart')) {
+    // Set secure cookie settings for payment compatibility
     response.headers.set(
       'Set-Cookie',
       ['SameSite=None; Secure', 'Path=/'].join('; ')
     );
 
-    // Allow PayFast domains (both sandbox and live)
-    const payFastOrigin = env.NEXT_PUBLIC_PAYFAST_SANDBOX
-      ? 'https://sandbox.payfast.co.za'
-      : 'https://www.payfast.co.za';
-    response.headers.set('Access-Control-Allow-Origin', payFastOrigin);
+    // Basic CORS headers for payment processing
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     response.headers.set(
       'Access-Control-Allow-Headers',
@@ -32,5 +24,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/payfast/:path*', '/cart/:path*'],
+  matcher: ['/cart/:path*'],
 };

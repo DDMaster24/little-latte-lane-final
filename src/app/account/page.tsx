@@ -88,6 +88,9 @@ export default function AccountPage() {
 
       // Handle payment status notifications
       if (paymentStatus === 'success') {
+        // Switch to the active orders tab to show the completed order
+        setActiveTab('active');
+        
         toast.success(
           `🎉 Payment successful! ${orderIdParam ? `Order #${orderIdParam}` : 'Your order'} has been confirmed and sent to the kitchen.`,
           { duration: 6000 }

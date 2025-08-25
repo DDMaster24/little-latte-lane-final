@@ -1,25 +1,42 @@
 'use server';
 
 import { getSupabaseAdmin } from '@/lib/supabase-server';
+import { updateOrderStatusWithNotifications } from '@/lib/orderStatusNotifications';
 
 /**
- * Update the status of an order by ID
+ * Update the status of an order by ID with email notifications
  * @param id Order ID
- * @param status New status string (e.g. 'pending', 'done', 'cancelled')
+ * @param status New status string (e.g. 'pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled')
+ * @param additionalData Optional additional data like estimated ready time
  * @returns { success: boolean, message?: string }
  */
-export async function updateOrderStatus(id: string, status: string) {
-  const supabase = getSupabaseAdmin();
-  const { error } = await supabase
-    .from('orders')
-    .update({ status })
-    .eq('id', id);
-
-  if (error) {
-    return { success: false, message: error.message };
+export async function updateOrderStatus(
+  id: string, 
+  status: string,
+  additionalData?: {
+    estimatedReadyTime?: string;
+    completionTime?: string;
   }
+) {
+  try {
+    const success = await updateOrderStatusWithNotifications(
+      id,
+      status as any,
+      additionalData
+    );
 
-  return { success: true };
+    if (!success) {
+      return { success: false, message: 'Failed to update order status' };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Failed to update order status:', error);
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Unknown error occurred' 
+    };
+  }
 }
 
 // Future actions can be added below, like:
