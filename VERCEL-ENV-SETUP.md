@@ -28,10 +28,10 @@ NODE_ENV=production
 
 ### 📧 **EMAIL NOTIFICATIONS** (Optional but Recommended)
 ```bash
-# Resend API for Order Confirmations
+# Resend API for Order Confirmations & Welcome Emails
 RESEND_API_KEY=re_f8WW7SKj_P2r4W29fbNv3PNKm19U3EiFM
-FROM_EMAIL=orders@littlelattlane.com
-ADMIN_EMAIL=admin@littlelattlane.com
+FROM_EMAIL=welcome@littlelattelane.co.za
+ADMIN_EMAIL=admin@littlelattelane.co.za
 ```
 
 ### 🔧 **DEBUGGING & MONITORING** (Optional)

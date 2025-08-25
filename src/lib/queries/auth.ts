@@ -94,10 +94,30 @@ export class AuthQueries {
       password,
       options: {
         data: userData,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
       },
     });
 
     if (error) throw error;
+
+    // If signup successful and user was created, trigger welcome email
+    if (data.user && !error) {
+      try {
+        await fetch('/api/auth/welcome', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userEmail: email,
+            userName: userData?.full_name,
+            userId: data.user.id,
+          }),
+        });
+      } catch (emailError) {
+        console.warn('Welcome email failed to send:', emailError);
+        // Don't throw - signup was successful even if email failed
+      }
+    }
+
     return data;
   }
 
