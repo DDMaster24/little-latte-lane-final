@@ -2,8 +2,6 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { ClientWrapper } from '@/components/ClientWrapper';
-import Header from '@/components/Header';
-import FooterSection from '@/components/FooterSection';
 import { Toaster } from 'sonner';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -42,9 +40,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ClientWrapper>
-          <Header />
-          <main className="flex-grow">{children}</main>
-          <FooterSection />
+          {children}
           <Toaster 
             position="top-right"
             theme="dark"

@@ -4,13 +4,23 @@ import { useEffect, useState } from 'react';
 import { ReactNode } from 'react';
 import { AuthProvider } from '@/components/AuthProvider';
 import { Toaster } from 'react-hot-toast';
+import { VisualEditorWrapper } from '@/components/VisualEditorWrapper';
+import Header from '@/components/Header';
+import FooterSection from '@/components/FooterSection';
 
 export function ClientWrapper({ children }: { children: ReactNode }) {
   const [isOnline, setIsOnline] = useState(true);
   const [isClient, setIsClient] = useState(false);
+  const [isVisualEditorMode, setIsVisualEditorMode] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
+
+    // Check for visual editor mode from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const editorMode = urlParams.get('editor') === 'true';
+    const adminMode = urlParams.get('admin') === 'true';
+    setIsVisualEditorMode(editorMode && adminMode);
 
     // Service Worker registration - simplified
     if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
@@ -49,14 +59,27 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
     return null; // Prevent hydration mismatch
   }
 
-  return (
+  const content = (
     <AuthProvider>
       {!isOnline && (
         <div className="bg-yellow-500 text-black text-center py-2 px-4 text-sm font-medium">
           You are currently offline. Some features may be limited.
         </div>
       )}
-      {children}
+      
+      {/* Conditional layout based on visual editor mode */}
+      {isVisualEditorMode ? (
+        // In visual editor mode, just show the page content
+        children
+      ) : (
+        // Normal mode with header and footer
+        <>
+          <Header />
+          <main className="flex-grow">{children}</main>
+          <FooterSection />
+        </>
+      )}
+      
       <Toaster
         position="top-right"
         toastOptions={{
@@ -82,4 +105,15 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
       />
     </AuthProvider>
   );
+
+  // Wrap with visual editor if in editor mode
+  if (isVisualEditorMode) {
+    return (
+      <VisualEditorWrapper>
+        {content}
+      </VisualEditorWrapper>
+    );
+  }
+
+  return content;
 }
