@@ -86,7 +86,12 @@ export async function POST(request: NextRequest) {
     console.log('💳 Creating Yoco checkout:', {
       amount: amountInCents,
       currency: 'ZAR',
-      callbacks
+      callbacks,
+      metadata: {
+        orderId,
+        userId: userId,
+        customerEmail: userDetails.email,
+      }
     });
 
     // Create Yoco checkout session
