@@ -23,7 +23,6 @@ const eslintConfig = [
       'public/workbox-*',
       '.next/**',
       'node_modules/**',
-      'src/types/supabase.ts', // Auto-generated file, ignore linting
     ],
     rules: {
       // Remove unused imports
@@ -44,6 +43,14 @@ const eslintConfig = [
       '@next/next/no-img-element': 'error',
     },
   },
+  {
+    files: ['src/types/supabase.ts'],
+    rules: {
+      // Disable all rules for auto-generated file
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+    }
+  }
 ];
 
 export default eslintConfig;

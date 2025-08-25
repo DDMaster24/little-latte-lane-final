@@ -96,7 +96,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     } catch (error) {
       console.error('Failed to update theme setting:', error);
     }
-  }, [supabase]);
+  }, [supabase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Get a setting value with fallback
   const getSetting = useCallback((key: string, defaultValue = '') => {

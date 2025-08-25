@@ -175,7 +175,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       cancelled = true;
       subscription.unsubscribe();
     };
-  }, [mounted, fetchProfile, supabase.auth]); // Remove profile dependency to prevent infinite loop
+  }, [mounted, fetchProfile, supabase.auth]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sign out function
   const signOut = useCallback(async () => {
