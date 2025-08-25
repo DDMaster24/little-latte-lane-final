@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import {
   Select,
   SelectContent,
@@ -31,6 +32,14 @@ interface CartSidebarProps {
   onClose: () => void;
 }
 
+interface OrderItemWithMenu {
+  quantity: number;
+  price: number;
+  menu_items: {
+    name: string;
+  } | null;
+}
+
 export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const cart = useCartStore((state) => state.items);
   const clearCart = useCartStore((state) => state.clearCart);
@@ -47,6 +56,16 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const [phone, setPhone] = useState('');
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [orderData, setOrderData] = useState<{
+    id: string;
+    order_number: string | null;
+    total_amount: number;
+    items: Array<{
+      name: string;
+      quantity: number;
+      price: number;
+    }>;
+  } | null>(null);
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [step, setStep] = useState<'cart' | 'checkout'>('cart');
   const [hasLoadedProfileData, setHasLoadedProfileData] = useState(false);
@@ -194,6 +213,54 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
 
       if (result.success && result.orderId) {
         setOrderId(result.orderId);
+        
+        // Fetch the complete order data including order_number
+        try {
+          const supabase = getSupabaseClient();
+          const { data: orderDetails, error: fetchError } = await supabase
+            .from('orders')
+            .select(`
+              id,
+              order_number,
+              total_amount,
+              order_items (
+                quantity,
+                price,
+                menu_items (name)
+              )
+            `)
+            .eq('id', result.orderId)
+            .single();
+
+          if (fetchError) throw fetchError;
+
+          if (orderDetails) {
+            setOrderData({
+              id: orderDetails.id,
+              order_number: orderDetails.order_number,
+              total_amount: orderDetails.total_amount || total,
+              items: orderDetails.order_items.map((item: OrderItemWithMenu) => ({
+                name: item.menu_items?.name || 'Unknown Item',
+                quantity: item.quantity,
+                price: item.price
+              }))
+            });
+          }
+        } catch (fetchError) {
+          console.error('Error fetching order details:', fetchError);
+          // Still set basic order data even if fetch fails
+          setOrderData({
+            id: result.orderId,
+            order_number: null,
+            total_amount: total,
+            items: cart.map(item => ({
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price
+            }))
+          });
+        }
+        
         toast.success('✅ Order ready for payment!', { 
           id: 'create-order',
           duration: 2000
@@ -404,10 +471,25 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                       <h3 className="text-neonCyan font-medium mb-2">
                         Order Created!
                       </h3>
-                      <p className="text-white font-semibold text-sm">Order #{orderId}</p>
-                      <p className="text-neonPink text-sm">
-                        Total: R{total.toFixed(2)}
+                      <p className="text-white font-semibold text-sm">
+                        Order #{orderData?.order_number || orderId}
                       </p>
+                      <p className="text-neonPink text-sm">
+                        Total: R{orderData?.total_amount?.toFixed(2) || total.toFixed(2)}
+                      </p>
+                      {orderData?.items && orderData.items.length > 0 && (
+                        <div className="mt-2 pt-2 border-t border-neonCyan/30">
+                          <p className="text-white text-xs mb-1">Order Details:</p>
+                          <div className="space-y-1">
+                            {orderData.items.map((item, index) => (
+                              <div key={index} className="text-xs text-gray-300 flex justify-between">
+                                <span>{item.quantity}x {item.name}</span>
+                                <span>R{item.price.toFixed(2)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="bg-neonPink/20 border border-neonPink/40 rounded p-3 backdrop-blur-md">
