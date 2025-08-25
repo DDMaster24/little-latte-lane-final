@@ -201,16 +201,29 @@ const InlineVisualEditor: React.FC<InlineVisualEditorProps> = ({
     window.getSelection()?.removeAllRanges();
   }, [selectedElement, isTextEditing]);
 
-  // Enhanced hover detection targeting specific text elements - FIXED: Single selection + exclude toolbar
+  // Enhanced element scanning with better filtering and debugging
   const addElementIndicators = useCallback(() => {
-    if (!isEnabled || !editorRef.current) return;
+    if (!isEnabled || !editorRef.current) {
+      console.log('❌ Visual Editor: Not enabled or no editor ref');
+      return;
+    }
 
-    // Get ALL elements but filter out visual editor components
+    console.log('🔍 Visual Editor: Scanning for elements...');
+    
+    // Get ALL elements from the editor ref (which should be the whole page)
     const allElements = editorRef.current.querySelectorAll('*');
+    console.log(`Found ${allElements.length} total elements`);
+    
+    // Filter for valid editable elements
     const validElements = Array.from(allElements).filter((element) => {
       const htmlElement = element as HTMLElement;
       
-      // Exclude visual editor toolbar and controls
+      // Skip if already has visual editor listeners
+      if ((htmlElement as HTMLElement & { _visualEditorListeners?: ListenerStore })._visualEditorListeners) {
+        return false;
+      }
+      
+      // Exclude visual editor UI components
       if (htmlElement.classList.contains('visual-editor-toolbar') || 
           htmlElement.classList.contains('visual-editor-tool') ||
           htmlElement.classList.contains('visual-editor-close') ||
@@ -219,21 +232,28 @@ const InlineVisualEditor: React.FC<InlineVisualEditorProps> = ({
         return false;
       }
       
-      // Only include content elements (exclude script, style, meta, etc.)
+      // Only include content elements that are visible
       const tagName = htmlElement.tagName.toLowerCase();
       const validTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'div', 'a', 'li', 'td', 'th', 'label', 'button', 'section', 'article', 'main', 'header', 'footer', 'nav', 'aside'];
       
-      return validTags.includes(tagName) && 
-             htmlElement.offsetWidth > 0 && 
-             htmlElement.offsetHeight > 0;
+      const isValidTag = validTags.includes(tagName);
+      const isVisible = htmlElement.offsetWidth > 0 && htmlElement.offsetHeight > 0;
+      const hasContent = htmlElement.textContent?.trim()?.length && htmlElement.textContent.trim().length > 0;
+      
+      return isValidTag && isVisible && hasContent;
     });
 
+    console.log(`✅ Found ${validElements.length} valid editable elements`);
+
+    // Add event listeners to valid elements
+    let addedCount = 0;
     validElements.forEach((element) => {
       const htmlElement = element as HTMLElement;
       
       const handleMouseEnter = () => {
         if (!isTextEditing && activeTool !== 'cursor') {
           htmlElement.classList.add('visual-editor-hover');
+          console.log('🎯 Hovering:', htmlElement.tagName, htmlElement.textContent?.slice(0, 30));
         }
       };
 
@@ -245,7 +265,9 @@ const InlineVisualEditor: React.FC<InlineVisualEditorProps> = ({
         e.preventDefault();
         e.stopPropagation();
         
-        // FIXED: Clear any existing selection first (SINGLE SELECTION)
+        console.log('🖱️ Clicked element:', htmlElement.tagName, htmlElement.textContent?.slice(0, 30));
+        
+        // Clear any existing selection first (SINGLE SELECTION)
         if (selectedElement && selectedElement !== htmlElement) {
           selectedElement.classList.remove('visual-editor-selected', 'visual-editor-editing');
           if (isTextEditing) {
@@ -264,17 +286,45 @@ const InlineVisualEditor: React.FC<InlineVisualEditorProps> = ({
         }
       };
 
-      htmlElement.addEventListener('mouseenter', handleMouseEnter);
-      htmlElement.addEventListener('mouseleave', handleMouseLeave);
-      htmlElement.addEventListener('click', handleClick);
+      try {
+        htmlElement.addEventListener('mouseenter', handleMouseEnter);
+        htmlElement.addEventListener('mouseleave', handleMouseLeave);
+        htmlElement.addEventListener('click', handleClick);
 
-      // Store event listeners for cleanup
-      (htmlElement as HTMLElement & { _visualEditorListeners?: ListenerStore })._visualEditorListeners = {
-        mouseenter: handleMouseEnter,
-        mouseleave: handleMouseLeave,
-        click: handleClick
-      };
+        // Store event listeners for cleanup
+        (htmlElement as HTMLElement & { _visualEditorListeners?: ListenerStore })._visualEditorListeners = {
+          mouseenter: handleMouseEnter,
+          mouseleave: handleMouseLeave,
+          click: handleClick
+        };
+        
+        addedCount++;
+      } catch (error) {
+        console.warn('Failed to add listeners to element:', htmlElement, error);
+      }
     });
+
+    console.log(`✅ Visual Editor: Added listeners to ${addedCount} elements`);
+    
+    // Show a temporary indicator that scanning is complete
+    if (addedCount > 0) {
+      const indicator = document.createElement('div');
+      indicator.textContent = `🎯 ${addedCount} elements ready for editing`;
+      indicator.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(45deg, #00ffff, #0099cc);
+        color: black;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-weight: bold;
+        z-index: 10000;
+        box-shadow: 0 4px 15px rgba(0, 255, 255, 0.5);
+      `;
+      document.body.appendChild(indicator);
+      setTimeout(() => indicator.remove(), 3000);
+    }
   }, [isEnabled, isTextEditing, selectedElement, activeTool, selectElement, startTextEditing, stopTextEditing]);
 
   const removeElementIndicators = useCallback(() => {
@@ -298,9 +348,31 @@ const InlineVisualEditor: React.FC<InlineVisualEditorProps> = ({
 
   useEffect(() => {
     if (isEnabled) {
-      const timer = setTimeout(addElementIndicators, 100);
+      // More robust initialization with multiple attempts
+      const initializeEditor = () => {
+        console.log('🚀 Visual Editor: Initializing...');
+        
+        // Give the DOM time to settle
+        setTimeout(() => {
+          addElementIndicators();
+        }, 100);
+        
+        // Backup scan after page load
+        setTimeout(() => {
+          console.log('🔄 Visual Editor: Backup scan...');
+          addElementIndicators();
+        }, 1000);
+        
+        // Final scan to catch any dynamically loaded content
+        setTimeout(() => {
+          console.log('🔍 Visual Editor: Final scan...');
+          addElementIndicators();
+        }, 2000);
+      };
+
+      initializeEditor();
+
       return () => {
-        clearTimeout(timer);
         removeElementIndicators();
       };
     } else {
@@ -847,10 +919,15 @@ const InlineVisualEditor: React.FC<InlineVisualEditorProps> = ({
             <div className="w-px h-4 bg-gray-600"></div>
             
             <button
-              onClick={() => addElementIndicators()}
-              className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs transition-colors"
+              onClick={() => {
+                console.log('🔄 Manual element scan triggered');
+                addElementIndicators();
+                toast.success('Scanning page for editable elements...');
+              }}
+              className="px-4 py-2 bg-neonCyan hover:bg-cyan-400 text-black rounded text-sm font-medium transition-colors shadow-lg"
+              title="Scan page for editable elements"
             >
-              🔄 Refresh
+              � Scan Elements
             </button>
             
             <button
