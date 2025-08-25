@@ -391,29 +391,33 @@ export function InlineVisualEditor({ children }: InlineVisualEditorProps) {
     style.id = styleId;
     style.textContent = `
       .visual-editor-hovered {
-        outline: 2px dashed #00ffff !important;
-        outline-offset: 2px !important;
+        outline: 3px solid #00ffff !important;
+        outline-offset: 3px !important;
         cursor: pointer !important;
-        background-color: rgba(0, 255, 255, 0.05) !important;
+        background-color: rgba(0, 255, 255, 0.08) !important;
         position: relative !important;
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.3) !important;
+        transition: all 0.2s ease-out !important;
       }
       
       .visual-editor-hovered::after {
-        content: "Click to edit " attr(data-visual-editor-type);
+        content: "✨ Click to edit " attr(data-visual-editor-type);
         position: absolute !important;
-        top: -30px !important;
+        top: -35px !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
-        background: rgba(0, 0, 0, 0.9) !important;
+        background: linear-gradient(135deg, #000000, #1a1a1a) !important;
         color: #00ffff !important;
-        padding: 4px 8px !important;
-        border-radius: 4px !important;
-        font-size: 11px !important;
-        font-weight: 500 !important;
+        padding: 6px 12px !important;
+        border-radius: 8px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
         white-space: nowrap !important;
         z-index: 10000 !important;
         pointer-events: none !important;
-        animation: fadeInTooltip 0.2s ease-out !important;
+        border: 1px solid #00ffff !important;
+        animation: fadeInTooltip 0.3s ease-out !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
       }
       
       @keyframes fadeInTooltip {
@@ -422,26 +426,30 @@ export function InlineVisualEditor({ children }: InlineVisualEditorProps) {
       }
       
       .visual-editor-selected {
-        outline: 3px solid #ff0080 !important;
-        outline-offset: 2px !important;
-        background-color: rgba(255, 0, 128, 0.1) !important;
+        outline: 4px solid #ff0080 !important;
+        outline-offset: 3px !important;
+        background-color: rgba(255, 0, 128, 0.12) !important;
         position: relative !important;
+        box-shadow: 0 0 25px rgba(255, 0, 128, 0.4) !important;
+        transition: all 0.2s ease-out !important;
       }
       
       .visual-editor-selected::before {
-        content: "Editing: " attr(data-visual-editor-type);
+        content: "🎯 Editing: " attr(data-visual-editor-type);
         position: absolute !important;
-        top: -25px !important;
+        top: -30px !important;
         left: 0 !important;
-        background: #ff0080 !important;
+        background: linear-gradient(135deg, #ff0080, #e91e63) !important;
         color: white !important;
-        padding: 2px 6px !important;
-        border-radius: 3px !important;
-        font-size: 10px !important;
+        padding: 4px 8px !important;
+        border-radius: 6px !important;
+        font-size: 11px !important;
         font-weight: bold !important;
         text-transform: uppercase !important;
         z-index: 10000 !important;
         pointer-events: none !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
       }
       
       .visual-editor-sidebar {
@@ -689,21 +697,28 @@ export function InlineVisualEditor({ children }: InlineVisualEditorProps) {
               </div>
             ) : (
               <div className="text-center py-8 text-gray-500">
-                <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.122 2.122" />
-                </svg>
-                <p className="text-sm mb-3">Click an element to start editing</p>
-                <button
-                  onClick={() => {
-                    const elements = scanForEditableElements();
-                    if (elements && elements.length > 0) {
-                      addElementIndicators(elements);
-                    }
-                  }}
-                  className="text-xs text-neonCyan hover:text-cyan-400 px-3 py-1 border border-neonCyan/30 rounded-full transition-colors"
-                >
-                  Rescan Elements
-                </button>
+                <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-6 border border-gray-700">
+                  <div className="text-4xl mb-4">🎨</div>
+                  <h3 className="text-white text-lg font-semibold mb-2">Ready to Design</h3>
+                  <p className="text-gray-400 text-sm mb-4 leading-relaxed">
+                    Hover over any page element to see it highlighted, then click to start editing with professional design tools.
+                  </p>
+                  <div className="flex items-center justify-center space-x-2 text-xs text-gray-500 mb-4">
+                    <div className="w-3 h-3 bg-neonCyan rounded-full animate-pulse"></div>
+                    <span>Hover Detection Active</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const elements = scanForEditableElements();
+                      if (elements && elements.length > 0) {
+                        addElementIndicators(elements);
+                      }
+                    }}
+                    className="px-4 py-2 bg-gradient-to-r from-neonCyan to-neonPink text-black font-semibold rounded-lg hover:from-cyan-400 hover:to-pink-400 transition-all transform hover:scale-105"
+                  >
+                    🔄 Refresh Page Scan
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -882,18 +897,37 @@ export function InlineVisualEditor({ children }: InlineVisualEditorProps) {
           
           {/* Element count overlay */}
           {editableElements.length > 0 && (
-            <div className="fixed bottom-4 right-4 bg-gray-800/90 border border-gray-600 rounded-lg px-3 py-2 backdrop-blur-sm">
-              <div className="text-white text-sm font-medium">
-                {editableElements.length} elements available
-              </div>
-              <div className="text-gray-400 text-xs">
-                {selectedElement ? `Selected: ${selectedElement.type}` : 'Click any element to edit'}
-              </div>
-              {changeHistory.length > 0 && (
-                <div className="text-neonCyan text-xs">
-                  {changeHistory.length} changes pending
+            <div className="fixed bottom-6 right-6 bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-600 rounded-xl px-4 py-3 backdrop-blur-sm shadow-2xl">
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-neonCyan rounded-full animate-pulse"></div>
+                  <span className="text-white text-sm font-semibold">
+                    {editableElements.length} Elements
+                  </span>
                 </div>
-              )}
+                <div className="w-px h-6 bg-gray-600"></div>
+                <div className="text-gray-300 text-sm">
+                  {selectedElement ? (
+                    <span className="flex items-center">
+                      <span className="w-2 h-2 bg-neonPink rounded-full mr-2"></span>
+                      Editing {selectedElement.type}
+                    </span>
+                  ) : (
+                    'Hover to select'
+                  )}
+                </div>
+                {changeHistory.length > 0 && (
+                  <>
+                    <div className="w-px h-6 bg-gray-600"></div>
+                    <div className="flex items-center space-x-1">
+                      <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
+                      <span className="text-neonCyan text-sm font-medium">
+                        {changeHistory.length} changes
+                      </span>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           )}
         </div>
