@@ -250,26 +250,17 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Update order in database
+    // Update order in database (only use columns that exist in the schema)
     const updateData: {
       status: string;
       payment_status: string;
-      updated_at: string;
-      payment_id?: string;
-      payment_method?: string;
-      paid_at?: string;
     } = {
       status: newOrderStatus,
       payment_status: newPaymentStatus,
-      updated_at: new Date().toISOString(),
     };
 
-    // Add payment details for successful payments
-    if (event.payload.paymentId || (shouldSendEmail && event.payload.id)) {
-      updateData.payment_id = event.payload.paymentId || event.payload.id;
-      updateData.payment_method = 'yoco';
-      updateData.paid_at = new Date().toISOString();
-    }
+    // Note: Removed payment_id, payment_method, paid_at, updated_at as they don't exist in orders table
+    // The orders table schema only has: id, user_id, order_number, status, total_amount, payment_status, special_instructions
 
     const { data: _updatedOrder, error: updateError } = await supabase
       .from('orders')
