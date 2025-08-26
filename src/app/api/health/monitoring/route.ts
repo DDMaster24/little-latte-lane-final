@@ -33,7 +33,7 @@ interface HealthStatus {
     external_services: {
       status: 'ok' | 'error';
       services: {
-        payfast: 'ok' | 'error' | 'unknown';
+        yoco: 'ok' | 'error' | 'unknown';
         sentry: 'ok' | 'error' | 'unknown';
       };
     };
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<HealthStat
         external_services: {
           status: 'ok',
           services: {
-            payfast: 'unknown',
+            yoco: 'unknown',
             sentry: 'unknown',
           },
         },
@@ -160,13 +160,13 @@ export async function GET(request: NextRequest): Promise<NextResponse<HealthStat
     }
 
     // Check external services
-    health.checks.external_services.services.payfast = 
-      process.env.PAYFAST_MERCHANT_ID && process.env.PAYFAST_MERCHANT_KEY ? 'ok' : 'error';
+    health.checks.external_services.services.yoco = 
+      process.env.YOCO_SECRET_KEY && process.env.YOCO_PUBLIC_KEY ? 'ok' : 'error';
     
     health.checks.external_services.services.sentry = 
       process.env.NEXT_PUBLIC_SENTRY_DSN ? 'ok' : 'error';
 
-    if (health.checks.external_services.services.payfast === 'error' || 
+    if (health.checks.external_services.services.yoco === 'error' || 
         health.checks.external_services.services.sentry === 'error') {
       health.checks.external_services.status = 'error';
       if (health.status === 'healthy') {
@@ -227,7 +227,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<HealthStat
         authentication: { status: 'error', responseTime: 0, details: 'Health check failed' },
         external_services: {
           status: 'error',
-          services: { payfast: 'error', sentry: 'error' },
+          services: { yoco: 'error', sentry: 'error' },
         },
       },
       metrics: {

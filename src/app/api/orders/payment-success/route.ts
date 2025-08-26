@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     console.log('📝 Processing successful payment:', paymentId);
 
     // Find the order by payment reference
-    // PayFast payment ID should match our m_payment_id format: LLL-{orderId}-{timestamp}
+    // Yoco payment ID should match our checkout format
     const orderIdMatch = paymentId.match(/LLL-(\d+)-/);
 
     if (!orderIdMatch) {

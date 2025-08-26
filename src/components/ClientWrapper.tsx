@@ -8,6 +8,7 @@ import { VisualEditorWrapper } from '@/components/VisualEditorWrapper';
 import Header from '@/components/Header';
 import FooterSection from '@/components/FooterSection';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
+import StaffRedirect from '@/components/StaffRedirect';
 
 export function ClientWrapper({ children }: { children: ReactNode }) {
   const [isOnline, setIsOnline] = useState(true);
@@ -62,6 +63,9 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
 
   const content = (
     <AuthProvider>
+      {/* Staff Auto-Redirect: Redirects staff users to kitchen view */}
+      <StaffRedirect />
+      
       {!isOnline && (
         <div className="bg-yellow-500 text-black text-center py-2 px-4 text-sm font-medium">
           You are currently offline. Some features may be limited.

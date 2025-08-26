@@ -83,7 +83,7 @@ export default function PrivacyPolicyPage() {
                 </li>
                 <li>
                   • <strong>Payment Information:</strong> Processed securely via
-                  PayFast (we don&apos;t store card details)
+                  Yoco (we don&apos;t store card details)
                 </li>
                 <li>
                   • <strong>Website Usage:</strong> Pages visited, time spent,
@@ -120,7 +120,7 @@ export default function PrivacyPolicyPage() {
                 </li>
                 <li>
                   • Payment processing is handled by certified providers
-                  (PayFast)
+                  (Yoco)
                 </li>
                 <li>
                   • Access to personal data is restricted to authorized

@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    let finalCheckoutId = checkoutId;
+    const finalCheckoutId = checkoutId;
 
     // If we only have orderId, look up the checkout ID from the database
     if (!checkoutId && orderId) {

@@ -205,7 +205,15 @@ export default function StaffPanel() {
       return;
     }
 
-    // Initial data fetch
+    // 🍳 KITCHEN-ONLY STAFF ACCESS: Redirect staff-only users to kitchen view
+    // Only admins can access the full staff dashboard
+    if (profile.is_staff && !profile.is_admin) {
+      console.log('🍳 Staff user detected - redirecting to kitchen view...');
+      router.push('/staff/kitchen-view');
+      return;
+    }
+
+    // Initial data fetch (only for admins)
     const initializeData = async () => {
       await fetchData();
       setLoading(false);

@@ -361,24 +361,29 @@ export default function KitchenView() {
         <div className="max-w-full px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <Button
-                onClick={() => router.push('/staff')}
-                variant="ghost"
-                className="text-neonCyan hover:text-neonPink"
-              >
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                Back to Staff Panel
-              </Button>
+              {/* Only show back button for admins */}
+              {profile?.is_admin && (
+                <Button
+                  onClick={() => router.push('/staff')}
+                  variant="ghost"
+                  className="text-neonCyan hover:text-neonPink"
+                >
+                  <ArrowLeft className="h-5 w-5 mr-2" />
+                  Back to Staff Panel
+                </Button>
+              )}
               <div>
                 <h1 className="text-2xl font-bold text-neonCyan flex items-center gap-2">
-                  Kitchen View
+                  🍳 Kitchen View
                   {newOrderCount > 0 && (
                     <Badge className="bg-red-500 text-white animate-pulse">
                       +{newOrderCount} NEW
                     </Badge>
                   )}
                 </h1>
-                <p className="text-neonText/70 text-sm">Full-screen order management</p>
+                <p className="text-neonText/70 text-sm">
+                  {profile?.is_admin ? 'Full-screen order management' : 'Staff Kitchen Interface - Real-time Order Processing'}
+                </p>
               </div>
             </div>
             

@@ -170,7 +170,7 @@ export default function AdminPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <CreditCard className="h-5 w-5 text-neonPink" />
-                  <span className="text-sm text-gray-300">PayFast: <span className="text-neonPink font-medium">Active</span></span>
+                  <span className="text-sm text-gray-300">Yoco: <span className="text-neonPink font-medium">Active</span></span>
                 </div>
               </div>
               <div className="text-xs text-gray-500">

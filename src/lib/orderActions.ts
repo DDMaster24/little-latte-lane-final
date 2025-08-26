@@ -170,7 +170,7 @@ export async function performCheckout(
     }
 
     // Don't send confirmation email yet - wait for payment confirmation
-    // Email will be sent from PayFast notification handler
+    // Email will be sent from Yoco notification handler
 
     return { success: true, orderId };
   } catch (err: unknown) {

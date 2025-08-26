@@ -12,7 +12,7 @@ export async function GET() {
     },
     services: {
       database: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'connected' : 'disconnected',
-      payments: process.env.PAYFAST_MERCHANT_ID ? 'configured' : 'not configured',
+      payments: process.env.YOCO_SECRET_KEY ? 'configured' : 'not configured',
     },
   };
 

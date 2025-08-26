@@ -151,7 +151,7 @@ export default function AdminPage() {
                   <span className="text-green-400 font-bold">✅ LIVE & READY</span>
                 </div>
                 <div className="flex items-center justify-between p-2 bg-green-900/20 border border-green-500/30 rounded">
-                  <span className="text-gray-300 font-medium">Payment Processing (PayFast)</span>
+                  <span className="text-gray-300 font-medium">Payment Processing (Yoco)</span>
                   <span className="text-green-400 font-bold">✅ LIVE & READY</span>
                 </div>
                 <div className="flex items-center justify-between p-2 bg-green-900/20 border border-green-500/30 rounded">

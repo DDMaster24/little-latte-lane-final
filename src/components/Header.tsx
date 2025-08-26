@@ -111,8 +111,11 @@ export default function Header() {
               </Link>
             )}
             {user && (profile?.is_staff || profile?.is_admin) && (
-              <Link href="/staff" className="neon-button text-sm px-3 py-2">
-                Staff Panel
+              <Link 
+                href={profile?.is_staff && !profile?.is_admin ? "/staff/kitchen-view" : "/staff"} 
+                className="neon-button text-sm px-3 py-2"
+              >
+                {profile?.is_staff && !profile?.is_admin ? "🍳 Kitchen" : "Staff Panel"}
               </Link>
             )}
           </nav>
@@ -227,11 +230,11 @@ export default function Header() {
             )}
             {user && (profile?.is_staff || profile?.is_admin) && (
               <Link
-                href="/staff"
+                href={profile?.is_staff && !profile?.is_admin ? "/staff/kitchen-view" : "/staff"}
                 className="neon-button w-full text-center py-3 xs:py-4 hover:bg-neonBlue/10 rounded-lg transition-all duration-300 touch-target text-fluid-sm flex items-center justify-center gap-2"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                👨‍🍳 Staff Panel
+                {profile?.is_staff && !profile?.is_admin ? "🍳 Kitchen View" : "👨‍🍳 Staff Panel"}
               </Link>
             )}
             
