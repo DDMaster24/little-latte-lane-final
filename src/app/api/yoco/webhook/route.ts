@@ -78,6 +78,25 @@ export async function POST(request: NextRequest) {
     let event: YocoWebhookEvent;
     try {
       event = JSON.parse(body);
+      
+      // ENHANCED DEBUG: Log complete webhook structure
+      console.log('🔍 COMPLETE WEBHOOK EVENT STRUCTURE:');
+      console.log('📋 Event ID:', event.id);
+      console.log('📋 Event Type:', event.type);
+      console.log('📋 Event Created:', event.createdDate);
+      console.log('📋 Payload Keys:', Object.keys(event.payload || {}));
+      console.log('📋 Complete Payload:', JSON.stringify(event.payload, null, 2));
+      
+      // Check all possible metadata locations with proper typing
+      const eventAny = event as unknown as Record<string, unknown>;
+      const payloadAny = event.payload as unknown as Record<string, unknown>;
+      
+      console.log('🔍 METADATA SEARCH:');
+      console.log('📍 event.payload.metadata:', event.payload.metadata);
+      console.log('📍 event.metadata:', eventAny.metadata);
+      console.log('📍 event.payload.data:', payloadAny.data);
+      console.log('📍 event.payload.object:', payloadAny.object);
+      
       logWebhookEvent(event as unknown as Record<string, unknown>, '📊');
     } catch (parseError) {
       console.error('❌ Failed to parse webhook JSON:', parseError);
@@ -96,11 +115,54 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Extract order ID from metadata
-    const orderId = event.payload.metadata?.orderId;
+    // Extract order ID from metadata - CHECK MULTIPLE LOCATIONS
+    let orderId: string | undefined;
+    
+    // Try multiple possible metadata locations
+    const eventAny = event as unknown as Record<string, unknown>;
+    const payloadAny = event.payload as unknown as Record<string, unknown>;
+    
+    // 1. Standard location: event.payload.metadata.orderId
+    orderId = event.payload.metadata?.orderId;
+    
+    // 2. Alternative: event.metadata.orderId
+    if (!orderId && eventAny.metadata && typeof eventAny.metadata === 'object') {
+      const metadata = eventAny.metadata as Record<string, unknown>;
+      orderId = metadata.orderId as string;
+    }
+    
+    // 3. Alternative: event.payload.data.metadata.orderId
+    if (!orderId && payloadAny.data && typeof payloadAny.data === 'object') {
+      const data = payloadAny.data as Record<string, unknown>;
+      if (data.metadata && typeof data.metadata === 'object') {
+        const metadata = data.metadata as Record<string, unknown>;
+        orderId = metadata.orderId as string;
+      }
+    }
+    
+    // 4. Alternative: event.payload.object.metadata.orderId (for checkout objects)
+    if (!orderId && payloadAny.object && typeof payloadAny.object === 'object') {
+      const object = payloadAny.object as Record<string, unknown>;
+      if (object.metadata && typeof object.metadata === 'object') {
+        const metadata = object.metadata as Record<string, unknown>;
+        orderId = metadata.orderId as string;
+      }
+    }
+    
+    console.log('🔍 ORDERID EXTRACTION RESULT:', {
+      foundOrderId: orderId || 'NOT FOUND',
+      searchLocations: [
+        'event.payload.metadata.orderId',
+        'event.metadata.orderId', 
+        'event.payload.data.metadata.orderId',
+        'event.payload.object.metadata.orderId'
+      ]
+    });
+    
     if (!orderId) {
       console.error('❌ No orderId found in webhook metadata');
       console.log('Available metadata:', event.payload.metadata);
+      console.log('Complete event structure for debugging:', JSON.stringify(event, null, 2));
       
       // For now, just acknowledge the webhook even if we can't process it
       return NextResponse.json({ 
