@@ -102,16 +102,16 @@ function MenuContent() {
 
   if (loading) {
     return (
-      <main className="bg-darkBg py-8 px-6">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent">
+      <main className="bg-darkBg py-4 sm:py-8 px-4 sm:px-6 overflow-x-hidden">
+        <div className="text-center mb-8 sm:mb-12">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent">
             Menu
           </h1>
         </div>
         <CategorySkeleton />
-        <div className="flex justify-center mt-12">
-          <div className="bg-purple-600 text-white font-semibold px-8 py-3 rounded-lg animate-pulse">
-            <div className="w-32 h-4 bg-purple-500 rounded" />
+        <div className="flex justify-center mt-8 sm:mt-12">
+          <div className="bg-purple-600 text-white font-semibold px-6 sm:px-8 py-3 rounded-lg animate-pulse">
+            <div className="w-24 sm:w-32 h-4 bg-purple-500 rounded" />
           </div>
         </div>
       </main>
@@ -120,21 +120,21 @@ function MenuContent() {
 
   if (error) {
     return (
-      <main className="bg-darkBg py-8 px-6">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent">
+      <main className="bg-darkBg py-4 sm:py-8 px-4 sm:px-6 overflow-x-hidden">
+        <div className="text-center mb-8 sm:mb-12">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent">
             Menu
           </h1>
         </div>
-        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <div className="flex flex-col items-center justify-center min-h-[300px] sm:min-h-[400px] space-y-4 px-4">
           <div className="text-center">
-            <h2 className="text-xl font-semibold text-red-400 mb-2">
+            <h2 className="text-lg sm:text-xl font-semibold text-red-400 mb-2">
               Menu temporarily unavailable
             </h2>
-            <p className="text-gray-300 mb-4">{error}</p>
+            <p className="text-gray-300 mb-4 text-sm sm:text-base">{error}</p>
             <button
               onClick={refetch}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition-colors"
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 rounded-lg transition-colors text-sm sm:text-base"
             >
               Try Again
             </button>
@@ -146,90 +146,87 @@ function MenuContent() {
 
   if (categories.length === 0) {
     return (
-      <main className="bg-darkBg py-8 px-6">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent">
+      <main className="bg-darkBg py-4 sm:py-8 px-4 sm:px-6 overflow-x-hidden">
+        <div className="text-center mb-8 sm:mb-12">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent">
             Menu
           </h1>
         </div>
-        <div className="flex flex-col items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center justify-center min-h-[300px] sm:min-h-[400px]">
           <LoadingSpinner size="lg" className="mb-4" />
-          <p className="text-gray-300 text-lg">Loading menu categories...</p>
+          <p className="text-gray-300 text-sm sm:text-base lg:text-lg">Loading menu categories...</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="bg-darkBg py-8 px-6">
+    <main className="bg-darkBg py-4 sm:py-8 px-4 sm:px-6 overflow-x-hidden min-h-screen">
       {/* Header - Matching Homepage Style */}
-      <div className="text-center mb-12">
-        <h1 className="text-5xl font-bold bg-gradient-to-r from-neonCyan via-neonBlue to-neonPink bg-clip-text text-transparent mb-4 flex items-center justify-center gap-4">
-          <span className="text-4xl">🍽️</span>
+      <div className="text-center mb-8 sm:mb-12">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-neonCyan via-neonBlue to-neonPink bg-clip-text text-transparent mb-4 flex items-center justify-center gap-2 sm:gap-4">
+          <span className="text-2xl sm:text-3xl lg:text-4xl">🍽️</span>
           <span>Our Full Menu</span>
-          <span className="text-4xl">🍽️</span>
+          <span className="text-2xl sm:text-3xl lg:text-4xl">🍽️</span>
         </h1>
-        <p className="text-gray-300 text-lg">Organized by category for easy browsing</p>
+        <p className="text-gray-300 text-sm sm:text-base lg:text-lg">Organized by category for easy browsing</p>
       </div>
 
       {/* Sections - Display organized categories */}
-      <div className="space-y-12">
+      <div className="space-y-6 sm:space-y-12 max-w-7xl mx-auto">
         {sections.map((section, index) => {
           const sectionCategories = section.categories;
           
           return (
-            <div key={`section-${index}`} className="bg-gray-900/50 rounded-xl p-6 border border-gray-700/50">
+            <div key={`section-${index}`} className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-gray-700/50">
               {/* Section Header - Enhanced with glassmorphism */}
-              <div className="text-center mb-8">
-                <div className="flex items-center justify-center gap-3 mb-2">
-                  <span className="text-3xl">{section.icon}</span>
-                  <h2 className="text-3xl font-bold bg-gradient-to-r from-neonCyan to-neonPink bg-clip-text text-transparent">
+              <div className="text-center mb-6 sm:mb-8">
+                <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2">
+                  <span className="text-2xl sm:text-3xl">{section.icon}</span>
+                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-neonCyan to-neonPink bg-clip-text text-transparent">
                     {section.name}
                   </h2>
-                  <span className="text-3xl">{section.icon}</span>
+                  <span className="text-2xl sm:text-3xl">{section.icon}</span>
                 </div>
               </div>
 
               {/* Categories Grid */}
               {sectionCategories.length === 0 ? (
                 <div className="text-center py-8">
-                  <div className="text-6xl mb-4">🚧</div>
-                  <h3 className="text-xl font-semibold text-gray-400 mb-2">Coming Soon</h3>
-                  <p className="text-gray-500">We&apos;re working on adding items to this section</p>
+                  <div className="text-4xl sm:text-6xl mb-4">🚧</div>
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-400 mb-2">Coming Soon</h3>
+                  <p className="text-sm sm:text-base text-gray-500">We&apos;re working on adding items to this section</p>
                 </div>
               ) : (
-                <div className="flex flex-wrap justify-center gap-4 mb-12 w-full px-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 w-full">
                   {sectionCategories.map((category: Category) => (
                     <Link
                       key={category.id}
                       href={`/menu/modern?category=${category.id}`}
-                      className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in"
+                      className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 p-4 sm:p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in w-full h-full"
                       style={{ 
                         background: 'rgba(0, 0, 0, 0.4)',
                         backdropFilter: 'blur(10px)',
-                        boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)',
-                        width: 'calc(25% - 12px)', // Fixed width for 4-per-row (accounting for gap)
-                        minWidth: '280px', // Minimum width for responsiveness
-                        maxWidth: '350px'  // Maximum width to maintain consistency
+                        boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)'
                       }}
                       prefetch={true}
                     >
                       {/* Category Icon Section */}
                       <div className="flex flex-col items-center text-center">
-                        <div className="w-24 h-24 mb-4 flex items-center justify-center rounded-xl bg-black/30 backdrop-blur-sm border border-neonCyan/20 group-hover:border-neonPink/40 transition-all duration-300">
-                          <span className="text-4xl">
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mb-3 sm:mb-4 flex items-center justify-center rounded-xl bg-black/30 backdrop-blur-sm border border-neonCyan/20 group-hover:border-neonPink/40 transition-all duration-300">
+                          <span className="text-2xl sm:text-3xl lg:text-4xl">
                             {getCategoryIcon(category.name)}
                           </span>
                         </div>
                         
                         {/* Category Name */}
-                        <h3 className="text-xl font-bold text-neonCyan group-hover:text-neonPink transition-colors duration-300 mb-2">
+                        <h3 className="text-lg sm:text-xl font-bold text-neonCyan group-hover:text-neonPink transition-colors duration-300 mb-2">
                           {category.name}
                         </h3>
                         
                         {/* Category Description */}
                         {category.description && (
-                          <p className="text-gray-300 text-sm leading-relaxed group-hover:text-gray-200 transition-colors duration-300">
+                          <p className="text-gray-300 text-xs sm:text-sm leading-relaxed group-hover:text-gray-200 transition-colors duration-300 line-clamp-3">
                             {category.description}
                           </p>
                         )}
@@ -247,10 +244,10 @@ function MenuContent() {
       </div>
 
       {/* View All Items Button - Matching Homepage Style */}
-      <div className="flex justify-center mt-12">
+      <div className="flex justify-center mt-8 sm:mt-12 px-4">
         <Link
           href="/menu/modern"
-          className="neon-button group relative bg-black/20 backdrop-blur-md border border-neonCyan/50 hover:border-neonPink/70 px-8 py-4 rounded-xl font-bold text-neonCyan hover:text-neonPink transition-all duration-300 hover:scale-105 hover:shadow-neon"
+          className="neon-button group relative bg-black/20 backdrop-blur-md border border-neonCyan/50 hover:border-neonPink/70 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-neonCyan hover:text-neonPink transition-all duration-300 hover:scale-105 hover:shadow-neon text-sm sm:text-base"
           style={{ 
             background: 'rgba(0, 0, 0, 0.4)',
             backdropFilter: 'blur(10px)',

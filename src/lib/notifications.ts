@@ -112,7 +112,7 @@ async function sendEmailViaResend(data: OrderConfirmationData): Promise<boolean>
       Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
     },
     body: JSON.stringify({
-      from: process.env.FROM_EMAIL || 'orders@littlelattlane.com',
+      from: `Little Latte Lane <${process.env.ORDERS_EMAIL || 'orders@littlelattelane.co.za'}>`,
       to: data.userEmail,
       subject: `Order Confirmation #${data.orderId} - Little Latte Lane`,
       html: generateOrderEmailHTML(data),
@@ -133,7 +133,7 @@ async function sendBookingEmailViaResend(data: BookingConfirmationData): Promise
       Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
     },
     body: JSON.stringify({
-      from: process.env.FROM_EMAIL || 'bookings@littlelattlane.com',
+      from: `Little Latte Lane <${process.env.FROM_EMAIL || 'bookings@littlelattelane.co.za'}>`,
       to: data.userEmail,
       subject: `Booking Confirmation #${data.confirmationCode} - Little Latte Lane`,
       html: generateBookingEmailHTML(data),

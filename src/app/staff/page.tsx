@@ -290,132 +290,132 @@ export default function StaffPanel() {
         </div>
 
         {/* Status Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         {/* Active Orders */}
         <div
-          className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonCyan/50 p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon"
+          className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonCyan/50 p-3 sm:p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon"
           style={{ 
             background: 'rgba(0, 0, 0, 0.4)',
             backdropFilter: 'blur(10px)',
             boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(0, 255, 255, 0.05)'
           }}
         >
-          <div className="w-full h-16 bg-gradient-to-br from-neonCyan/10 to-neonCyan/20 backdrop-blur-sm rounded-lg mb-4 flex items-center justify-center group-hover:from-neonCyan/20 group-hover:to-neonCyan/30 transition-all duration-300 border border-neonCyan/20">
-            <ShoppingBag className="w-8 h-8 text-neonCyan" />
+          <div className="w-full h-12 sm:h-16 bg-gradient-to-br from-neonCyan/10 to-neonCyan/20 backdrop-blur-sm rounded-lg mb-3 sm:mb-4 flex items-center justify-center group-hover:from-neonCyan/20 group-hover:to-neonCyan/30 transition-all duration-300 border border-neonCyan/20">
+            <ShoppingBag className="w-6 h-6 sm:w-8 sm:h-8 text-neonCyan" />
           </div>
-          <h3 className="text-neonCyan font-semibold text-center text-lg mb-2">Active Orders</h3>
-          <p className="text-3xl font-bold text-neonCyan text-center mb-2">{stats.activeOrders}</p>
-          <p className="text-gray-300 text-sm text-center">All current orders</p>
+          <h3 className="text-neonCyan font-semibold text-center text-sm sm:text-lg mb-1 sm:mb-2">Active Orders</h3>
+          <p className="text-xl sm:text-3xl font-bold text-neonCyan text-center mb-1 sm:mb-2">{stats.activeOrders}</p>
+          <p className="text-gray-300 text-xs sm:text-sm text-center">All current orders</p>
         </div>
 
         {/* Confirmed Orders */}
         <div
-          className="group relative bg-black/20 backdrop-blur-md border border-yellow-400/30 hover:border-yellow-400/50 p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon"
+          className="group relative bg-black/20 backdrop-blur-md border border-yellow-400/30 hover:border-yellow-400/50 p-3 sm:p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon"
           style={{ 
             background: 'rgba(0, 0, 0, 0.4)',
             backdropFilter: 'blur(10px)',
             boxShadow: '0 0 20px rgba(255, 193, 7, 0.1), inset 0 0 20px rgba(255, 193, 7, 0.05)'
           }}
         >
-          <div className="w-full h-16 bg-gradient-to-br from-yellow-400/10 to-yellow-400/20 backdrop-blur-sm rounded-lg mb-4 flex items-center justify-center group-hover:from-yellow-400/20 group-hover:to-yellow-400/30 transition-all duration-300 border border-yellow-400/20">
-            <Clock className="w-8 h-8 text-yellow-400" />
+          <div className="w-full h-12 sm:h-16 bg-gradient-to-br from-yellow-400/10 to-yellow-400/20 backdrop-blur-sm rounded-lg mb-3 sm:mb-4 flex items-center justify-center group-hover:from-yellow-400/20 group-hover:to-yellow-400/30 transition-all duration-300 border border-yellow-400/20">
+            <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400" />
           </div>
-          <h3 className="text-yellow-400 font-semibold text-center text-lg mb-2">Confirmed</h3>
-          <p className="text-3xl font-bold text-yellow-400 text-center mb-2">{stats.confirmedOrders}</p>
-          <p className="text-gray-300 text-sm text-center">Awaiting kitchen action</p>
+          <h3 className="text-yellow-400 font-semibold text-center text-sm sm:text-lg mb-1 sm:mb-2">Confirmed</h3>
+          <p className="text-xl sm:text-3xl font-bold text-yellow-400 text-center mb-1 sm:mb-2">{stats.confirmedOrders}</p>
+          <p className="text-gray-300 text-xs sm:text-sm text-center">Awaiting kitchen</p>
         </div>
 
         {/* In Progress Orders */}
         <div
-          className="group relative bg-black/20 backdrop-blur-md border border-orange-400/30 hover:border-orange-400/50 p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon"
+          className="group relative bg-black/20 backdrop-blur-md border border-orange-400/30 hover:border-orange-400/50 p-3 sm:p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon"
           style={{ 
             background: 'rgba(0, 0, 0, 0.4)',
             backdropFilter: 'blur(10px)',
             boxShadow: '0 0 20px rgba(255, 152, 0, 0.1), inset 0 0 20px rgba(255, 152, 0, 0.05)'
           }}
         >
-          <div className="w-full h-16 bg-gradient-to-br from-orange-400/10 to-orange-400/20 backdrop-blur-sm rounded-lg mb-4 flex items-center justify-center group-hover:from-orange-400/20 group-hover:to-orange-400/30 transition-all duration-300 border border-orange-400/20">
-            <ChefHat className="w-8 h-8 text-orange-400" />
+          <div className="w-full h-12 sm:h-16 bg-gradient-to-br from-orange-400/10 to-orange-400/20 backdrop-blur-sm rounded-lg mb-3 sm:mb-4 flex items-center justify-center group-hover:from-orange-400/20 group-hover:to-orange-400/30 transition-all duration-300 border border-orange-400/20">
+            <ChefHat className="w-6 h-6 sm:w-8 sm:h-8 text-orange-400" />
           </div>
-          <h3 className="text-orange-400 font-semibold text-center text-lg mb-2">In Progress</h3>
-          <p className="text-3xl font-bold text-orange-400 text-center mb-2">{stats.inProgressOrders}</p>
-          <p className="text-gray-300 text-sm text-center">Being prepared</p>
+          <h3 className="text-orange-400 font-semibold text-center text-sm sm:text-lg mb-1 sm:mb-2">In Progress</h3>
+          <p className="text-xl sm:text-3xl font-bold text-orange-400 text-center mb-1 sm:mb-2">{stats.inProgressOrders}</p>
+          <p className="text-gray-300 text-xs sm:text-sm text-center">Being prepared</p>
         </div>
 
         {/* Ready Orders */}
         <div
-          className="group relative bg-black/20 backdrop-blur-md border border-green-400/30 hover:border-green-400/50 p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon"
+          className="group relative bg-black/20 backdrop-blur-md border border-green-400/30 hover:border-green-400/50 p-3 sm:p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon"
           style={{ 
             background: 'rgba(0, 0, 0, 0.4)',
             backdropFilter: 'blur(10px)',
             boxShadow: '0 0 20px rgba(76, 175, 80, 0.1), inset 0 0 20px rgba(76, 175, 80, 0.05)'
           }}
         >
-          <div className="w-full h-16 bg-gradient-to-br from-green-400/10 to-green-400/20 backdrop-blur-sm rounded-lg mb-4 flex items-center justify-center group-hover:from-green-400/20 group-hover:to-green-400/30 transition-all duration-300 border border-green-400/20">
-            <Package className="w-8 h-8 text-green-400" />
+          <div className="w-full h-12 sm:h-16 bg-gradient-to-br from-green-400/10 to-green-400/20 backdrop-blur-sm rounded-lg mb-3 sm:mb-4 flex items-center justify-center group-hover:from-green-400/20 group-hover:to-green-400/30 transition-all duration-300 border border-green-400/20">
+            <Package className="w-6 h-6 sm:w-8 sm:h-8 text-green-400" />
           </div>
-          <h3 className="text-green-400 font-semibold text-center text-lg mb-2">Ready</h3>
-          <p className="text-3xl font-bold text-green-400 text-center mb-2">{stats.readyOrders}</p>
-          <p className="text-gray-300 text-sm text-center">Awaiting pickup</p>
+          <h3 className="text-green-400 font-semibold text-center text-sm sm:text-lg mb-1 sm:mb-2">Ready</h3>
+          <p className="text-xl sm:text-3xl font-bold text-green-400 text-center mb-1 sm:mb-2">{stats.readyOrders}</p>
+          <p className="text-gray-300 text-xs sm:text-sm text-center">Awaiting pickup</p>
         </div>
 
         {/* Completed Orders */}
         <div
-          className="group relative bg-black/20 backdrop-blur-md border border-neonPink/30 hover:border-neonPink/50 p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon"
+          className="group relative bg-black/20 backdrop-blur-md border border-neonPink/30 hover:border-neonPink/50 p-3 sm:p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon col-span-2 md:col-span-1"
           style={{ 
             background: 'rgba(0, 0, 0, 0.4)',
             backdropFilter: 'blur(10px)',
             boxShadow: '0 0 20px rgba(255, 0, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)'
           }}
         >
-          <div className="w-full h-16 bg-gradient-to-br from-neonPink/10 to-neonPink/20 backdrop-blur-sm rounded-lg mb-4 flex items-center justify-center group-hover:from-neonPink/20 group-hover:to-neonPink/30 transition-all duration-300 border border-neonPink/20">
-            <Users className="w-8 h-8 text-neonPink" />
+          <div className="w-full h-12 sm:h-16 bg-gradient-to-br from-neonPink/10 to-neonPink/20 backdrop-blur-sm rounded-lg mb-3 sm:mb-4 flex items-center justify-center group-hover:from-neonPink/20 group-hover:to-neonPink/30 transition-all duration-300 border border-neonPink/20">
+            <Users className="w-6 h-6 sm:w-8 sm:h-8 text-neonPink" />
           </div>
-          <h3 className="text-neonPink font-semibold text-center text-lg mb-2">Completed</h3>
-          <p className="text-3xl font-bold text-neonPink text-center mb-2">{stats.completedOrders}</p>
-          <p className="text-gray-300 text-sm text-center">Today&apos;s finished</p>
+          <h3 className="text-neonPink font-semibold text-center text-sm sm:text-lg mb-1 sm:mb-2">Completed</h3>
+          <p className="text-xl sm:text-3xl font-bold text-neonPink text-center mb-1 sm:mb-2">{stats.completedOrders}</p>
+          <p className="text-gray-300 text-xs sm:text-sm text-center">Today&apos;s finished</p>
         </div>
         </div>
       </div>
 
       {/* Split Orders Panel - Current Orders (Left) and Order History (Right) */}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Current Orders (Left) */}
         <div
-          className="bg-black/20 backdrop-blur-md border border-neonCyan/30 p-6 rounded-xl shadow-lg"
+          className="bg-black/20 backdrop-blur-md border border-neonCyan/30 p-4 sm:p-6 rounded-xl shadow-lg"
           style={{ 
             background: 'rgba(0, 0, 0, 0.4)',
             backdropFilter: 'blur(10px)',
             boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(0, 255, 255, 0.05)'
           }}
         >
-          <h3 className="text-xl font-semibold text-neonCyan mb-4">Current Orders</h3>
+          <h3 className="text-lg sm:text-xl font-semibold text-neonCyan mb-4">Current Orders</h3>
           {orders.length === 0 ? (
-            <div className="text-center py-8">
-              <ShoppingBag className="h-12 w-12 mx-auto mb-4 opacity-50 text-gray-400" />
-              <p className="text-gray-400">No active orders</p>
-              <p className="text-sm text-gray-500 mt-2">Orders will appear here when customers place them</p>
+            <div className="text-center py-6 sm:py-8">
+              <ShoppingBag className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 opacity-50 text-gray-400" />
+              <p className="text-gray-400 text-sm sm:text-base">No active orders</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-2">Orders will appear here when customers place them</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {orders.slice(0, 5).map((order) => (
                 <div
                   key={order.id}
-                  className="bg-darkBg/40 backdrop-blur-sm border border-neonPink/20 rounded-lg p-4 hover:border-neonPink/40 transition-all duration-300"
+                  className="bg-darkBg/40 backdrop-blur-sm border border-neonPink/20 rounded-lg p-3 sm:p-4 hover:border-neonPink/40 transition-all duration-300"
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <h4 className="font-medium text-neonText">
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-neonText text-sm sm:text-base truncate">
                         {order.order_number || `Order #${order.id.slice(0, 8)}...`}
                       </h4>
-                      <p className="text-sm text-gray-400">{order.profiles?.email || 'Unknown Customer'}</p>
-                      <p className="text-sm text-gray-400">
+                      <p className="text-xs sm:text-sm text-gray-400 truncate">{order.profiles?.email || 'Unknown Customer'}</p>
+                      <p className="text-xs sm:text-sm text-gray-400">
                         {order.order_items?.length || 0} items • R{order.total_amount?.toFixed(2) || '0.00'}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
                       <Badge 
-                        className={`${
+                        className={`text-xs ${
                           order.status === 'confirmed' ? 'bg-yellow-400/20 text-yellow-400 border-yellow-400/30' :
                           order.status === 'preparing' ? 'bg-orange-400/20 text-orange-400 border-orange-400/30' :
                           order.status === 'ready' ? 'bg-green-400/20 text-green-400 border-green-400/30' :
@@ -428,7 +428,7 @@ export default function StaffPanel() {
                         size="sm"
                         variant="ghost"
                         onClick={() => handleViewOrder(order)}
-                        className="text-neonCyan hover:text-neonPink hover:bg-neonCyan/10 border border-neonCyan/30 hover:border-neonPink/30"
+                        className="text-neonCyan hover:text-neonPink hover:bg-neonCyan/10 border border-neonCyan/30 hover:border-neonPink/30 text-xs w-full sm:w-auto"
                       >
                         View Order
                       </Button>
@@ -441,7 +441,7 @@ export default function StaffPanel() {
                   <Button
                     onClick={() => router.push('/staff/kitchen-view')}
                     variant="ghost"
-                    className="text-neonCyan hover:text-neonPink"
+                    className="text-neonCyan hover:text-neonPink text-sm"
                   >
                     View all {orders.length} orders in Kitchen View →
                   </Button>
@@ -453,34 +453,34 @@ export default function StaffPanel() {
 
         {/* Order History (Right) */}
         <div
-          className="bg-black/20 backdrop-blur-md border border-neonPink/30 p-6 rounded-xl shadow-lg"
+          className="bg-black/20 backdrop-blur-md border border-neonPink/30 p-4 sm:p-6 rounded-xl shadow-lg"
           style={{ 
             background: 'rgba(0, 0, 0, 0.4)',
             backdropFilter: 'blur(10px)',
             boxShadow: '0 0 20px rgba(255, 0, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)'
           }}
         >
-          <h3 className="text-xl font-semibold text-neonPink mb-4">Order History</h3>
+          <h3 className="text-lg sm:text-xl font-semibold text-neonPink mb-4">Order History</h3>
           {orderHistory.length === 0 ? (
-            <div className="text-center py-8">
-              <Package className="h-12 w-12 mx-auto mb-4 opacity-50 text-gray-400" />
-              <p className="text-gray-400">No completed orders today</p>
-              <p className="text-sm text-gray-500 mt-2">Completed orders will appear here</p>
+            <div className="text-center py-6 sm:py-8">
+              <Package className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 opacity-50 text-gray-400" />
+              <p className="text-gray-400 text-sm sm:text-base">No completed orders today</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-2">Completed orders will appear here</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {orderHistory.slice(0, 5).map((order) => (
                 <div
                   key={order.id}
-                  className="bg-darkBg/40 backdrop-blur-sm border border-green-400/20 rounded-lg p-4 hover:border-green-400/40 transition-all duration-300"
+                  className="bg-darkBg/40 backdrop-blur-sm border border-green-400/20 rounded-lg p-3 sm:p-4 hover:border-green-400/40 transition-all duration-300"
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <h4 className="font-medium text-neonText">
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-neonText text-sm sm:text-base truncate">
                         {order.order_number || `Order #${order.id.slice(0, 8)}...`}
                       </h4>
-                      <p className="text-sm text-gray-400">{order.profiles?.email || 'Unknown Customer'}</p>
-                      <p className="text-sm text-gray-400">
+                      <p className="text-xs sm:text-sm text-gray-400 truncate">{order.profiles?.email || 'Unknown Customer'}</p>
+                      <p className="text-xs sm:text-sm text-gray-400">
                         {order.order_items?.length || 0} items • R{order.total_amount?.toFixed(2) || '0.00'}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
@@ -490,15 +490,15 @@ export default function StaffPanel() {
                         })}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-green-400/20 text-green-400 border-green-400/30">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
+                      <Badge className="bg-green-400/20 text-green-400 border-green-400/30 text-xs">
                         {order.status || 'Completed'}
                       </Badge>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => handleViewOrder(order)}
-                        className="text-neonPink hover:text-neonCyan hover:bg-neonPink/10 border border-neonPink/30 hover:border-neonCyan/30"
+                        className="text-neonPink hover:text-neonCyan hover:bg-neonPink/10 border border-neonPink/30 hover:border-neonCyan/30 text-xs w-full sm:w-auto"
                       >
                         View Order
                       </Button>
@@ -508,7 +508,7 @@ export default function StaffPanel() {
               ))}
               {orderHistory.length > 5 && (
                 <div className="text-center pt-4">
-                  <p className="text-sm text-gray-400">
+                  <p className="text-xs sm:text-sm text-gray-400">
                     Showing 5 of {orderHistory.length} completed orders today
                   </p>
                 </div>
@@ -754,26 +754,26 @@ export default function StaffPanel() {
   }
 
   return (
-    <div className="min-h-screen bg-darkBg text-neonText">
+    <div className="min-h-screen bg-darkBg text-neonText overflow-x-hidden">
       {/* Header */}
       <div className="bg-gray-900">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex justify-between items-center">
+        <div className="max-w-full px-4 sm:px-6 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-neonCyan">Staff Panel</h1>
-              <p className="text-neonText/70 mt-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-neonCyan">Staff Panel</h1>
+              <p className="text-neonText/70 mt-1 text-sm sm:text-base">
                 Restaurant management dashboard for staff
               </p>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
               {lastUpdate && (
-                <div className="text-sm text-gray-400">
+                <div className="text-xs sm:text-sm text-gray-400">
                   Last updated: {lastUpdate.toLocaleTimeString()}
                 </div>
               )}
               <Button
                 onClick={() => router.push('/staff/kitchen-view')}
-                className="bg-darkBg/80 backdrop-blur-sm border border-neonCyan/50 text-neonCyan hover:bg-neonCyan/10 hover:border-neonCyan px-6 py-3 rounded-lg transition-all duration-300"
+                className="bg-darkBg/80 backdrop-blur-sm border border-neonCyan/50 text-neonCyan hover:bg-neonCyan/10 hover:border-neonCyan px-4 sm:px-6 py-2 sm:py-3 rounded-lg transition-all duration-300 w-full sm:w-auto text-sm sm:text-base"
               >
                 <ChefHat className="h-4 w-4 mr-2" />
                 Kitchen View
@@ -783,10 +783,10 @@ export default function StaffPanel() {
         </div>
       </div>
 
-      {/* Navigation Tabs - Centered with consistent styling */}
-      <div className="bg-darkBg">
-        <div className="max-w-7xl mx-auto px-6">
-          <nav className="flex justify-center items-center space-x-4 py-4">
+      {/* Navigation Tabs - Mobile-friendly scrollable tabs */}
+      <div className="bg-darkBg overflow-x-auto">
+        <div className="max-w-full px-4 sm:px-6">
+          <nav className="flex justify-start sm:justify-center items-center space-x-2 sm:space-x-4 py-4 min-w-max">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isRefreshButton = tab.id === 'refresh';
@@ -804,7 +804,7 @@ export default function StaffPanel() {
                     }
                   }}
                   disabled={isRefreshButton && loading}
-                  className={`flex items-center space-x-2 px-8 py-4 rounded-xl transition-all duration-300 whitespace-nowrap font-semibold border border-transparent ${
+                  className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-8 py-2 sm:py-4 rounded-lg sm:rounded-xl transition-all duration-300 whitespace-nowrap font-medium sm:font-semibold border border-transparent text-xs sm:text-base ${
                     isActive && !isRefreshButton
                       ? 'bg-neonCyan/10 text-neonCyan border-neonCyan/30 shadow-[0_0_10px_rgba(0,255,255,0.3)]'
                       : isRefreshButton
@@ -812,8 +812,11 @@ export default function StaffPanel() {
                       : 'text-neonText hover:text-neonPink hover:bg-neonPink/10 hover:border-neonPink/30'
                   }`}
                 >
-                  <Icon className={`h-5 w-5 ${isRefreshButton && loading ? 'animate-spin' : ''}`} />
-                  <span>{tab.label}</span>
+                  <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${isRefreshButton && loading ? 'animate-spin' : ''}`} />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">
+                    {tab.id === 'overview' ? 'Overview' : tab.id === 'refresh' ? 'Refresh' : 'Stock'}
+                  </span>
                 </Button>
               );
             })}
@@ -822,7 +825,7 @@ export default function StaffPanel() {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">{renderTabContent()}</main>
+      <main className="max-w-full px-4 sm:px-6 py-4 sm:py-8 overflow-x-hidden">{renderTabContent()}</main>
 
       {/* Order Details Modal */}
       <OrderDetailsModal

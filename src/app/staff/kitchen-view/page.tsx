@@ -355,44 +355,45 @@ export default function KitchenView() {
   }
 
   return (
-    <div className="min-h-screen bg-darkBg text-neonText">
+    <div className="min-h-screen bg-darkBg text-neonText overflow-x-hidden">
       {/* Full-Screen Header - Enhanced with Kitchen Controls */}
       <div className="bg-gray-900/95 backdrop-blur-md border-b border-neonCyan/30 sticky top-0 z-50">
-        <div className="max-w-full px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
+        <div className="max-w-full px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
               {/* Only show back button for admins */}
               {profile?.is_admin && (
                 <Button
                   onClick={() => router.push('/staff')}
                   variant="ghost"
-                  className="text-neonCyan hover:text-neonPink"
+                  className="text-neonCyan hover:text-neonPink text-sm"
                 >
-                  <ArrowLeft className="h-5 w-5 mr-2" />
-                  Back to Staff Panel
+                  <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Back to Staff Panel</span>
+                  <span className="sm:hidden">Back</span>
                 </Button>
               )}
               <div>
-                <h1 className="text-2xl font-bold text-neonCyan flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-bold text-neonCyan flex items-center gap-2">
                   🍳 Kitchen View
                   {newOrderCount > 0 && (
-                    <Badge className="bg-red-500 text-white animate-pulse">
+                    <Badge className="bg-red-500 text-white animate-pulse text-xs">
                       +{newOrderCount} NEW
                     </Badge>
                   )}
                 </h1>
-                <p className="text-neonText/70 text-sm">
-                  {profile?.is_admin ? 'Full-screen order management' : 'Staff Kitchen Interface - Real-time Order Processing'}
+                <p className="text-neonText/70 text-xs sm:text-sm">
+                  {profile?.is_admin ? 'Full-screen order management' : 'Real-time Order Processing'}
                 </p>
               </div>
             </div>
             
             {/* Kitchen Controls */}
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 lg:space-x-4 w-full lg:w-auto">
               {/* Status Filter */}
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40 bg-gray-800 border-gray-600 text-gray-200">
-                  <Filter className="w-4 h-4 mr-2" />
+                <SelectTrigger className="w-full sm:w-32 lg:w-40 bg-gray-800 border-gray-600 text-gray-200 text-xs sm:text-sm">
+                  <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-600">
@@ -407,24 +408,25 @@ export default function KitchenView() {
               <Button
                 onClick={() => setShowOnlyUrgent(!showOnlyUrgent)}
                 variant={showOnlyUrgent ? "default" : "outline"}
-                className={`${showOnlyUrgent ? 'bg-red-500 hover:bg-red-600' : 'border-gray-600 text-gray-300'}`}
+                className={`${showOnlyUrgent ? 'bg-red-500 hover:bg-red-600' : 'border-gray-600 text-gray-300'} text-xs px-2 sm:px-3 py-2`}
                 title="Show only orders that are urgent (over 20 minutes old or ready for pickup)"
               >
-                <Bell className="w-4 h-4 mr-2" />
-                Urgent Only ({showOnlyUrgent ? 'ON' : 'OFF'})
+                <Bell className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                <span className="hidden sm:inline">Urgent Only ({showOnlyUrgent ? 'ON' : 'OFF'})</span>
+                <span className="sm:hidden">{showOnlyUrgent ? 'ON' : 'OFF'}</span>
               </Button>
 
               {/* Sound Toggle */}
               <Button
                 onClick={() => setSoundEnabled(!soundEnabled)}
                 variant="outline"
-                className="border-gray-600 text-gray-300"
+                className="border-gray-600 text-gray-300 text-xs px-2 sm:px-3 py-2"
               >
-                {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                {soundEnabled ? <Volume2 className="w-3 h-3 sm:w-4 sm:h-4" /> : <VolumeX className="w-3 h-3 sm:w-4 sm:h-4" />}
               </Button>
 
               {lastUpdate && (
-                <div className="text-sm text-gray-400">
+                <div className="text-xs text-gray-400 hidden lg:block">
                   Last update: {lastUpdate.toLocaleTimeString()}
                 </div>
               )}
@@ -432,10 +434,10 @@ export default function KitchenView() {
               <Button
                 onClick={fetchOrders}
                 disabled={loading}
-                className="neon-button"
+                className="neon-button text-xs px-2 sm:px-3 py-2"
               >
-                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
+                <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Refresh</span>
               </Button>
             </div>
           </div>
@@ -443,58 +445,58 @@ export default function KitchenView() {
       </div>
 
       {/* Split Layout: Active Orders (Left) + Completed Orders (Right) */}
-      <div className="flex gap-6 p-6">
-        {/* Left Side - Active Orders (2/3 width) */}
-        <div className="flex-1 w-2/3">
+      <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 p-4 sm:p-6">
+        {/* Left Side - Active Orders */}
+        <div className="flex-1 xl:w-2/3">
           <div className="mb-4">
-            <h2 className="text-xl font-bold text-white mb-2">Active Orders - Kitchen Queue</h2>
-            <p className="text-gray-400 text-sm">Orders requiring kitchen preparation (Confirmed → Preparing → Ready)</p>
+            <h2 className="text-lg sm:text-xl font-bold text-white mb-2">Active Orders - Kitchen Queue</h2>
+            <p className="text-gray-400 text-xs sm:text-sm">Orders requiring kitchen preparation (Confirmed → Preparing → Ready)</p>
           </div>
           
           {getActiveOrders().length === 0 ? (
-            <div className="text-center py-16">
-              <ChefHat className="h-16 w-16 mx-auto mb-6 text-gray-400 opacity-50" />
-              <h3 className="text-xl text-gray-400 mb-2">No Active Orders</h3>
-              <p className="text-gray-500">Orders will appear here as they come in</p>
+            <div className="text-center py-12 sm:py-16">
+              <ChefHat className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-4 sm:mb-6 text-gray-400 opacity-50" />
+              <h3 className="text-lg sm:text-xl text-gray-400 mb-2">No Active Orders</h3>
+              <p className="text-gray-500 text-sm">Orders will appear here as they come in</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3 gap-3 sm:gap-4">
               {getActiveOrders().map((order, index) => (
                 <div
                   key={order.id}
-                  className="group relative aspect-square border rounded-lg p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 bg-black border-gray-700"
+                  className="group relative border rounded-lg p-3 sm:p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 bg-black border-gray-700 min-h-[200px] sm:min-h-[300px]"
                 >
                   {/* Priority Indicator */}
                   {isOrderUrgent(order) && (
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold animate-pulse">
+                    <div className="absolute -top-2 -right-2 w-5 h-5 sm:w-6 sm:h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold animate-pulse">
                       !
                     </div>
                   )}
 
                   {/* Position Number - Top Left Corner */}
-                  <div className={`absolute -top-2 -left-2 w-8 h-8 ${isOrderUrgent(order) ? 'bg-red-600' : 'bg-red-500'} text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg`}>
+                  <div className={`absolute -top-2 -left-2 w-6 h-6 sm:w-8 sm:h-8 ${isOrderUrgent(order) ? 'bg-red-600' : 'bg-red-500'} text-white rounded-full flex items-center justify-center text-xs sm:text-sm font-bold shadow-lg`}>
                     {index + 1}
                   </div>
 
                   {/* Order Header */}
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="text-white">
-                      <h4 className="font-bold text-lg leading-tight">
+                  <div className="flex justify-between items-start mb-3 mt-2">
+                    <div className="text-white min-w-0 flex-1">
+                      <h4 className="font-bold text-sm sm:text-lg leading-tight truncate">
                         Order #{order.order_number || order.id.slice(0, 8)}
                       </h4>
                       <p className="text-xs text-gray-300">
                         {formatOrderTime(order.created_at)}
                       </p>
                     </div>
-                    <Badge className={`${getStatusColor(order.status)} text-sm px-3 py-1 flex items-center gap-2 font-medium`}>
+                    <Badge className={`${getStatusColor(order.status)} text-xs px-2 py-1 flex items-center gap-1 font-medium ml-2 shrink-0`}>
                       {getStatusIcon(order.status)}
-                      {order.status || 'pending'}
+                      <span className="hidden sm:inline">{order.status || 'pending'}</span>
                     </Badge>
                   </div>
 
                   {/* Customer Info */}
                   <div className="mb-3 text-white">
-                    <p className="text-sm font-medium">
+                    <p className="text-xs sm:text-sm font-medium truncate">
                       {order.profiles?.full_name || order.profiles?.email?.split('@')[0] || 'Walk-in Customer'}
                     </p>
                     <p className="text-xs text-gray-300">
@@ -504,15 +506,15 @@ export default function KitchenView() {
 
                   {/* Order Items */}
                   <div className="mb-4 flex-1">
-                    <div className="space-y-1 max-h-24 overflow-y-auto">
+                    <div className="space-y-1 max-h-16 sm:max-h-24 overflow-y-auto">
                       {order.order_items.map((item, idx) => (
-                        <div key={idx} className="text-sm text-white">
+                        <div key={idx} className="text-xs sm:text-sm text-white">
                           <span className="font-medium">{item.quantity}x</span>{' '}
-                          <span className="text-gray-200">
+                          <span className="text-gray-200 truncate">
                             {item.menu_items?.name || 'Unknown Item'}
                           </span>
                           {item.special_instructions && (
-                            <p className="text-xs text-gray-300 italic ml-4">
+                            <p className="text-xs text-gray-300 italic ml-4 truncate">
                               Note: {item.special_instructions}
                             </p>
                           )}
@@ -522,7 +524,7 @@ export default function KitchenView() {
                     
                     {order.special_instructions && (
                       <div className="mt-2 p-2 bg-gray-800 rounded text-xs text-gray-200">
-                        <strong>Special:</strong> {order.special_instructions}
+                        <strong>Special:</strong> <span className="truncate">{order.special_instructions}</span>
                       </div>
                     )}
                   </div>
@@ -546,7 +548,7 @@ export default function KitchenView() {
                           `}
                         >
                           <span className="text-xs mr-1">{button.icon}</span>
-                          {button.label}
+                          <span className="hidden sm:inline">{button.label}</span>
                         </Button>
                       ))}
                     </div>
@@ -557,7 +559,7 @@ export default function KitchenView() {
                       variant="outline"
                       className="w-full bg-transparent border border-blue-500 text-blue-400 hover:bg-blue-600 hover:text-white hover:border-blue-600 text-xs py-1.5 font-medium transition-all duration-300"
                     >
-                      👁️ View Details
+                      👁️ <span className="hidden sm:inline">View Details</span><span className="sm:hidden">Details</span>
                     </Button>
                   </div>
                 </div>
@@ -566,43 +568,43 @@ export default function KitchenView() {
           )}
         </div>
 
-        {/* Right Side - Completed Orders (1/3 width) */}
-        <div className="w-1/3 border-l border-gray-700 pl-6">
+        {/* Right Side - Completed Orders */}
+        <div className="xl:w-1/3 xl:border-l xl:border-gray-700 xl:pl-6">
           <div className="mb-4">
-            <h2 className="text-xl font-bold text-white mb-2">Completed Orders</h2>
-            <p className="text-gray-400 text-sm">Ready for pickup/delivery - awaiting customer collection</p>
+            <h2 className="text-lg sm:text-xl font-bold text-white mb-2">Completed Orders</h2>
+            <p className="text-gray-400 text-xs sm:text-sm">Ready for pickup/delivery - awaiting customer collection</p>
           </div>
 
           {getCompletedOrders().length === 0 ? (
-            <div className="text-center py-8">
-              <CheckCircle className="h-12 w-12 mx-auto mb-4 text-gray-500" />
-              <p className="text-gray-400">No completed orders</p>
-              <p className="text-gray-500 text-sm">Completed orders appear here</p>
+            <div className="text-center py-6 sm:py-8">
+              <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 text-gray-500" />
+              <p className="text-gray-400 text-sm">No completed orders</p>
+              <p className="text-gray-500 text-xs">Completed orders appear here</p>
             </div>
           ) : (
             <div className="space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto">
               {getCompletedOrders().map((order) => (
                 <div
                   key={order.id}
-                  className="bg-gray-800 border border-gray-600 rounded-lg p-4 hover:border-gray-500 transition-colors"
+                  className="bg-gray-800 border border-gray-600 rounded-lg p-3 sm:p-4 hover:border-gray-500 transition-colors"
                 >
                   <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h4 className="font-bold text-white text-sm">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-white text-xs sm:text-sm truncate">
                         Order #{order.order_number || order.id.slice(0, 8)}
                       </h4>
                       <p className="text-xs text-gray-400">
                         Completed: {formatOrderTime(order.updated_at || order.created_at)}
                       </p>
                     </div>
-                    <Badge className="bg-green-600/20 border-green-600/50 text-green-300 text-xs">
+                    <Badge className="bg-green-600/20 border-green-600/50 text-green-300 text-xs ml-2 shrink-0">
                       <CheckCircle className="w-3 h-3 mr-1" />
                       Ready
                     </Badge>
                   </div>
 
                   <div className="mb-3">
-                    <p className="text-sm text-gray-200 font-medium">
+                    <p className="text-xs sm:text-sm text-gray-200 font-medium truncate">
                       {order.profiles?.full_name || order.profiles?.email?.split('@')[0] || 'Walk-in Customer'}
                     </p>
                     <p className="text-xs text-gray-400">
@@ -613,7 +615,7 @@ export default function KitchenView() {
                   <div className="mb-3">
                     <div className="text-xs text-gray-300 space-y-1">
                       {order.order_items.slice(0, 3).map((item, idx) => (
-                        <div key={idx}>
+                        <div key={idx} className="truncate">
                           {item.quantity}x {item.menu_items?.name || 'Unknown Item'}
                         </div>
                       ))}
@@ -630,14 +632,14 @@ export default function KitchenView() {
                       onClick={() => handleUpdateStatus(order.id, 'picked_up')}
                       className="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-2 font-medium transition-all duration-300"
                     >
-                      📦 Mark as Picked Up
+                      📦 <span className="hidden sm:inline">Mark as Picked Up</span><span className="sm:hidden">Picked Up</span>
                     </Button>
                     <Button
                       onClick={() => handleViewOrder(order)}
                       variant="outline"
                       className="w-full bg-transparent border border-gray-600 text-gray-400 hover:bg-gray-700 hover:text-white text-xs py-1.5 font-medium transition-all duration-300"
                     >
-                      👁️ View Details
+                      👁️ <span className="hidden sm:inline">View Details</span><span className="sm:hidden">Details</span>
                     </Button>
                   </div>
                 </div>

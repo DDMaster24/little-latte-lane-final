@@ -86,7 +86,7 @@ export class AuthQueries {
   }
 
   /**
-   * Sign up with email and password
+   * Sign up with email and password - Custom email handling
    */
   async signUp(email: string, password: string, userData?: Partial<ProfileInsert>) {
     const { data, error } = await this.client.auth.signUp({
@@ -95,12 +95,13 @@ export class AuthQueries {
       options: {
         data: userData,
         emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+        // Note: We handle email confirmation through our custom branded system
       },
     });
 
     if (error) throw error;
 
-    // If signup successful and user was created, trigger welcome email
+    // If signup successful and user was created, trigger our custom welcome email
     if (data.user && !error) {
       try {
         await fetch('/api/auth/welcome', {

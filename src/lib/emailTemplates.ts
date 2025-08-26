@@ -231,10 +231,13 @@ export async function sendWelcomeEmail(data: WelcomeEmailData): Promise<boolean>
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: process.env.FROM_EMAIL || 'welcome@littlelattelane.co.za',
+        from: `Little Latte Lane <${process.env.FROM_EMAIL || 'welcome@littlelattelane.co.za'}>`,
         to: data.userEmail,
         subject: '🎉 Welcome to Little Latte Lane - Confirm Your Account!',
         html: generateWelcomeEmailHTML(data),
+        headers: {
+          'X-Entity-Ref-ID': `welcome-${Date.now()}`,
+        },
       }),
     });
 

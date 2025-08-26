@@ -150,7 +150,7 @@ export async function sendOrderPreparingEmail(data: OrderStatusUpdateData): Prom
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: process.env.FROM_EMAIL || 'orders@littlelattelane.co.za',
+        from: `Little Latte Lane <${process.env.ORDERS_EMAIL || 'orders@littlelattelane.co.za'}>`,
         to: data.userEmail,
         subject: `🍕 Your Order #${data.orderId} is Being Prepared!`,
         html: generateOrderPreparingHTML(data),
@@ -184,7 +184,7 @@ export async function sendOrderReadyEmail(data: OrderStatusUpdateData): Promise<
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: process.env.FROM_EMAIL || 'orders@littlelattelane.co.za',
+        from: `Little Latte Lane <${process.env.ORDERS_EMAIL || 'orders@littlelattelane.co.za'}>`,
         to: data.userEmail,
         subject: `🎉 Your Order #${data.orderId} is Ready for ${data.deliveryType === 'delivery' ? 'Delivery' : 'Collection'}!`,
         html: generateOrderReadyHTML(data),
@@ -218,7 +218,7 @@ export async function sendOrderCompletedEmail(data: OrderStatusUpdateData): Prom
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: process.env.FROM_EMAIL || 'orders@littlelattelane.co.za',
+        from: `Little Latte Lane <${process.env.ORDERS_EMAIL || 'orders@littlelattelane.co.za'}>`,
         to: data.userEmail,
         subject: `✅ Order #${data.orderId} Complete - Thank You!`,
         html: generateOrderCompletedHTML(data),
@@ -252,7 +252,7 @@ export async function sendOrderCancelledEmail(data: OrderStatusUpdateData): Prom
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: process.env.FROM_EMAIL || 'orders@littlelattelane.co.za',
+        from: `Little Latte Lane <${process.env.ORDERS_EMAIL || 'orders@littlelattelane.co.za'}>`,
         to: data.userEmail,
         subject: `❌ Order #${data.orderId} Cancelled`,
         html: generateOrderCancelledHTML(data),

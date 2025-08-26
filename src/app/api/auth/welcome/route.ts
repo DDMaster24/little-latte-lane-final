@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sendWelcomeEmail } from '@/lib/emailTemplates';
+import { sendSignupConfirmationEmail } from '@/lib/authEmailService';
 
 interface WelcomeEmailRequest {
   userEmail: string;
@@ -9,7 +9,7 @@ interface WelcomeEmailRequest {
 
 /**
  * Send Welcome Email API
- * Sends a branded welcome email to new users
+ * Sends a branded confirmation email to new users
  */
 export async function POST(request: NextRequest) {
   try {
@@ -22,33 +22,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('📧 Sending welcome email to:', userEmail);
+    console.log('📧 Sending signup confirmation email to:', userEmail);
 
-    // Generate confirmation URL
-    const confirmationUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm-signup`;
-
-    // Send the welcome email
-    const emailSent = await sendWelcomeEmail({
+    // Send the branded confirmation email with proper token
+    const emailSent = await sendSignupConfirmationEmail({
       userEmail,
       userName,
-      confirmationUrl,
+      confirmationToken: userId, // Using userId as token for now
+      userId,
     });
 
     if (emailSent) {
-      console.log('✅ Welcome email sent successfully to:', userEmail);
+      console.log('✅ Signup confirmation email sent successfully to:', userEmail);
       return NextResponse.json({ 
         success: true, 
-        message: 'Welcome email sent successfully' 
+        message: 'Confirmation email sent successfully' 
       });
     } else {
-      console.error('❌ Failed to send welcome email to:', userEmail);
+      console.error('❌ Failed to send confirmation email to:', userEmail);
       return NextResponse.json(
-        { error: 'Failed to send welcome email' },
+        { error: 'Failed to send confirmation email' },
         { status: 500 }
       );
     }
   } catch (error) {
-    console.error('❌ Welcome email API error:', error);
+    console.error('❌ Confirmation email API error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
