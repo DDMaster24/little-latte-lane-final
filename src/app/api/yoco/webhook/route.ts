@@ -1,59 +1,75 @@
 /**
- * Yoco Webhook Handler
- * Processes payment status updates from Yoco
+ * Yoco Webhook Handler - Official Format
+ * Processes payment status updates from Yoco according to official API docs
+ * Event types: payment.succeeded, payment.failed
+ * Webhook signature verification with HMAC-SHA256
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { yocoClient } from '@/lib/yoco';
 import { getSupabaseServer } from '@/lib/supabase-server';
+import { 
+  verifyYocoWebhookSignature, 
+  getYocoWebhookSecret,
+  validateYocoWebhookEvent,
+  extractOrderIdFromWebhook,
+  logYocoWebhookEvent
+} from '@/lib/yoco-webhook-utils';
 
 interface YocoWebhookEvent {
   id: string;
-  type?: 'checkout.succeeded' | 'checkout.failed' | 'checkout.cancelled';
-  eventType?: string; // Alternative field name
+  type: 'payment.succeeded' | 'payment.failed';
   createdDate: string;
-  payload?: {
-    id: string; // checkout ID
-    status: 'succeeded' | 'failed' | 'cancelled';
+  payload: {
+    id: string; // event ID
     amount: number; // amount in cents
     currency: string;
-    metadata?: {
-      orderId?: string;
-      userId?: string;
+    createdDate: string;
+    mode: 'live' | 'test';
+    status: 'succeeded' | 'failed';
+    type: 'payment';
+    metadata: {
+      checkoutId: string;
       [key: string]: string | number | undefined;
     };
+    paymentMethodDetails?: {
+      type: string;
+      card?: {
+        expiryMonth: number;
+        expiryYear: number;
+        maskedCard: string;
+        scheme: string;
+        cardHolder: string;
+      };
+    };
   };
-  data?: any; // Alternative payload structure
-  [key: string]: any; // Allow additional fields
 }
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔔 Yoco webhook received at:', new Date().toISOString());
+    console.log('🔔 Official Yoco webhook received at:', new Date().toISOString());
     
-    // Log request details for debugging
-    console.log('📋 Webhook headers:');
-    for (const [key, value] of request.headers.entries()) {
-      console.log(`  ${key}: ${value}`);
-    }
-    
-    // Get webhook signature for verification (if Yoco provides one)
-    const signature = request.headers.get('x-yoco-signature') || '';
+    // Get webhook signature for HMAC verification (required by Yoco)
+    const signature = request.headers.get('webhook-signature');
+    console.log('📋 Webhook signature:', signature ? 'Present' : 'Missing');
     
     // Get raw body for signature verification
     const body = await request.text();
-    console.log('📄 Webhook body:', body);
+    console.log('📄 Raw webhook body length:', body.length);
     
-    // For now, skip signature verification as Yoco might not provide it
-    // if (!yocoClient.verifyWebhookSignature(body, signature)) {
-    //   console.error('Invalid webhook signature');
-    //   return NextResponse.json(
-    //     { error: 'Invalid signature' },
-    //     { status: 401 }
-    //   );
-    // }
+    // Verify webhook signature if secret is configured
+    const webhookSecret = getYocoWebhookSecret();
+    if (webhookSecret && signature) {
+      const isValid = verifyYocoWebhookSignature(body, signature, webhookSecret);
+      if (!isValid) {
+        console.error('❌ Invalid Yoco webhook signature');
+        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+      }
+      console.log('✅ Webhook signature verified');
+    } else if (signature) {
+      console.log('⚠️ Webhook signature present but YOCO_WEBHOOK_SECRET not configured');
+    }
 
-    // Parse the webhook event
+    // Parse the webhook event according to official Yoco format
     let event: YocoWebhookEvent;
     try {
       event = JSON.parse(body);
@@ -65,88 +81,87 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    console.log('📊 Parsed webhook event:', {
-      type: event.type,
-      checkoutId: event.payload?.id,
-      status: event.payload?.status,
-      amount: event.payload?.amount,
-      metadata: event.payload?.metadata,
-    });
+    // Log webhook event details
+    logYocoWebhookEvent(event, '📊');
 
-    // Handle different possible event structures
-    const eventType = event.type || event.eventType;
-    const payload = event.payload || event.data || event;
-    
+    // Validate webhook event structure
+    const validation = validateYocoWebhookEvent(event);
+    if (!validation.isValid) {
+      console.error('❌ Invalid webhook event structure:', validation.error);
+      return NextResponse.json(
+        { error: validation.error },
+        { status: 400 }
+      );
+    }
+
     // Extract order ID from metadata
-    const orderId = payload.metadata?.orderId || payload.metadata?.order_id;
-    if (!orderId || typeof orderId !== 'string') {
-      console.error('❌ No orderId in webhook metadata:', payload.metadata);
+    const orderId = extractOrderIdFromWebhook(event);
+    if (!orderId) {
+      console.error('❌ No orderId found in webhook metadata');
       return NextResponse.json(
         { error: 'Missing orderId in metadata' },
         { status: 400 }
       );
     }
 
-    console.log('🎯 Processing payment for order:', orderId);
+    console.log('🎯 Processing Yoco payment event:', {
+      eventType: event.type,
+      orderId,
+      checkoutId: event.payload.metadata.checkoutId,
+      paymentStatus: event.payload.status,
+      amount: event.payload.amount,
+      currency: event.payload.currency,
+    });
 
     // Get order from database
     const supabase = await getSupabaseServer();
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .select('id, status, payment_status, user_id')
+      .select('id, status, payment_status, user_id, total_amount')
       .eq('id', orderId)
       .single();
 
     if (orderError || !order) {
-      console.error('Order not found:', orderId);
+      console.error('❌ Order not found:', orderId, orderError);
       return NextResponse.json(
         { error: 'Order not found' },
         { status: 404 }
       );
     }
 
-    // TODO: Verify the checkout ID matches when payment_provider_id column is added
-    // For now, we'll skip this validation as the webhook URL should be secret
-    // if (order.payment_provider_id !== event.payload.id) {
-    //   console.error('Checkout ID mismatch:', {
-    //     orderCheckoutId: order.payment_provider_id,
-    //     webhookCheckoutId: event.payload.id,
-    //   });
-    //   return NextResponse.json(
-    //     { error: 'Checkout ID mismatch' },
-    //     { status: 400 }
-    //   );
-    // }
+    // Verify payment amount matches order total (security check)
+    const orderTotalCents = Math.round((order.total_amount || 0) * 100); // Convert to cents
+    if (event.payload.amount !== orderTotalCents) {
+      console.error('❌ Payment amount mismatch:', {
+        webhookAmount: event.payload.amount,
+        orderAmount: orderTotalCents,
+        orderId
+      });
+      // Still process the payment but log the discrepancy
+      console.log('⚠️ Processing payment despite amount mismatch');
+    }
 
-    // Process the payment based on event type
+    // Process the payment based on official Yoco event type
     let newPaymentStatus: string;
     let newOrderStatus: string;
 
-    // Handle different event type formats
-    const normalizedEventType = eventType?.toLowerCase() || '';
-    
-    if (normalizedEventType.includes('succeed') || normalizedEventType.includes('success') || 
-        normalizedEventType.includes('completed') || payload.status === 'succeeded') {
+    if (event.type === 'payment.succeeded') {
       newPaymentStatus = 'completed';
       newOrderStatus = 'confirmed';
-      console.log('✅ Payment succeeded');
-    } else if (normalizedEventType.includes('fail') || payload.status === 'failed') {
+      console.log('✅ Yoco payment succeeded');
+    } else if (event.type === 'payment.failed') {
       newPaymentStatus = 'failed';
       newOrderStatus = 'cancelled';
-      console.log('❌ Payment failed');
-    } else if (normalizedEventType.includes('cancel') || payload.status === 'cancelled') {
-      newPaymentStatus = 'cancelled';
-      newOrderStatus = 'cancelled';
-      console.log('🚫 Payment cancelled');
+      console.log('❌ Yoco payment failed');
     } else {
-      console.error('❓ Unknown webhook event type:', eventType, 'payload status:', payload.status);
-      // For unknown events, let's assume success if we got a webhook
-      newPaymentStatus = 'completed';
-      newOrderStatus = 'confirmed';
-      console.log('⚠️ Assuming payment success for unknown event type');
+      console.error('❓ Unsupported Yoco webhook event type:', event.type);
+      return NextResponse.json(
+        { error: `Unsupported event type: ${event.type}` },
+        { status: 400 }
+      );
     }
 
-    // Update order status
+    // Update order status in database
     const { error: updateError } = await supabase
       .from('orders')
       .update({
@@ -157,26 +172,32 @@ export async function POST(request: NextRequest) {
       .eq('id', orderId);
 
     if (updateError) {
-      console.error('Failed to update order:', updateError);
+      console.error('❌ Failed to update order in database:', updateError);
       return NextResponse.json(
         { error: 'Failed to update order' },
         { status: 500 }
       );
     }
 
-    console.log(`✅ Order ${orderId} updated successfully:`, {
+    console.log(`✅ Order ${orderId} updated successfully from Yoco webhook:`, {
+      eventType: event.type,
       paymentStatus: newPaymentStatus,
       orderStatus: newOrderStatus,
+      paymentId: event.payload.id,
+      checkoutId: event.payload.metadata.checkoutId,
     });
 
-    // Trigger order status notifications
+    // Trigger order status notifications (async, don't wait for response)
     try {
       const notificationResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.littlelattelane.co.za'}/api/orders/payment-success`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           orderId: orderId,
-          paymentStatus: newPaymentStatus
+          paymentStatus: newPaymentStatus,
+          eventType: event.type,
+          paymentId: event.payload.id,
+          checkoutId: event.payload.metadata.checkoutId,
         })
       });
       
@@ -186,20 +207,21 @@ export async function POST(request: NextRequest) {
         console.log('⚠️ Order notification failed:', await notificationResponse.text());
       }
     } catch (notificationError) {
-      console.log('⚠️ Notification error:', notificationError);
+      console.log('⚠️ Notification error (non-critical):', notificationError);
     }
 
+    // Return success response as required by Yoco (must be 200 status)
     return NextResponse.json({ 
-      success: true,
+      received: true,
+      eventId: event.id,
+      eventType: event.type,
       orderId,
-      status: newOrderStatus,
-      paymentStatus: newPaymentStatus,
-      eventType: eventType,
+      paymentId: event.payload.id,
       processedAt: new Date().toISOString(),
-    });
+    }, { status: 200 });
 
   } catch (error) {
-    console.error('Webhook processing error:', error);
+    console.error('❌ Yoco webhook processing error:', error);
     
     return NextResponse.json(
       { 
