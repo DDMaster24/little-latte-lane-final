@@ -1,18 +1,19 @@
 {
-  "name": "Little Latte Lane",
+  "name": "Robert's Little Latte Lane",
   "short_name": "Latte Lane",
+  "description": "Café & Deli - Where Great Food Meets Amazing Experiences",
   "start_url": "/",
   "display": "standalone",
   "theme_color": "#0f0f0f",
   "background_color": "#0f0f0f",
   "icons": [
     {
-      "src": "/icon-192x192.png",
+      "src": "/images/new-logo.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/icon-512x512.png",
+      "src": "/images/new-logo.png",
       "sizes": "512x512",
       "type": "image/png"
     }

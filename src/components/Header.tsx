@@ -35,19 +35,9 @@ export default function Header() {
         suppressHydrationWarning={true}
       >
         <div className="container-full flex items-center justify-between">
-          <div className="flex items-center space-x-2 xs:space-x-3 sm:space-x-4 min-w-0">
-            <Image
-              src="/images/logo.png"
-              alt="Little Latte Lane Logo"
-              width={48}
-              height={48}
-              className="w-10 h-10 xs:w-12 xs:h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 shadow-neon flex-shrink-0"
-            />
-            <div className="min-w-0">
-              <h1 className="text-fluid-base xs:text-fluid-lg sm:text-fluid-xl lg:text-fluid-2xl font-bold bg-neon-gradient bg-clip-text text-transparent truncate">
-                Little Latte Lane
-              </h1>
-              <p className="text-fluid-xs sm:text-fluid-sm text-gray-300 truncate">Roberts&apos; Cafe and Deli</p>
+          <div className="flex items-center min-w-0">
+            <div className="bg-black rounded-lg p-2 sm:p-3">
+              <div className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 bg-gray-700 animate-pulse rounded"></div>
             </div>
           </div>
 
@@ -71,23 +61,20 @@ export default function Header() {
     <header className="bg-darkBg text-neonText py-3 xs:py-4 shadow-neon relative z-40">
       <div className="container-full flex items-center justify-between">
         
-        {/* Left Section - Logo + Title - Compact Sizing */}
-        <div className="flex items-center space-x-2 xs:space-x-3 sm:space-x-4 min-w-0">
-          <Image
-            src="/images/logo.png"
-            alt="Little Latte Lane Logo"
-            width={48}
-            height={48}
-            className="w-10 h-10 xs:w-12 xs:h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 shadow-neon flex-shrink-0"
-          />
-          <div className="min-w-0">
-            <h1 className="text-fluid-base xs:text-fluid-lg sm:text-fluid-xl lg:text-fluid-2xl font-bold bg-neon-gradient bg-clip-text text-transparent truncate">
-              Little Latte Lane
-            </h1>
-            <p className="text-fluid-xs sm:text-fluid-sm text-gray-300 truncate">
-              Roberts&apos; Cafe and Deli
-            </p>
-          </div>
+        {/* Left Section - Modern Logo */}
+        <div className="flex items-center min-w-0">
+          <Link href="/" className="flex items-center">
+            <div className="bg-black rounded-lg p-2 sm:p-3">
+              <Image
+                src="/images/new-logo.png"
+                alt="Robert's Little Latte Lane Café & Deli"
+                width={120}
+                height={120}
+                className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 object-contain"
+                priority
+              />
+            </div>
+          </Link>
         </div>
 
         {/* Center Section - Navigation Links - Hidden on Mobile */}

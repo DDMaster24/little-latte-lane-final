@@ -7,12 +7,13 @@ import { Toaster } from 'sonner';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Little Latte Lane',
-  description: 'Food ordering and booking for estate residents',
+  title: 'Robert\'s Little Latte Lane',
+  description: 'Café & Deli - Where Great Food Meets Amazing Experiences',
   manifest: '/manifest.json',
   icons: {
-    icon: '/icon-192x192.png',
-    apple: '/icon-192x192.png',
+    icon: '/images/new-logo.png',
+    apple: '/images/new-logo.png',
+    shortcut: '/images/new-logo.png',
   },
   other: {
     'mobile-web-app-capable': 'yes',
