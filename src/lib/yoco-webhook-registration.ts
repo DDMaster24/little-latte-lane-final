@@ -7,17 +7,16 @@
 import { env } from './env';
 
 export interface YocoWebhookRegistration {
+  name: string;
   url: string;
-  events: ('payment.succeeded' | 'payment.failed')[];
 }
 
 export interface YocoWebhookResponse {
   id: string;
-  url: string;
-  events: string[];
+  mode: 'live' | 'test';
+  name: string;
   secret: string; // Webhook secret for HMAC verification
-  createdDate: string;
-  status: 'active' | 'inactive';
+  url: string;
 }
 
 /**
@@ -41,8 +40,8 @@ export async function registerYocoWebhook(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        name: webhookData.name,
         url: webhookData.url,
-        events: webhookData.events,
       }),
     });
 
@@ -171,8 +170,8 @@ export async function setupYocoWebhooks(): Promise<{
     
     // Register new webhook
     const webhook = await registerYocoWebhook({
+      name: 'Little Latte Lane Payment Webhook',
       url: webhookUrl,
-      events: ['payment.succeeded', 'payment.failed'],
     });
     
     console.log('✅ Webhook registered successfully:', webhook.id);

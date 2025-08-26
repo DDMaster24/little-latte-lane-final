@@ -1,20 +1,53 @@
 /**
- * Yoco Webhook Utilities
+ * Yoco Webhook Utilities - CORRECTED IMPLEMENTATION
  * Handles webhook signature verification and payload validation
+ * Based on: https://developer.yoco.com/guides/online-payments/webhooks/verifying-the-events
  */
 
 import crypto from 'crypto';
 
 /**
- * Verify Yoco webhook signature using HMAC-SHA256
- * According to Yoco docs: https://developer.yoco.com/online/resources/webhooks
- * 
- * @param payload - Raw request body as string
- * @param signature - webhook-signature header value
- * @param secret - Webhook secret from Yoco dashboard
- * @returns boolean indicating if signature is valid
+ * Verify Yoco webhook signature using the official method
+ * According to Yoco docs: webhook-id.webhook-timestamp.raw_body signed with HMAC-SHA256
  */
 export function verifyYocoWebhookSignature(
+  payload: string,
+  signature: string,
+  webhookId: string,
+  webhookTimestamp: string,
+  secret: string
+): boolean {
+  try {
+    // Construct the signed content: webhook-id.webhook-timestamp.raw_body
+    const signedContent = `${webhookId}.${webhookTimestamp}.${payload}`;
+    
+    // Extract secret bytes (remove whsec_ prefix and decode base64)
+    const secretBytes = Buffer.from(secret.split('_')[1], 'base64');
+    
+    // Generate expected signature
+    const expectedSignature = crypto
+      .createHmac('sha256', secretBytes)
+      .update(signedContent)
+      .digest('base64');
+    
+    // Extract signature from header (format: v1,signature)
+    const receivedSignature = signature.split(' ')[0].split(',')[1];
+    
+    // Use timing-safe comparison
+    return crypto.timingSafeEqual(
+      Buffer.from(expectedSignature),
+      Buffer.from(receivedSignature)
+    );
+  } catch (error) {
+    console.error('Error verifying webhook signature:', error);
+    return false;
+  }
+}
+
+/**
+ * Simple signature verification fallback (for testing)
+ */
+export function verifyYocoWebhookSignatureSimple(
   payload: string,
   signature: string,
   secret: string
@@ -25,13 +58,12 @@ export function verifyYocoWebhookSignature(
       .createHmac('sha256', secret)
       .update(payload, 'utf8')
       .digest('hex');
-
-    // Yoco signature format might include "sha256=" prefix
-    const receivedSignature = signature.startsWith('sha256=') 
-      ? signature.slice(7) 
+    
+    // Yoco signature format might include prefixes
+    const receivedSignature = signature.startsWith('sha256=')
+      ? signature.slice(7)
       : signature;
-
-    // Use timing-safe comparison to prevent timing attacks
+    
     return crypto.timingSafeEqual(
       Buffer.from(expectedSignature, 'hex'),
       Buffer.from(receivedSignature, 'hex')
@@ -44,99 +76,42 @@ export function verifyYocoWebhookSignature(
 
 /**
  * Get webhook secret from environment variables
- * This should be set in your environment (.env.local or Vercel dashboard)
  */
 export function getYocoWebhookSecret(): string | null {
   return process.env.YOCO_WEBHOOK_SECRET || null;
 }
 
 /**
- * Validate Yoco webhook event structure
- * Ensures the payload matches the expected format from Yoco docs
+ * Validate webhook timestamp to prevent replay attacks
  */
-export function validateYocoWebhookEvent(event: any): {
-  isValid: boolean;
-  error?: string;
-} {
-  // Check required top-level fields
-  if (!event.id || typeof event.id !== 'string') {
-    return { isValid: false, error: 'Missing or invalid event.id' };
+export function validateWebhookTimestamp(
+  timestamp: string,
+  thresholdMinutes: number = 3
+): boolean {
+  try {
+    const webhookTime = parseInt(timestamp) * 1000; // Convert to milliseconds
+    const currentTime = Date.now();
+    const thresholdMs = thresholdMinutes * 60 * 1000;
+    
+    return Math.abs(currentTime - webhookTime) <= thresholdMs;
+  } catch (error) {
+    console.error('Error validating webhook timestamp:', error);
+    return false;
   }
-
-  if (!event.type || typeof event.type !== 'string') {
-    return { isValid: false, error: 'Missing or invalid event.type' };
-  }
-
-  if (!['payment.succeeded', 'payment.failed'].includes(event.type)) {
-    return { isValid: false, error: `Unsupported event type: ${event.type}` };
-  }
-
-  // Check payload structure
-  if (!event.payload || typeof event.payload !== 'object') {
-    return { isValid: false, error: 'Missing or invalid event.payload' };
-  }
-
-  const payload = event.payload;
-
-  // Check required payload fields
-  if (!payload.id || typeof payload.id !== 'string') {
-    return { isValid: false, error: 'Missing or invalid payload.id' };
-  }
-
-  if (typeof payload.amount !== 'number') {
-    return { isValid: false, error: 'Missing or invalid payload.amount' };
-  }
-
-  if (!payload.currency || typeof payload.currency !== 'string') {
-    return { isValid: false, error: 'Missing or invalid payload.currency' };
-  }
-
-  if (!payload.status || typeof payload.status !== 'string') {
-    return { isValid: false, error: 'Missing or invalid payload.status' };
-  }
-
-  // Check metadata for order identification
-  if (!payload.metadata || typeof payload.metadata !== 'object') {
-    return { isValid: false, error: 'Missing or invalid payload.metadata' };
-  }
-
-  if (!payload.metadata.checkoutId) {
-    return { isValid: false, error: 'Missing payload.metadata.checkoutId' };
-  }
-
-  // Check for order ID (this is how we identify which order to update)
-  if (!payload.metadata.orderId && !payload.metadata.order_id) {
-    return { isValid: false, error: 'Missing orderId in payload.metadata' };
-  }
-
-  return { isValid: true };
 }
 
 /**
- * Extract order ID from Yoco webhook payload
- * Handles different possible field names
+ * Log webhook event for debugging
  */
-export function extractOrderIdFromWebhook(event: any): string | null {
-  const metadata = event?.payload?.metadata;
-  if (!metadata) return null;
-
-  return metadata.orderId || metadata.order_id || null;
-}
-
-/**
- * Log webhook event details for debugging
- */
-export function logYocoWebhookEvent(event: any, prefix = '🔔') {
-  console.log(`${prefix} Yoco Webhook Event:`, {
-    eventId: event.id,
-    eventType: event.type,
+export function logWebhookEvent(event: Record<string, unknown>, prefix: string = '📊'): void {
+  console.log(`${prefix} Webhook Event Details:`, {
+    id: event.id,
+    type: event.type,
     createdDate: event.createdDate,
-    paymentId: event.payload?.id,
-    amount: event.payload?.amount,
-    currency: event.payload?.currency,
-    status: event.payload?.status,
-    mode: event.payload?.mode,
-    checkoutId: event.payload?.metadata?.checkoutId,
-    orderId: extractOrderIdFromWebhook(event),
+    payloadId: (event.payload as Record<string, unknown>)?.id,
+    status: (event.payload as Record<string, unknown>)?.status,
+    amount: (event.payload as Record<string, unknown>)?.amount,
+    currency: (event.payload as Record<string, unknown>)?.currency,
+    metadata: (event.payload as Record<string, unknown>)?.metadata,
   });
 }
