@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServer } from '@/lib/supabase-server';
+import { getSupabaseAdmin } from '@/lib/supabase-server';
 import { 
   verifyYocoWebhookSignature, 
   getYocoWebhookSecret,
@@ -182,8 +182,8 @@ export async function POST(request: NextRequest) {
       paymentId: event.payload.paymentId,
     });
 
-    // Get order from database
-    const supabase = await getSupabaseServer();
+    // Get order from database using admin client (bypasses RLS for webhooks)
+    const supabase = getSupabaseAdmin();
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select('id, status, payment_status, user_id, total_amount')
