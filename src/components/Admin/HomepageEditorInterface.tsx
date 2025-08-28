@@ -52,7 +52,9 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
       console.log('Starting save operation with pending changes:', pendingChanges);
       
       let savedCount = 0;
+      let failedCount = 0;
       const totalChanges = Object.keys(pendingChanges).length;
+      const saveDetails: string[] = [];
       
       // If no pending changes, just show success message
       if (totalChanges === 0) {
@@ -70,18 +72,32 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
           // Save styles if they exist
           if (changes.styles) {
             const styleResult = await saveElementStyles('homepage', elementId, changes.styles);
-            if (styleResult.success) savedCount++;
+            if (styleResult.success) {
+              savedCount++;
+              saveDetails.push(`✓ ${elementId} styles`);
+            } else {
+              failedCount++;
+              saveDetails.push(`✗ ${elementId} styles failed`);
+            }
             console.log(`Saved styles for ${elementId}:`, styleResult.success);
           }
           
           // Save text if it exists
           if (changes.text !== undefined) {
             const textResult = await saveElementText('homepage', elementId, changes.text);
-            if (textResult.success) savedCount++;
+            if (textResult.success) {
+              savedCount++;
+              saveDetails.push(`✓ ${elementId} text`);
+            } else {
+              failedCount++;
+              saveDetails.push(`✗ ${elementId} text failed`);
+            }
             console.log(`Saved text for ${elementId}:`, textResult.success);
           }
         } catch (error) {
           console.error(`Error saving changes for ${elementId}:`, error);
+          failedCount++;
+          saveDetails.push(`✗ ${elementId} error`);
         }
       }
       
@@ -89,18 +105,31 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
       setPendingChanges({});
       setHasChanges(false);
       
-      toast({
-        title: "Changes Saved",
-        description: `Successfully saved ${savedCount} changes to the database.`,
-        duration: 3000,
-      });
+      // Show detailed success/failure message
+      const timestamp = new Date().toLocaleTimeString();
+      
+      if (failedCount === 0) {
+        toast({
+          title: "✅ All Changes Saved Successfully!",
+          description: `${savedCount} changes saved to database at ${timestamp}. Changes are now live on the website.`,
+          duration: 5000,
+        });
+      } else {
+        toast({
+          title: `⚠️ Partial Save: ${savedCount} Saved, ${failedCount} Failed`,
+          description: `Completed at ${timestamp}. Check console for details.`,
+          variant: "destructive",
+          duration: 5000,
+        });
+      }
     } catch (error) {
       console.error('Save operation failed:', error);
+      const timestamp = new Date().toLocaleTimeString();
       toast({
-        title: "Save Failed",
-        description: "Failed to save changes. Please try again.",
+        title: "❌ Save Failed",
+        description: `Operation failed at ${timestamp}. Please try again or check your connection.`,
         variant: "destructive",
-        duration: 3000,
+        duration: 5000,
       });
     }
   };
@@ -547,8 +576,9 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
                           setHasChanges(true);
                           
                           toast({
-                            title: colorMode === 'solid' ? "Color Applied" : "Gradient Applied",
-                            description: `Element styling updated. Click Save Changes to persist.`,
+                            title: colorMode === 'solid' ? "🎨 Solid Color Applied" : "🌈 Gradient Applied",
+                            description: `${selectedElement} styling updated. Click 'Save Changes' to make it permanent and live on the website.`,
+                            duration: 4000,
                           });
                         }
                       }
@@ -608,8 +638,9 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
                           setHasChanges(true);
                           
                           toast({
-                            title: "Text Updated",
-                            description: "Element text has been updated. Click Save Changes to persist.",
+                            title: "📝 Text Updated",
+                            description: `${selectedElement} content changed. Click 'Save Changes' to make it permanent and live on the website.`,
+                            duration: 4000,
                           });
                         } else {
                           toast({

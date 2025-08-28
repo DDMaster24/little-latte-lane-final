@@ -2,16 +2,21 @@ import WelcomingSection from '@/components/WelcomingSection';
 import EventsSpecialsSection from '@/components/EventsSpecialsSection';
 import CategoriesSection from '@/components/CategoriesSection';
 import BookingsSection from '@/components/BookingsSection';
+import ThemeLoader from '@/components/ThemeLoader';
 import { Suspense } from 'react';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { CategorySkeleton, LoadingSpinner } from '@/components/LoadingComponents';
 
 export default function Home() {
   return (
-    <main className="min-h-screen animate-fade-in">{/* Clean homepage - no page editor wrapper */}
-          <ErrorBoundary>
-            <WelcomingSection />
-          </ErrorBoundary>
+    <main className="min-h-screen animate-fade-in">
+      {/* Load saved theme styles and text */}
+      <ThemeLoader pageName="homepage" />
+      
+      {/* Clean homepage - no page editor wrapper */}
+      <ErrorBoundary>
+        <WelcomingSection />
+      </ErrorBoundary>
           
           <div className="space-y-8 xs:space-y-12 sm:space-y-16">
             <ErrorBoundary>
