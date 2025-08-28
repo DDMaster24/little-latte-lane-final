@@ -231,11 +231,6 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
                 transform: translateY(-2px) !important;
               }
               
-              .editing-mode [data-editable].selected::after {
-                content: 'Selected';
-                background: linear-gradient(135deg, #ff00ff, #00ffff);
-              }
-              
               @keyframes fadeIn {
                 from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
                 to { opacity: 1; transform: translateX(-50%) translateY(0); }
