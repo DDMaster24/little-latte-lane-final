@@ -15,7 +15,6 @@ import {
   MousePointer,
   Type,
   Palette,
-  Move,
   AlignCenter
 } from 'lucide-react';
 
@@ -35,6 +34,7 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
   const [activeTool, setActiveTool] = useState<'select' | 'text' | 'color' | 'font' | 'size'>('select');
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [currentColor, setCurrentColor] = useState<string>('#00ffff');
+  const [currentText, setCurrentText] = useState<string>('');
   const [hasChanges, setHasChanges] = useState(false);
   
   // Initialize PageEditorQueries
@@ -69,6 +69,12 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
       const existingStyles = await pageQueries.getElementStyles('homepage', elementId);
       if (existingStyles && existingStyles.setting_value.color) {
         setCurrentColor(existingStyles.setting_value.color as string);
+      }
+      
+      // Load current text content
+      const element = document.querySelector(`[data-editable="${elementId}"]`) as HTMLElement;
+      if (element) {
+        setCurrentText(element.textContent || '');
       }
     } catch (error) {
       console.error('Error loading element styles:', error);
@@ -239,7 +245,7 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
             </div>
           )}
 
-          {/* Tool Properties Panel */}
+          {/* Tool Properties Panel - Color */}
           {activeTool === 'color' && selectedElement && (
             <div className="mt-4 bg-gray-800 rounded-lg p-3">
               <h4 className="text-sm font-medium text-gray-300 mb-3">Color Properties</h4>
@@ -257,6 +263,7 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
                   size="sm"
                   className="w-full bg-neonCyan text-darkBg hover:bg-neonCyan/80"
                   onClick={async () => {
+                    console.log('Applying color:', currentColor, 'to element:', selectedElement);
                     try {
                       // Save color to database
                       const success = await pageQueries.saveElementStyles(
@@ -265,13 +272,17 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
                         { color: currentColor }
                       );
                       
+                      console.log('Database save result:', success);
+                      
                       if (success) {
                         setHasChanges(true);
                         
                         // Apply the color immediately to the DOM element
                         const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
+                        console.log('Found element:', element);
                         if (element) {
                           element.style.color = currentColor;
+                          console.log('Applied color to element');
                         }
                         
                         toast({
@@ -296,6 +307,61 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
                   }}
                 >
                   Apply Color
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Tool Properties Panel - Text */}
+          {activeTool === 'text' && selectedElement && (
+            <div className="mt-4 bg-gray-800 rounded-lg p-3">
+              <h4 className="text-sm font-medium text-gray-300 mb-3">Text Properties</h4>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Text Content</label>
+                  <textarea
+                    value={currentText}
+                    onChange={(e) => setCurrentText(e.target.value)}
+                    className="w-full h-20 rounded border border-gray-600 bg-gray-700 text-white p-2 text-sm resize-none"
+                    placeholder="Enter text content..."
+                  />
+                </div>
+                <Button
+                  size="sm"
+                  className="w-full bg-neonCyan text-darkBg hover:bg-neonCyan/80"
+                  onClick={async () => {
+                    console.log('Applying text:', currentText, 'to element:', selectedElement);
+                    try {
+                      // Apply the text immediately to the DOM element
+                      const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
+                      console.log('Found element for text:', element);
+                      if (element) {
+                        element.textContent = currentText;
+                        console.log('Applied text to element');
+                        setHasChanges(true);
+                        
+                        toast({
+                          title: "Text Updated",
+                          description: "Element text has been updated",
+                        });
+                      } else {
+                        toast({
+                          title: "Error",
+                          description: "Could not find element to update",
+                          variant: "destructive"
+                        });
+                      }
+                    } catch (error) {
+                      console.error('Error applying text:', error);
+                      toast({
+                        title: "Error",
+                        description: "Failed to apply text changes",
+                        variant: "destructive"
+                      });
+                    }
+                  }}
+                >
+                  Apply Text
                 </Button>
               </div>
             </div>
