@@ -1,27 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { usePageEditor } from '@/hooks/usePageEditor';
 import { 
   ArrowLeft, 
   Save, 
   Eye, 
-  Palette,
-  Type,
-  MousePointer
+  Palette
 } from 'lucide-react';
 
 // Import the homepage component
 import HomePage from '@/app/page';
 
 interface HomepageEditorInterfaceProps {
-  // No props needed for now
+  placeholder?: never;
 }
 
 export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps) {
@@ -197,52 +194,54 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
           onClick={handleElementClick}
           style={{ pointerEvents: 'auto' }}
         >
-          {/* CSS Styles for Edit Mode */}
-          <style jsx>{`
-            .editing-mode [data-editable] {
-              position: relative;
-              transition: all 0.3s ease;
-              border-radius: 8px;
-            }
-            
-            .editing-mode [data-editable]:hover {
-              box-shadow: 0 0 0 2px #00ffff, 0 4px 20px rgba(0, 255, 255, 0.3);
-              transform: translateY(-2px);
-              cursor: pointer;
-            }
-            
-            .editing-mode [data-editable]:hover::after {
-              content: 'Click to edit';
-              position: absolute;
-              top: -30px;
-              left: 50%;
-              transform: translateX(-50%);
-              background: linear-gradient(135deg, #00ffff, #ff00ff);
-              color: #000;
-              padding: 4px 8px;
-              border-radius: 4px;
-              font-size: 11px;
-              font-weight: 500;
-              white-space: nowrap;
-              z-index: 1000;
-              animation: fadeIn 0.2s ease-in;
-            }
-            
-            .editing-mode [data-editable].selected {
-              box-shadow: 0 0 0 2px #ff00ff, 0 4px 20px rgba(255, 0, 255, 0.3);
-              transform: translateY(-2px);
-            }
-            
-            .editing-mode [data-editable].selected::after {
-              content: 'Selected';
-              background: linear-gradient(135deg, #ff00ff, #00ffff);
-            }
-            
-            @keyframes fadeIn {
-              from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
-              to { opacity: 1; transform: translateX(-50%) translateY(0); }
-            }
-          `}</style>
+          {/* Global CSS Styles for Edit Mode */}
+          <style dangerouslySetInnerHTML={{
+            __html: `
+              .editing-mode [data-editable] {
+                position: relative;
+                transition: all 0.3s ease;
+                border-radius: 8px;
+              }
+              
+              .editing-mode [data-editable]:hover {
+                box-shadow: 0 0 0 2px #00ffff, 0 4px 20px rgba(0, 255, 255, 0.3) !important;
+                transform: translateY(-2px) !important;
+                cursor: pointer !important;
+              }
+              
+              .editing-mode [data-editable]:hover::after {
+                content: 'Click to edit';
+                position: absolute;
+                top: -30px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: linear-gradient(135deg, #00ffff, #ff00ff);
+                color: #000;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 11px;
+                font-weight: 500;
+                white-space: nowrap;
+                z-index: 1000;
+                animation: fadeIn 0.2s ease-in;
+              }
+              
+              .editing-mode [data-editable].selected {
+                box-shadow: 0 0 0 2px #ff00ff, 0 4px 20px rgba(255, 0, 255, 0.3) !important;
+                transform: translateY(-2px) !important;
+              }
+              
+              .editing-mode [data-editable].selected::after {
+                content: 'Selected';
+                background: linear-gradient(135deg, #ff00ff, #00ffff);
+              }
+              
+              @keyframes fadeIn {
+                from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+                to { opacity: 1; transform: translateX(-50%) translateY(0); }
+              }
+            `
+          }} />
           
           {/* Render the actual homepage */}
           <HomePage />
