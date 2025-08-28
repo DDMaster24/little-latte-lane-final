@@ -75,17 +75,39 @@ export class PageEditorQueries {
   async saveElementStyles(pageName: string, elementId: string, styles: Record<string, string | number | boolean>): Promise<boolean> {
     try {
       const settingKey = `page_${pageName}_${elementId}`;
-      const { error } = await this.supabase
+      
+      // Check if record exists
+      const { data: existingRecord } = await this.supabase
         .from('theme_settings')
-        .upsert({
-          setting_key: settingKey,
-          setting_value: JSON.stringify(styles),
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'setting_key'
-        });
+        .select('id')
+        .eq('setting_key', settingKey)
+        .single();
 
-      if (error) throw error;
+      if (existingRecord) {
+        // Update existing record
+        const { error } = await this.supabase
+          .from('theme_settings')
+          .update({
+            setting_value: JSON.stringify(styles),
+            updated_at: new Date().toISOString()
+          })
+          .eq('setting_key', settingKey);
+
+        if (error) throw error;
+      } else {
+        // Insert new record
+        const { error } = await this.supabase
+          .from('theme_settings')
+          .insert({
+            setting_key: settingKey,
+            setting_value: JSON.stringify(styles),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+
+        if (error) throw error;
+      }
+
       return true;
     } catch (error) {
       console.error('Error saving element styles:', error);
@@ -99,17 +121,39 @@ export class PageEditorQueries {
   async saveElementText(pageName: string, elementId: string, textContent: string): Promise<boolean> {
     try {
       const settingKey = `page_${pageName}_${elementId}_text`;
-      const { error } = await this.supabase
+      
+      // Check if record exists
+      const { data: existingRecord } = await this.supabase
         .from('theme_settings')
-        .upsert({
-          setting_key: settingKey,
-          setting_value: JSON.stringify({ text: textContent }),
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'setting_key'
-        });
+        .select('id')
+        .eq('setting_key', settingKey)
+        .single();
 
-      if (error) throw error;
+      if (existingRecord) {
+        // Update existing record
+        const { error } = await this.supabase
+          .from('theme_settings')
+          .update({
+            setting_value: JSON.stringify({ text: textContent }),
+            updated_at: new Date().toISOString()
+          })
+          .eq('setting_key', settingKey);
+
+        if (error) throw error;
+      } else {
+        // Insert new record
+        const { error } = await this.supabase
+          .from('theme_settings')
+          .insert({
+            setting_key: settingKey,
+            setting_value: JSON.stringify({ text: textContent }),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+
+        if (error) throw error;
+      }
+
       return true;
     } catch (error) {
       console.error('Error saving element text:', error);

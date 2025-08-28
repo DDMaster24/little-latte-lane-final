@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { usePageEditor } from '@/hooks/usePageEditor';
-import { PageEditorQueries } from '@/lib/queries/PageEditorQueries';
+import { usePageEditorActions } from '@/hooks/usePageEditorActions';
 import { 
   ArrowLeft, 
   Save, 
@@ -29,18 +29,20 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
   const router = useRouter();
   const { toast } = useToast();
   const { isAdmin, isLoading } = usePageEditor('homepage');
+  const { saveElementStyles, saveElementText, getElementStyles, getElementText } = usePageEditorActions();
   
   // Tool states - Photoshop style
   const [activeTool, setActiveTool] = useState<'select' | 'text' | 'color' | 'font' | 'size'>('select');
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [currentColor, setCurrentColor] = useState<string>('#00ffff');
+  const [colorMode, setColorMode] = useState<'solid' | 'gradient'>('solid');
+  const [gradientColors, setGradientColors] = useState<string[]>(['#00ffff', '#ff00ff']);
+  const [gradientDirection, setGradientDirection] = useState<string>('to right');
+  const [gradientType, setGradientType] = useState<'linear' | 'radial'>('linear');
   const [currentText, setCurrentText] = useState<string>('');
-  const [pendingChanges, setPendingChanges] = useState<Record<string, { styles?: Record<string, any>; text?: string }>>({});
+  const [pendingChanges, setPendingChanges] = useState<Record<string, { styles?: Record<string, string | number | boolean>; text?: string }>>({});
   const [hasChanges, setHasChanges] = useState(false);
   
-  // Initialize PageEditorQueries
-  const pageQueries = new PageEditorQueries();
-
   const handleBack = () => {
     router.push('/admin/page-editor');
   };
@@ -67,16 +69,16 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
         try {
           // Save styles if they exist
           if (changes.styles) {
-            const styleSuccess = await pageQueries.saveElementStyles('homepage', elementId, changes.styles);
-            if (styleSuccess) savedCount++;
-            console.log(`Saved styles for ${elementId}:`, styleSuccess);
+            const styleResult = await saveElementStyles('homepage', elementId, changes.styles);
+            if (styleResult.success) savedCount++;
+            console.log(`Saved styles for ${elementId}:`, styleResult.success);
           }
           
           // Save text if it exists
           if (changes.text !== undefined) {
-            const textSuccess = await pageQueries.saveElementText('homepage', elementId, changes.text);
-            if (textSuccess) savedCount++;
-            console.log(`Saved text for ${elementId}:`, textSuccess);
+            const textResult = await saveElementText('homepage', elementId, changes.text);
+            if (textResult.success) savedCount++;
+            console.log(`Saved text for ${elementId}:`, textResult.success);
           }
         } catch (error) {
           console.error(`Error saving changes for ${elementId}:`, error);
@@ -107,19 +109,52 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
   const loadElementStyles = async (elementId: string) => {
     try {
       // Load saved styles
-      const existingStyles = await pageQueries.getElementStyles('homepage', elementId);
-      if (existingStyles && existingStyles.setting_value.color) {
-        setCurrentColor(existingStyles.setting_value.color as string);
+      const stylesResult = await getElementStyles('homepage', elementId);
+      if (stylesResult.success && stylesResult.styles) {
+        const styles = stylesResult.styles;
+        
+        // Check if it's a gradient or solid color
+        if (styles.background && styles.background !== 'unset' && styles.backgroundClip === 'text') {
+          // It's a gradient
+          setColorMode('gradient');
+          
+          // Parse gradient info
+          const gradientString = styles.background as string;
+          if (gradientString.startsWith('linear-gradient')) {
+            setGradientType('linear');
+            // Extract direction and colors from linear-gradient
+            const match = gradientString.match(/linear-gradient\(([^,]+),\s*(.+)\)/);
+            if (match) {
+              setGradientDirection(match[1].trim());
+              const colorPart = match[2];
+              const colors = colorPart.split(',').map(c => c.trim());
+              setGradientColors(colors);
+            }
+          } else if (gradientString.startsWith('radial-gradient')) {
+            setGradientType('radial');
+            // Extract colors from radial-gradient
+            const match = gradientString.match(/radial-gradient\([^,]+,\s*(.+)\)/);
+            if (match) {
+              const colorPart = match[1];
+              const colors = colorPart.split(',').map(c => c.trim());
+              setGradientColors(colors);
+            }
+          }
+        } else if (styles.color && styles.color !== 'transparent') {
+          // It's a solid color
+          setColorMode('solid');
+          setCurrentColor(styles.color as string);
+        }
       }
       
       // Load saved text content or current DOM content
-      const savedText = await pageQueries.getElementText('homepage', elementId);
-      if (savedText) {
-        setCurrentText(savedText);
+      const textResult = await getElementText('homepage', elementId);
+      if (textResult.success && textResult.text) {
+        setCurrentText(textResult.text);
         // Apply saved text to DOM
         const element = document.querySelector(`[data-editable="${elementId}"]`) as HTMLElement;
         if (element) {
-          element.textContent = savedText;
+          element.textContent = textResult.text;
         }
       } else {
         // Load current text content from DOM
@@ -299,63 +334,235 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
 
           {/* Tool Properties Panel - Color */}
           {activeTool === 'color' && selectedElement && (
-            <div className="mt-4 bg-gray-800 rounded-lg p-3">
+            <div className="mt-4 bg-gray-800 rounded-lg p-3 relative">
               <h4 className="text-sm font-medium text-gray-300 mb-3">Color Properties</h4>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs text-gray-400 block mb-1">Text Color</label>
-                  <input
-                    type="color"
-                    value={currentColor}
-                    onChange={(e) => setCurrentColor(e.target.value)}
-                    className="w-full h-8 rounded border border-gray-600 bg-gray-700"
-                  />
+              
+              {/* Color Mode Selector */}
+              <div className="mb-4">
+                <label className="text-xs text-gray-400 block mb-2">Color Type</label>
+                <div className="flex bg-gray-700 rounded-lg p-1">
+                  <button
+                    onClick={() => setColorMode('solid')}
+                    className={`flex-1 px-3 py-1 text-xs rounded ${
+                      colorMode === 'solid' 
+                        ? 'bg-neonCyan text-darkBg font-medium' 
+                        : 'text-gray-300 hover:text-white'
+                    }`}
+                  >
+                    Solid
+                  </button>
+                  <button
+                    onClick={() => setColorMode('gradient')}
+                    className={`flex-1 px-3 py-1 text-xs rounded ${
+                      colorMode === 'gradient' 
+                        ? 'bg-neonCyan text-darkBg font-medium' 
+                        : 'text-gray-300 hover:text-white'
+                    }`}
+                  >
+                    Gradient
+                  </button>
                 </div>
+              </div>
+
+              {colorMode === 'solid' ? (
+                /* Solid Color Controls */
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs text-gray-400 block mb-1">Text Color</label>
+                    <div className="relative">
+                      <input
+                        type="color"
+                        value={currentColor}
+                        onChange={(e) => setCurrentColor(e.target.value)}
+                        className="w-full h-10 rounded border border-gray-600 bg-gray-700 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Gradient Controls */
+                <div className="space-y-4">
+                  {/* Gradient Type */}
+                  <div>
+                    <label className="text-xs text-gray-400 block mb-2">Gradient Type</label>
+                    <div className="flex bg-gray-700 rounded-lg p-1">
+                      <button
+                        onClick={() => setGradientType('linear')}
+                        className={`flex-1 px-3 py-1 text-xs rounded ${
+                          gradientType === 'linear' 
+                            ? 'bg-neonPink text-darkBg font-medium' 
+                            : 'text-gray-300 hover:text-white'
+                        }`}
+                      >
+                        Linear
+                      </button>
+                      <button
+                        onClick={() => setGradientType('radial')}
+                        className={`flex-1 px-3 py-1 text-xs rounded ${
+                          gradientType === 'radial' 
+                            ? 'bg-neonPink text-darkBg font-medium' 
+                            : 'text-gray-300 hover:text-white'
+                        }`}
+                      >
+                        Radial
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Gradient Direction (only for linear) */}
+                  {gradientType === 'linear' && (
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Direction</label>
+                      <select
+                        value={gradientDirection}
+                        onChange={(e) => setGradientDirection(e.target.value)}
+                        className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs"
+                      >
+                        <option value="to right">Left to Right</option>
+                        <option value="to left">Right to Left</option>
+                        <option value="to bottom">Top to Bottom</option>
+                        <option value="to top">Bottom to Top</option>
+                        <option value="to bottom right">Top-Left to Bottom-Right</option>
+                        <option value="to bottom left">Top-Right to Bottom-Left</option>
+                        <option value="to top right">Bottom-Left to Top-Right</option>
+                        <option value="to top left">Bottom-Right to Top-Left</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Gradient Colors */}
+                  <div>
+                    <label className="text-xs text-gray-400 block mb-2">Gradient Colors</label>
+                    <div className="space-y-2">
+                      {gradientColors.map((color, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={color}
+                            onChange={(e) => {
+                              const newColors = [...gradientColors];
+                              newColors[index] = e.target.value;
+                              setGradientColors(newColors);
+                            }}
+                            className="w-8 h-8 rounded border border-gray-600 bg-gray-700 cursor-pointer"
+                          />
+                          <span className="text-xs text-gray-400 font-mono flex-1">
+                            Color {index + 1}: {color}
+                          </span>
+                          {gradientColors.length > 2 && (
+                            <button
+                              onClick={() => {
+                                const newColors = gradientColors.filter((_, i) => i !== index);
+                                setGradientColors(newColors);
+                              }}
+                              className="text-red-400 hover:text-red-300 text-xs px-1"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      {gradientColors.length < 5 && (
+                        <button
+                          onClick={() => setGradientColors([...gradientColors, '#ffffff'])}
+                          className="w-full py-1 text-xs text-neonCyan hover:text-neonCyan/80 border border-dashed border-gray-600 rounded"
+                        >
+                          + Add Color
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Gradient Preview */}
+                  <div>
+                    <label className="text-xs text-gray-400 block mb-1">Preview</label>
+                    <div 
+                      className="w-full h-8 rounded border border-gray-600"
+                      style={{
+                        background: gradientType === 'linear' 
+                          ? `linear-gradient(${gradientDirection}, ${gradientColors.join(', ')})`
+                          : `radial-gradient(circle, ${gradientColors.join(', ')})`
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Apply Button - Fixed positioning */}
+              <div className="mt-4 pt-3 border-t border-gray-700">
                 <Button
                   size="sm"
                   className="w-full bg-neonCyan text-darkBg hover:bg-neonCyan/80"
                   onClick={async () => {
-                    console.log('Applying color:', currentColor, 'to element:', selectedElement);
                     try {
                       if (selectedElement) {
-                        // Apply the color immediately to the DOM element
                         const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
-                        console.log('Found element:', element);
                         if (element) {
-                          element.style.color = currentColor;
-                          console.log('Applied color to element');
-                          
-                          // Track this change for saving later
-                          setPendingChanges(prev => ({
-                            ...prev,
-                            [selectedElement]: {
-                              ...prev[selectedElement],
-                              styles: { 
-                                ...prev[selectedElement]?.styles,
-                                color: currentColor 
+                          if (colorMode === 'solid') {
+                            console.log('Applying solid color:', currentColor, 'to element:', selectedElement);
+                            element.style.color = currentColor;
+                            element.style.background = 'unset';
+                            element.style.backgroundClip = 'unset';
+                            element.style.webkitBackgroundClip = 'unset';
+                            
+                            setPendingChanges(prev => ({
+                              ...prev,
+                              [selectedElement]: {
+                                ...prev[selectedElement],
+                                styles: { 
+                                  ...prev[selectedElement]?.styles,
+                                  color: currentColor,
+                                  background: 'unset',
+                                  backgroundClip: 'unset',
+                                  webkitBackgroundClip: 'unset'
+                                }
                               }
-                            }
-                          }));
+                            }));
+                          } else {
+                            const gradientValue = gradientType === 'linear' 
+                              ? `linear-gradient(${gradientDirection}, ${gradientColors.join(', ')})`
+                              : `radial-gradient(circle, ${gradientColors.join(', ')})`;
+                            
+                            console.log('Applying gradient:', gradientValue, 'to element:', selectedElement);
+                            element.style.background = gradientValue;
+                            element.style.backgroundClip = 'text';
+                            element.style.webkitBackgroundClip = 'text';
+                            element.style.color = 'transparent';
+                            
+                            setPendingChanges(prev => ({
+                              ...prev,
+                              [selectedElement]: {
+                                ...prev[selectedElement],
+                                styles: { 
+                                  ...prev[selectedElement]?.styles,
+                                  background: gradientValue,
+                                  backgroundClip: 'text',
+                                  webkitBackgroundClip: 'text',
+                                  color: 'transparent'
+                                }
+                              }
+                            }));
+                          }
                           
                           setHasChanges(true);
                           
                           toast({
-                            title: "Color Applied",
-                            description: `Element color updated to ${currentColor}. Click Save Changes to persist.`,
+                            title: colorMode === 'solid' ? "Color Applied" : "Gradient Applied",
+                            description: `Element styling updated. Click Save Changes to persist.`,
                           });
                         }
                       }
                     } catch (error) {
-                      console.error('Error applying color:', error);
+                      console.error('Error applying color/gradient:', error);
                       toast({
                         title: "Error",
-                        description: "Failed to apply color",
+                        description: "Failed to apply styling",
                         variant: "destructive"
                       });
                     }
                   }}
                 >
-                  Apply Color
+                  Apply {colorMode === 'solid' ? 'Color' : 'Gradient'}
                 </Button>
               </div>
             </div>
