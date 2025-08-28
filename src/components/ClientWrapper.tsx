@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { ReactNode } from 'react';
 import { AuthProvider } from '@/components/AuthProvider';
 import { Toaster } from 'react-hot-toast';
-import { VisualEditorWrapper } from '@/components/VisualEditorWrapper';
 import Header from '@/components/Header';
 import FooterSection from '@/components/FooterSection';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
@@ -13,16 +12,9 @@ import StaffRedirect from '@/components/StaffRedirect';
 export function ClientWrapper({ children }: { children: ReactNode }) {
   const [isOnline, setIsOnline] = useState(true);
   const [isClient, setIsClient] = useState(false);
-  const [isVisualEditorMode, setIsVisualEditorMode] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-
-    // Check for visual editor mode from URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const editorMode = urlParams.get('editor') === 'true';
-    const adminMode = urlParams.get('admin') === 'true';
-    setIsVisualEditorMode(editorMode && adminMode);
 
     // Service Worker registration - simplified
     if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
@@ -72,18 +64,10 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
         </div>
       )}
       
-      {/* Conditional layout based on visual editor mode */}
-      {isVisualEditorMode ? (
-        // In visual editor mode, just show the page content
-        children
-      ) : (
-        // Normal mode with header and footer
-        <>
-          <Header />
-          <main className="flex-grow">{children}</main>
-          <FooterSection />
-        </>
-      )}
+      {/* Normal layout with header and footer */}
+      <Header />
+      <main className="flex-grow">{children}</main>
+      <FooterSection />
       
       {/* PWA Install Prompt - shows when triggered */}
       <PWAInstallPrompt source="auto" />
@@ -113,15 +97,6 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
       />
     </AuthProvider>
   );
-
-  // Wrap with visual editor if in editor mode
-  if (isVisualEditorMode) {
-    return (
-      <VisualEditorWrapper>
-        {content}
-      </VisualEditorWrapper>
-    );
-  }
 
   return content;
 }

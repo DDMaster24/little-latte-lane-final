@@ -265,20 +265,32 @@ export default function WelcomingSection() {
       <div className="container-wide animate-fade-in">
         {/* Hero Header - Fully Responsive */}
         <div className="text-center section-padding-sm">
-          <h1 className="text-fluid-3xl xs:text-fluid-4xl sm:text-fluid-5xl lg:text-fluid-6xl font-bold mb-4 xs:mb-6 bg-neon-gradient bg-clip-text text-transparent">
+          <h1 
+            data-editable="main-heading"
+            className="text-fluid-3xl xs:text-fluid-4xl sm:text-fluid-5xl lg:text-fluid-6xl font-bold mb-4 xs:mb-6 bg-neon-gradient bg-clip-text text-transparent"
+          >
             {username
               ? `Welcome Back, ${username}!`
               : 'Welcome to Little Latte Lane'}
           </h1>
-          <p className="text-fluid-lg xs:text-fluid-xl sm:text-fluid-2xl text-gray-300 mb-4 xs:mb-6 max-w-4xl mx-auto">
+          <p 
+            data-editable="hero-subheading"
+            className="text-fluid-lg xs:text-fluid-xl sm:text-fluid-2xl text-gray-300 mb-4 xs:mb-6 max-w-4xl mx-auto"
+          >
             Roberts&apos; Café and Deli - Where Great Food Meets Amazing
             Experiences
           </p>
           <div className="flex flex-wrap justify-center gap-2 xs:gap-3 mb-8 xs:mb-12">
-            <Badge className="bg-neonCyan text-black px-3 xs:px-4 py-2 text-fluid-xs xs:text-fluid-sm font-medium">
+            <Badge 
+              data-editable="now-open-badge"
+              className="bg-neonCyan text-black px-3 xs:px-4 py-2 text-fluid-xs xs:text-fluid-sm font-medium"
+            >
               Now Open
             </Badge>
-            <Badge className="bg-neonPink text-black px-3 xs:px-4 py-2 text-fluid-xs xs:text-fluid-sm font-medium">
+            <Badge 
+              data-editable="service-options-badge"
+              className="bg-neonPink text-black px-3 xs:px-4 py-2 text-fluid-xs xs:text-fluid-sm font-medium"
+            >
               Dine In • Takeaway • Delivery
             </Badge>
           </div>

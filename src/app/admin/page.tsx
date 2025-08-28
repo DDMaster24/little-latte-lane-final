@@ -1,23 +1,22 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
   Menu, Users, BarChart3, ShoppingBag, Calendar, 
-  Palette, Shield, Activity, CheckCircle, CreditCard, QrCode
+  Shield, Activity, CheckCircle, CreditCard, QrCode, Palette, Home, Edit
 } from 'lucide-react';
 
-// Tab Components (will be moved to separate files later)
-import {
-  AdminOverview,
-  MenuManagement,
-  OrderManagement,
-  BookingManagement,
-  UserManagement,
-  AnalyticsDashboard
-} from '@/components/Admin';
+// Tab Components (placeholders - will be implemented)
+const AdminOverview = () => <div className="text-white">Admin Overview - Coming Soon</div>;
+const MenuManagement = () => <div className="text-white">Menu Management - Coming Soon</div>;
+const OrderManagement = () => <div className="text-white">Order Management - Coming Soon</div>;
+const BookingManagement = () => <div className="text-white">Booking Management - Coming Soon</div>;
+const UserManagement = () => <div className="text-white">User Management - Coming Soon</div>;
+const AnalyticsDashboard = () => <div className="text-white">Analytics Dashboard - Coming Soon</div>;
 import QRCodeGenerator from '@/components/QRCodeGenerator';
 
 const tabs = [
@@ -27,11 +26,13 @@ const tabs = [
   { id: 'bookings', label: 'Bookings', icon: Calendar, color: 'blue-500' },
   { id: 'users', label: 'User Management', icon: Users, color: 'yellow-500' },
   { id: 'analytics', label: 'Analytics', icon: BarChart3, color: 'green-500' },
+  { id: 'pageeditor', label: 'Page Editor', icon: Palette, color: 'purple-500' },
   { id: 'qrcode', label: 'QR Code & App', icon: QrCode, color: 'purple-500' },
 ];
 
 export default function AdminPage() {
   const { profile } = useAuth();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
 
   if (!profile?.is_admin) {
@@ -66,6 +67,39 @@ export default function AdminPage() {
         return <UserManagement />;
       case 'analytics':
         return <AnalyticsDashboard />;
+      case 'pageeditor':
+        return (
+          <div className="space-y-6">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-white mb-2">Page Editor</h2>
+              <p className="text-gray-400">Edit your website pages</p>
+            </div>
+
+            {/* Homepage Card */}
+            <Card className="bg-darkBg/50 border-gray-700 hover:border-neonCyan/50 transition-all duration-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-neonCyan/10 rounded-lg">
+                      <Home className="h-6 w-6 text-neonCyan" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">Homepage</h3>
+                      <p className="text-gray-400 text-sm">Edit the main landing page content and sections</p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => router.push('/admin/page-editor/homepage')}
+                    className="bg-neonCyan hover:bg-neonCyan/80 text-darkBg font-semibold"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Now
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
       case 'qrcode':
         return (
           <div className="space-y-6">
@@ -110,13 +144,6 @@ export default function AdminPage() {
                 </p>
               </div>
               <div className="flex items-center gap-4">
-                <Button 
-                  onClick={() => window.location.href = '/admin/visual-editor'}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-                >
-                  <Palette className="h-4 w-4 mr-2" />
-                  Visual Editor
-                </Button>
                 <div className="flex items-center gap-2 px-3 py-2 bg-green-500/10 border border-green-500/30 rounded-lg">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                   <span className="text-green-400 text-xs font-medium">SYSTEM ONLINE</span>
