@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { usePageEditor } from '@/hooks/usePageEditor';
+import { PageEditorQueries } from '@/lib/queries/PageEditorQueries';
 import { 
   ArrowLeft, 
   Save, 
@@ -33,8 +34,11 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
   // Tool states - Photoshop style
   const [activeTool, setActiveTool] = useState<'select' | 'text' | 'color' | 'font' | 'size'>('select');
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
-  const [elementStyles, setElementStyles] = useState<Record<string, any>>({});
+  const [currentColor, setCurrentColor] = useState<string>('#00ffff');
   const [hasChanges, setHasChanges] = useState(false);
+  
+  // Initialize PageEditorQueries
+  const pageQueries = new PageEditorQueries();
 
   const handleBack = () => {
     router.push('/admin/page-editor');
@@ -59,6 +63,18 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
     }
   };
 
+  // Load existing styles when element is selected
+  const loadElementStyles = async (elementId: string) => {
+    try {
+      const existingStyles = await pageQueries.getElementStyles('homepage', elementId);
+      if (existingStyles && existingStyles.setting_value.color) {
+        setCurrentColor(existingStyles.setting_value.color as string);
+      }
+    } catch (error) {
+      console.error('Error loading element styles:', error);
+    }
+  };
+
   const handleElementClick = (event: React.MouseEvent) => {
     const target = event.target as HTMLElement;
     const editableElement = target.closest('[data-editable]');
@@ -68,6 +84,9 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
       if (elementId) {
         setSelectedElement(elementId);
         setHasChanges(true);
+        
+        // Load existing styles for this element
+        loadElementStyles(elementId);
         
         // Add selected class for persistent border
         document.querySelectorAll('[data-editable].selected').forEach(el => {
@@ -229,19 +248,51 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
                   <label className="text-xs text-gray-400 block mb-1">Text Color</label>
                   <input
                     type="color"
+                    value={currentColor}
+                    onChange={(e) => setCurrentColor(e.target.value)}
                     className="w-full h-8 rounded border border-gray-600 bg-gray-700"
-                    defaultValue="#00ffff"
                   />
                 </div>
                 <Button
                   size="sm"
                   className="w-full bg-neonCyan text-darkBg hover:bg-neonCyan/80"
-                  onClick={() => {
-                    setHasChanges(true);
-                    toast({
-                      title: "Color Applied",
-                      description: "Element color updated successfully",
-                    });
+                  onClick={async () => {
+                    try {
+                      // Save color to database
+                      const success = await pageQueries.saveElementStyles(
+                        'homepage', 
+                        selectedElement, 
+                        { color: currentColor }
+                      );
+                      
+                      if (success) {
+                        setHasChanges(true);
+                        
+                        // Apply the color immediately to the DOM element
+                        const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
+                        if (element) {
+                          element.style.color = currentColor;
+                        }
+                        
+                        toast({
+                          title: "Color Applied",
+                          description: `Element color updated to ${currentColor}`,
+                        });
+                      } else {
+                        toast({
+                          title: "Error",
+                          description: "Failed to save color changes",
+                          variant: "destructive"
+                        });
+                      }
+                    } catch (error) {
+                      console.error('Error applying color:', error);
+                      toast({
+                        title: "Error",
+                        description: "Failed to apply color",
+                        variant: "destructive"
+                      });
+                    }
                   }}
                 >
                   Apply Color
