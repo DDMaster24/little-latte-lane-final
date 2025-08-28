@@ -15,7 +15,8 @@ import {
   MousePointer,
   Type,
   Palette,
-  AlignCenter
+  AlignCenter,
+  CheckCircle
 } from 'lucide-react';
 
 // Import the homepage component
@@ -43,16 +44,34 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
   const [currentText, setCurrentText] = useState<string>('');
   const [pendingChanges, setPendingChanges] = useState<Record<string, { styles?: Record<string, string | number | boolean>; text?: string }>>({});
   const [hasChanges, setHasChanges] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   
   // Prevent navigation when clicking on editable elements
   useEffect(() => {
     const handleGlobalClick = (event: Event) => {
       const target = event.target as HTMLElement;
-      const editableElement = target.closest('[data-editable]');
-      const linkElement = target.closest('a');
+      
+      // Try to find the closest editable element by traversing up the DOM
+      let currentElement: HTMLElement | null = target;
+      let editableElement: HTMLElement | null = null;
+      let linkElement: HTMLElement | null = null;
+      
+      // Search up the DOM tree for both editable elements and links
+      for (let i = 0; i < 10 && currentElement; i++) {
+        if (currentElement.hasAttribute('data-editable') && !editableElement) {
+          editableElement = currentElement;
+        }
+        if (currentElement.tagName === 'A' && !linkElement) {
+          linkElement = currentElement;
+        }
+        // If we found both, break early
+        if (editableElement && linkElement) break;
+        currentElement = currentElement.parentElement;
+      }
       
       // If clicking on an editable element that's inside a link, prevent navigation
       if (editableElement && linkElement) {
+        console.log('Preventing navigation for editable element:', editableElement.getAttribute('data-editable'));
         event.preventDefault();
         event.stopPropagation();
       }
@@ -132,6 +151,10 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
       const timestamp = new Date().toLocaleTimeString();
       
       if (failedCount === 0) {
+        // Set success state and clear after 3 seconds
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+        
         toast({
           title: "✅ All Changes Saved Successfully!",
           description: `${savedCount} changes saved to database at ${timestamp}. Changes are now live on the website.`,
@@ -255,7 +278,23 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
 
   const handleElementClick = (event: React.MouseEvent) => {
     const target = event.target as HTMLElement;
-    const editableElement = target.closest('[data-editable]');
+    
+    // Try to find the closest editable element by traversing up the DOM
+    let currentElement: HTMLElement | null = target;
+    let editableElement: HTMLElement | null = null;
+    
+    console.log('Click detected on:', target.tagName, target.className, target.textContent?.substring(0, 50));
+    
+    // Search up to 15 levels to find an editable element (increased from 10)
+    for (let i = 0; i < 15 && currentElement; i++) {
+      console.log(`Level ${i}:`, currentElement.tagName, currentElement.getAttribute('data-editable'));
+      if (currentElement.hasAttribute('data-editable')) {
+        editableElement = currentElement;
+        console.log('Found editable element:', editableElement.getAttribute('data-editable'));
+        break;
+      }
+      currentElement = currentElement.parentElement;
+    }
     
     if (editableElement) {
       // Prevent navigation when clicking on editable elements
@@ -264,6 +303,7 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
       
       const elementId = editableElement.getAttribute('data-editable');
       if (elementId) {
+        console.log('Selecting element:', elementId, 'Target:', target.tagName, 'Editable:', editableElement.tagName);
         setSelectedElement(elementId);
         setHasChanges(true);
         
@@ -282,6 +322,8 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
           duration: 2000,
         });
       }
+    } else {
+      console.log('No editable element found in DOM tree');
     }
   };
 
@@ -337,10 +379,21 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
               variant="outline"
               onClick={handleSave}
               disabled={!hasChanges}
-              className="border-neonCyan text-neonCyan hover:bg-neonCyan hover:text-darkBg"
+              className={`border-neonCyan text-neonCyan hover:bg-neonCyan hover:text-darkBg transition-all duration-300 ${
+                saveSuccess ? 'border-green-500 text-green-500' : ''
+              }`}
             >
-              <Save className="h-4 w-4 mr-2" />
-              Save Changes
+              {saveSuccess ? (
+                <>
+                  <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                  Saved!
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Changes
+                </>
+              )}
             </Button>
           </div>
         </div>
@@ -857,17 +910,43 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
                 position: relative;
                 transition: all 0.3s ease;
                 border-radius: 8px;
+                cursor: pointer !important;
+                pointer-events: auto !important;
+                z-index: 1 !important;
               }
               
               .editing-mode [data-editable]:hover {
                 box-shadow: 0 0 0 2px #00ffff, 0 4px 20px rgba(0, 255, 255, 0.3) !important;
                 transform: translateY(-2px) !important;
                 cursor: pointer !important;
+                pointer-events: auto !important;
+                z-index: 100 !important;
+                position: relative !important;
               }
               
               .editing-mode [data-editable].selected {
                 box-shadow: 0 0 0 2px #ff00ff, 0 4px 20px rgba(255, 0, 255, 0.3) !important;
                 transform: translateY(-2px) !important;
+                z-index: 100 !important;
+                position: relative !important;
+              }
+              
+              /* Ensure nested elements inside editable areas are clickable */
+              .editing-mode [data-editable] * {
+                pointer-events: auto !important;
+              }
+              
+              /* Ensure link elements don't interfere with editing */
+              .editing-mode a[data-editable] {
+                text-decoration: none !important;
+                pointer-events: auto !important;
+                cursor: pointer !important;
+              }
+              
+              /* Force all child elements to be clickable for event bubbling */
+              .editing-mode [data-editable] > * {
+                pointer-events: auto !important;
+                z-index: inherit !important;
               }
               
               @keyframes fadeIn {
