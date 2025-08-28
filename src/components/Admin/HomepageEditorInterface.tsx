@@ -35,6 +35,7 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [currentColor, setCurrentColor] = useState<string>('#00ffff');
   const [currentText, setCurrentText] = useState<string>('');
+  const [pendingChanges, setPendingChanges] = useState<Record<string, { styles?: Record<string, any>; text?: string }>>({});
   const [hasChanges, setHasChanges] = useState(false);
   
   // Initialize PageEditorQueries
@@ -46,14 +47,53 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
 
   const handleSave = async () => {
     try {
-      // Save logic here
+      console.log('Starting save operation with pending changes:', pendingChanges);
+      
+      let savedCount = 0;
+      const totalChanges = Object.keys(pendingChanges).length;
+      
+      // If no pending changes, just show success message
+      if (totalChanges === 0) {
+        toast({
+          title: "No Changes",
+          description: "No changes to save.",
+          duration: 3000,
+        });
+        return;
+      }
+      
+      // Save all pending changes
+      for (const [elementId, changes] of Object.entries(pendingChanges)) {
+        try {
+          // Save styles if they exist
+          if (changes.styles) {
+            const styleSuccess = await pageQueries.saveElementStyles('homepage', elementId, changes.styles);
+            if (styleSuccess) savedCount++;
+            console.log(`Saved styles for ${elementId}:`, styleSuccess);
+          }
+          
+          // Save text if it exists
+          if (changes.text !== undefined) {
+            const textSuccess = await pageQueries.saveElementText('homepage', elementId, changes.text);
+            if (textSuccess) savedCount++;
+            console.log(`Saved text for ${elementId}:`, textSuccess);
+          }
+        } catch (error) {
+          console.error(`Error saving changes for ${elementId}:`, error);
+        }
+      }
+      
+      // Clear pending changes and update state
+      setPendingChanges({});
       setHasChanges(false);
+      
       toast({
         title: "Changes Saved",
-        description: "Your page edits have been saved successfully.",
+        description: `Successfully saved ${savedCount} changes to the database.`,
         duration: 3000,
       });
-    } catch (_error) {
+    } catch (error) {
+      console.error('Save operation failed:', error);
       toast({
         title: "Save Failed",
         description: "Failed to save changes. Please try again.",
@@ -66,15 +106,27 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
   // Load existing styles when element is selected
   const loadElementStyles = async (elementId: string) => {
     try {
+      // Load saved styles
       const existingStyles = await pageQueries.getElementStyles('homepage', elementId);
       if (existingStyles && existingStyles.setting_value.color) {
         setCurrentColor(existingStyles.setting_value.color as string);
       }
       
-      // Load current text content
-      const element = document.querySelector(`[data-editable="${elementId}"]`) as HTMLElement;
-      if (element) {
-        setCurrentText(element.textContent || '');
+      // Load saved text content or current DOM content
+      const savedText = await pageQueries.getElementText('homepage', elementId);
+      if (savedText) {
+        setCurrentText(savedText);
+        // Apply saved text to DOM
+        const element = document.querySelector(`[data-editable="${elementId}"]`) as HTMLElement;
+        if (element) {
+          element.textContent = savedText;
+        }
+      } else {
+        // Load current text content from DOM
+        const element = document.querySelector(`[data-editable="${elementId}"]`) as HTMLElement;
+        if (element) {
+          setCurrentText(element.textContent || '');
+        }
       }
     } catch (error) {
       console.error('Error loading element styles:', error);
@@ -265,36 +317,33 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
                   onClick={async () => {
                     console.log('Applying color:', currentColor, 'to element:', selectedElement);
                     try {
-                      // Save color to database
-                      const success = await pageQueries.saveElementStyles(
-                        'homepage', 
-                        selectedElement, 
-                        { color: currentColor }
-                      );
-                      
-                      console.log('Database save result:', success);
-                      
-                      if (success) {
-                        setHasChanges(true);
-                        
+                      if (selectedElement) {
                         // Apply the color immediately to the DOM element
                         const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
                         console.log('Found element:', element);
                         if (element) {
                           element.style.color = currentColor;
                           console.log('Applied color to element');
+                          
+                          // Track this change for saving later
+                          setPendingChanges(prev => ({
+                            ...prev,
+                            [selectedElement]: {
+                              ...prev[selectedElement],
+                              styles: { 
+                                ...prev[selectedElement]?.styles,
+                                color: currentColor 
+                              }
+                            }
+                          }));
+                          
+                          setHasChanges(true);
+                          
+                          toast({
+                            title: "Color Applied",
+                            description: `Element color updated to ${currentColor}. Click Save Changes to persist.`,
+                          });
                         }
-                        
-                        toast({
-                          title: "Color Applied",
-                          description: `Element color updated to ${currentColor}`,
-                        });
-                      } else {
-                        toast({
-                          title: "Error",
-                          description: "Failed to save color changes",
-                          variant: "destructive"
-                        });
                       }
                     } catch (error) {
                       console.error('Error applying color:', error);
@@ -332,24 +381,36 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
                   onClick={async () => {
                     console.log('Applying text:', currentText, 'to element:', selectedElement);
                     try {
-                      // Apply the text immediately to the DOM element
-                      const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
-                      console.log('Found element for text:', element);
-                      if (element) {
-                        element.textContent = currentText;
-                        console.log('Applied text to element');
-                        setHasChanges(true);
-                        
-                        toast({
-                          title: "Text Updated",
-                          description: "Element text has been updated",
-                        });
-                      } else {
-                        toast({
-                          title: "Error",
-                          description: "Could not find element to update",
-                          variant: "destructive"
-                        });
+                      if (selectedElement) {
+                        // Apply the text immediately to the DOM element
+                        const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
+                        console.log('Found element for text:', element);
+                        if (element) {
+                          element.textContent = currentText;
+                          console.log('Applied text to element');
+                          
+                          // Track this change for saving later
+                          setPendingChanges(prev => ({
+                            ...prev,
+                            [selectedElement]: {
+                              ...prev[selectedElement],
+                              text: currentText
+                            }
+                          }));
+                          
+                          setHasChanges(true);
+                          
+                          toast({
+                            title: "Text Updated",
+                            description: "Element text has been updated. Click Save Changes to persist.",
+                          });
+                        } else {
+                          toast({
+                            title: "Error",
+                            description: "Could not find element to update",
+                            variant: "destructive"
+                          });
+                        }
                       }
                     } catch (error) {
                       console.error('Error applying text:', error);

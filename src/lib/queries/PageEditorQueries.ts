@@ -94,6 +94,57 @@ export class PageEditorQueries {
   }
 
   /**
+   * Save element text content using theme_settings table
+   */
+  async saveElementText(pageName: string, elementId: string, textContent: string): Promise<boolean> {
+    try {
+      const settingKey = `page_${pageName}_${elementId}_text`;
+      const { error } = await this.supabase
+        .from('theme_settings')
+        .upsert({
+          setting_key: settingKey,
+          setting_value: JSON.stringify({ text: textContent }),
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'setting_key'
+        });
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error saving element text:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get element text content using theme_settings table
+   */
+  async getElementText(pageName: string, elementId: string): Promise<string | null> {
+    try {
+      const settingKey = `page_${pageName}_${elementId}_text`;
+      const { data, error } = await this.supabase
+        .from('theme_settings')
+        .select('*')
+        .eq('setting_key', settingKey)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      
+      if (!data) return null;
+      
+      const parsedData = typeof data.setting_value === 'string' 
+        ? JSON.parse(data.setting_value) 
+        : data.setting_value;
+        
+      return parsedData.text || null;
+    } catch (error) {
+      console.error('Error fetching element text:', error);
+      return null;
+    }
+  }
+
+  /**
    * Delete element styles using theme_settings table
    */
   async deleteElementStyles(pageName: string, elementId: string): Promise<boolean> {
