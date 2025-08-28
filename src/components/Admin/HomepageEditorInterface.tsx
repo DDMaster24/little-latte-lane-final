@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,6 +43,28 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
   const [currentText, setCurrentText] = useState<string>('');
   const [pendingChanges, setPendingChanges] = useState<Record<string, { styles?: Record<string, string | number | boolean>; text?: string }>>({});
   const [hasChanges, setHasChanges] = useState(false);
+  
+  // Prevent navigation when clicking on editable elements
+  useEffect(() => {
+    const handleGlobalClick = (event: Event) => {
+      const target = event.target as HTMLElement;
+      const editableElement = target.closest('[data-editable]');
+      const linkElement = target.closest('a');
+      
+      // If clicking on an editable element that's inside a link, prevent navigation
+      if (editableElement && linkElement) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+
+    // Add global event listener to prevent navigation on editable elements
+    document.addEventListener('click', handleGlobalClick, true);
+    
+    return () => {
+      document.removeEventListener('click', handleGlobalClick, true);
+    };
+  }, []);
   
   const handleBack = () => {
     router.push('/admin/page-editor');
@@ -236,6 +258,10 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
     const editableElement = target.closest('[data-editable]');
     
     if (editableElement) {
+      // Prevent navigation when clicking on editable elements
+      event.preventDefault();
+      event.stopPropagation();
+      
       const elementId = editableElement.getAttribute('data-editable');
       if (elementId) {
         setSelectedElement(elementId);
