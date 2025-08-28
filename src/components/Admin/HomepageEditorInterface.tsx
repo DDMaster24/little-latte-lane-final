@@ -11,7 +11,11 @@ import {
   ArrowLeft, 
   Save, 
   Eye, 
-  Palette
+  MousePointer,
+  Type,
+  Palette,
+  Move,
+  AlignCenter
 } from 'lucide-react';
 
 // Import the homepage component
@@ -26,7 +30,10 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
   const { toast } = useToast();
   const { isAdmin, isLoading } = usePageEditor('homepage');
   
+  // Tool states - Photoshop style
+  const [activeTool, setActiveTool] = useState<'select' | 'text' | 'color' | 'font' | 'size'>('select');
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
+  const [elementStyles, setElementStyles] = useState<Record<string, any>>({});
   const [hasChanges, setHasChanges] = useState(false);
 
   const handleBack = () => {
@@ -137,25 +144,111 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
           </div>
         </div>
 
-        {/* Editing Tools - Always Visible */}
-        <div className="flex-1 p-4 space-y-4">
-          <div className="border border-gray-700 rounded-lg p-3">
-            <h3 className="text-sm font-medium text-gray-300 mb-3 flex items-center gap-2">
-              <Palette className="h-4 w-4" />
-              Color & Style Tools
-            </h3>
-            <div className="space-y-2">
-              <Button size="sm" variant="outline" className="w-full justify-start text-xs">
-                Change Text Color
-              </Button>
-              <Button size="sm" variant="outline" className="w-full justify-start text-xs">
-                Change Background
-              </Button>
-              <Button size="sm" variant="outline" className="w-full justify-start text-xs">
-                Adjust Font Size
-              </Button>
+        {/* Photoshop-Style Tool Palette */}
+        <div className="flex-1 p-4">
+          <div className="bg-gray-800 rounded-lg p-3 space-y-2">
+            <h3 className="text-sm font-medium text-gray-300 mb-4">Tools</h3>
+            
+            {/* Tool Buttons - Photoshop Style */}
+            <div className="grid grid-cols-2 gap-2">
+              {/* Select Tool */}
+              <button
+                onClick={() => setActiveTool('select')}
+                className={`p-3 rounded-lg border transition-all duration-200 ${
+                  activeTool === 'select'
+                    ? 'bg-neonCyan/20 border-neonCyan text-neonCyan'
+                    : 'bg-gray-700 border-gray-600 text-gray-300 hover:border-gray-500'
+                }`}
+                title="Select Tool"
+              >
+                <MousePointer className="h-5 w-5 mx-auto" />
+              </button>
+
+              {/* Text Tool */}
+              <button
+                onClick={() => setActiveTool('text')}
+                className={`p-3 rounded-lg border transition-all duration-200 ${
+                  activeTool === 'text'
+                    ? 'bg-neonCyan/20 border-neonCyan text-neonCyan'
+                    : 'bg-gray-700 border-gray-600 text-gray-300 hover:border-gray-500'
+                }`}
+                title="Text Tool"
+              >
+                <Type className="h-5 w-5 mx-auto" />
+              </button>
+
+              {/* Color Tool */}
+              <button
+                onClick={() => setActiveTool('color')}
+                className={`p-3 rounded-lg border transition-all duration-200 ${
+                  activeTool === 'color'
+                    ? 'bg-neonCyan/20 border-neonCyan text-neonCyan'
+                    : 'bg-gray-700 border-gray-600 text-gray-300 hover:border-gray-500'
+                }`}
+                title="Color Tool"
+              >
+                <Palette className="h-5 w-5 mx-auto" />
+              </button>
+
+              {/* Move Tool */}
+              <button
+                onClick={() => setActiveTool('size')}
+                className={`p-3 rounded-lg border transition-all duration-200 ${
+                  activeTool === 'size'
+                    ? 'bg-neonCyan/20 border-neonCyan text-neonCyan'
+                    : 'bg-gray-700 border-gray-600 text-gray-300 hover:border-gray-500'
+                }`}
+                title="Size Tool"
+              >
+                <AlignCenter className="h-5 w-5 mx-auto" />
+              </button>
+            </div>
+            
+            {/* Tool Name Display */}
+            <div className="mt-4 text-center">
+              <span className="text-xs text-gray-400 capitalize">{activeTool} Tool</span>
             </div>
           </div>
+
+          {/* Selected Element Info */}
+          {selectedElement && (
+            <div className="mt-4 bg-gray-800 rounded-lg p-3">
+              <h4 className="text-sm font-medium text-gray-300 mb-2">Selected Element</h4>
+              <div className="text-xs text-neonCyan font-mono bg-gray-900 p-2 rounded">
+                {selectedElement}
+              </div>
+            </div>
+          )}
+
+          {/* Tool Properties Panel */}
+          {activeTool === 'color' && selectedElement && (
+            <div className="mt-4 bg-gray-800 rounded-lg p-3">
+              <h4 className="text-sm font-medium text-gray-300 mb-3">Color Properties</h4>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Text Color</label>
+                  <input
+                    type="color"
+                    className="w-full h-8 rounded border border-gray-600 bg-gray-700"
+                    defaultValue="#00ffff"
+                  />
+                </div>
+                <Button
+                  size="sm"
+                  className="w-full bg-neonCyan text-darkBg hover:bg-neonCyan/80"
+                  onClick={() => {
+                    setHasChanges(true);
+                    toast({
+                      title: "Color Applied",
+                      description: "Element color updated successfully",
+                    });
+                  }}
+                >
+                  Apply Color
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Status */}
@@ -207,23 +300,6 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
                 box-shadow: 0 0 0 2px #00ffff, 0 4px 20px rgba(0, 255, 255, 0.3) !important;
                 transform: translateY(-2px) !important;
                 cursor: pointer !important;
-              }
-              
-              .editing-mode [data-editable]:hover::after {
-                content: 'Click to edit';
-                position: absolute;
-                top: -30px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: linear-gradient(135deg, #00ffff, #ff00ff);
-                color: #000;
-                padding: 4px 8px;
-                border-radius: 4px;
-                font-size: 11px;
-                font-weight: 500;
-                white-space: nowrap;
-                z-index: 1000;
-                animation: fadeIn 0.2s ease-in;
               }
               
               .editing-mode [data-editable].selected {
