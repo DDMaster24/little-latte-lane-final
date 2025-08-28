@@ -136,9 +136,15 @@ export default function EventsSpecialsSection() {
 
   return (
     <section className="container-responsive section-padding-sm">
-      <div className="bg-darkBg shadow-neon rounded-xl overflow-hidden animate-fade-in">
+      <div 
+        className="bg-darkBg shadow-neon rounded-xl overflow-hidden animate-fade-in"
+        data-editable="events-section-background"
+      >
         <div className="text-center py-8 xs:py-12 px-6">
-          <h2 className="text-fluid-2xl xs:text-fluid-3xl md:text-fluid-4xl font-bold bg-neon-gradient bg-clip-text text-transparent">
+          <h2 
+            className="text-fluid-2xl xs:text-fluid-3xl md:text-fluid-4xl font-bold bg-neon-gradient bg-clip-text text-transparent"
+            data-editable="events-title"
+          >
             🎉 Events & Specials
           </h2>
         </div>

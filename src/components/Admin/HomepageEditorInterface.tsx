@@ -36,6 +36,7 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [currentColor, setCurrentColor] = useState<string>('#00ffff');
   const [colorMode, setColorMode] = useState<'solid' | 'gradient'>('solid');
+  const [colorTarget, setColorTarget] = useState<'text' | 'background'>('text');
   const [gradientColors, setGradientColors] = useState<string[]>(['#00ffff', '#ff00ff']);
   const [gradientDirection, setGradientDirection] = useState<string>('to right');
   const [gradientType, setGradientType] = useState<'linear' | 'radial'>('linear');
@@ -142,10 +143,10 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
       if (stylesResult.success && stylesResult.styles) {
         const styles = stylesResult.styles;
         
-        // Check if it's a gradient or solid color
-        if (styles.background && styles.background !== 'unset' && styles.backgroundClip === 'text') {
-          // It's a gradient
+        // Check for text gradient (background with backgroundClip: text)
+        if (styles.background && styles.backgroundClip === 'text' && styles.color === 'transparent') {
           setColorMode('gradient');
+          setColorTarget('text');
           
           // Parse gradient info
           const gradientString = styles.background as string;
@@ -169,9 +170,42 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
               setGradientColors(colors);
             }
           }
-        } else if (styles.color && styles.color !== 'transparent') {
-          // It's a solid color
+        }
+        // Check for background gradient (background without backgroundClip: text)
+        else if (styles.background && (typeof styles.background === 'string' && styles.background.includes('gradient')) || styles.backgroundImage) {
+          setColorMode('gradient');
+          setColorTarget('background');
+          
+          const gradientString = (styles.backgroundImage || styles.background) as string;
+          if (gradientString.startsWith('linear-gradient')) {
+            setGradientType('linear');
+            const match = gradientString.match(/linear-gradient\(([^,]+),\s*(.+)\)/);
+            if (match) {
+              setGradientDirection(match[1].trim());
+              const colorPart = match[2];
+              const colors = colorPart.split(',').map(c => c.trim());
+              setGradientColors(colors);
+            }
+          } else if (gradientString.startsWith('radial-gradient')) {
+            setGradientType('radial');
+            const match = gradientString.match(/radial-gradient\([^,]+,\s*(.+)\)/);
+            if (match) {
+              const colorPart = match[1];
+              const colors = colorPart.split(',').map(c => c.trim());
+              setGradientColors(colors);
+            }
+          }
+        }
+        // Check for solid background color
+        else if (styles.backgroundColor || (styles.background && typeof styles.background === 'string' && !styles.background.includes('gradient'))) {
           setColorMode('solid');
+          setColorTarget('background');
+          setCurrentColor((styles.backgroundColor || styles.background) as string);
+        }
+        // Check for solid text color
+        else if (styles.color && styles.color !== 'transparent') {
+          setColorMode('solid');
+          setColorTarget('text');
           setCurrentColor(styles.color as string);
         }
       }
@@ -393,11 +427,40 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
                 </div>
               </div>
 
+              {/* Color Target Selector */}
+              <div className="mb-4">
+                <label className="text-xs text-gray-400 block mb-2">Apply To</label>
+                <div className="flex bg-gray-700 rounded-lg p-1">
+                  <button
+                    onClick={() => setColorTarget('text')}
+                    className={`flex-1 px-3 py-1 text-xs rounded ${
+                      colorTarget === 'text' 
+                        ? 'bg-neonPink text-darkBg font-medium' 
+                        : 'text-gray-300 hover:text-white'
+                    }`}
+                  >
+                    Text
+                  </button>
+                  <button
+                    onClick={() => setColorTarget('background')}
+                    className={`flex-1 px-3 py-1 text-xs rounded ${
+                      colorTarget === 'background' 
+                        ? 'bg-neonPink text-darkBg font-medium' 
+                        : 'text-gray-300 hover:text-white'
+                    }`}
+                  >
+                    Background
+                  </button>
+                </div>
+              </div>
+
               {colorMode === 'solid' ? (
                 /* Solid Color Controls */
                 <div className="space-y-3">
                   <div>
-                    <label className="text-xs text-gray-400 block mb-1">Text Color</label>
+                    <label className="text-xs text-gray-400 block mb-1">
+                      {colorTarget === 'text' ? 'Text Color' : 'Background Color'}
+                    </label>
                     <div className="relative">
                       <input
                         type="color"
@@ -528,56 +591,114 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
                         const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
                         if (element) {
                           if (colorMode === 'solid') {
-                            console.log('Applying solid color:', currentColor, 'to element:', selectedElement);
-                            element.style.color = currentColor;
-                            element.style.background = 'unset';
-                            element.style.backgroundClip = 'unset';
-                            element.style.webkitBackgroundClip = 'unset';
+                            // Apply solid color to text or background
+                            console.log(`Applying solid color to ${colorTarget}:`, currentColor, 'element:', selectedElement);
                             
-                            setPendingChanges(prev => ({
-                              ...prev,
-                              [selectedElement]: {
-                                ...prev[selectedElement],
-                                styles: { 
-                                  ...prev[selectedElement]?.styles,
-                                  color: currentColor,
-                                  background: 'unset',
-                                  backgroundClip: 'unset',
-                                  webkitBackgroundClip: 'unset'
+                            if (colorTarget === 'text') {
+                              // Text color mode
+                              element.style.color = currentColor;
+                              // Clear any text gradient effects
+                              element.style.background = '';
+                              element.style.backgroundClip = '';
+                              element.style.webkitBackgroundClip = '';
+                              
+                              setPendingChanges(prev => ({
+                                ...prev,
+                                [selectedElement]: {
+                                  ...prev[selectedElement],
+                                  styles: { 
+                                    ...prev[selectedElement]?.styles,
+                                    color: currentColor,
+                                    background: '',
+                                    backgroundClip: '',
+                                    webkitBackgroundClip: ''
+                                  }
                                 }
-                              }
-                            }));
+                              }));
+                            } else {
+                              // Background color mode
+                              element.style.backgroundColor = currentColor;
+                              // Clear any background gradient effects
+                              element.style.background = currentColor;
+                              element.style.backgroundImage = '';
+                              
+                              setPendingChanges(prev => ({
+                                ...prev,
+                                [selectedElement]: {
+                                  ...prev[selectedElement],
+                                  styles: { 
+                                    ...prev[selectedElement]?.styles,
+                                    backgroundColor: currentColor,
+                                    background: currentColor,
+                                    backgroundImage: ''
+                                  }
+                                }
+                              }));
+                            }
                           } else {
+                            // Apply gradient to text or background
                             const gradientValue = gradientType === 'linear' 
                               ? `linear-gradient(${gradientDirection}, ${gradientColors.join(', ')})`
                               : `radial-gradient(circle, ${gradientColors.join(', ')})`;
                             
-                            console.log('Applying gradient:', gradientValue, 'to element:', selectedElement);
-                            element.style.background = gradientValue;
-                            element.style.backgroundClip = 'text';
-                            element.style.webkitBackgroundClip = 'text';
-                            element.style.color = 'transparent';
+                            console.log(`Applying gradient to ${colorTarget}:`, gradientValue, 'element:', selectedElement);
                             
-                            setPendingChanges(prev => ({
-                              ...prev,
-                              [selectedElement]: {
-                                ...prev[selectedElement],
-                                styles: { 
-                                  ...prev[selectedElement]?.styles,
-                                  background: gradientValue,
-                                  backgroundClip: 'text',
-                                  webkitBackgroundClip: 'text',
-                                  color: 'transparent'
+                            if (colorTarget === 'text') {
+                              // Text gradient mode
+                              element.style.background = gradientValue;
+                              element.style.backgroundClip = 'text';
+                              element.style.webkitBackgroundClip = 'text';
+                              element.style.color = 'transparent';
+                              element.style.backgroundColor = '';
+                              
+                              setPendingChanges(prev => ({
+                                ...prev,
+                                [selectedElement]: {
+                                  ...prev[selectedElement],
+                                  styles: { 
+                                    ...prev[selectedElement]?.styles,
+                                    background: gradientValue,
+                                    backgroundClip: 'text',
+                                    webkitBackgroundClip: 'text',
+                                    color: 'transparent',
+                                    backgroundColor: ''
+                                  }
                                 }
-                              }
-                            }));
+                              }));
+                            } else {
+                              // Background gradient mode
+                              element.style.background = gradientValue;
+                              element.style.backgroundImage = gradientValue;
+                              element.style.backgroundColor = '';
+                              // Clear text gradient effects
+                              element.style.backgroundClip = '';
+                              element.style.webkitBackgroundClip = '';
+                              
+                              setPendingChanges(prev => ({
+                                ...prev,
+                                [selectedElement]: {
+                                  ...prev[selectedElement],
+                                  styles: { 
+                                    ...prev[selectedElement]?.styles,
+                                    background: gradientValue,
+                                    backgroundImage: gradientValue,
+                                    backgroundColor: '',
+                                    backgroundClip: '',
+                                    webkitBackgroundClip: ''
+                                  }
+                                }
+                              }));
+                            }
                           }
                           
                           setHasChanges(true);
                           
+                          const targetText = colorTarget === 'text' ? 'text' : 'background';
+                          const modeText = colorMode === 'solid' ? 'color' : 'gradient';
+                          
                           toast({
-                            title: colorMode === 'solid' ? "🎨 Solid Color Applied" : "🌈 Gradient Applied",
-                            description: `${selectedElement} styling updated. Click 'Save Changes' to make it permanent and live on the website.`,
+                            title: colorMode === 'solid' ? `🎨 ${targetText} Color Applied` : `🌈 ${targetText} Gradient Applied`,
+                            description: `${selectedElement} ${targetText} ${modeText} updated. Click 'Save Changes' to make it permanent and live on the website.`,
                             duration: 4000,
                           });
                         }

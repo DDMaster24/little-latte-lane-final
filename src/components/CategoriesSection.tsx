@@ -52,10 +52,16 @@ export default function CategoriesSection() {
         </section>
       }
     >
-      <section className="bg-darkBg shadow-neon">
+      <section 
+        className="bg-darkBg shadow-neon"
+        data-editable="categories-section-background"
+      >
         {/* Centered Header with Fluid Typography */}
         <div className="text-center py-8 xs:py-12 px-6">
-          <h2 className="text-fluid-2xl xs:text-fluid-3xl md:text-fluid-4xl font-bold bg-neon-gradient bg-clip-text text-transparent">
+          <h2 
+            className="text-fluid-2xl xs:text-fluid-3xl md:text-fluid-4xl font-bold bg-neon-gradient bg-clip-text text-transparent"
+            data-editable="categories-title"
+          >
             🍽️ View Our Categories
           </h2>
         </div>
@@ -68,6 +74,7 @@ export default function CategoriesSection() {
                 key={category.id}
                 href="/menu"
                 className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in touch-target"
+                data-editable={`category-${category.id}-card`}
                 style={{ 
                   animationDelay: `${index * 0.1}s`,
                   background: 'rgba(0, 0, 0, 0.4)',
@@ -84,12 +91,18 @@ export default function CategoriesSection() {
                   </div>
                   
                   {/* Category Title - Fluid Typography */}
-                  <h3 className="text-neonCyan font-semibold text-center group-hover:text-neonPink transition-colors duration-300 text-fluid-base xs:text-fluid-lg mb-2 xs:mb-3">
+                  <h3 
+                    className="text-neonCyan font-semibold text-center group-hover:text-neonPink transition-colors duration-300 text-fluid-base xs:text-fluid-lg mb-2 xs:mb-3"
+                    data-editable={`category-${category.id}-title`}
+                  >
                     {category.name}
                   </h3>
                   
                   {/* Description - Responsive Text */}
-                  <p className="text-gray-300 text-fluid-xs xs:text-fluid-sm text-center leading-relaxed flex-grow flex items-center justify-center">
+                  <p 
+                    className="text-gray-300 text-fluid-xs xs:text-fluid-sm text-center leading-relaxed flex-grow flex items-center justify-center"
+                    data-editable={`category-${category.id}-description`}
+                  >
                     {category.description}
                   </p>
                 </div>
@@ -106,6 +119,7 @@ export default function CategoriesSection() {
           <Link
             href="/menu"
             className="neon-button text-fluid-base xs:text-fluid-lg px-6 xs:px-8 py-3 xs:py-4 inline-flex items-center gap-2 touch-target"
+            data-editable="categories-button"
           >
             🍽️ View Full Menu
           </Link>
