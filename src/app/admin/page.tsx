@@ -72,32 +72,58 @@ export default function AdminPage() {
           <div className="space-y-6">
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-white mb-2">Page Editor</h2>
-              <p className="text-gray-400">Edit your website pages</p>
+              <p className="text-gray-400">Edit your website pages and content</p>
             </div>
 
-            {/* Homepage Card */}
-            <Card className="bg-darkBg/50 border-gray-700 hover:border-neonCyan/50 transition-all duration-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-neonCyan/10 rounded-lg">
-                      <Home className="h-6 w-6 text-neonCyan" />
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Homepage Card */}
+              <Card className="bg-darkBg/50 border-gray-700 hover:border-neonCyan/50 transition-all duration-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-neonCyan/10 rounded-lg">
+                        <Home className="h-6 w-6 text-neonCyan" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">Homepage</h3>
+                        <p className="text-gray-400 text-sm">Edit the main landing page content and sections</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-white">Homepage</h3>
-                      <p className="text-gray-400 text-sm">Edit the main landing page content and sections</p>
-                    </div>
+                    <Button
+                      onClick={() => router.push('/admin/page-editor/homepage')}
+                      className="bg-neonCyan hover:bg-neonCyan/80 text-darkBg font-semibold"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Now
+                    </Button>
                   </div>
-                  <Button
-                    onClick={() => router.push('/admin/page-editor/homepage')}
-                    className="bg-neonCyan hover:bg-neonCyan/80 text-darkBg font-semibold"
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Now
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+
+              {/* Carousel Editor Card */}
+              <Card className="bg-darkBg/50 border-gray-700 hover:border-neonPink/50 transition-all duration-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-neonPink/10 rounded-lg">
+                        <Activity className="h-6 w-6 text-neonPink" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">Carousel Editor</h3>
+                        <p className="text-gray-400 text-sm">Manage homepage carousel panels and content</p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => router.push('/admin/carousel-editor')}
+                      className="bg-neonPink hover:bg-neonPink/80 text-darkBg font-semibold"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Panels
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         );
       case 'qrcode':
