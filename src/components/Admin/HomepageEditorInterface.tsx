@@ -279,49 +279,78 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
   const handleElementClick = (event: React.MouseEvent) => {
     const target = event.target as HTMLElement;
     
-    // Try to find the closest editable element by traversing up the DOM
+    // Find ALL editable elements in the ancestry path
     let currentElement: HTMLElement | null = target;
-    let editableElement: HTMLElement | null = null;
+    const editableElements: { element: HTMLElement; id: string; depth: number }[] = [];
     
     console.log('Click detected on:', target.tagName, target.className, target.textContent?.substring(0, 50));
     
-    // Search up to 15 levels to find an editable element (increased from 10)
-    for (let i = 0; i < 15 && currentElement; i++) {
-      console.log(`Level ${i}:`, currentElement.tagName, currentElement.getAttribute('data-editable'));
+    // Search up to 15 levels to find ALL editable elements
+    for (let depth = 0; depth < 15 && currentElement; depth++) {
+      console.log(`Level ${depth}:`, currentElement.tagName, currentElement.getAttribute('data-editable'));
       if (currentElement.hasAttribute('data-editable')) {
-        editableElement = currentElement;
-        console.log('Found editable element:', editableElement.getAttribute('data-editable'));
-        break;
+        const elementId = currentElement.getAttribute('data-editable');
+        if (elementId) {
+          editableElements.push({ 
+            element: currentElement, 
+            id: elementId, 
+            depth 
+          });
+          console.log(`Found editable element at depth ${depth}:`, elementId);
+        }
       }
       currentElement = currentElement.parentElement;
     }
     
-    if (editableElement) {
+    if (editableElements.length > 0) {
       // Prevent navigation when clicking on editable elements
       event.preventDefault();
       event.stopPropagation();
       
-      const elementId = editableElement.getAttribute('data-editable');
-      if (elementId) {
-        console.log('Selecting element:', elementId, 'Target:', target.tagName, 'Editable:', editableElement.tagName);
-        setSelectedElement(elementId);
-        setHasChanges(true);
+      // Priority selection logic:
+      // 1. Prefer the deepest (most specific) element
+      // 2. For categories, prefer title/description/icon over the card container
+      let selectedEditableInfo = editableElements[0]; // Start with the deepest
+      
+      // Apply preference rules for better UX
+      for (const editableInfo of editableElements) {
+        const { id, depth } = editableInfo;
         
-        // Load existing styles for this element
-        loadElementStyles(elementId);
+        // Prefer specific content elements over containers
+        if (id.includes('title') || id.includes('description') || id.includes('icon') || id.includes('button-text')) {
+          selectedEditableInfo = editableInfo;
+          console.log('Prioritizing content element:', id);
+          break;
+        }
         
-        // Add selected class for persistent border
-        document.querySelectorAll('[data-editable].selected').forEach(el => {
-          el.classList.remove('selected');
-        });
-        editableElement.classList.add('selected');
-        
-        toast({
-          title: "Element Selected",
-          description: `Selected: ${elementId}`,
-          duration: 2000,
-        });
+        // If clicking directly on button containers, prefer them
+        if (id.includes('button') && depth === 0) {
+          selectedEditableInfo = editableInfo;
+          console.log('Prioritizing direct button click:', id);
+          break;
+        }
       }
+      
+      const { element: editableElement, id: elementId } = selectedEditableInfo;
+      
+      console.log('Final selection:', elementId, 'Target:', target.tagName, 'Editable:', editableElement.tagName);
+      setSelectedElement(elementId);
+      setHasChanges(true);
+      
+      // Load existing styles for this element
+      loadElementStyles(elementId);
+      
+      // Add selected class for persistent border - remove from all first
+      document.querySelectorAll('[data-editable].selected').forEach(el => {
+        el.classList.remove('selected');
+      });
+      editableElement.classList.add('selected');
+      
+      toast({
+        title: "Element Selected",
+        description: `Selected: ${elementId}`,
+        duration: 2000,
+      });
     } else {
       console.log('No editable element found in DOM tree');
     }
@@ -887,7 +916,6 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold text-white">Homepage Preview</h1>
-              <p className="text-sm text-gray-400">Click any element to edit it</p>
             </div>
             {selectedElement && (
               <Badge variant="outline" className="text-neonCyan border-neonCyan">

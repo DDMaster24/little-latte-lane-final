@@ -26,9 +26,14 @@ export default function BookingsSection() {
         <Link href="/bookings" aria-label="Book a golf session">
           <Button 
             className="neon-button px-4 xs:px-6 py-3 xs:py-4 text-fluid-base xs:text-fluid-lg hover:shadow-xl touch-target"
-            data-editable="bookings-button"
+            data-editable="bookings-button-container"
           >
-            Book Now
+            <span 
+              data-editable="bookings-button-text"
+              className="cursor-pointer"
+            >
+              Book Now
+            </span>
           </Button>
         </Link>
       </div>

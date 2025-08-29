@@ -86,22 +86,34 @@ export default function CategoriesSection() {
                 {/* Content Container with Responsive Padding */}
                 <div className="p-4 xs:p-6 h-full flex flex-col">
                   {/* Glassmorphic Icon Container - Responsive Sizing */}
-                  <div className="w-full h-20 xs:h-24 sm:h-32 bg-gradient-to-br from-neonCyan/10 to-neonPink/10 backdrop-blur-sm rounded-lg mb-3 xs:mb-4 flex items-center justify-center group-hover:from-neonCyan/20 group-hover:to-neonPink/20 transition-all duration-300 border border-neonCyan/20">
-                    <span className="text-2xl xs:text-3xl sm:text-4xl filter drop-shadow-lg">{category.icon}</span>
+                  <div 
+                    className="w-full h-20 xs:h-24 sm:h-32 bg-gradient-to-br from-neonCyan/10 to-neonPink/10 backdrop-blur-sm rounded-lg mb-3 xs:mb-4 flex items-center justify-center group-hover:from-neonCyan/20 group-hover:to-neonPink/20 transition-all duration-300 border border-neonCyan/20 cursor-pointer hover:border-neonPink/50"
+                    data-editable={`category-${category.id}-icon-container`}
+                    onClick={(e) => e.preventDefault()}
+                  >
+                    <span 
+                      className="text-2xl xs:text-3xl sm:text-4xl filter drop-shadow-lg cursor-pointer"
+                      data-editable={`category-${category.id}-icon`}
+                      onClick={(e) => e.preventDefault()}
+                    >
+                      {category.icon}
+                    </span>
                   </div>
                   
                   {/* Category Title - Fluid Typography */}
                   <h3 
-                    className="text-neonCyan font-semibold text-center group-hover:text-neonPink transition-colors duration-300 text-fluid-base xs:text-fluid-lg mb-2 xs:mb-3"
+                    className="text-neonCyan font-semibold text-center group-hover:text-neonPink transition-colors duration-300 text-fluid-base xs:text-fluid-lg mb-2 xs:mb-3 cursor-pointer hover:text-neonPink/80"
                     data-editable={`category-${category.id}-title`}
+                    onClick={(e) => e.preventDefault()}
                   >
                     {category.name}
                   </h3>
                   
                   {/* Description - Responsive Text */}
                   <p 
-                    className="text-gray-300 text-fluid-xs xs:text-fluid-sm text-center leading-relaxed flex-grow flex items-center justify-center"
+                    className="text-gray-300 text-fluid-xs xs:text-fluid-sm text-center leading-relaxed flex-grow flex items-center justify-center cursor-pointer hover:text-gray-100"
                     data-editable={`category-${category.id}-description`}
+                    onClick={(e) => e.preventDefault()}
                   >
                     {category.description}
                   </p>

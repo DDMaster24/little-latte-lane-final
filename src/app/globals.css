@@ -527,3 +527,99 @@ body {
 .border-neon-yellow {
   border-color: #ffff00;
 }
+
+/* Enhanced Homepage Editor Element Selection */
+@layer utilities {
+  /* Individual element highlighting for better editor experience */
+  [data-editable]:hover {
+    @apply outline outline-2 outline-neonCyan/60 outline-offset-1;
+    position: relative;
+    z-index: 10;
+  }
+
+  /* Selected element styling */
+  [data-editable].selected {
+    @apply outline outline-2 outline-neonPink outline-offset-2;
+    position: relative;
+    z-index: 20;
+    box-shadow: 0 0 25px rgba(255, 0, 255, 0.4);
+  }
+
+  /* Specific styling for different element types */
+  [data-editable*="title"]:hover {
+    @apply outline-2 outline-neonPink bg-neonPink/5;
+  }
+
+  [data-editable*="description"]:hover {
+    @apply outline-2 outline-neon-green bg-neon-green/5;
+  }
+
+  [data-editable*="icon"]:hover {
+    @apply outline-2 outline-neon-blue bg-neon-blue/5;
+  }
+
+  [data-editable*="button"]:hover {
+    @apply outline-2 outline-neon-yellow bg-neon-yellow/5;
+  }
+
+  [data-editable*="background"]:hover {
+    @apply outline-2 outline-neon-purple;
+  }
+
+  /* Prevent link navigation when in edit mode */
+  [data-editable] {
+    position: relative;
+  }
+
+  /* Make child elements of editable containers also selectable */
+  [data-editable] [data-editable] {
+    z-index: 20;
+  }
+
+  /* Enhanced category card selection */
+  [data-editable*="category"] {
+    transition: all 0.2s ease;
+  }
+
+  [data-editable*="category"]:hover {
+    transform: scale(1.02);
+  }
+
+  /* Text selection improvements */
+  [data-editable*="text"]:hover,
+  [data-editable*="title"]:hover,
+  [data-editable*="description"]:hover {
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 255, 0.1));
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin: -2px -4px;
+  }
+
+  /* Icon container improvements */
+  [data-editable*="icon-container"]:hover {
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.4), inset 0 0 20px rgba(255, 0, 255, 0.2);
+  }
+
+  /* Button container improvements */  
+  [data-editable*="button"]:hover {
+    box-shadow: 0 0 15px rgba(255, 255, 0, 0.5);
+    transform: translateY(-2px);
+  }
+
+  /* Cursor improvements for editable elements */
+  [data-editable] {
+    cursor: pointer;
+  }
+
+  /* Removed extra visual indicators - keeping only neon border outlines */
+
+  /* Prevent text selection during editing */
+  [data-editable]:hover {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
+
+  /* Removed type-specific labels - keeping only color-coded outlines */
+}
