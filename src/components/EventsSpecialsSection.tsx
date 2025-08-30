@@ -3,7 +3,7 @@
 import { useAuth } from '@/components/AuthProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Star, Gift, Zap, Edit, Plus, Trash2, Image as ImageIcon, Palette } from 'lucide-react';
+import { Calendar, Star, Gift, Zap, Edit, Plus, Trash2, Palette } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { getSupabaseClient } from '@/lib/supabase-client';
 
@@ -41,7 +41,7 @@ type SectionSettings = {
 };
 
 export default function EventsSpecialsSection() {
-  const { profile } = useAuth();
+  const { profile, loading: authLoading } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [settings, setSettings] = useState<SectionSettings>({
     section_title: 'Events & Specials',
@@ -247,7 +247,7 @@ export default function EventsSpecialsSection() {
         data-editable="events-section"
       >
         {/* Admin Controls */}
-        {profile?.is_admin && (
+        {profile?.is_admin === true && !authLoading && (
           <div className="absolute top-4 right-4 flex gap-2">
             <Button
               size="sm"
@@ -293,7 +293,7 @@ export default function EventsSpecialsSection() {
           No current events or specials. Check back soon for exciting updates!
         </p>
         
-        {profile?.is_admin && (
+        {profile?.is_admin === true && !authLoading && (
           <p 
             className="text-neon-blue text-sm mt-4"
             data-editable="events-admin-hint"
@@ -322,7 +322,7 @@ export default function EventsSpecialsSection() {
           data-editable="events-section-background"
         >
           {/* Admin Controls */}
-          {profile?.is_admin && (
+          {profile?.is_admin === true && !authLoading && (
             <div className="absolute top-4 right-4 flex gap-2 z-10">
               <Button
                 size="sm"
@@ -381,7 +381,7 @@ export default function EventsSpecialsSection() {
                   data-editable="event-card"
                 >
                   {/* Admin Controls for Each Event */}
-                  {profile?.is_admin && (
+                  {profile?.is_admin === true && !authLoading && (
                     <div className="absolute top-2 right-2 flex gap-1 z-10">
                       <Button
                         size="sm"
@@ -466,7 +466,7 @@ export default function EventsSpecialsSection() {
             </div>
           </div>
 
-          {profile?.is_admin && (
+          {profile?.is_admin === true && !authLoading && (
             <div className="text-center pb-6">
               <Button
                 variant="outline"
