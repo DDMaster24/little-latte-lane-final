@@ -231,20 +231,32 @@ function MenuContent() {
                     >
                       {/* Category Icon Section */}
                       <div className="flex flex-col items-center text-center">
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mb-3 sm:mb-4 flex items-center justify-center rounded-xl bg-black/30 backdrop-blur-sm border border-neonCyan/20 group-hover:border-neonPink/40 transition-all duration-300">
-                          <span className="text-2xl sm:text-3xl lg:text-4xl">
+                        <div 
+                          data-editable="category-icon-container"
+                          className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mb-3 sm:mb-4 flex items-center justify-center rounded-xl bg-black/30 backdrop-blur-sm border border-neonCyan/20 group-hover:border-neonPink/40 transition-all duration-300"
+                        >
+                          <span 
+                            data-editable="category-icon"
+                            className="text-2xl sm:text-3xl lg:text-4xl"
+                          >
                             {getCategoryIcon(category.name)}
                           </span>
                         </div>
                         
                         {/* Category Name */}
-                        <h3 className="text-lg sm:text-xl font-bold text-neonCyan group-hover:text-neonPink transition-colors duration-300 mb-2">
+                        <h3 
+                          data-editable="category-name"
+                          className="text-lg sm:text-xl font-bold text-neonCyan group-hover:text-neonPink transition-colors duration-300 mb-2"
+                        >
                           {category.name}
                         </h3>
                         
                         {/* Category Description */}
                         {category.description && (
-                          <p className="text-gray-300 text-xs sm:text-sm leading-relaxed group-hover:text-gray-200 transition-colors duration-300 line-clamp-3">
+                          <p 
+                            data-editable="category-description"
+                            className="text-gray-300 text-xs sm:text-sm leading-relaxed group-hover:text-gray-200 transition-colors duration-300 line-clamp-3"
+                          >
                             {category.description}
                           </p>
                         )}
@@ -280,7 +292,12 @@ function MenuContent() {
             >
               🍽️
             </span>
-            <span data-editable="browse-menu-button-text">Browse All Menu Items</span>
+            <span 
+              data-editable="browse-menu-button-text"
+              className="browse-menu-text"
+            >
+              Browse All Menu Items
+            </span>
             <span 
               data-editable="browse-menu-icon-right"
               className="text-2xl"

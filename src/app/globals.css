@@ -534,14 +534,14 @@ body {
   [data-editable]:hover {
     @apply outline outline-2 outline-neonCyan/60 outline-offset-1;
     position: relative;
-    z-index: 10;
+    z-index: 5; /* Reduced z-index to prevent text blanking */
   }
 
   /* Selected element styling */
   [data-editable].selected {
     @apply outline outline-4 outline-neon-sunset outline-offset-2;
     position: relative;
-    z-index: 20;
+    z-index: 10; /* Reduced z-index */
     box-shadow: 0 0 30px rgba(255, 69, 0, 0.8), 0 0 15px rgba(255, 69, 0, 0.6);
   }
 
@@ -573,7 +573,12 @@ body {
 
   /* Make child elements of editable containers also selectable */
   [data-editable] [data-editable] {
-    z-index: 20;
+    z-index: 15; /* Higher than parent but lower than selected */
+  }
+
+  /* Prevent event conflicts between nested editables */
+  [data-editable] [data-editable]:hover {
+    z-index: 16;
   }
 
   /* Enhanced category card selection */
@@ -582,17 +587,35 @@ body {
   }
 
   [data-editable*="category"]:hover {
-    transform: scale(1.02);
+    transform: none; /* Removed transform to prevent layout shifts */
   }
 
-  /* Text selection improvements */
+  /* Specific category element styles */
+  [data-editable="category-icon"]:hover {
+    @apply outline-2 outline-yellow-400;
+    transform: scale(1.1);
+  }
+
+  [data-editable="category-name"]:hover {
+    @apply outline-2 outline-neonPink;
+  }
+
+  [data-editable="category-description"]:hover {
+    @apply outline-2 outline-neon-green;
+  }
+
+  [data-editable="category-icon-container"]:hover {
+    @apply outline-2 outline-neon-blue;
+    transform: scale(1.05);
+  }
+
+  /* Text selection improvements - Fixed to prevent shifting */
   [data-editable*="text"]:hover,
   [data-editable*="title"]:hover,
   [data-editable*="description"]:hover {
     background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 255, 0.1));
     border-radius: 4px;
-    padding: 2px 4px;
-    margin: -2px -4px;
+    /* Removed padding and margin that cause text shifting */
   }
 
   /* Icon container improvements */
@@ -603,7 +626,19 @@ body {
   /* Button container improvements */  
   [data-editable*="button"]:hover {
     box-shadow: 0 0 15px rgba(255, 255, 0, 0.5);
-    transform: translateY(-2px);
+    transform: none; /* Removed transform to prevent shifting */
+  }
+
+  /* Specific button element improvements */
+  [data-editable="browse-menu-button-text"]:hover {
+    @apply outline-2 outline-neon-yellow;
+    background: rgba(255, 255, 0, 0.1);
+    border-radius: 4px;
+  }
+
+  [data-editable*="browse-menu-icon"]:hover {
+    @apply outline-2 outline-neonPink;
+    transform: scale(1.2);
   }
 
   /* Cursor improvements for editable elements */
