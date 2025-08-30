@@ -131,9 +131,22 @@ export default function CategoriesSection() {
           <Link
             href="/menu"
             className="neon-button text-fluid-base xs:text-fluid-lg px-6 xs:px-8 py-3 xs:py-4 inline-flex items-center gap-2 touch-target"
-            data-editable="categories-button"
+            data-editable="categories-button-container"
           >
-            🍽️ View Full Menu
+            <span 
+              className="cursor-pointer"
+              data-editable="categories-button-icon"
+              onClick={(e) => e.preventDefault()}
+            >
+              🍽️
+            </span>
+            <span 
+              className="cursor-pointer"
+              data-editable="categories-button-text"
+              onClick={(e) => e.preventDefault()}
+            >
+              View Full Menu
+            </span>
           </Link>
         </div>
       </section>
