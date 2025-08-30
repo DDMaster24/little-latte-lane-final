@@ -1,5 +1,5 @@
-import TestHomepageEditor from '@/components/Admin/TestHomepageEditor';
+import HomepageEditorInterface from '@/components/Admin/HomepageEditorInterface';
 
 export default function AdminHomepageEditorPage() {
-  return <TestHomepageEditor />;
+  return <HomepageEditorInterface />;
 }
