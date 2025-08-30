@@ -539,10 +539,10 @@ body {
 
   /* Selected element styling */
   [data-editable].selected {
-    @apply outline outline-2 outline-neonPink outline-offset-2;
+    @apply outline outline-2 outline-neon-sunset outline-offset-2;
     position: relative;
     z-index: 20;
-    box-shadow: 0 0 25px rgba(255, 0, 255, 0.4);
+    box-shadow: 0 0 25px rgba(255, 107, 53, 0.6);
   }
 
   /* Specific styling for different element types */

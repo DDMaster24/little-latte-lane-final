@@ -26,6 +26,7 @@ module.exports = {
         'neon-purple': '#8000FF', // Purple accent
         'neon-orange': '#FF8000', // Orange accent
         'neon-yellow': '#FFFF00', // Yellow accent
+        'neon-sunset': '#FF6B35', // Orange sunset for selected elements
       },
       fontSize: {
         'fluid-xs': 'clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem)',
