@@ -37,6 +37,26 @@ Use centralized query classes in `src/lib/queries/`:
 - **Helper functions**: `public.is_staff_or_admin()` for RLS policies
 - **Critical**: Never query auth.users directly - always use profiles table
 
+## 🚨 CRITICAL: ZERO CODE DRIFT PROTOCOL - MANDATORY
+
+### **🛡️ ANTI-REGRESSION RULES (ADDED DUE TO REPEATED ISSUES)**
+
+**BEFORE ANY CODE CHANGES:**
+1. **ONE ISSUE = ONE MINIMAL FIX** - Never change multiple systems simultaneously
+2. **TEST CRITICAL FUNCTIONS** - Element selection, navigation, responsive design  
+3. **SPECIFIC CSS TARGETING** - Use `nav a`, `header a` NOT broad `a` selectors
+4. **IMMEDIATE REGRESSION CHECK** - Test locally AND live before commit
+
+**MANDATORY TESTING SEQUENCE:**
+- Local test → Live test → Element selection → Navigation hiding → Scrollbars → Deploy
+- If ANY regression found → STOP, revert, analyze interaction
+
+**CSS CHANGE RULES:**
+- Test element selection immediately after ANY CSS changes
+- Never use overly broad selectors (like `a` instead of `nav a`)  
+- Always verify `pointer-events` don't block interactive elements
+- Test hover states and interactive functionality
+
 ## 🚨 CRITICAL: DOCKER-FIRST DATABASE PROTOCOL - MANDATORY
 
 ### **🔴 DOCKER-FIRST DATABASE RULE (ADDED DUE TO REPEATED ISSUES)**
