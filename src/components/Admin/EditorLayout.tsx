@@ -79,7 +79,7 @@ export default function EditorLayout({ children }: EditorLayoutProps) {
               cursor: default !important;
             }
 
-            /* Ensure editable elements can be clicked */
+            /* FORCE enable editable elements - HIGHEST PRIORITY */
             .editor-mode [data-editable] {
               pointer-events: auto !important;
               cursor: pointer !important;
@@ -87,8 +87,16 @@ export default function EditorLayout({ children }: EditorLayoutProps) {
               z-index: 10 !important;
             }
 
-            /* Ensure editable children can be clicked */
-            .editor-mode [data-editable] * {
+            /* FORCE enable editable children - OVERRIDE ALL CONFLICTS */
+            .editor-mode [data-editable] *,
+            .editor-mode [data-editable] a,
+            .editor-mode [data-editable] button,
+            .editor-mode [data-editable] div,
+            .editor-mode [data-editable] span,
+            .editor-mode [data-editable] p,
+            .editor-mode [data-editable] h1,
+            .editor-mode [data-editable] h2,
+            .editor-mode [data-editable] h3 {
               pointer-events: auto !important;
               cursor: pointer !important;
             }

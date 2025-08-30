@@ -295,6 +295,13 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
   };
 
   const handleElementClick = (event: React.MouseEvent) => {
+    // FIRST: Log that we caught the click
+    console.log('🚨 CLICK DETECTED - Handler called!', {
+      timestamp: new Date().toISOString(),
+      target: (event.target as HTMLElement).tagName,
+      className: (event.target as HTMLElement).className
+    });
+    
     // FORCE stop any navigation first
     event.preventDefault();
     event.stopPropagation();
@@ -1048,29 +1055,13 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
                   
                   /* FORCE child elements to be clickable for event bubbling */
                   .editing-mode [data-editable] * {
-                    pointer-events: auto !important;
+                    cursor: pointer !important;
                     z-index: inherit !important;
-                    cursor: pointer !important;
                   }
                   
-                  /* DISABLE all link navigation in editor mode */
+                  /* Remove text decoration from links in editor mode but keep them clickable */
                   .editing-mode a {
-                    pointer-events: none !important;
                     text-decoration: none !important;
-                    cursor: default !important;
-                  }
-                  
-                  /* RE-ENABLE editable elements inside links */
-                  .editing-mode a [data-editable] {
-                    pointer-events: auto !important;
-                    cursor: pointer !important;
-                    z-index: 100 !important;
-                    position: relative !important;
-                  }
-                  
-                  .editing-mode a [data-editable] * {
-                    pointer-events: auto !important;
-                    cursor: pointer !important;
                   }
                   
                   /* PULSE animation for better visibility - NEON ORANGE */
