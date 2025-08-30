@@ -29,6 +29,8 @@ interface HomepageEditorInterfaceProps {
 }
 
 export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps) {
+  console.log('🟢 HOMEPAGE EDITOR INTERFACE STARTING...');
+  
   const router = useRouter();
   const { toast } = useToast();
   const { isAdmin, isLoading } = usePageEditor('homepage');
@@ -41,9 +43,34 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
 
   // Diagnostic: Count editable elements and ATTACH DIRECT CLICK HANDLERS
   useEffect(() => {
+    console.log('🟡 USEEFFECT STARTING - Setting up direct handlers...');
+    
+    // ALSO: Add a global function for manual testing
+    (window as typeof window & { testEditorElements?: () => NodeListOf<Element> }).testEditorElements = () => {
+      console.log('🧪 MANUAL TEST FUNCTION CALLED');
+      const elements = document.querySelectorAll('[data-editable]');
+      console.log('Found elements:', elements.length);
+      elements.forEach(el => {
+        console.log('Element:', el.getAttribute('data-editable'), el.tagName, el.className);
+      });
+      return elements;
+    };
+    
     const timer = setTimeout(() => {
+      console.log('🟡 TIMER FIRED - Looking for editable elements...');
+      
       const editableElements = document.querySelectorAll('[data-editable]');
-      console.log('🔍 DIAGNOSTIC: Found editable elements:', {
+      console.log('🟡 FOUND ELEMENTS:', editableElements.length);
+      
+      if (editableElements.length === 0) {
+        console.warn('🚨 NO EDITABLE ELEMENTS FOUND! Checking if page loaded...');
+        console.log('� Document ready state:', document.readyState);
+        console.log('🟡 Body children count:', document.body.children.length);
+        console.log('🟡 Page URL:', window.location.href);
+        return;
+      }
+
+      console.log('�🔍 DIAGNOSTIC: Found editable elements:', {
         count: editableElements.length,
         elements: Array.from(editableElements).map(el => ({
           id: el.getAttribute('data-editable'),
@@ -53,19 +80,19 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
           zIndex: window.getComputedStyle(el).zIndex
         }))
       });
-      
-      if (editableElements.length === 0) {
-        console.warn('🚨 NO EDITABLE ELEMENTS FOUND! Page may not have loaded properly.');
-        return;
-      }
 
       // CRITICAL FIX: Attach direct click handlers to each editable element
+      let handlersAttached = 0;
       editableElements.forEach((element) => {
+        const elementId = element.getAttribute('data-editable');
+        console.log('🟡 ATTACHING HANDLER TO:', elementId);
+        
         const handleDirectClick = (event: Event) => {
           console.log('🎯 DIRECT CLICK HANDLER FIRED!', {
-            element: element.getAttribute('data-editable'),
+            element: elementId,
             tag: element.tagName,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            event: event.type
           });
           
           // Convert to React.MouseEvent format and call our handler
@@ -85,12 +112,19 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
         element.removeEventListener('click', handleDirectClick);
         // Add the direct click listener
         element.addEventListener('click', handleDirectClick);
+        handlersAttached++;
         
-        console.log('✅ Direct click handler attached to:', element.getAttribute('data-editable'));
+        console.log('✅ Direct click handler attached to:', elementId);
       });
-    }, 2000); // Wait 2 seconds for page to load
+      
+      console.log(`🎯 TOTAL HANDLERS ATTACHED: ${handlersAttached}`);
+      
+    }, 3000); // Increased to 3 seconds for more loading time
     
-    return () => clearTimeout(timer);
+    return () => {
+      console.log('🟡 USEEFFECT CLEANUP');
+      clearTimeout(timer);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [colorMode, setColorMode] = useState<'solid' | 'gradient'>('solid');
