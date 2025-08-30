@@ -39,7 +39,7 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [currentColor, setCurrentColor] = useState<string>('#00ffff');
 
-  // Diagnostic: Count editable elements
+  // Diagnostic: Count editable elements and ATTACH DIRECT CLICK HANDLERS
   useEffect(() => {
     const timer = setTimeout(() => {
       const editableElements = document.querySelectorAll('[data-editable]');
@@ -56,10 +56,42 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
       
       if (editableElements.length === 0) {
         console.warn('🚨 NO EDITABLE ELEMENTS FOUND! Page may not have loaded properly.');
+        return;
       }
+
+      // CRITICAL FIX: Attach direct click handlers to each editable element
+      editableElements.forEach((element) => {
+        const handleDirectClick = (event: Event) => {
+          console.log('🎯 DIRECT CLICK HANDLER FIRED!', {
+            element: element.getAttribute('data-editable'),
+            tag: element.tagName,
+            timestamp: new Date().toISOString()
+          });
+          
+          // Convert to React.MouseEvent format and call our handler
+          const reactEvent = {
+            target: event.target,
+            preventDefault: () => event.preventDefault(),
+            stopPropagation: () => event.stopPropagation(),
+            type: event.type,
+            bubbles: event.bubbles,
+            cancelable: event.cancelable
+          } as React.MouseEvent<HTMLElement>;
+          
+          handleElementClick(reactEvent);
+        };
+
+        // Remove any existing listeners first
+        element.removeEventListener('click', handleDirectClick);
+        // Add the direct click listener
+        element.addEventListener('click', handleDirectClick);
+        
+        console.log('✅ Direct click handler attached to:', element.getAttribute('data-editable'));
+      });
     }, 2000); // Wait 2 seconds for page to load
     
     return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [colorMode, setColorMode] = useState<'solid' | 'gradient'>('solid');
   const [colorTarget, setColorTarget] = useState<'text' | 'background'>('text');
