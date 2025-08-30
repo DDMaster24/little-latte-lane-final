@@ -38,6 +38,29 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
   const [activeTool, setActiveTool] = useState<'select' | 'text' | 'color' | 'font' | 'size'>('select');
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [currentColor, setCurrentColor] = useState<string>('#00ffff');
+
+  // Diagnostic: Count editable elements
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const editableElements = document.querySelectorAll('[data-editable]');
+      console.log('🔍 DIAGNOSTIC: Found editable elements:', {
+        count: editableElements.length,
+        elements: Array.from(editableElements).map(el => ({
+          id: el.getAttribute('data-editable'),
+          tag: el.tagName,
+          className: el.className,
+          pointerEvents: window.getComputedStyle(el).pointerEvents,
+          zIndex: window.getComputedStyle(el).zIndex
+        }))
+      });
+      
+      if (editableElements.length === 0) {
+        console.warn('🚨 NO EDITABLE ELEMENTS FOUND! Page may not have loaded properly.');
+      }
+    }, 2000); // Wait 2 seconds for page to load
+    
+    return () => clearTimeout(timer);
+  }, []);
   const [colorMode, setColorMode] = useState<'solid' | 'gradient'>('solid');
   const [colorTarget, setColorTarget] = useState<'text' | 'background'>('text');
   const [gradientColors, setGradientColors] = useState<string[]>(['#00ffff', '#ff00ff']);
@@ -295,18 +318,31 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
   };
 
   const handleElementClick = (event: React.MouseEvent) => {
-    // FIRST: Log that we caught the click
+    // ENHANCED: More detailed logging
+    const target = event.target as HTMLElement;
     console.log('🚨 CLICK DETECTED - Handler called!', {
       timestamp: new Date().toISOString(),
-      target: (event.target as HTMLElement).tagName,
-      className: (event.target as HTMLElement).className
+      target: {
+        tag: target.tagName,
+        className: target.className,
+        id: target.id,
+        dataEditable: target.getAttribute('data-editable'),
+        textContent: target.textContent?.substring(0, 30),
+        pointerEvents: window.getComputedStyle(target).pointerEvents,
+        zIndex: window.getComputedStyle(target).zIndex
+      },
+      event: {
+        type: event.type,
+        bubbles: event.bubbles,
+        cancelable: event.cancelable
+      }
     });
     
     // FORCE stop any navigation first
     event.preventDefault();
     event.stopPropagation();
     
-    const target = event.target as HTMLElement;
+    // Use the same target variable throughout
     
     // Find ALL editable elements in the ancestry path
     let currentElement: HTMLElement | null = target;

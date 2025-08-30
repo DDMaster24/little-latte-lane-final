@@ -87,7 +87,7 @@ export default function EditorLayout({ children }: EditorLayoutProps) {
               z-index: 10 !important;
             }
 
-            /* FORCE enable editable children - OVERRIDE ALL CONFLICTS */
+            /* AGGRESSIVE: FORCE enable editable children - OVERRIDE ALL CONFLICTS */
             .editor-mode [data-editable] *,
             .editor-mode [data-editable] a,
             .editor-mode [data-editable] button,
@@ -96,9 +96,22 @@ export default function EditorLayout({ children }: EditorLayoutProps) {
             .editor-mode [data-editable] p,
             .editor-mode [data-editable] h1,
             .editor-mode [data-editable] h2,
-            .editor-mode [data-editable] h3 {
+            .editor-mode [data-editable] h3,
+            .editor-mode [data-editable] img,
+            .editor-mode [data-editable] svg {
               pointer-events: auto !important;
               cursor: pointer !important;
+            }
+
+            /* DEBUGGING: Add visible outline to all editable elements */
+            .editor-mode [data-editable] {
+              outline: 1px dashed rgba(255, 69, 0, 0.3) !important;
+              outline-offset: 1px !important;
+            }
+
+            /* DEBUGGING: Add background to clickable area */
+            .editor-mode [data-editable]:hover {
+              background: rgba(255, 69, 0, 0.1) !important;
             }
 
             /* Enhanced hover effects - NEON ORANGE theme */
