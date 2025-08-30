@@ -71,13 +71,15 @@ export default function EditorLayout({ children }: EditorLayoutProps) {
               display: none !important;
             }
 
-            /* Disable all links in editor mode */
-            .editor-mode a {
+            /* Disable navigation links only, not all links */
+            .editor-mode nav a,
+            .editor-mode header a,
+            .editor-mode footer a {
               pointer-events: none !important;
               cursor: default !important;
             }
 
-            /* Re-enable pointer events for editable elements - AGGRESSIVE */
+            /* Ensure editable elements can be clicked */
             .editor-mode [data-editable] {
               pointer-events: auto !important;
               cursor: pointer !important;
@@ -85,14 +87,8 @@ export default function EditorLayout({ children }: EditorLayoutProps) {
               z-index: 10 !important;
             }
 
-            /* Ensure editable children can be clicked - FORCE ENABLE */
+            /* Ensure editable children can be clicked */
             .editor-mode [data-editable] * {
-              pointer-events: auto !important;
-              cursor: pointer !important;
-            }
-            
-            /* OVERRIDE any conflicting pointer-events */
-            .editor-mode [data-editable]:hover * {
               pointer-events: auto !important;
               cursor: pointer !important;
             }
