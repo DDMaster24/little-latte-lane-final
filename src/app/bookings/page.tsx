@@ -144,15 +144,29 @@ export default function BookingsPage() {
       {!isLoadingSettings && golfSettings && !golfSettings.enabled && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80">
           <div className="max-w-2xl mx-auto text-center p-8 bg-gray-800/90 backdrop-blur-sm rounded-2xl border border-neonCyan/30 shadow-2xl">
-            <div className="text-6xl mb-6">🏌️‍♂️</div>
-            <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-neonCyan via-neonPink to-neonBlue bg-clip-text text-transparent">
+            <div 
+              data-editable="golf-coming-soon-emoji"
+              className="text-6xl mb-6"
+            >
+              🏌️‍♂️
+            </div>
+            <h1 
+              data-editable="golf-coming-soon-heading"
+              className="text-4xl font-bold mb-6 bg-gradient-to-r from-neonCyan via-neonPink to-neonBlue bg-clip-text text-transparent"
+            >
               Virtual Golf Coming Soon!
             </h1>
-            <div className="text-gray-300 text-lg whitespace-pre-line mb-8">
+            <div 
+              data-editable="golf-coming-soon-message"
+              className="text-gray-300 text-lg whitespace-pre-line mb-8"
+            >
               {golfSettings.comingSoonMessage}
             </div>
             <div className="flex justify-center">
-              <div className="animate-pulse bg-gradient-to-r from-neonPink to-neonCyan px-8 py-4 rounded-full text-black font-semibold">
+              <div 
+                data-editable="golf-stay-tuned-badge"
+                className="animate-pulse bg-gradient-to-r from-neonPink to-neonCyan px-8 py-4 rounded-full text-black font-semibold"
+              >
                 Stay Tuned for Updates!
               </div>
             </div>
@@ -166,10 +180,16 @@ export default function BookingsPage() {
           {/* Hero Section */}
           <div className="py-12">
             <div className="max-w-7xl mx-auto px-6 text-center">
-              <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-neonCyan via-neonPink to-neonBlue bg-clip-text text-transparent">
+              <h1 
+                data-editable="golf-active-heading"
+                className="text-5xl font-bold mb-4 bg-gradient-to-r from-neonCyan via-neonPink to-neonBlue bg-clip-text text-transparent"
+              >
                 Book Virtual Golf
               </h1>
-              <p className="text-xl text-gray-200 mb-8">
+              <p 
+                data-editable="golf-active-subtitle"
+                className="text-xl text-gray-200 mb-8"
+              >
                 Experience the future of golf in our state-of-the-art virtual
                 golf simulator
               </p>
@@ -181,14 +201,20 @@ export default function BookingsPage() {
               {/* Booking Form */}
               <div className="lg:col-span-2">
                 <div className="bg-gray-800/80 backdrop-blur-lg p-8 rounded-xl shadow-2xl border border-neonCyan/30">
-                  <h2 className="text-2xl font-semibold mb-6 text-white">
+                  <h2 
+                    data-editable="booking-form-title"
+                    className="text-2xl font-semibold mb-6 text-white"
+                  >
                     Reserve Your Tee Time
                   </h2>
 
                   <div className="space-y-6">
                     {/* Date Picker */}
                     <div>
-                      <label className="block font-semibold mb-3 text-gray-200">
+                      <label 
+                        data-editable="date-picker-label"
+                        className="block font-semibold mb-3 text-gray-200"
+                      >
                         Select Date and Time:
                       </label>
                       <DatePicker
@@ -202,14 +228,20 @@ export default function BookingsPage() {
                         minDate={new Date()}
                         placeholderText="Choose your preferred time"
                       />
-                      <p className="text-sm text-gray-300 mt-2">
+                      <p 
+                        data-editable="available-hours-text"
+                        className="text-sm text-gray-300 mt-2"
+                      >
                         Available hours: 07:00 - 17:00
                       </p>
                     </div>
 
                     {/* Number of People */}
                     <div>
-                      <label className="block font-semibold mb-3 text-gray-200">
+                      <label 
+                        data-editable="party-size-label"
+                        className="block font-semibold mb-3 text-gray-200"
+                      >
                         Number of People:
                       </label>
                       <Input
@@ -220,7 +252,10 @@ export default function BookingsPage() {
                         onChange={(e) => setGolfPeople(Number(e.target.value))}
                         className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan"
                       />
-                      <p className="text-sm text-gray-300 mt-2">
+                      <p 
+                        data-editable="max-players-text"
+                        className="text-sm text-gray-300 mt-2"
+                      >
                         Maximum 8 players per booking
                       </p>
                     </div>
@@ -234,7 +269,9 @@ export default function BookingsPage() {
                         }
                         className="w-full text-lg py-4 bg-gradient-to-r from-neonPink to-neonCyan hover:from-neonPink/80 hover:to-neonCyan/80 text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {isBooking ? 'Processing...' : 'Reserve Your Tee Time'}
+                        <span data-editable="booking-button-text">
+                          {isBooking ? 'Processing...' : 'Reserve Your Tee Time'}
+                        </span>
                       </Button>
                       {isTimeSlotBooked(golfDate || new Date()) && (
                         <p className="text-red-400 text-sm mt-2 text-center">

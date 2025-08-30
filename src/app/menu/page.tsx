@@ -164,12 +164,30 @@ function MenuContent() {
     <main className="bg-darkBg py-4 sm:py-8 px-4 sm:px-6 overflow-x-hidden min-h-screen">
       {/* Header - Matching Homepage Style */}
       <div className="text-center mb-8 sm:mb-12">
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-neonCyan via-neonBlue to-neonPink bg-clip-text text-transparent mb-4 flex items-center justify-center gap-2 sm:gap-4">
-          <span className="text-2xl sm:text-3xl lg:text-4xl">🍽️</span>
-          <span>Our Full Menu</span>
-          <span className="text-2xl sm:text-3xl lg:text-4xl">🍽️</span>
+        <h1 
+          data-editable="menu-page-title"
+          className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-neonCyan via-neonBlue to-neonPink bg-clip-text text-transparent mb-4 flex items-center justify-center gap-2 sm:gap-4"
+        >
+          <span 
+            data-editable="menu-title-icon-left"
+            className="text-2xl sm:text-3xl lg:text-4xl"
+          >
+            🍽️
+          </span>
+          <span data-editable="menu-title-text">Our Full Menu</span>
+          <span 
+            data-editable="menu-title-icon-right"
+            className="text-2xl sm:text-3xl lg:text-4xl"
+          >
+            🍽️
+          </span>
         </h1>
-        <p className="text-gray-300 text-sm sm:text-base lg:text-lg">Organized by category for easy browsing</p>
+        <p 
+          data-editable="menu-page-subtitle"
+          className="text-gray-300 text-sm sm:text-base lg:text-lg"
+        >
+          Organized by category for easy browsing
+        </p>
       </div>
 
       {/* Sections - Display organized categories */}
@@ -256,9 +274,19 @@ function MenuContent() {
           prefetch={true}
         >
           <span className="flex items-center gap-3">
-            <span className="text-2xl">🍽️</span>
-            <span>Browse All Menu Items</span>
-            <span className="text-2xl">🍽️</span>
+            <span 
+              data-editable="browse-menu-icon-left"
+              className="text-2xl"
+            >
+              🍽️
+            </span>
+            <span data-editable="browse-menu-button-text">Browse All Menu Items</span>
+            <span 
+              data-editable="browse-menu-icon-right"
+              className="text-2xl"
+            >
+              🍽️
+            </span>
           </span>
         </Link>
       </div>

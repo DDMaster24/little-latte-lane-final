@@ -285,8 +285,8 @@ export default function StaffPanel() {
       >
         {/* Restaurant Overview Header */}
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-neonCyan mb-2">Restaurant Overview</h2>
-          <p className="text-neonText/70">Live order status tracking and management</p>
+          <h2 className="text-3xl font-bold text-neonCyan mb-2" data-editable="staff-overview-title">Restaurant Overview</h2>
+          <p className="text-neonText/70" data-editable="staff-overview-description">Live order status tracking and management</p>
         </div>
 
         {/* Status Cards Grid */}
@@ -760,8 +760,8 @@ export default function StaffPanel() {
         <div className="max-w-full px-4 sm:px-6 py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-neonCyan">Staff Panel</h1>
-              <p className="text-neonText/70 mt-1 text-sm sm:text-base">
+              <h1 className="text-2xl sm:text-3xl font-bold text-neonCyan" data-editable="staff-panel-title">Staff Panel</h1>
+              <p className="text-neonText/70 mt-1 text-sm sm:text-base" data-editable="staff-panel-description">
                 Restaurant management dashboard for staff
               </p>
             </div>

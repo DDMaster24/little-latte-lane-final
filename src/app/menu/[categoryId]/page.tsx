@@ -166,11 +166,11 @@ export default function MenuCategory() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-4">
+          <h1 className="text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-4" data-editable="category-page-title">
             {category?.name || 'Menu'}
           </h1>
           {category?.description && (
-            <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+            <p className="text-gray-300 text-lg max-w-2xl mx-auto" data-editable="category-description">
               {category.description}
             </p>
           )}
@@ -287,8 +287,8 @@ export default function MenuCategory() {
         {/* Empty State */}
         {items.length === 0 && (
           <div className="text-center py-16">
-            <div className="text-gray-400 text-xl mb-4">No items available</div>
-            <p className="text-gray-500">
+            <div className="text-gray-400 text-xl mb-4" data-editable="category-empty-title">No items available</div>
+            <p className="text-gray-500" data-editable="category-empty-description">
               This category doesn&apos;t have any items at the moment.
             </p>
           </div>

@@ -12,14 +12,14 @@ export default function TermsPage() {
       <section className="mx-auto max-w-4xl px-6 py-12">
         <div className="rounded-2xl border border-cyan-500/30 bg-black/50 p-6 shadow-[0_0_40px_rgba(0,255,255,0.15)] backdrop-blur">
           <h1 className="mb-6 text-3xl font-extrabold tracking-tight">
-            <span className="bg-gradient-to-r from-fuchsia-400 via-cyan-300 to-violet-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-fuchsia-400 via-cyan-300 to-violet-400 bg-clip-text text-transparent" data-editable="terms-page-title">
               Terms & Conditions
             </span>
           </h1>
-          <p className="text-sm text-gray-300">
+          <p className="text-sm text-gray-300" data-editable="terms-last-updated">
             Last Updated: <strong>August 11, 2025</strong>
           </p>
-          <p className="mt-4 text-gray-200">
+          <p className="mt-4 text-gray-200" data-editable="terms-introduction">
             Welcome to <strong>Little Latte Lane</strong>. These Terms and
             Conditions govern your use of our services, including online
             ordering, delivery/collection, and bookings. By placing an order or
@@ -27,19 +27,19 @@ export default function TermsPage() {
             and Conditions.
           </p>
 
-          <h2 className="mt-8 text-2xl font-bold text-cyan-300">
+          <h2 className="mt-8 text-2xl font-bold text-cyan-300" data-editable="terms-acceptance-heading">
             1. Acceptance of Terms
           </h2>
-          <p className="mt-3 text-gray-200">
+          <p className="mt-3 text-gray-200" data-editable="terms-acceptance-text">
             By placing an order or making a booking with Little Latte Lane, you
             agree to these Terms and Conditions. If you do not agree, please do
             not use our services.
           </p>
 
-          <h2 className="mt-8 text-2xl font-bold text-cyan-300">
+          <h2 className="mt-8 text-2xl font-bold text-cyan-300" data-editable="terms-age-heading">
             2. Age Requirement
           </h2>
-          <p className="mt-3 text-gray-200">
+          <p className="mt-3 text-gray-200" data-editable="terms-age-text">
             You must be at least <strong>16 years old</strong> to place an order
             or make a booking, or have explicit consent from a parent or
             guardian. By ordering, you confirm that you meet this requirement
@@ -167,8 +167,8 @@ export default function TermsPage() {
             will be posted on our website.
           </p>
 
-          <h2 className="mt-8 text-2xl font-bold text-cyan-300">Contact Us</h2>
-          <address className="mt-3 not-italic text-gray-200">
+          <h2 className="mt-8 text-2xl font-bold text-cyan-300" data-editable="terms-contact-heading">Contact Us</h2>
+          <address className="mt-3 not-italic text-gray-200" data-editable="terms-contact-details">
             <strong>Little Latte Lane</strong>
             <br />
             📍 Roberts Estate Community Centre, 11 Aristea Crescent, Roberts

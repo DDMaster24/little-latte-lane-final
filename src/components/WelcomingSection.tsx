@@ -52,10 +52,16 @@ export default function WelcomingSection() {
 
         {/* Call to Action Section */}
         <div className="text-center">
-          <h2 className="text-3xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-4">
+          <h2 
+            data-editable="cta-heading"
+            className="text-3xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-4"
+          >
             Ready to Experience Little Latte Lane?
           </h2>
-          <p className="text-lg text-gray-300 mb-6 max-w-2xl mx-auto">
+          <p 
+            data-editable="cta-description"
+            className="text-lg text-gray-300 mb-6 max-w-2xl mx-auto"
+          >
             Join us for exceptional food, premium beverages, and a warm,
             welcoming atmosphere. Whether you&apos;re catching up with friends,
             having a business meeting, or enjoying a quiet moment, we&apos;re
@@ -64,15 +70,30 @@ export default function WelcomingSection() {
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <div className="flex items-center justify-center gap-2 text-neonCyan">
               <Star className="h-5 w-5" />
-              <span className="text-sm font-medium">Exceptional Quality</span>
+              <span 
+                data-editable="quality-feature-text"
+                className="text-sm font-medium"
+              >
+                Exceptional Quality
+              </span>
             </div>
             <div className="flex items-center justify-center gap-2 text-neonPink">
               <MapPin className="h-5 w-5" />
-              <span className="text-sm font-medium">Prime Location</span>
+              <span 
+                data-editable="location-feature-text"
+                className="text-sm font-medium"
+              >
+                Prime Location
+              </span>
             </div>
             <div className="flex items-center justify-center gap-2 text-yellow-400">
               <Car className="h-5 w-5" />
-              <span className="text-sm font-medium">Easy Parking</span>
+              <span 
+                data-editable="parking-feature-text"
+                className="text-sm font-medium"
+              >
+                Easy Parking
+              </span>
             </div>
           </div>
         </div>

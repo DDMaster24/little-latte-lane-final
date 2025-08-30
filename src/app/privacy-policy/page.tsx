@@ -27,12 +27,12 @@ export default function PrivacyPolicyPage() {
           <div className="text-center">
             <div className="flex items-center justify-center gap-3 mb-4">
               <Shield className="h-8 w-8 text-neon-blue" />
-              <h1 className="text-4xl md:text-5xl font-bold bg-neon-gradient bg-clip-text text-transparent">
+              <h1 className="text-4xl md:text-5xl font-bold bg-neon-gradient bg-clip-text text-transparent" data-editable="privacy-page-title">
                 Privacy Policy
               </h1>
             </div>
-            <p className="text-xl text-gray-300 mb-4">Little Latte Lane</p>
-            <Badge className="bg-neon-pink text-black px-4 py-2">
+            <p className="text-xl text-gray-300 mb-4" data-editable="privacy-company-name">Little Latte Lane</p>
+            <Badge className="bg-neon-pink text-black px-4 py-2" data-editable="privacy-last-updated">
               Last Updated: August 11, 2025
             </Badge>
           </div>
@@ -45,13 +45,13 @@ export default function PrivacyPolicyPage() {
           <CardHeader>
             <CardTitle className="text-2xl text-neon-blue flex items-center gap-2">
               <Eye className="h-6 w-6" />
-              Your Privacy Matters
+              <span data-editable="privacy-section-title">Your Privacy Matters</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="prose prose-invert max-w-none space-y-8 text-gray-200">
             {/* Introduction */}
             <div className="bg-gradient-to-r from-neon-blue/10 to-neon-pink/10 p-6 rounded-lg border border-neon-blue/20">
-              <p className="text-lg leading-relaxed mb-0">
+              <p className="text-lg leading-relaxed mb-0" data-editable="privacy-introduction">
                 Little Latte Lane is committed to protecting your privacy and
                 personal information in accordance with the{' '}
                 <span className="text-neon-blue font-medium">
@@ -66,9 +66,9 @@ export default function PrivacyPolicyPage() {
             <div>
               <h2 className="text-2xl font-bold text-neon-green mb-4 flex items-center gap-2">
                 <Database className="h-6 w-6" />
-                Information We Collect
+                <span data-editable="privacy-collect-heading">Information We Collect</span>
               </h2>
-              <ul className="space-y-3 text-gray-300">
+              <ul className="space-y-3 text-gray-300" data-editable="privacy-collect-list">
                 <li>
                   • <strong>Personal Details:</strong> Name, email address,
                   phone number
@@ -96,9 +96,9 @@ export default function PrivacyPolicyPage() {
             <div>
               <h2 className="text-2xl font-bold text-neon-pink mb-4 flex items-center gap-2">
                 <Lock className="h-6 w-6" />
-                How We Use Your Information
+                <span data-editable="privacy-use-heading">How We Use Your Information</span>
               </h2>
-              <ul className="space-y-3 text-gray-300">
+              <ul className="space-y-3 text-gray-300" data-editable="privacy-use-list">
                 <li>• Process and fulfill your orders</li>
                 <li>• Communicate about your orders and bookings</li>
                 <li>• Improve our services and website experience</li>
@@ -164,14 +164,14 @@ export default function PrivacyPolicyPage() {
 
             {/* Contact for Privacy */}
             <div className="bg-gradient-to-r from-neon-blue/10 to-neon-green/10 p-6 rounded-lg border border-neon-blue/30">
-              <h2 className="text-2xl font-bold text-neon-blue mb-4">
+              <h2 className="text-2xl font-bold text-neon-blue mb-4" data-editable="privacy-contact-heading">
                 Privacy Concerns
               </h2>
-              <p className="text-gray-300 mb-4">
+              <p className="text-gray-300 mb-4" data-editable="privacy-contact-description">
                 If you have any questions about this Privacy Policy or want to
                 exercise your rights, contact us:
               </p>
-              <ul className="space-y-2 text-gray-300">
+              <ul className="space-y-2 text-gray-300" data-editable="privacy-contact-details">
                 <li>
                   <strong>Email:</strong> privacy@littlelattelane.co.za
                 </li>
