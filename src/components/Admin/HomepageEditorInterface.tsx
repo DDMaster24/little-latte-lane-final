@@ -48,7 +48,7 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
   const [hasChanges, setHasChanges] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   
-  // Prevent navigation when clicking on editable elements
+  // Prevent navigation when clicking on editable elements - ENHANCED VERSION
   useEffect(() => {
     const handleGlobalClick = (event: Event) => {
       const target = event.target as HTMLElement;
@@ -59,31 +59,47 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
       let linkElement: HTMLElement | null = null;
       
       // Search up the DOM tree for both editable elements and links
-      for (let i = 0; i < 10 && currentElement; i++) {
+      for (let i = 0; i < 15 && currentElement; i++) {
         if (currentElement.hasAttribute('data-editable') && !editableElement) {
           editableElement = currentElement;
         }
-        if (currentElement.tagName === 'A' && !linkElement) {
-          linkElement = currentElement;
+        if ((currentElement.tagName === 'A' || currentElement.closest('a')) && !linkElement) {
+          linkElement = currentElement.tagName === 'A' ? currentElement : currentElement.closest('a');
         }
         // If we found both, break early
         if (editableElement && linkElement) break;
         currentElement = currentElement.parentElement;
       }
       
-      // If clicking on an editable element that's inside a link, prevent navigation
-      if (editableElement && linkElement) {
-        console.log('Preventing navigation for editable element:', editableElement.getAttribute('data-editable'));
+      // If clicking on an editable element that's inside a link, prevent navigation AGGRESSIVELY
+      if (editableElement) {
+        console.log('🔒 BLOCKING navigation for editable element:', editableElement.getAttribute('data-editable'));
         event.preventDefault();
         event.stopPropagation();
+        event.stopImmediatePropagation();
+        
+        // Also disable the link temporarily
+        if (linkElement) {
+          const originalHref = linkElement.getAttribute('href');
+          linkElement.removeAttribute('href');
+          setTimeout(() => {
+            if (originalHref) {
+              linkElement.setAttribute('href', originalHref);
+            }
+          }, 100);
+        }
       }
     };
 
-    // Add global event listener to prevent navigation on editable elements
-    document.addEventListener('click', handleGlobalClick, true);
+    // Add multiple event listeners with different phases for maximum coverage
+    document.addEventListener('click', handleGlobalClick, true); // Capture phase
+    document.addEventListener('click', handleGlobalClick, false); // Bubble phase
+    document.addEventListener('mousedown', handleGlobalClick, true); // Capture mousedown too
     
     return () => {
       document.removeEventListener('click', handleGlobalClick, true);
+      document.removeEventListener('click', handleGlobalClick, false);
+      document.removeEventListener('mousedown', handleGlobalClick, true);
     };
   }, []);
   
@@ -279,92 +295,115 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
   };
 
   const handleElementClick = (event: React.MouseEvent) => {
+    // FORCE stop any navigation first
+    event.preventDefault();
+    event.stopPropagation();
+    
     const target = event.target as HTMLElement;
     
     // Find ALL editable elements in the ancestry path
     let currentElement: HTMLElement | null = target;
     const editableElements: { element: HTMLElement; id: string; depth: number }[] = [];
     
-    console.log('Click detected on:', target.tagName, target.className, target.textContent?.substring(0, 50));
+    console.log('🎯 Editor Click detected on:', {
+      tag: target.tagName, 
+      className: target.className, 
+      textContent: target.textContent?.substring(0, 50),
+      dataEditable: target.getAttribute('data-editable')
+    });
     
-    // Search up to 15 levels to find ALL editable elements
-    for (let depth = 0; depth < 15 && currentElement; depth++) {
-      console.log(`Level ${depth}:`, currentElement.tagName, currentElement.getAttribute('data-editable'));
-      if (currentElement.hasAttribute('data-editable')) {
-        const elementId = currentElement.getAttribute('data-editable');
-        if (elementId) {
-          editableElements.push({ 
-            element: currentElement, 
-            id: elementId, 
-            depth 
-          });
-          console.log(`Found editable element at depth ${depth}:`, elementId);
-        }
+    // Search up to 20 levels to find ALL editable elements
+    for (let depth = 0; depth < 20 && currentElement; depth++) {
+      const editableId = currentElement.getAttribute('data-editable');
+      if (editableId) {
+        editableElements.push({ 
+          element: currentElement, 
+          id: editableId, 
+          depth 
+        });
+        console.log(`✅ Found editable at depth ${depth}:`, editableId, currentElement.tagName);
       }
       currentElement = currentElement.parentElement;
     }
     
+    console.log(`🔍 Total editable elements found: ${editableElements.length}`);
+    
     if (editableElements.length > 0) {
-      // Prevent navigation when clicking on editable elements
-      event.preventDefault();
-      event.stopPropagation();
-      
       // Enhanced priority selection logic for better UX
       let selectedEditableInfo = editableElements[0]; // Start with the deepest
       
-      // Priority rules:
-      // 1. Prefer text/icon content over containers (highest priority)
-      // 2. Prefer button components over generic containers
-      // 3. Prefer the deepest element as fallback
+      // Priority rules (highest to lowest):
+      // 1. Individual content: text, icon, title, description, heading
+      // 2. Interactive elements: button, link (not container)
+      // 3. Direct target element if it's editable
+      // 4. Deepest element as fallback
       
       for (const editableInfo of editableElements) {
-        const { id, depth } = editableInfo;
+        const { id, element } = editableInfo;
         
-        // HIGHEST PRIORITY: Individual text, icon, or specific content elements
-        if (id.includes('text') || id.includes('icon') || id.includes('title') || id.includes('description') || id.includes('heading')) {
+        // HIGHEST PRIORITY: Individual content elements
+        if (id.includes('text') || id.includes('icon') || id.includes('title') || 
+            id.includes('description') || id.includes('heading')) {
           selectedEditableInfo = editableInfo;
-          console.log('Prioritizing content element:', id);
+          console.log('🎯 PRIORITY: Content element:', id);
           break;
         }
         
-        // HIGH PRIORITY: Button elements (including button-text, button-icon)
-        if (id.includes('button') && !id.includes('container')) {
+        // HIGH PRIORITY: Button/interactive elements (but not containers)
+        if ((id.includes('button') || id.includes('link')) && !id.includes('container')) {
           selectedEditableInfo = editableInfo;
-          console.log('Prioritizing button element:', id);
-          // Don't break here, still check for higher priority content elements
+          console.log('🔘 PRIORITY: Interactive element:', id);
+          // Don't break - still check for higher priority content
         }
         
-        // MEDIUM PRIORITY: Direct clicks on specific elements at depth 0
-        if (depth === 0 && (id.includes('badge') || id.includes('container'))) {
-          if (!selectedEditableInfo.id.includes('text') && !selectedEditableInfo.id.includes('icon') && !selectedEditableInfo.id.includes('button')) {
-            selectedEditableInfo = editableInfo;
-            console.log('Prioritizing direct click element:', id);
-          }
+        // MEDIUM PRIORITY: Direct target element
+        if (element === target && !selectedEditableInfo.id.includes('text') && 
+            !selectedEditableInfo.id.includes('icon') && !selectedEditableInfo.id.includes('button')) {
+          selectedEditableInfo = editableInfo;
+          console.log('🎯 PRIORITY: Direct target element:', id);
         }
       }
       
       const { element: editableElement, id: elementId } = selectedEditableInfo;
       
-      console.log('Final selection:', elementId, 'Target:', target.tagName, 'Editable:', editableElement.tagName);
+      console.log('✨ FINAL SELECTION:', {
+        elementId, 
+        targetTag: target.tagName, 
+        editableTag: editableElement.tagName,
+        depth: selectedEditableInfo.depth
+      });
+      
       setSelectedElement(elementId);
       setHasChanges(true);
       
       // Load existing styles for this element
       loadElementStyles(elementId);
       
-      // Add selected class for persistent border - remove from all first
+      // Visual feedback: Remove selected class from all, add to current
       document.querySelectorAll('[data-editable].selected').forEach(el => {
         el.classList.remove('selected');
       });
       editableElement.classList.add('selected');
       
+      // Scroll element into view if needed
+      editableElement.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+      });
+      
       toast({
-        title: "Element Selected",
+        title: "🎯 Element Selected",
         description: `Selected: ${elementId}`,
-        duration: 2000,
+        duration: 3000,
       });
     } else {
-      console.log('No editable element found in DOM tree');
+      console.log('❌ No editable element found in DOM tree');
+      toast({
+        title: "❌ No Element Found",
+        description: "Click on an editable element (highlighted in cyan on hover)",
+        variant: "destructive",
+        duration: 2000,
+      });
     }
   };
 
@@ -940,14 +979,25 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
                 </Button>
                 <div>
                   <h1 className="text-lg font-semibold text-white">Homepage Editor</h1>
-                  <p className="text-xs text-gray-400">Click any element to edit it</p>
+                  <p className="text-xs text-gray-400">
+                    🎯 <span className="text-neonCyan">Click any highlighted element</span> to edit • 
+                    <span className="text-orange-400"> Neon Orange Selection Theme</span> • 
+                    Individual elements: Icons, Titles, Descriptions
+                  </p>
                 </div>
               </div>
-              {selectedElement && (
-                <Badge variant="outline" className="text-neonCyan border-neonCyan">
-                  Selected: {selectedElement}
-                </Badge>
-              )}
+              <div className="flex items-center gap-3">
+                {selectedElement && (
+                  <Badge variant="outline" className="text-neonCyan border-neonCyan animate-pulse">
+                    Selected: {selectedElement}
+                  </Badge>
+                )}
+                {hasChanges && (
+                  <Badge variant="outline" className="text-neonPink border-neonPink">
+                    Unsaved Changes
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
 
@@ -958,76 +1008,83 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
               onClick={handleElementClick}
               style={{ pointerEvents: 'auto' }}
             >
-              {/* Global CSS Styles for Edit Mode */}
+              {/* Global CSS Styles for Edit Mode - ENHANCED VERSION */}
               <style dangerouslySetInnerHTML={{
                 __html: `
+                  /* AGGRESSIVE EDITOR MODE STYLES - NEON ORANGE THEME */
                   .editing-mode [data-editable] {
-                    position: relative;
-                    transition: all 0.3s ease;
-                    border-radius: 8px;
+                    position: relative !important;
+                    transition: all 0.2s ease !important;
+                    border-radius: 4px !important;
                     cursor: pointer !important;
                     pointer-events: auto !important;
                     z-index: 1 !important;
+                    display: block !important;
                   }
                   
+                  /* FORCE hover effects to be visible - NEON ORANGE */
                   .editing-mode [data-editable]:hover {
-                    box-shadow: 0 0 0 2px #00ffff, 0 4px 20px rgba(0, 255, 255, 0.3) !important;
-                    transform: translateY(-2px) !important;
+                    box-shadow: 0 0 0 3px #FF4500, 0 0 15px rgba(255, 69, 0, 0.6) !important;
+                    outline: 2px solid #FF4500 !important;
+                    outline-offset: 1px !important;
+                    transform: translateY(-1px) !important;
                     cursor: pointer !important;
                     pointer-events: auto !important;
+                    z-index: 999 !important;
+                    position: relative !important;
+                    background: rgba(255, 69, 0, 0.05) !important;
+                  }
+                  
+                  /* PERSISTENT selected state - NEON ORANGE */
+                  .editing-mode [data-editable].selected {
+                    box-shadow: 0 0 0 3px #FF4500, 0 0 15px rgba(255, 69, 0, 0.8) !important;
+                    outline: 2px solid #FF4500 !important;
+                    outline-offset: 1px !important;
+                    transform: translateY(-1px) !important;
+                    z-index: 999 !important;
+                    position: relative !important;
+                    background: rgba(255, 69, 0, 0.08) !important;
+                  }
+                  
+                  /* FORCE child elements to be clickable for event bubbling */
+                  .editing-mode [data-editable] * {
+                    pointer-events: auto !important;
+                    z-index: inherit !important;
+                    cursor: pointer !important;
+                  }
+                  
+                  /* DISABLE all link navigation in editor mode */
+                  .editing-mode a {
+                    pointer-events: none !important;
+                    text-decoration: none !important;
+                    cursor: default !important;
+                  }
+                  
+                  /* RE-ENABLE editable elements inside links */
+                  .editing-mode a [data-editable] {
+                    pointer-events: auto !important;
+                    cursor: pointer !important;
                     z-index: 100 !important;
                     position: relative !important;
+                  }
+                  
+                  .editing-mode a [data-editable] * {
+                    pointer-events: auto !important;
+                    cursor: pointer !important;
+                  }
+                  
+                  /* PULSE animation for better visibility - NEON ORANGE */
+                  @keyframes editorPulse {
+                    0%, 100% { 
+                      box-shadow: 0 0 0 3px #FF4500, 0 0 15px rgba(255, 69, 0, 0.6);
+                    }
+                    50% { 
+                      box-shadow: 0 0 0 5px #FF4500, 0 0 25px rgba(255, 69, 0, 0.8);
+                    }
                   }
                   
                   .editing-mode [data-editable].selected {
-                    box-shadow: 0 0 0 2px #ff00ff, 0 4px 20px rgba(255, 0, 255, 0.3) !important;
-                    transform: translateY(-2px) !important;
-                    z-index: 100 !important;
-                    position: relative !important;
-                  }
-                  
-                  /* Ensure nested elements inside editable areas are clickable */
-                  .editing-mode [data-editable] * {
-                    pointer-events: auto !important;
-                  }
-                  
-                  /* Ensure link elements don't interfere with editing */
-                  .editing-mode a[data-editable] {
-                    text-decoration: none !important;
-                    pointer-events: auto !important;
-                    cursor: pointer !important;
-                  }
-                  
-                  /* Force all child elements to be clickable for event bubbling */
-                  .editing-mode [data-editable] > * {
-                    pointer-events: auto !important;
-                    z-index: inherit !important;
-                  }
-                  
-                  /* Enhanced button element selection */
-                  .editing-mode [data-editable*="button"] {
-                    outline: 1px dashed rgba(0, 255, 255, 0.3) !important;
-                  }
-                  
-                  .editing-mode [data-editable*="button"]:hover {
-                    outline: 2px dashed #00ffff !important;
-                    box-shadow: 0 0 0 2px #00ffff, 0 4px 20px rgba(0, 255, 255, 0.3) !important;
-                  }
-                  
-                  /* Category panel specific styles */
-                  .editing-mode [data-editable*="category-"][data-editable*="-card"]:hover {
-                    box-shadow: 0 0 0 2px #ff8800, 0 4px 20px rgba(255, 136, 0, 0.3) !important;
-                  }
-                  
-                  .editing-mode [data-editable*="category-"][data-editable*="-icon"]:hover,
-                  .editing-mode [data-editable*="category-"][data-editable*="-title"]:hover,
-                  .editing-mode [data-editable*="category-"][data-editable*="-description"]:hover {
-                    box-shadow: 0 0 0 2px #00ff88, 0 4px 20px rgba(0, 255, 136, 0.3) !important;
-                  }
-                  
-                  @keyframes fadeIn {
-                    from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
-                    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+                    animation: editorPulse 2s infinite !important;
                   }
                 `
               }} />

@@ -7,8 +7,11 @@
 import Link from 'next/link';
 import { ClientOnly } from '@/components/ClientOnly';
 import { CategorySkeleton } from '@/components/LoadingComponents';
+import { useEditorMode } from '@/contexts/EditorModeContext';
 
 export default function CategoriesSection() {
+  const { isEditorMode } = useEditorMode();
+  
   // Define the 4 main categories for the homepage with unified neon theme
   const mainCategories = [
     {
@@ -69,91 +72,104 @@ export default function CategoriesSection() {
         {/* Responsive Category Grid - Mobile First Design */}
         <div className="container-full pb-8 xs:pb-12">
           <div className="grid-responsive-4 max-w-7xl mx-auto">
-            {mainCategories.map((category, index) => (
-              <div
-                key={category.id}
-                className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in touch-target"
-                data-editable={`category-${category.id}-card`}
-                style={{ 
-                  animationDelay: `${index * 0.1}s`,
-                  background: 'rgba(0, 0, 0, 0.4)',
-                  backdropFilter: 'blur(10px)',
-                  boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)',
-                  minHeight: '200px', // Ensure minimum touch-friendly size
-                }}
-              >
-                {/* Content Container with Responsive Padding */}
-                <div className="p-4 xs:p-6 h-full flex flex-col">
-                  {/* Glassmorphic Icon Container - Responsive Sizing */}
-                  <div 
-                    className="w-full h-20 xs:h-24 sm:h-32 bg-gradient-to-br from-neonCyan/10 to-neonPink/10 backdrop-blur-sm rounded-lg mb-3 xs:mb-4 flex items-center justify-center group-hover:from-neonCyan/20 group-hover:to-neonPink/20 transition-all duration-300 border border-neonCyan/20 cursor-pointer hover:border-neonPink/50"
-                    data-editable={`category-${category.id}-icon-container`}
-                  >
-                    <span 
-                      className="text-2xl xs:text-3xl sm:text-4xl filter drop-shadow-lg cursor-pointer"
-                      data-editable={`category-${category.id}-icon`}
+            {mainCategories.map((category, index) => {
+              const categoryCard = (
+                <div
+                  key={category.id}
+                  className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in touch-target"
+                  data-editable={`category-${category.id}-card`}
+                  style={{ 
+                    animationDelay: `${index * 0.1}s`,
+                    background: 'rgba(0, 0, 0, 0.4)',
+                    backdropFilter: 'blur(10px)',
+                    boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)',
+                    minHeight: '200px', // Ensure minimum touch-friendly size
+                  }}
+                >
+                  {/* Content Container with Responsive Padding */}
+                  <div className="p-4 xs:p-6 h-full flex flex-col">
+                    {/* Glassmorphic Icon Container - Responsive Sizing */}
+                    <div 
+                      className="w-full h-20 xs:h-24 sm:h-32 bg-gradient-to-br from-neonCyan/10 to-neonPink/10 backdrop-blur-sm rounded-lg mb-3 xs:mb-4 flex items-center justify-center group-hover:from-neonCyan/20 group-hover:to-neonPink/20 transition-all duration-300 border border-neonCyan/20 cursor-pointer hover:border-neonPink/50"
+                      data-editable={`category-${category.id}-icon-container`}
                     >
-                      {category.icon}
-                    </span>
+                      <span 
+                        className="text-2xl xs:text-3xl sm:text-4xl filter drop-shadow-lg cursor-pointer"
+                        data-editable={`category-${category.id}-icon`}
+                      >
+                        {category.icon}
+                      </span>
+                    </div>
+                    
+                    {/* Category Title - Fluid Typography */}
+                    <h3 
+                      className="text-neonCyan font-semibold text-center group-hover:text-neonPink transition-colors duration-300 text-fluid-base xs:text-fluid-lg mb-2 xs:mb-3 cursor-pointer hover:text-neonPink/80"
+                      data-editable={`category-${category.id}-title`}
+                    >
+                      {category.name}
+                    </h3>
+                    
+                    {/* Description - Responsive Text */}
+                    <p 
+                      className="text-gray-300 text-fluid-xs xs:text-fluid-sm text-center leading-relaxed flex-grow flex items-center justify-center cursor-pointer hover:text-gray-100"
+                      data-editable={`category-${category.id}-description`}
+                    >
+                      {category.description}
+                    </p>
                   </div>
                   
-                  {/* Category Title - Fluid Typography */}
-                  <h3 
-                    className="text-neonCyan font-semibold text-center group-hover:text-neonPink transition-colors duration-300 text-fluid-base xs:text-fluid-lg mb-2 xs:mb-3 cursor-pointer hover:text-neonPink/80"
-                    data-editable={`category-${category.id}-title`}
-                  >
-                    {category.name}
-                  </h3>
-                  
-                  {/* Description - Responsive Text */}
-                  <p 
-                    className="text-gray-300 text-fluid-xs xs:text-fluid-sm text-center leading-relaxed flex-grow flex items-center justify-center cursor-pointer hover:text-gray-100"
-                    data-editable={`category-${category.id}-description`}
-                  >
-                    {category.description}
-                  </p>
+                  {/* Hover Effect Overlay */}
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-neonCyan/5 to-neonPink/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                 </div>
-                
-                {/* Navigation Link - invisible overlay for navigation */}
-                <Link
-                  href="/menu"
-                  className="absolute inset-0 rounded-xl z-0"
-                  style={{ pointerEvents: 'none' }}
-                />
-                
-                {/* Hover Effect Overlay */}
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-neonCyan/5 to-neonPink/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-              </div>
-            ))}
+              );
+
+              // In editor mode, return the card without navigation
+              if (isEditorMode) {
+                return categoryCard;
+              }
+
+              // In normal mode, wrap with Link for navigation
+              return (
+                <Link key={category.id} href="/menu" className="block">
+                  {categoryCard}
+                </Link>
+              );
+            })}
           </div>
         </div>
 
         {/* Centered View Full Menu Button - Responsive */}
         <div className="text-center pb-8 xs:pb-12 animate-bounce-in" style={{ animationDelay: '0.5s' }}>
-          <div
-            className="neon-button text-fluid-base xs:text-fluid-lg px-6 xs:px-8 py-3 xs:py-4 inline-flex items-center gap-2 touch-target relative"
-            data-editable="categories-button-container"
-          >
-            <span 
-              className="cursor-pointer"
-              data-editable="categories-button-icon"
+          {isEditorMode ? (
+            // Editor mode: Button without navigation
+            <button
+              className="neon-button text-fluid-base xs:text-fluid-lg px-6 xs:px-8 py-3 xs:py-4 inline-flex items-center gap-2 touch-target"
+              data-editable="categories-button-container"
+              type="button"
             >
-              🍽️
-            </span>
-            <span 
-              className="cursor-pointer"
-              data-editable="categories-button-text"
-            >
-              View Full Menu
-            </span>
-            
-            {/* Navigation Link - invisible overlay for navigation */}
+              <span 
+                className="cursor-pointer"
+                data-editable="categories-button-icon"
+              >
+                🍽️
+              </span>
+              <span 
+                className="cursor-pointer"
+                data-editable="categories-button-text"
+              >
+                View Full Menu
+              </span>
+            </button>
+          ) : (
+            // Normal mode: Button with navigation
             <Link
               href="/menu"
-              className="absolute inset-0 rounded-lg z-0"
-              style={{ pointerEvents: 'none' }}
-            />
-          </div>
+              className="neon-button text-fluid-base xs:text-fluid-lg px-6 xs:px-8 py-3 xs:py-4 inline-flex items-center gap-2 touch-target"
+            >
+              <span>🍽️</span>
+              <span>View Full Menu</span>
+            </Link>
+          )}
         </div>
       </section>
     </ClientOnly>
