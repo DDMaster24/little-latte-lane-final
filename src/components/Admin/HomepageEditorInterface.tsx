@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { usePageEditor } from '@/hooks/usePageEditor';
 import { usePageEditorActions } from '@/hooks/usePageEditorActions';
+import EditorLayout from '@/components/Admin/EditorLayout';
 import { 
   ArrowLeft, 
   Save, 
@@ -16,7 +17,8 @@ import {
   Type,
   Palette,
   AlignCenter,
-  CheckCircle
+  CheckCircle,
+  Settings
 } from 'lucide-react';
 
 // Import the homepage component
@@ -307,27 +309,37 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
       event.preventDefault();
       event.stopPropagation();
       
-      // Priority selection logic:
-      // 1. Prefer the deepest (most specific) element
-      // 2. For categories, prefer title/description/icon over the card container
+      // Enhanced priority selection logic for better UX
       let selectedEditableInfo = editableElements[0]; // Start with the deepest
       
-      // Apply preference rules for better UX
+      // Priority rules:
+      // 1. Prefer text/icon content over containers (highest priority)
+      // 2. Prefer button components over generic containers
+      // 3. Prefer the deepest element as fallback
+      
       for (const editableInfo of editableElements) {
         const { id, depth } = editableInfo;
         
-        // Prefer specific content elements over containers
-        if (id.includes('title') || id.includes('description') || id.includes('icon') || id.includes('button-text')) {
+        // HIGHEST PRIORITY: Individual text, icon, or specific content elements
+        if (id.includes('text') || id.includes('icon') || id.includes('title') || id.includes('description') || id.includes('heading')) {
           selectedEditableInfo = editableInfo;
           console.log('Prioritizing content element:', id);
           break;
         }
         
-        // If clicking directly on button containers, prefer them
-        if (id.includes('button') && depth === 0) {
+        // HIGH PRIORITY: Button elements (including button-text, button-icon)
+        if (id.includes('button') && !id.includes('container')) {
           selectedEditableInfo = editableInfo;
-          console.log('Prioritizing direct button click:', id);
-          break;
+          console.log('Prioritizing button element:', id);
+          // Don't break here, still check for higher priority content elements
+        }
+        
+        // MEDIUM PRIORITY: Direct clicks on specific elements at depth 0
+        if (depth === 0 && (id.includes('badge') || id.includes('container'))) {
+          if (!selectedEditableInfo.id.includes('text') && !selectedEditableInfo.id.includes('icon') && !selectedEditableInfo.id.includes('button')) {
+            selectedEditableInfo = editableInfo;
+            console.log('Prioritizing direct click element:', id);
+          }
         }
       }
       
@@ -911,82 +923,120 @@ export default function HomepageEditorInterface({}: HomepageEditorInterfaceProps
 
       {/* Main Preview Area */}
       <div className="flex-1 overflow-auto">
-        {/* Header */}
-        <div className="bg-gray-900 border-b border-gray-700 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-white">Homepage Preview</h1>
-            </div>
-            {selectedElement && (
-              <Badge variant="outline" className="text-neonCyan border-neonCyan">
-                Selected: {selectedElement}
-              </Badge>
-            )}
-          </div>
-        </div>
-
         {/* Homepage Preview */}
-        <div 
-          className="bg-darkBg editing-mode"
-          onClick={handleElementClick}
-          style={{ pointerEvents: 'auto' }}
-        >
-          {/* Global CSS Styles for Edit Mode */}
-          <style dangerouslySetInnerHTML={{
-            __html: `
-              .editing-mode [data-editable] {
-                position: relative;
-                transition: all 0.3s ease;
-                border-radius: 8px;
-                cursor: pointer !important;
-                pointer-events: auto !important;
-                z-index: 1 !important;
-              }
+        <EditorLayout>
+          {/* Editor Navigation Bar - Fixed at top */}
+          <div className="fixed top-0 left-80 right-0 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700 p-4 z-50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => router.push('/admin')}
+                  className="text-gray-400 hover:text-white border border-gray-600 hover:border-gray-500"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Back to Admin
+                </Button>
+                <div>
+                  <h1 className="text-lg font-semibold text-white">Homepage Editor</h1>
+                  <p className="text-xs text-gray-400">Click any element to edit it</p>
+                </div>
+              </div>
+              {selectedElement && (
+                <Badge variant="outline" className="text-neonCyan border-neonCyan">
+                  Selected: {selectedElement}
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          {/* Add top padding to account for fixed navigation */}
+          <div className="pt-20">
+            <div 
+              className="bg-darkBg editing-mode"
+              onClick={handleElementClick}
+              style={{ pointerEvents: 'auto' }}
+            >
+              {/* Global CSS Styles for Edit Mode */}
+              <style dangerouslySetInnerHTML={{
+                __html: `
+                  .editing-mode [data-editable] {
+                    position: relative;
+                    transition: all 0.3s ease;
+                    border-radius: 8px;
+                    cursor: pointer !important;
+                    pointer-events: auto !important;
+                    z-index: 1 !important;
+                  }
+                  
+                  .editing-mode [data-editable]:hover {
+                    box-shadow: 0 0 0 2px #00ffff, 0 4px 20px rgba(0, 255, 255, 0.3) !important;
+                    transform: translateY(-2px) !important;
+                    cursor: pointer !important;
+                    pointer-events: auto !important;
+                    z-index: 100 !important;
+                    position: relative !important;
+                  }
+                  
+                  .editing-mode [data-editable].selected {
+                    box-shadow: 0 0 0 2px #ff00ff, 0 4px 20px rgba(255, 0, 255, 0.3) !important;
+                    transform: translateY(-2px) !important;
+                    z-index: 100 !important;
+                    position: relative !important;
+                  }
+                  
+                  /* Ensure nested elements inside editable areas are clickable */
+                  .editing-mode [data-editable] * {
+                    pointer-events: auto !important;
+                  }
+                  
+                  /* Ensure link elements don't interfere with editing */
+                  .editing-mode a[data-editable] {
+                    text-decoration: none !important;
+                    pointer-events: auto !important;
+                    cursor: pointer !important;
+                  }
+                  
+                  /* Force all child elements to be clickable for event bubbling */
+                  .editing-mode [data-editable] > * {
+                    pointer-events: auto !important;
+                    z-index: inherit !important;
+                  }
+                  
+                  /* Enhanced button element selection */
+                  .editing-mode [data-editable*="button"] {
+                    outline: 1px dashed rgba(0, 255, 255, 0.3) !important;
+                  }
+                  
+                  .editing-mode [data-editable*="button"]:hover {
+                    outline: 2px dashed #00ffff !important;
+                    box-shadow: 0 0 0 2px #00ffff, 0 4px 20px rgba(0, 255, 255, 0.3) !important;
+                  }
+                  
+                  /* Category panel specific styles */
+                  .editing-mode [data-editable*="category-"][data-editable*="-card"]:hover {
+                    box-shadow: 0 0 0 2px #ff8800, 0 4px 20px rgba(255, 136, 0, 0.3) !important;
+                  }
+                  
+                  .editing-mode [data-editable*="category-"][data-editable*="-icon"]:hover,
+                  .editing-mode [data-editable*="category-"][data-editable*="-title"]:hover,
+                  .editing-mode [data-editable*="category-"][data-editable*="-description"]:hover {
+                    box-shadow: 0 0 0 2px #00ff88, 0 4px 20px rgba(0, 255, 136, 0.3) !important;
+                  }
+                  
+                  @keyframes fadeIn {
+                    from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+                    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+                  }
+                `
+              }} />
               
-              .editing-mode [data-editable]:hover {
-                box-shadow: 0 0 0 2px #00ffff, 0 4px 20px rgba(0, 255, 255, 0.3) !important;
-                transform: translateY(-2px) !important;
-                cursor: pointer !important;
-                pointer-events: auto !important;
-                z-index: 100 !important;
-                position: relative !important;
-              }
-              
-              .editing-mode [data-editable].selected {
-                box-shadow: 0 0 0 2px #ff00ff, 0 4px 20px rgba(255, 0, 255, 0.3) !important;
-                transform: translateY(-2px) !important;
-                z-index: 100 !important;
-                position: relative !important;
-              }
-              
-              /* Ensure nested elements inside editable areas are clickable */
-              .editing-mode [data-editable] * {
-                pointer-events: auto !important;
-              }
-              
-              /* Ensure link elements don't interfere with editing */
-              .editing-mode a[data-editable] {
-                text-decoration: none !important;
-                pointer-events: auto !important;
-                cursor: pointer !important;
-              }
-              
-              /* Force all child elements to be clickable for event bubbling */
-              .editing-mode [data-editable] > * {
-                pointer-events: auto !important;
-                z-index: inherit !important;
-              }
-              
-              @keyframes fadeIn {
-                from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
-                to { opacity: 1; transform: translateX(-50%) translateY(0); }
-              }
-            `
-          }} />
-          
-          {/* Render the actual homepage */}
-          <HomePage />
-        </div>
+              {/* Render the actual homepage */}
+              <HomePage />
+            </div>
+          </div>
+        </EditorLayout>
       </div>
     </div>
   );
