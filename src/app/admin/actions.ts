@@ -21,7 +21,7 @@ export async function updateOrderStatus(
   try {
     const success = await updateOrderStatusWithNotifications(
       id,
-      status as any,
+      status as 'pending' | 'confirmed' | 'preparing' | 'ready' | 'completed' | 'cancelled',
       additionalData
     );
 

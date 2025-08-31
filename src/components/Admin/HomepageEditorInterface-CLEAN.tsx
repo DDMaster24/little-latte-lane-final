@@ -9,7 +9,7 @@ import { ArrowLeft, Save, Eye, MousePointer } from 'lucide-react';
 import HomePage from '@/app/page';
 
 export default function HomepageEditorInterface() {
-  console.log('🟢 HOMEPAGE EDITOR LOADED');
+  console.log('🟢 CLEAN HOMEPAGE EDITOR LOADED');
   
   const router = useRouter();
   const { toast } = useToast();

@@ -9,12 +9,12 @@ interface ActivityItem {
   type: 'order' | 'payment' | 'user';
 }
 
-interface PopularItem {
+interface _PopularItem {
   name: string;
   orders: number;
 }
 
-interface DashboardStats {
+interface _DashboardStats {
   totalRevenue: number;
   totalOrders: number;
   activeUsers: number;

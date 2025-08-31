@@ -6,7 +6,7 @@ import { getSupabaseServer } from '@/lib/supabase-server';
  * Automatically check and update orders that should be completed
  * This is a backup system when webhooks don't work
  */
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     console.log('🔄 Auto order status monitor triggered');
     
