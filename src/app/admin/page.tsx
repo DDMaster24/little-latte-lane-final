@@ -71,30 +71,102 @@ export default function AdminPage() {
         return (
           <div className="space-y-6">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-white mb-2">Page Editor</h2>
-              <p className="text-gray-400">Edit your website pages and content</p>
+              <h2 className="text-2xl font-bold text-white mb-2">Universal Page Editor</h2>
+              <p className="text-gray-400">Edit any page on your website with our advanced visual editor</p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Homepage Card */}
               <Card className="bg-darkBg/50 border-gray-700 hover:border-neonCyan/50 transition-all duration-200">
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-4 mb-4">
                       <div className="p-3 bg-neonCyan/10 rounded-lg">
                         <Home className="h-6 w-6 text-neonCyan" />
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold text-white">Homepage</h3>
-                        <p className="text-gray-400 text-sm">Edit the main landing page content and sections</p>
+                        <p className="text-gray-400 text-sm">Edit the main landing page content</p>
                       </div>
                     </div>
                     <Button
                       onClick={() => router.push('/admin/page-editor/homepage')}
-                      className="bg-neonCyan hover:bg-neonCyan/80 text-darkBg font-semibold"
+                      className="bg-neonCyan hover:bg-neonCyan/80 text-darkBg font-semibold w-full"
                     >
                       <Edit className="h-4 w-4 mr-2" />
-                      Edit Now
+                      Edit Homepage
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Menu Page Card */}
+              <Card className="bg-darkBg/50 border-gray-700 hover:border-orange-500/50 transition-all duration-200">
+                <CardContent className="p-6">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="p-3 bg-orange-500/10 rounded-lg">
+                        <Menu className="h-6 w-6 text-orange-500" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">Menu Page</h3>
+                        <p className="text-gray-400 text-sm">Edit menu categories and descriptions</p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => router.push('/admin/page-editor/menu')}
+                      className="bg-orange-500 hover:bg-orange-500/80 text-white font-semibold w-full"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Menu
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Bookings Page Card */}
+              <Card className="bg-darkBg/50 border-gray-700 hover:border-blue-500/50 transition-all duration-200">
+                <CardContent className="p-6">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="p-3 bg-blue-500/10 rounded-lg">
+                        <Calendar className="h-6 w-6 text-blue-500" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">Bookings Page</h3>
+                        <p className="text-gray-400 text-sm">Edit booking forms and information</p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => router.push('/admin/page-editor/bookings')}
+                      className="bg-blue-500 hover:bg-blue-500/80 text-white font-semibold w-full"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Bookings
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Account Page Card */}
+              <Card className="bg-darkBg/50 border-gray-700 hover:border-green-500/50 transition-all duration-200">
+                <CardContent className="p-6">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="p-3 bg-green-500/10 rounded-lg">
+                        <Users className="h-6 w-6 text-green-500" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">Account Page</h3>
+                        <p className="text-gray-400 text-sm">Edit user account interface</p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => router.push('/admin/page-editor/account')}
+                      className="bg-green-500 hover:bg-green-500/80 text-white font-semibold w-full"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Account
                     </Button>
                   </div>
                 </CardContent>
@@ -103,26 +175,72 @@ export default function AdminPage() {
               {/* Carousel Editor Card */}
               <Card className="bg-darkBg/50 border-gray-700 hover:border-neonPink/50 transition-all duration-200">
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-4 mb-4">
                       <div className="p-3 bg-neonPink/10 rounded-lg">
                         <Activity className="h-6 w-6 text-neonPink" />
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold text-white">Carousel Editor</h3>
-                        <p className="text-gray-400 text-sm">Manage homepage carousel panels and content</p>
+                        <p className="text-gray-400 text-sm">Manage homepage carousel panels</p>
                       </div>
                     </div>
                     <Button
                       onClick={() => router.push('/admin/carousel-editor')}
-                      className="bg-neonPink hover:bg-neonPink/80 text-darkBg font-semibold"
+                      className="bg-neonPink hover:bg-neonPink/80 text-darkBg font-semibold w-full"
                     >
                       <Edit className="h-4 w-4 mr-2" />
-                      Edit Panels
+                      Edit Carousel
                     </Button>
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Coming Soon - Header/Footer */}
+              <Card className="bg-darkBg/50 border-gray-700 hover:border-purple-500/50 transition-all duration-200">
+                <CardContent className="p-6">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="p-3 bg-purple-500/10 rounded-lg">
+                        <Palette className="h-6 w-6 text-purple-500" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">Header & Footer</h3>
+                        <p className="text-gray-400 text-sm">Edit site-wide elements</p>
+                      </div>
+                    </div>
+                    <Button
+                      disabled
+                      className="bg-gray-600 text-gray-400 font-semibold w-full cursor-not-allowed"
+                    >
+                      Coming Soon
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Feature Highlights */}
+            <div className="mt-8 bg-gradient-to-r from-neonCyan/5 to-neonPink/5 rounded-xl p-6 border border-gray-700/50">
+              <h3 className="text-lg font-semibold text-white mb-4">✨ Universal Editor Features</h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-neonCyan rounded-full"></div>
+                  <span className="text-sm text-gray-300">Text & Content Editing</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-neonPink rounded-full"></div>
+                  <span className="text-sm text-gray-300">Advanced Color Tools</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <span className="text-sm text-gray-300">Text Gradients</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-sm text-gray-300">Image Upload & Management</span>
+                </div>
+              </div>
             </div>
           </div>
         );

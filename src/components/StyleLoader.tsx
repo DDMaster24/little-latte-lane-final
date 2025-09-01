@@ -6,9 +6,10 @@ import { useAuth } from '@/components/AuthProvider';
 
 interface StyleLoaderProps {
   pageScope: string;
+  className?: string; // Optional class for targeting specific elements
 }
 
-export default function StyleLoader({ pageScope }: StyleLoaderProps) {
+export default function StyleLoader({ pageScope, className }: StyleLoaderProps) {
   const { user } = useAuth();
   const { pageSettings, isLoading } = usePageEditor(pageScope, user?.id);
 
@@ -21,9 +22,14 @@ export default function StyleLoader({ pageScope }: StyleLoaderProps) {
     pageSettings.forEach(setting => {
       const elementId = setting.setting_key;
       
+      // Build selector - use className scope if provided
+      const selector = className 
+        ? `${className} [data-editable="${elementId}"]`
+        : `[data-editable="${elementId}"]`;
+      
       // Handle text content
       if (!elementId.includes('_color') && !elementId.includes('_background') && !elementId.includes('_text_gradient') && !elementId.includes('_font_size')) {
-        const element = document.querySelector(`[data-editable="${elementId}"]`);
+        const element = document.querySelector(selector);
         if (element && setting.setting_value) {
           element.textContent = setting.setting_value;
           console.log('📝 Applied text:', elementId, setting.setting_value);
@@ -33,7 +39,10 @@ export default function StyleLoader({ pageScope }: StyleLoaderProps) {
       // Handle color styles
       if (elementId.includes('_color')) {
         const baseElementId = elementId.replace('_color', '');
-        const element = document.querySelector(`[data-editable="${baseElementId}"]`) as HTMLElement;
+        const selector = className 
+          ? `${className} [data-editable="${baseElementId}"]`
+          : `[data-editable="${baseElementId}"]`;
+        const element = document.querySelector(selector) as HTMLElement;
         if (element && setting.setting_value) {
           element.style.color = setting.setting_value;
           console.log('🎨 Applied color:', baseElementId, setting.setting_value);
@@ -43,7 +52,10 @@ export default function StyleLoader({ pageScope }: StyleLoaderProps) {
       // Handle text gradient styles
       if (elementId.includes('_text_gradient')) {
         const baseElementId = elementId.replace('_text_gradient', '');
-        const element = document.querySelector(`[data-editable="${baseElementId}"]`) as HTMLElement;
+        const selector = className 
+          ? `${className} [data-editable="${baseElementId}"]`
+          : `[data-editable="${baseElementId}"]`;
+        const element = document.querySelector(selector) as HTMLElement;
         if (element && setting.setting_value) {
           if (setting.setting_value === 'none' || setting.setting_value === 'transparent') {
             // Reset to normal text
@@ -67,7 +79,10 @@ export default function StyleLoader({ pageScope }: StyleLoaderProps) {
       // Handle font size styles
       if (elementId.includes('_font_size')) {
         const baseElementId = elementId.replace('_font_size', '');
-        const element = document.querySelector(`[data-editable="${baseElementId}"]`) as HTMLElement;
+        const selector = className 
+          ? `${className} [data-editable="${baseElementId}"]`
+          : `[data-editable="${baseElementId}"]`;
+        const element = document.querySelector(selector) as HTMLElement;
         if (element && setting.setting_value) {
           element.style.fontSize = `${setting.setting_value}px`;
           console.log('📏 Applied font size:', baseElementId, setting.setting_value);
@@ -77,7 +92,10 @@ export default function StyleLoader({ pageScope }: StyleLoaderProps) {
       // Handle background styles
       if (elementId.includes('_background')) {
         const baseElementId = elementId.replace('_background', '');
-        const element = document.querySelector(`[data-editable="${baseElementId}"]`) as HTMLElement;
+        const selector = className 
+          ? `${className} [data-editable="${baseElementId}"]`
+          : `[data-editable="${baseElementId}"]`;
+        const element = document.querySelector(selector) as HTMLElement;
         if (element && setting.setting_value) {
           if (setting.setting_value.includes('gradient')) {
             // Handle gradients
