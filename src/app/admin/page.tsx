@@ -196,7 +196,7 @@ export default function AdminPage() {
                 </CardContent>
               </Card>
 
-              {/* Coming Soon - Header/Footer */}
+              {/* Header Editor */}
               <Card className="bg-darkBg/50 border-gray-700 hover:border-purple-500/50 transition-all duration-200">
                 <CardContent className="p-6">
                   <div className="flex flex-col">
@@ -205,15 +205,40 @@ export default function AdminPage() {
                         <Palette className="h-6 w-6 text-purple-500" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-white">Header & Footer</h3>
-                        <p className="text-gray-400 text-sm">Edit site-wide elements</p>
+                        <h3 className="text-lg font-semibold text-white">Header Editor</h3>
+                        <p className="text-gray-400 text-sm">Edit site navigation, logo & branding</p>
                       </div>
                     </div>
                     <Button
-                      disabled
-                      className="bg-gray-600 text-gray-400 font-semibold w-full cursor-not-allowed"
+                      onClick={() => router.push('/admin/page-editor/header')}
+                      className="bg-purple-500 hover:bg-purple-500/80 text-white font-semibold w-full"
                     >
-                      Coming Soon
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Header
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Footer Editor */}
+              <Card className="bg-darkBg/50 border-gray-700 hover:border-teal-500/50 transition-all duration-200">
+                <CardContent className="p-6">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="p-3 bg-teal-500/10 rounded-lg">
+                        <Palette className="h-6 w-6 text-teal-500" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">Footer Editor</h3>
+                        <p className="text-gray-400 text-sm">Edit contact info & social links</p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => router.push('/admin/page-editor/footer')}
+                      className="bg-teal-500 hover:bg-teal-500/80 text-white font-semibold w-full"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Footer
                     </Button>
                   </div>
                 </CardContent>
