@@ -27,7 +27,7 @@ import GradientPicker from './GradientPicker';
 import ImageUploader from './ImageUploader';
 
 type EditorTool = 'select' | 'text' | 'color' | 'image';
-type ColorSubTool = 'text-color' | 'background-color' | 'gradient';
+type ColorSubTool = 'text-color' | 'background-color' | 'gradient' | 'text-gradient';
 type TextSubTool = 'content' | 'font-size' | 'font-style';
 
 export default function HomepageEditorInterface() {
@@ -283,6 +283,60 @@ export default function HomepageEditorInterface() {
           toast({
             title: "❌ Gradient Save Failed",
             description: "Gradient changed locally but failed to save",
+            variant: "destructive"
+          });
+        } finally {
+          setIsSaving(false);
+        }
+      }
+    }
+  };
+
+  // Handle text gradient changes (for gradient text effect)
+  const handleTextGradientChange = async (gradient: string) => {
+    if (selectedElement) {
+      const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
+      if (element) {
+        setIsSaving(true);
+        
+        // Update DOM immediately with text gradient effect
+        if (gradient === 'transparent' || gradient === 'none') {
+          // Reset to normal text
+          element.style.background = 'unset';
+          element.style.webkitBackgroundClip = 'unset';
+          element.style.backgroundClip = 'unset';
+          element.style.webkitTextFillColor = 'unset';
+          element.style.color = ''; // Reset to default text color
+        } else {
+          // Apply gradient to text
+          element.style.background = gradient;
+          element.style.webkitBackgroundClip = 'text';
+          element.style.backgroundClip = 'text';
+          element.style.webkitTextFillColor = 'transparent';
+          element.style.color = 'transparent'; // Fallback for non-webkit browsers
+        }
+        
+        // Save to database
+        try {
+          await savePageSetting({
+            setting_key: `${selectedElement}_text_gradient`,
+            setting_value: gradient,
+            category: 'page_editor',
+            page_scope: 'homepage',
+            created_by: user?.id || ''
+          });
+          setLastSaveTime(new Date());
+          
+          toast({
+            title: "✅ Text Gradient Saved Successfully!",
+            description: `Text gradient applied and saved to database`,
+            duration: 2000,
+          });
+        } catch (error) {
+          console.error('Error saving text gradient:', error);
+          toast({
+            title: "❌ Text Gradient Save Failed",
+            description: "Text gradient changed locally but failed to save",
             variant: "destructive"
           });
         } finally {
@@ -706,6 +760,14 @@ export default function HomepageEditorInterface() {
                 </Button>
                 <Button
                   size="sm"
+                  variant={selectedColorSubTool === 'text-gradient' ? 'default' : 'outline'}
+                  onClick={() => setSelectedColorSubTool('text-gradient')}
+                  className={selectedColorSubTool === 'text-gradient' ? 'bg-neonPink text-black' : 'border-gray-500 text-gray-300'}
+                >
+                  ✨ Text Gradient
+                </Button>
+                <Button
+                  size="sm"
                   variant={selectedColorSubTool === 'background-color' ? 'default' : 'outline'}
                   onClick={() => setSelectedColorSubTool('background-color')}
                   className={selectedColorSubTool === 'background-color' ? 'bg-neonPink text-black' : 'border-gray-500 text-gray-300'}
@@ -743,6 +805,47 @@ export default function HomepageEditorInterface() {
                   >
                     <Palette className="w-4 h-4 mr-2" />
                     Advanced
+                  </Button>
+                </div>
+              )}
+
+              {/* Text Gradient Controls */}
+              {selectedColorSubTool === 'text-gradient' && (
+                <div className="flex items-center space-x-4">
+                  <div className="text-sm text-gray-300 font-medium">Text Gradient Presets:</div>
+                  <div className="flex space-x-2">
+                    {[
+                      'linear-gradient(45deg, #FF6B35, #F7931E)',
+                      'linear-gradient(45deg, #06FFA5, #3BCEAC)',
+                      'linear-gradient(45deg, #8B5CF6, #EC4899)',
+                      'linear-gradient(45deg, #3B82F6, #06B6D4)',
+                      'linear-gradient(90deg, #FFD23F, #FF6B35)',
+                      'linear-gradient(135deg, #667eea, #764ba2)',
+                      'linear-gradient(90deg, #f093fb, #f5576c)'
+                    ].map((gradient, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleTextGradientChange(gradient)}
+                        className="w-12 h-8 rounded border-2 border-gray-500 hover:scale-110 transition-transform"
+                        style={{ background: gradient }}
+                        title="Apply this gradient to text"
+                      />
+                    ))}
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => handleTextGradientChange('none')}
+                    className="bg-gray-600 text-white hover:bg-gray-500"
+                  >
+                    Clear
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowGradientPicker(true)}
+                    className="bg-neonPink text-black hover:bg-neonPink/80"
+                  >
+                    <Pipette className="w-4 h-4 mr-2" />
+                    Custom
                   </Button>
                 </div>
               )}
@@ -908,7 +1011,11 @@ export default function HomepageEditorInterface() {
             <GradientPicker
               value=""
               onChange={(gradient) => {
-                handleGradientChange(gradient);
+                if (selectedColorSubTool === 'text-gradient') {
+                  handleTextGradientChange(gradient);
+                } else if (selectedColorSubTool === 'gradient') {
+                  handleGradientChange(gradient);
+                }
                 setShowGradientPicker(false);
               }}
               onClose={() => setShowGradientPicker(false)}
