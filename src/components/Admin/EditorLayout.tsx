@@ -8,153 +8,97 @@ interface EditorLayoutProps {
 }
 
 export default function EditorLayout({ children }: EditorLayoutProps) {
-  // Add body class when editor is active
+  // Clean setup - add necessary body classes
   useEffect(() => {
-    // Add body class for global editor styles
-    document.body.classList.add('editor-active');
-    document.documentElement.classList.add('editor-active');
+    document.body.classList.add('editor-active', 'editor-mode');
     
     return () => {
-      // Clean up classes when editor unmounts
-      document.body.classList.remove('editor-active');
-      document.documentElement.classList.remove('editor-active');
+      document.body.classList.remove('editor-active', 'editor-mode');
     };
   }, []);
 
   return (
     <EditorModeProvider isEditorMode={true}>
-      <div className="min-h-screen bg-darkBg editor-mode">
-        {/* Editor-specific global styles */}
+      <div className="min-h-screen">
+        {/* MINIMAL editor styles with targeted white background fixes */}
         <style dangerouslySetInnerHTML={{
           __html: `
-            /* GLOBAL EDITOR MODE - Hide navigation when editor is active */
+            /* Hide navigation in editor mode only */
             body.editor-active header,
             body.editor-active footer,
-            html.editor-active header,
-            html.editor-active footer {
-              display: none !important;
-              visibility: hidden !important;
-              opacity: 0 !important;
-              height: 0 !important;
-              overflow: hidden !important;
-            }
-            
-            /* Ensure main content fills full viewport in editor mode */
-            body.editor-active {
-              overflow: hidden !important;
-            }
-            
-            body.editor-active main {
-              padding-top: 0 !important;
-              margin-top: 0 !important;
-              overflow-y: auto !important;
-              height: 100vh !important;
-            }
-            
-            /* Hide all navigation and headers in editor mode */
-            .editor-mode header,
-            .editor-mode nav,
-            .editor-mode footer,
-            .editor-mode [data-component="header"],
-            .editor-mode [data-component="navigation"],
-            .editor-mode [data-component="footer"] {
+            body.editor-active nav[role="navigation"] {
               display: none !important;
             }
             
-            /* Target any navigation elements */
-            .editor-mode .navigation,
-            .editor-mode .header,
-            .editor-mode .footer,
-            .editor-mode [role="navigation"],
-            .editor-mode [role="banner"],
-            .editor-mode [role="contentinfo"] {
-              display: none !important;
+            /* TARGET ONLY BODY/HTML - not content containers */
+            body.editor-active,
+            body.editor-active html {
+              background-color: #111827 !important;
             }
-
-            /* Disable navigation links only, not all links */
-            .editor-mode nav a,
-            .editor-mode header a,
-            .editor-mode footer a {
-              pointer-events: none !important;
-              cursor: default !important;
+            
+            /* Only fix obvious white backgrounds, not containers */
+            body.editor-active [class*="bg-white"]:not(section):not([data-editable]) {
+              background-color: #111827 !important;
             }
-
-            /* FORCE enable editable elements - HIGHEST PRIORITY */
+            
+            /* Clean element selection styling */
             .editor-mode [data-editable] {
-              pointer-events: auto !important;
-              cursor: pointer !important;
-              position: relative !important;
-              z-index: 10 !important;
+              cursor: pointer;
+              position: relative;
+              transition: all 0.2s ease;
             }
-
-            /* AGGRESSIVE: FORCE enable editable children - OVERRIDE ALL CONFLICTS */
-            .editor-mode [data-editable] *,
-            .editor-mode [data-editable] a,
-            .editor-mode [data-editable] button,
-            .editor-mode [data-editable] div,
-            .editor-mode [data-editable] span,
-            .editor-mode [data-editable] p,
-            .editor-mode [data-editable] h1,
-            .editor-mode [data-editable] h2,
-            .editor-mode [data-editable] h3,
-            .editor-mode [data-editable] img,
-            .editor-mode [data-editable] svg {
-              pointer-events: auto !important;
-              cursor: pointer !important;
-            }
-
-            /* DEBUGGING: Add visible outline to all editable elements */
-            .editor-mode [data-editable] {
-              outline: 1px dashed rgba(255, 69, 0, 0.3) !important;
-              outline-offset: 1px !important;
-            }
-
-            /* DEBUGGING: Add background to clickable area */
+            
+            /* NEON ORANGE HOVER EFFECT */
             .editor-mode [data-editable]:hover {
-              background: rgba(255, 69, 0, 0.1) !important;
-            }
-
-            /* Enhanced hover effects - NEON ORANGE theme */
-            .editor-mode [data-editable]:hover {
-              outline: 2px solid #FF4500 !important;
+              outline: 3px solid #FF4500 !important;
               outline-offset: 2px !important;
-              box-shadow: 0 0 10px rgba(255, 69, 0, 0.5) !important;
-              z-index: 100 !important;
+              box-shadow: 0 0 15px rgba(255, 69, 0, 0.6), 0 0 30px rgba(255, 69, 0, 0.3) !important;
+              transition: all 0.2s ease !important;
             }
-
-            /* Selected state - NEON ORANGE */
+            
+            /* NEON RED SELECTED STATE WITH PULSING ANIMATION */
             .editor-mode [data-editable].selected {
-              outline: 2px solid #FF4500 !important;
+              outline: 3px solid #FF0040 !important;
               outline-offset: 2px !important;
-              box-shadow: 0 0 15px rgba(255, 69, 0, 0.8) !important;
+              box-shadow: 0 0 20px rgba(255, 0, 64, 0.8), 0 0 40px rgba(255, 0, 64, 0.4) !important;
+              background: rgba(255, 0, 64, 0.1) !important;
               z-index: 100 !important;
+              animation: neonSelectedPulse 2s infinite ease-in-out !important;
             }
-
-            /* Specific styles for different element types - NEON ORANGE variations */
-            .editor-mode [data-editable*="icon"]:hover {
-              outline: 2px solid #FF4500 !important;
-              background: rgba(255, 69, 0, 0.1) !important;
+            
+            /* Ensure selected state overrides hover with enhanced glow */
+            .editor-mode [data-editable].selected:hover {
+              outline: 3px solid #FF0040 !important;
+              outline-offset: 2px !important;
+              box-shadow: 0 0 30px rgba(255, 0, 64, 1.0), 0 0 60px rgba(255, 0, 64, 0.6) !important;
+              animation: neonSelectedPulse 1.5s infinite ease-in-out !important;
             }
-
-            .editor-mode [data-editable*="title"]:hover,
-            .editor-mode [data-editable*="text"]:hover {
-              outline: 2px solid #FF4500 !important;
-              background: rgba(255, 69, 0, 0.1) !important;
+            
+            /* Pulsing animation for selected elements */
+            @keyframes neonSelectedPulse {
+              0%, 100% {
+                box-shadow: 0 0 20px rgba(255, 0, 64, 0.8), 0 0 40px rgba(255, 0, 64, 0.4);
+              }
+              50% {
+                box-shadow: 0 0 25px rgba(255, 0, 64, 0.9), 0 0 50px rgba(255, 0, 64, 0.5);
+              }
             }
-
-            .editor-mode [data-editable*="button"]:hover {
-              outline: 2px solid #FF4500 !important;
-              background: rgba(255, 69, 0, 0.1) !important;
+            
+            /* Enhanced visibility for nested elements */
+            .editor-mode [data-editable] [data-editable]:hover {
+              outline: 3px solid #FF4500 !important;
+              outline-offset: 2px !important;
+              z-index: 50 !important;
             }
-
-            .editor-mode [data-editable*="description"]:hover {
-              outline: 2px solid #FF4500 !important;
-              background: rgba(255, 69, 0, 0.1) !important;
+            
+            .editor-mode [data-editable] [data-editable].selected {
+              outline: 3px solid #FF0040 !important;
+              outline-offset: 2px !important;
+              z-index: 101 !important;
             }
           `
         }} />
         
-        {/* Render page content without navigation */}
         {children}
       </div>
     </EditorModeProvider>

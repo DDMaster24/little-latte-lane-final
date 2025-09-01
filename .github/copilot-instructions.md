@@ -66,6 +66,7 @@ Use centralized query classes in `src/lib/queries/`:
 2. **VERIFY DOCKER DATABASE ACCESS** - Test connection works properly  
 3. **USE DIRECT SQL EXECUTION** - Provide SQL scripts for manual execution if needed
 4. **NEVER ATTEMPT MIGRATIONS FIRST** - They consistently fail and waste time
+5. **NO QUICK FIXES OR WORKAROUNDS** - If Docker doesn't work, fix Docker or ask user to install it
 
 #### **Mandatory Docker Workflow:**
 ```bash
@@ -79,6 +80,12 @@ npm run docker:logs
 # Step 4: Only attempt other approaches if Docker fails
 ```
 
+#### **STRICT NO-SHORTCUT RULE:**
+- **NEVER attempt alternative methods** if Docker fails
+- **NEVER use quick fixes** like direct Supabase CLI calls
+- **IMMEDIATELY stop and fix Docker** or ask user to install Docker Desktop
+- **NO EXCEPTIONS** - This rule has been violated repeatedly causing wasted time
+
 #### **SQL Script Fallback:**
 If Docker approach fails, **IMMEDIATELY** provide SQL scripts for manual execution in Supabase SQL Editor.
 
@@ -87,6 +94,8 @@ If Docker approach fails, **IMMEDIATELY** provide SQL scripts for manual executi
 2. Try different approach → fails  
 3. Try another approach → fails
 4. User stops and asks to use Docker → works
+
+### **🚨 USER HAS EMPHASIZED: NO QUICK FIXES - FIX DOCKER PROPERLY OR REQUEST INSTALLATION**
 
 ## MANDATORY: Live Database Protocol - NO STATIC FILES!
 
