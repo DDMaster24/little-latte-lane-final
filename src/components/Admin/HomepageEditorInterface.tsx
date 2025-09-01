@@ -26,7 +26,9 @@ import AdvancedColorPicker from './AdvancedColorPicker';
 import GradientPicker from './GradientPicker';
 import ImageUploader from './ImageUploader';
 
-type EditorTool = 'select' | 'text' | 'color' | 'background' | 'gradient' | 'image';
+type EditorTool = 'select' | 'text' | 'color' | 'image';
+type ColorSubTool = 'text-color' | 'background-color' | 'gradient';
+type TextSubTool = 'content' | 'font-size' | 'font-style';
 
 export default function HomepageEditorInterface() {
   console.log('🟢 HOMEPAGE EDITOR LOADED');
@@ -41,6 +43,11 @@ export default function HomepageEditorInterface() {
   const [textValue, setTextValue] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
+  
+  // Sub-tool states for consolidated tools
+  const [selectedColorSubTool, setSelectedColorSubTool] = useState<ColorSubTool>('text-color');
+  const [selectedTextSubTool, setSelectedTextSubTool] = useState<TextSubTool>('content');
+  const [fontSize, setFontSize] = useState('16');
   
   // Advanced tool states
   const [showAdvancedColorPicker, setShowAdvancedColorPicker] = useState(false);
@@ -110,6 +117,46 @@ export default function HomepageEditorInterface() {
           toast({
             title: "❌ Save Failed",
             description: "Text updated locally but failed to save to database",
+            variant: "destructive"
+          });
+        } finally {
+          setIsSaving(false);
+        }
+      }
+    }
+  };
+
+  // Handle font size changes
+  const handleFontSizeChange = async (size: string) => {
+    if (selectedElement) {
+      const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
+      if (element) {
+        setIsSaving(true);
+        
+        // Update DOM immediately
+        element.style.fontSize = `${size}px`;
+        
+        // Save to database
+        try {
+          await savePageSetting({
+            setting_key: `${selectedElement}_font_size`,
+            setting_value: size,
+            category: 'page_editor',
+            page_scope: 'homepage',
+            created_by: user?.id || ''
+          });
+          setLastSaveTime(new Date());
+          
+          toast({
+            title: "✅ Font Size Saved Successfully!",
+            description: `Font size changed to ${size}px and saved to database`,
+            duration: 2000,
+          });
+        } catch (error) {
+          console.error('Error saving font size:', error);
+          toast({
+            title: "❌ Font Size Save Failed",
+            description: "Font size changed locally but failed to save",
             variant: "destructive"
           });
         } finally {
@@ -460,28 +507,6 @@ export default function HomepageEditorInterface() {
             </Button>
             
             <Button 
-              variant={selectedTool === 'background' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => handleToolSelect('background')}
-              className={selectedTool === 'background' ? 'bg-neonPink text-black' : 'border-gray-600 text-white hover:bg-gray-700'}
-              disabled={!selectedElement}
-            >
-              <ImageIcon className="w-4 h-4 mr-2" />
-              Background
-            </Button>
-            
-            <Button 
-              variant={selectedTool === 'gradient' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => handleToolSelect('gradient')}
-              className={selectedTool === 'gradient' ? 'bg-neonPink text-black' : 'border-gray-600 text-white hover:bg-gray-700'}
-              disabled={!selectedElement}
-            >
-              <Pipette className="w-4 h-4 mr-2" />
-              Gradient
-            </Button>
-            
-            <Button 
               variant={selectedTool === 'image' ? 'default' : 'outline'} 
               size="sm"
               onClick={() => handleToolSelect('image')}
@@ -530,8 +555,104 @@ export default function HomepageEditorInterface() {
           </div>
         </div>
 
-        {/* Tool-Specific Control Panels - Also sticky */}
-        {editingText && (
+        {/* Enhanced Text Tool Panel with Sub-options */}
+        {selectedTool === 'text' && selectedElement && (
+          <div className="fixed top-16 left-0 right-0 z-40 bg-gray-800 border-b border-gray-600 px-4 py-4 shadow-lg">
+            <div className="space-y-4">
+              {/* Sub-tool Selection */}
+              <div className="flex items-center space-x-2">
+                <div className="text-sm text-gray-300 font-medium">Text Tools:</div>
+                <Button
+                  size="sm"
+                  variant={selectedTextSubTool === 'content' ? 'default' : 'outline'}
+                  onClick={() => {
+                    setSelectedTextSubTool('content');
+                    const element = document.querySelector(`[data-editable="${selectedElement}"]`);
+                    if (element) {
+                      setTextValue(element.textContent || '');
+                      setEditingText(true);
+                    }
+                  }}
+                  className={selectedTextSubTool === 'content' ? 'bg-neonCyan text-black' : 'border-gray-500 text-gray-300'}
+                >
+                  📝 Content
+                </Button>
+                <Button
+                  size="sm"
+                  variant={selectedTextSubTool === 'font-size' ? 'default' : 'outline'}
+                  onClick={() => setSelectedTextSubTool('font-size')}
+                  className={selectedTextSubTool === 'font-size' ? 'bg-neonCyan text-black' : 'border-gray-500 text-gray-300'}
+                >
+                  📏 Size
+                </Button>
+              </div>
+
+              {/* Content Editing */}
+              {selectedTextSubTool === 'content' && (
+                <div className="flex items-center space-x-4">
+                  <div className="text-sm text-gray-300 font-medium">Edit Content:</div>
+                  <Input
+                    value={textValue}
+                    onChange={(e) => setTextValue(e.target.value)}
+                    className="max-w-md bg-gray-700 border-gray-500 text-white placeholder-gray-400"
+                    placeholder="Enter new text..."
+                  />
+                  <Button 
+                    size="sm" 
+                    onClick={handleTextUpdate}
+                    disabled={isSaving}
+                    className="bg-neonCyan text-black hover:bg-neonCyan/80 font-medium min-w-[70px]"
+                  >
+                    {isSaving ? (
+                      <>
+                        <Clock className="w-3 h-3 mr-1 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      'Apply'
+                    )}
+                  </Button>
+                </div>
+              )}
+
+              {/* Font Size Controls */}
+              {selectedTextSubTool === 'font-size' && (
+                <div className="flex items-center space-x-4">
+                  <div className="text-sm text-gray-300 font-medium">Font Size:</div>
+                  <div className="flex space-x-2">
+                    {['12', '14', '16', '18', '20', '24', '28', '32', '36', '48'].map((size) => (
+                      <button
+                        key={size}
+                        onClick={() => {
+                          setFontSize(size);
+                          handleFontSizeChange(size);
+                        }}
+                        className={`px-3 py-1 rounded border-2 transition-all hover:scale-105 ${
+                          fontSize === size 
+                            ? 'border-neonCyan bg-neonCyan/20 text-neonCyan' 
+                            : 'border-gray-500 text-gray-300 hover:border-gray-300'
+                        }`}
+                      >
+                        {size}px
+                      </button>
+                    ))}
+                  </div>
+                  <Input
+                    type="number"
+                    value={fontSize}
+                    onChange={(e) => setFontSize(e.target.value)}
+                    onBlur={() => handleFontSizeChange(fontSize)}
+                    className="w-20 bg-gray-700 border-gray-500 text-white"
+                    placeholder="px"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Legacy text editing panel - remove this */}
+        {editingText && false && (
           <div className="fixed top-16 left-0 right-0 z-40 bg-gray-800 border-b border-gray-600 px-4 py-4 shadow-lg">
             <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-300 font-medium">Editing Text:</div>
@@ -568,93 +689,121 @@ export default function HomepageEditorInterface() {
           </div>
         )}
 
+        {/* Enhanced Color Tool Panel with Sub-options */}
         {selectedTool === 'color' && selectedElement && (
           <div className="fixed top-16 left-0 right-0 z-40 bg-gray-800 border-b border-gray-600 px-4 py-4 shadow-lg">
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-300 font-medium">Color Tools:</div>
-              <div className="flex space-x-2">
-                {['#FF6B35', '#F7931E', '#FFD23F', '#06FFA5', '#3BCEAC', '#0EAD69', '#3B82F6', '#8B5CF6', '#EC4899'].map((color) => (
-                  <button
-                    key={color}
-                    onClick={() => handleColorChange(color)}
-                    className="w-8 h-8 rounded border-2 border-gray-500 hover:scale-110 transition-transform"
-                    style={{ backgroundColor: color }}
-                  />
-                ))}
-              </div>
-              <div className="flex items-center space-x-2 ml-4">
+            <div className="space-y-4">
+              {/* Sub-tool Selection */}
+              <div className="flex items-center space-x-2">
+                <div className="text-sm text-gray-300 font-medium">Color Tools:</div>
                 <Button
                   size="sm"
-                  onClick={() => setShowAdvancedColorPicker(true)}
-                  className="bg-neonCyan text-black hover:bg-neonCyan/80"
+                  variant={selectedColorSubTool === 'text-color' ? 'default' : 'outline'}
+                  onClick={() => setSelectedColorSubTool('text-color')}
+                  className={selectedColorSubTool === 'text-color' ? 'bg-neonPink text-black' : 'border-gray-500 text-gray-300'}
                 >
-                  <Palette className="w-4 h-4 mr-2" />
-                  Advanced
+                  📝 Text Color
+                </Button>
+                <Button
+                  size="sm"
+                  variant={selectedColorSubTool === 'background-color' ? 'default' : 'outline'}
+                  onClick={() => setSelectedColorSubTool('background-color')}
+                  className={selectedColorSubTool === 'background-color' ? 'bg-neonPink text-black' : 'border-gray-500 text-gray-300'}
+                >
+                  🎨 Background
+                </Button>
+                <Button
+                  size="sm"
+                  variant={selectedColorSubTool === 'gradient' ? 'default' : 'outline'}
+                  onClick={() => setSelectedColorSubTool('gradient')}
+                  className={selectedColorSubTool === 'gradient' ? 'bg-neonPink text-black' : 'border-gray-500 text-gray-300'}
+                >
+                  🌈 Gradient
                 </Button>
               </div>
-            </div>
-          </div>
-        )}
 
-        {selectedTool === 'background' && selectedElement && (
-          <div className="fixed top-16 left-0 right-0 z-40 bg-gray-800 border-b border-gray-600 px-4 py-4 shadow-lg">
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-300 font-medium">Background Tools:</div>
-              <div className="flex space-x-2">
-                {['transparent', '#1F2937', '#374151', '#4B5563', '#FF6B35', '#F7931E', '#06FFA5', '#3B82F6'].map((bg) => (
-                  <button
-                    key={bg}
-                    onClick={() => handleBackgroundChange(bg)}
-                    className="w-8 h-8 rounded border-2 border-gray-500 hover:scale-110 transition-transform"
-                    style={{ backgroundColor: bg === 'transparent' ? 'transparent' : bg }}
+              {/* Text Color Controls */}
+              {selectedColorSubTool === 'text-color' && (
+                <div className="flex items-center space-x-4">
+                  <div className="text-sm text-gray-300 font-medium">Text Colors:</div>
+                  <div className="flex space-x-2">
+                    {['#FFFFFF', '#000000', '#FF6B35', '#F7931E', '#FFD23F', '#06FFA5', '#3BCEAC', '#3B82F6', '#8B5CF6', '#EC4899'].map((color) => (
+                      <button
+                        key={color}
+                        onClick={() => handleColorChange(color)}
+                        className="w-8 h-8 rounded border-2 border-gray-500 hover:scale-110 transition-transform"
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowAdvancedColorPicker(true)}
+                    className="bg-neonCyan text-black hover:bg-neonCyan/80"
                   >
-                    {bg === 'transparent' && <div className="w-full h-full bg-gradient-to-br from-red-500 to-blue-500 opacity-20 rounded" />}
-                  </button>
-                ))}
-              </div>
-              <div className="flex items-center space-x-2 ml-4">
-                <Button
-                  size="sm"
-                  onClick={() => setShowAdvancedColorPicker(true)}
-                  className="bg-neonCyan text-black hover:bg-neonCyan/80"
-                >
-                  <Palette className="w-4 h-4 mr-2" />
-                  Advanced
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+                    <Palette className="w-4 h-4 mr-2" />
+                    Advanced
+                  </Button>
+                </div>
+              )}
 
-        {selectedTool === 'gradient' && selectedElement && (
-          <div className="fixed top-16 left-0 right-0 z-40 bg-gray-800 border-b border-gray-600 px-4 py-4 shadow-lg">
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-300 font-medium">Gradient Tools:</div>
-              <div className="flex space-x-2">
-                {[
-                  'linear-gradient(to right, #FF6B35, #F7931E)',
-                  'linear-gradient(to right, #06FFA5, #3BCEAC)',
-                  'linear-gradient(to right, #8B5CF6, #EC4899)',
-                  'linear-gradient(45deg, #3B82F6, #06B6D4)'
-                ].map((gradient, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleGradientChange(gradient)}
-                    className="w-12 h-8 rounded border-2 border-gray-500 hover:scale-110 transition-transform"
-                    style={{ background: gradient }}
-                  />
-                ))}
-              </div>
-              <div className="flex items-center space-x-2 ml-4">
-                <Button
-                  size="sm"
-                  onClick={() => setShowGradientPicker(true)}
-                  className="bg-neonPink text-black hover:bg-neonPink/80"
-                >
-                  <Pipette className="w-4 h-4 mr-2" />
-                  Custom
-                </Button>
-              </div>
+              {/* Background Color Controls */}
+              {selectedColorSubTool === 'background-color' && (
+                <div className="flex items-center space-x-4">
+                  <div className="text-sm text-gray-300 font-medium">Background Colors:</div>
+                  <div className="flex space-x-2">
+                    {['transparent', '#1F2937', '#374151', '#4B5563', '#FF6B35', '#F7931E', '#06FFA5', '#3B82F6', '#8B5CF6'].map((bg) => (
+                      <button
+                        key={bg}
+                        onClick={() => handleBackgroundChange(bg)}
+                        className="w-8 h-8 rounded border-2 border-gray-500 hover:scale-110 transition-transform"
+                        style={{ backgroundColor: bg === 'transparent' ? 'transparent' : bg }}
+                      >
+                        {bg === 'transparent' && <div className="w-full h-full bg-gradient-to-br from-red-500 to-blue-500 opacity-20 rounded" />}
+                      </button>
+                    ))}
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowAdvancedColorPicker(true)}
+                    className="bg-neonCyan text-black hover:bg-neonCyan/80"
+                  >
+                    <Palette className="w-4 h-4 mr-2" />
+                    Advanced
+                  </Button>
+                </div>
+              )}
+
+              {/* Gradient Controls */}
+              {selectedColorSubTool === 'gradient' && (
+                <div className="flex items-center space-x-4">
+                  <div className="text-sm text-gray-300 font-medium">Gradient Presets:</div>
+                  <div className="flex space-x-2">
+                    {[
+                      'linear-gradient(to right, #FF6B35, #F7931E)',
+                      'linear-gradient(to right, #06FFA5, #3BCEAC)',
+                      'linear-gradient(to right, #8B5CF6, #EC4899)',
+                      'linear-gradient(45deg, #3B82F6, #06B6D4)',
+                      'radial-gradient(circle, #FF6B35, #1F2937)'
+                    ].map((gradient, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleGradientChange(gradient)}
+                        className="w-12 h-8 rounded border-2 border-gray-500 hover:scale-110 transition-transform"
+                        style={{ background: gradient }}
+                      />
+                    ))}
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowGradientPicker(true)}
+                    className="bg-neonPink text-black hover:bg-neonPink/80"
+                  >
+                    <Pipette className="w-4 h-4 mr-2" />
+                    Custom
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -697,10 +846,8 @@ export default function HomepageEditorInterface() {
           <div className="fixed left-0 right-0 z-30 bg-gray-900 border-b-2 border-neonCyan px-4 py-3 shadow-lg mt-2" 
                style={{ 
                  top: editingText || 
-                      (selectedTool === 'color' && selectedElement) || 
-                      (selectedTool === 'background' && selectedElement) || 
-                      (selectedTool === 'gradient' && selectedElement) || 
-                      (selectedTool === 'image' && selectedElement) 
+                      (selectedTool === 'text' && selectedElement) || 
+                      (selectedTool === 'color' && selectedElement) 
                       ? '8rem' : '4rem' 
                }}>
             <div className="flex items-center justify-between">
@@ -738,14 +885,16 @@ export default function HomepageEditorInterface() {
 
         {/* Advanced Tool Modals */}
         {showAdvancedColorPicker && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
             <AdvancedColorPicker
               color="#FF6B35"
               onChange={(color) => {
                 if (selectedTool === 'color') {
-                  handleColorChange(color);
-                } else if (selectedTool === 'background') {
-                  handleBackgroundChange(color);
+                  if (selectedColorSubTool === 'text-color') {
+                    handleColorChange(color);
+                  } else if (selectedColorSubTool === 'background-color') {
+                    handleBackgroundChange(color);
+                  }
                 }
                 setShowAdvancedColorPicker(false);
               }}
@@ -755,7 +904,7 @@ export default function HomepageEditorInterface() {
         )}
 
         {showGradientPicker && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
             <GradientPicker
               value=""
               onChange={(gradient) => {
@@ -768,7 +917,7 @@ export default function HomepageEditorInterface() {
         )}
 
         {showImageUploader && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
             <ImageUploader
               currentImageUrl=""
               elementType={currentElementType}
