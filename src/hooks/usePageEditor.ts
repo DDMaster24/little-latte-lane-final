@@ -89,24 +89,60 @@ export function usePageEditor(pageScope: string, adminUserId?: string): UsePageE
   const savePageSetting = useCallback(async (setting: Omit<ThemeSettingInsert, 'id' | 'created_at' | 'updated_at'>) => {
     if (!isAdmin) throw new Error('Admin access required');
 
-    const { data, error } = await supabase
+    // First, try to find existing setting
+    const { data: existing } = await supabase
       .from('theme_settings')
-      .upsert([{
-        ...setting,
-        updated_at: new Date().toISOString()
-      }], {
-        onConflict: 'setting_key,page_scope,category'
-      })
-      .select()
+      .select('id')
+      .eq('setting_key', setting.setting_key)
+      .eq('page_scope', setting.page_scope || '')
+      .eq('category', setting.category || '')
       .single();
 
+    let data;
+    let error;
+
+    if (existing) {
+      // Update existing record
+      const result = await supabase
+        .from('theme_settings')
+        .update({
+          setting_value: setting.setting_value,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existing.id)
+        .select()
+        .single();
+      
+      data = result.data;
+      error = result.error;
+    } else {
+      // Insert new record
+      const result = await supabase
+        .from('theme_settings')
+        .insert([{
+          ...setting,
+          updated_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
+      
+      data = result.data;
+      error = result.error;
+    }
+
     if (error) throw error;
+    if (!data) throw new Error('No data returned from save operation');
 
     // Update local state
     setPageSettings(prev => {
-      const existing = prev.find(s => s.setting_key === setting.setting_key);
-      if (existing) {
-        return prev.map(s => s.setting_key === setting.setting_key ? data : s);
+      const existingIndex = prev.findIndex(s => 
+        s.setting_key === setting.setting_key && 
+        s.page_scope === setting.page_scope && 
+        s.category === setting.category
+      );
+      
+      if (existingIndex >= 0) {
+        return prev.map((s, i) => i === existingIndex ? data : s);
       } else {
         return [data, ...prev];
       }

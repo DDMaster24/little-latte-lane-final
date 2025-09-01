@@ -236,8 +236,8 @@ export default function HomepageEditorInterface() {
   return (
     <EditorLayout>
       <div className="min-h-screen">
-        {/* Clean Editor Toolbar - Only style the toolbar itself */}
-        <div className="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between shadow-lg">
+        {/* STICKY Editor Toolbar - Fixed at top */}
+        <div className="fixed top-0 left-0 right-0 z-50 bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between shadow-lg">
           <div className="flex items-center space-x-4">
             <Button 
               variant="outline" 
@@ -322,9 +322,9 @@ export default function HomepageEditorInterface() {
           </div>
         </div>
 
-        {/* Tool-Specific Control Panels */}
+        {/* Tool-Specific Control Panels - Also sticky */}
         {editingText && (
-          <div className="bg-gray-700 border-b border-gray-600 px-4 py-3 flex items-center space-x-4">
+          <div className="fixed top-16 left-0 right-0 z-40 bg-gray-700 border-b border-gray-600 px-4 py-3 flex items-center space-x-4">
             <div className="text-sm text-gray-300">Editing Text:</div>
             <Input
               value={textValue}
@@ -351,7 +351,7 @@ export default function HomepageEditorInterface() {
         )}
 
         {selectedTool === 'color' && selectedElement && (
-          <div className="bg-gray-700 border-b border-gray-600 px-4 py-3 flex items-center space-x-4">
+          <div className="fixed top-16 left-0 right-0 z-40 bg-gray-700 border-b border-gray-600 px-4 py-3 flex items-center space-x-4">
             <div className="text-sm text-gray-300">Color Tools:</div>
             <div className="flex space-x-2">
               {['#FF6B35', '#F7931E', '#FFD23F', '#06FFA5', '#3BCEAC', '#0EAD69', '#3B82F6', '#8B5CF6', '#EC4899'].map((color) => (
@@ -367,7 +367,7 @@ export default function HomepageEditorInterface() {
         )}
 
         {selectedTool === 'background' && selectedElement && (
-          <div className="bg-gray-700 border-b border-gray-600 px-4 py-3 flex items-center space-x-4">
+          <div className="fixed top-16 left-0 right-0 z-40 bg-gray-700 border-b border-gray-600 px-4 py-3 flex items-center space-x-4">
             <div className="text-sm text-gray-300">Background Tools:</div>
             <div className="flex space-x-2">
               {['transparent', '#1F2937', '#374151', '#4B5563', '#FF6B35', '#F7931E', '#06FFA5', '#3B82F6'].map((bg) => (
@@ -384,9 +384,10 @@ export default function HomepageEditorInterface() {
           </div>
         )}
 
-        {/* Status Bar */}
+        {/* Status Bar - Also sticky, positioned below toolbar and panels */}
         {selectedElement && (
-          <div className="bg-blue-900/30 border-b border-blue-500/30 px-4 py-2 text-sm text-neonCyan">
+          <div className="fixed left-0 right-0 z-30 bg-blue-900/30 border-b border-blue-500/30 px-4 py-2 text-sm text-neonCyan" 
+               style={{ top: editingText || (selectedTool === 'color' && selectedElement) || (selectedTool === 'background' && selectedElement) ? '7rem' : '4rem' }}>
             Selected: <strong className="text-white">{selectedElement}</strong>
             {selectedTool !== 'select' && (
               <span className="ml-4 text-neonPink">
@@ -396,8 +397,8 @@ export default function HomepageEditorInterface() {
           </div>
         )}
 
-        {/* Homepage Content - Natural styling */}
-        <div className="flex-1 overflow-auto">
+        {/* Homepage Content - Add top padding to account for sticky toolbar */}
+        <div className="flex-1 overflow-auto" style={{ paddingTop: selectedElement ? '8rem' : '4rem' }}>
           <HomePage />
         </div>
       </div>
