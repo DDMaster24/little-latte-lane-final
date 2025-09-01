@@ -37,7 +37,10 @@ export default function ThemeLoader({ pageName }: ThemeLoaderProps) {
           const elementId = setting.setting_key;
           
           // Handle text content
-          if (!elementId.includes('_color') && !elementId.includes('_background')) {
+          if (!elementId.includes('_color') && 
+              !elementId.includes('_background') && 
+              !elementId.includes('_content') && 
+              !elementId.includes('_background_image')) {
             const element = document.querySelector(`[data-editable="${elementId}"]`);
             if (element && setting.setting_value) {
               element.textContent = setting.setting_value;
@@ -55,13 +58,51 @@ export default function ThemeLoader({ pageName }: ThemeLoaderProps) {
             }
           }
           
-          // Handle background styles
-          if (elementId.includes('_background')) {
+          // Handle background styles (including gradients)
+          if (elementId.includes('_background') && !elementId.includes('_background_image')) {
             const baseElementId = elementId.replace('_background', '');
             const element = document.querySelector(`[data-editable="${baseElementId}"]`) as HTMLElement;
             if (element && setting.setting_value) {
-              element.style.backgroundColor = setting.setting_value;
-              console.log('🖼️ Applied background:', baseElementId, setting.setting_value);
+              // Check if it's a gradient or solid color
+              if (setting.setting_value.includes('gradient')) {
+                element.style.background = setting.setting_value;
+                element.style.backgroundImage = setting.setting_value;
+                console.log('🌈 Applied gradient:', baseElementId, setting.setting_value);
+              } else {
+                element.style.backgroundColor = setting.setting_value;
+                console.log('🖼️ Applied background:', baseElementId, setting.setting_value);
+              }
+            }
+          }
+          
+          // Handle background image styles
+          if (elementId.includes('_background_image')) {
+            const baseElementId = elementId.replace('_background_image', '');
+            const element = document.querySelector(`[data-editable="${baseElementId}"]`) as HTMLElement;
+            if (element && setting.setting_value) {
+              element.style.backgroundImage = `url('${setting.setting_value}')`;
+              element.style.backgroundSize = 'cover';
+              element.style.backgroundPosition = 'center';
+              element.style.backgroundRepeat = 'no-repeat';
+              console.log('🖼️ Applied background image:', baseElementId, setting.setting_value);
+            }
+          }
+          
+          // Handle icon/content changes
+          if (elementId.includes('_content')) {
+            const baseElementId = elementId.replace('_content', '');
+            const element = document.querySelector(`[data-editable="${baseElementId}"]`) as HTMLElement;
+            if (element && setting.setting_value) {
+              // Check if it's an emoji or image URL
+              if (setting.setting_value.length === 1 && /^\p{Emoji}$/u.test(setting.setting_value)) {
+                // It's an emoji
+                element.textContent = setting.setting_value;
+                console.log('😀 Applied emoji icon:', baseElementId, setting.setting_value);
+              } else if (setting.setting_value.startsWith('http')) {
+                // It's an image URL
+                element.innerHTML = `<img src="${setting.setting_value}" alt="Icon" style="width: 100%; height: 100%; object-fit: contain;" />`;
+                console.log('🖼️ Applied image icon:', baseElementId, setting.setting_value);
+              }
             }
           }
         });

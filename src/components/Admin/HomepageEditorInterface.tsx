@@ -17,11 +17,16 @@ import {
   Palette, 
   Image as ImageIcon,
   CheckCircle,
-  Clock
+  Clock,
+  Pipette,
+  Upload
 } from 'lucide-react';
 import HomePage from '@/app/page';
+import AdvancedColorPicker from './AdvancedColorPicker';
+import GradientPicker from './GradientPicker';
+import ImageUploader from './ImageUploader';
 
-type EditorTool = 'select' | 'text' | 'color' | 'background';
+type EditorTool = 'select' | 'text' | 'color' | 'background' | 'gradient' | 'image';
 
 export default function HomepageEditorInterface() {
   console.log('🟢 HOMEPAGE EDITOR LOADED');
@@ -36,10 +41,21 @@ export default function HomepageEditorInterface() {
   const [textValue, setTextValue] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
+  
+  // Advanced tool states
+  const [showAdvancedColorPicker, setShowAdvancedColorPicker] = useState(false);
+  const [showGradientPicker, setShowGradientPicker] = useState(false);
+  const [showImageUploader, setShowImageUploader] = useState(false);
+  const [currentElementType, setCurrentElementType] = useState<'icon' | 'background' | 'image'>('image');
 
-  // Tool selection handlers
+  // Enhanced tool selection handlers
   const handleToolSelect = (tool: EditorTool) => {
     setSelectedTool(tool);
+    
+    // Close any open advanced tools
+    setShowAdvancedColorPicker(false);
+    setShowGradientPicker(false);
+    setShowImageUploader(false);
     
     if (tool === 'text' && selectedElement) {
       const element = document.querySelector(`[data-editable="${selectedElement}"]`);
@@ -49,6 +65,17 @@ export default function HomepageEditorInterface() {
       }
     } else {
       setEditingText(false);
+    }
+    
+    // Determine element type for image tool
+    if (tool === 'image' && selectedElement) {
+      if (selectedElement.includes('icon')) {
+        setCurrentElementType('icon');
+      } else if (selectedElement.includes('background')) {
+        setCurrentElementType('background');
+      } else {
+        setCurrentElementType('image');
+      }
     }
     
     toast({
@@ -163,6 +190,118 @@ export default function HomepageEditorInterface() {
           toast({
             title: "❌ Background Save Failed",
             description: "Background changed locally but failed to save",
+            variant: "destructive"
+          });
+        } finally {
+          setIsSaving(false);
+        }
+      }
+    }
+  };
+
+  // Handle gradient background changes
+  const handleGradientChange = async (gradient: string) => {
+    if (selectedElement) {
+      const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
+      if (element) {
+        setIsSaving(true);
+        
+        // Update DOM immediately - handle both background and backgroundImage
+        if (gradient === 'transparent') {
+          element.style.background = 'transparent';
+          element.style.backgroundImage = 'none';
+        } else {
+          element.style.background = gradient;
+          element.style.backgroundImage = gradient;
+        }
+        
+        // Save to database
+        try {
+          await savePageSetting({
+            setting_key: `${selectedElement}_background`,
+            setting_value: gradient,
+            category: 'page_editor',
+            page_scope: 'homepage',
+            created_by: user?.id || ''
+          });
+          setLastSaveTime(new Date());
+          
+          toast({
+            title: "✅ Gradient Saved Successfully!",
+            description: `Gradient applied and saved to database`,
+            duration: 2000,
+          });
+        } catch (error) {
+          console.error('Error saving gradient:', error);
+          toast({
+            title: "❌ Gradient Save Failed",
+            description: "Gradient changed locally but failed to save",
+            variant: "destructive"
+          });
+        } finally {
+          setIsSaving(false);
+        }
+      }
+    }
+  };
+
+  // Handle image/icon changes
+  const handleImageChange = async (imageUrl: string) => {
+    if (selectedElement) {
+      const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
+      if (element) {
+        setIsSaving(true);
+        
+        // Handle different element types
+        if (selectedElement.includes('icon')) {
+          // For icon elements, update content
+          if (imageUrl.length === 1 && /^\p{Emoji}$/u.test(imageUrl)) {
+            // It's an emoji
+            element.textContent = imageUrl;
+          } else if (imageUrl) {
+            // It's an image URL - create img element
+            element.innerHTML = `<img src="${imageUrl}" alt="Icon" style="width: 100%; height: 100%; object-fit: contain;" />`;
+          } else {
+            // Clear content
+            element.textContent = '';
+          }
+        } else {
+          // For background images
+          if (imageUrl) {
+            element.style.backgroundImage = `url('${imageUrl}')`;
+            element.style.backgroundSize = 'cover';
+            element.style.backgroundPosition = 'center';
+            element.style.backgroundRepeat = 'no-repeat';
+          } else {
+            element.style.backgroundImage = 'none';
+          }
+        }
+        
+        // Save to database
+        try {
+          const settingKey = selectedElement.includes('icon') 
+            ? `${selectedElement}_content` 
+            : `${selectedElement}_background_image`;
+          
+          await savePageSetting({
+            setting_key: settingKey,
+            setting_value: imageUrl,
+            category: 'page_editor',
+            page_scope: 'homepage',
+            created_by: user?.id || ''
+          });
+          setLastSaveTime(new Date());
+          
+          toast({
+            title: "✅ Image Saved Successfully!",
+            description: `Image updated and saved to database`,
+            duration: 2000,
+          });
+        } catch (error) {
+          console.error('Error saving image:', error);
+          toast({
+            title: "❌ Image Save Failed",
+            description: "Image changed locally but failed to save",
             variant: "destructive"
           });
         } finally {
@@ -331,6 +470,28 @@ export default function HomepageEditorInterface() {
               Background
             </Button>
             
+            <Button 
+              variant={selectedTool === 'gradient' ? 'default' : 'outline'} 
+              size="sm"
+              onClick={() => handleToolSelect('gradient')}
+              className={selectedTool === 'gradient' ? 'bg-neonPink text-black' : 'border-gray-600 text-white hover:bg-gray-700'}
+              disabled={!selectedElement}
+            >
+              <Pipette className="w-4 h-4 mr-2" />
+              Gradient
+            </Button>
+            
+            <Button 
+              variant={selectedTool === 'image' ? 'default' : 'outline'} 
+              size="sm"
+              onClick={() => handleToolSelect('image')}
+              className={selectedTool === 'image' ? 'bg-purple-600 text-white' : 'border-gray-600 text-white hover:bg-gray-700'}
+              disabled={!selectedElement}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Image
+            </Button>
+            
             <div className="w-px h-6 bg-gray-600 mx-2" />
             
             <Button 
@@ -421,6 +582,16 @@ export default function HomepageEditorInterface() {
                   />
                 ))}
               </div>
+              <div className="flex items-center space-x-2 ml-4">
+                <Button
+                  size="sm"
+                  onClick={() => setShowAdvancedColorPicker(true)}
+                  className="bg-neonCyan text-black hover:bg-neonCyan/80"
+                >
+                  <Palette className="w-4 h-4 mr-2" />
+                  Advanced
+                </Button>
+              </div>
             </div>
           </div>
         )}
@@ -441,6 +612,82 @@ export default function HomepageEditorInterface() {
                   </button>
                 ))}
               </div>
+              <div className="flex items-center space-x-2 ml-4">
+                <Button
+                  size="sm"
+                  onClick={() => setShowAdvancedColorPicker(true)}
+                  className="bg-neonCyan text-black hover:bg-neonCyan/80"
+                >
+                  <Palette className="w-4 h-4 mr-2" />
+                  Advanced
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {selectedTool === 'gradient' && selectedElement && (
+          <div className="fixed top-16 left-0 right-0 z-40 bg-gray-800 border-b border-gray-600 px-4 py-4 shadow-lg">
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-300 font-medium">Gradient Tools:</div>
+              <div className="flex space-x-2">
+                {[
+                  'linear-gradient(to right, #FF6B35, #F7931E)',
+                  'linear-gradient(to right, #06FFA5, #3BCEAC)',
+                  'linear-gradient(to right, #8B5CF6, #EC4899)',
+                  'linear-gradient(45deg, #3B82F6, #06B6D4)'
+                ].map((gradient, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleGradientChange(gradient)}
+                    className="w-12 h-8 rounded border-2 border-gray-500 hover:scale-110 transition-transform"
+                    style={{ background: gradient }}
+                  />
+                ))}
+              </div>
+              <div className="flex items-center space-x-2 ml-4">
+                <Button
+                  size="sm"
+                  onClick={() => setShowGradientPicker(true)}
+                  className="bg-neonPink text-black hover:bg-neonPink/80"
+                >
+                  <Pipette className="w-4 h-4 mr-2" />
+                  Custom
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {selectedTool === 'image' && selectedElement && (
+          <div className="fixed top-16 left-0 right-0 z-40 bg-gray-800 border-b border-gray-600 px-4 py-4 shadow-lg">
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-300 font-medium">
+                {currentElementType === 'icon' ? 'Icon Tools:' : 'Image Tools:'}
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  size="sm"
+                  onClick={() => setShowImageUploader(true)}
+                  className="bg-purple-600 text-white hover:bg-purple-700"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  {currentElementType === 'icon' ? 'Change Icon' : 'Upload Image'}
+                </Button>
+                {currentElementType === 'icon' && (
+                  <div className="flex space-x-2 ml-4">
+                    {['☕', '🍕', '🥐', '🧀', '🔥', '⭐', '💎', '🌟'].map((emoji) => (
+                      <button
+                        key={emoji}
+                        onClick={() => handleImageChange(emoji)}
+                        className="w-8 h-8 rounded border-2 border-gray-500 hover:scale-110 transition-transform bg-gray-700 flex items-center justify-center text-lg"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -448,7 +695,14 @@ export default function HomepageEditorInterface() {
         {/* Status Bar - Enhanced visibility with spacing */}
         {selectedElement && (
           <div className="fixed left-0 right-0 z-30 bg-gray-900 border-b-2 border-neonCyan px-4 py-3 shadow-lg mt-2" 
-               style={{ top: editingText || (selectedTool === 'color' && selectedElement) || (selectedTool === 'background' && selectedElement) ? '8rem' : '4rem' }}>
+               style={{ 
+                 top: editingText || 
+                      (selectedTool === 'color' && selectedElement) || 
+                      (selectedTool === 'background' && selectedElement) || 
+                      (selectedTool === 'gradient' && selectedElement) || 
+                      (selectedTool === 'image' && selectedElement) 
+                      ? '8rem' : '4rem' 
+               }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-neonCyan rounded-full animate-pulse"></div>
@@ -481,6 +735,51 @@ export default function HomepageEditorInterface() {
         <div className="flex-1 overflow-auto" style={{ paddingTop: selectedElement ? '10rem' : '5rem' }}>
           <HomePage />
         </div>
+
+        {/* Advanced Tool Modals */}
+        {showAdvancedColorPicker && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <AdvancedColorPicker
+              color="#FF6B35"
+              onChange={(color) => {
+                if (selectedTool === 'color') {
+                  handleColorChange(color);
+                } else if (selectedTool === 'background') {
+                  handleBackgroundChange(color);
+                }
+                setShowAdvancedColorPicker(false);
+              }}
+              onClose={() => setShowAdvancedColorPicker(false)}
+            />
+          </div>
+        )}
+
+        {showGradientPicker && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <GradientPicker
+              value=""
+              onChange={(gradient) => {
+                handleGradientChange(gradient);
+                setShowGradientPicker(false);
+              }}
+              onClose={() => setShowGradientPicker(false)}
+            />
+          </div>
+        )}
+
+        {showImageUploader && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <ImageUploader
+              currentImageUrl=""
+              elementType={currentElementType}
+              onImageChange={(imageUrl) => {
+                handleImageChange(imageUrl);
+                setShowImageUploader(false);
+              }}
+              onClose={() => setShowImageUploader(false)}
+            />
+          </div>
+        )}
       </div>
     </EditorLayout>
   );
