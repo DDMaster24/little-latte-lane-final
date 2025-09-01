@@ -6,7 +6,7 @@
 import type { Database } from '@/types/supabase';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { getSupabaseServer, getSupabaseAdmin } from '@/lib/supabase-server';
-import { updateOrderStatusWithNotifications } from '@/lib/orderStatusNotifications';
+import { updateOrderStatusSimple } from '@/lib/orderStatusNotifications';
 
 type Tables = Database['public']['Tables'];
 type OrderRow = Tables['orders']['Row'];
@@ -218,7 +218,7 @@ export class ServerOrderQueries {
   }
 
   /**
-   * Update order status (server-side) with notifications
+   * Update order status (server-side) with simplified notifications
    */
   static async updateOrderStatus(
     orderId: string, 
@@ -228,8 +228,8 @@ export class ServerOrderQueries {
       completionTime?: string;
     }
   ): Promise<OrderRow> {
-    // Use the notification system for status updates
-    const success = await updateOrderStatusWithNotifications(
+    // Use the simplified notification system for status updates
+    const success = await updateOrderStatusSimple(
       orderId,
       status as any,
       additionalData

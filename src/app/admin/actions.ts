@@ -1,12 +1,12 @@
 'use server';
 
 import { getSupabaseAdmin } from '@/lib/supabase-server';
-import { updateOrderStatusWithNotifications } from '@/lib/orderStatusNotifications';
+import { updateOrderStatusSimple } from '@/lib/orderStatusNotifications';
 
 /**
- * Update the status of an order by ID with email notifications
+ * Update the status of an order by ID with simple notifications (PWA push only)
  * @param id Order ID
- * @param status New status string (e.g. 'pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled')
+ * @param status New status string (e.g. 'received', 'making', 'ready', 'completed', 'cancelled')
  * @param additionalData Optional additional data like estimated ready time
  * @returns { success: boolean, message?: string }
  */
@@ -19,9 +19,9 @@ export async function updateOrderStatus(
   }
 ) {
   try {
-    const success = await updateOrderStatusWithNotifications(
+    const success = await updateOrderStatusSimple(
       id,
-      status as 'pending' | 'confirmed' | 'preparing' | 'ready' | 'completed' | 'cancelled',
+      status as 'received' | 'making' | 'ready' | 'completed' | 'cancelled',
       additionalData
     );
 
