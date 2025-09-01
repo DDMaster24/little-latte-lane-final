@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { getSupabaseClient } from '@/lib/supabase-client';
 
 interface ThemeLoaderProps {
   pageName: string;
@@ -10,58 +11,60 @@ export default function ThemeLoader({ pageName }: ThemeLoaderProps) {
   useEffect(() => {
     const loadSavedStyles = async () => {
       try {
-        // Get all editable elements on the page
-        const editableElements = document.querySelectorAll('[data-editable]');
+        const supabase = getSupabaseClient();
         
-        for (const element of editableElements) {
-          const elementId = element.getAttribute('data-editable');
-          if (!elementId) continue;
+        // Load all theme_settings for this page
+        const { data: settings, error } = await supabase
+          .from('theme_settings')
+          .select('*')
+          .eq('category', 'page_editor')
+          .eq('page_scope', pageName);
 
-          // Load saved styles
-          try {
-            const stylesResponse = await fetch(`/api/page-editor/styles?pageName=${pageName}&elementId=${elementId}`);
-            const stylesResult = await stylesResponse.json();
-            
-            if (stylesResult.success && stylesResult.styles && Object.keys(stylesResult.styles).length > 0) {
-              const htmlElement = element as HTMLElement;
-              const styles = stylesResult.styles;
-              
-              // Apply saved styles
-              Object.entries(styles).forEach(([property, value]) => {
-                if (value && value !== 'unset') {
-                  // Convert camelCase to kebab-case for CSS properties
-                  const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
-                  htmlElement.style.setProperty(cssProperty, value as string);
-                }
-              });
-              
-              console.log(`Applied saved styles to ${elementId}:`, styles);
-            }
-          } catch (error) {
-            console.error(`Error loading styles for ${elementId}:`, error);
-          }
-
-          // Load saved text
-          try {
-            const textResponse = await fetch(`/api/page-editor/text?pageName=${pageName}&elementId=${elementId}`);
-            const textResult = await textResponse.json();
-            
-            if (textResult.success && textResult.text) {
-              const htmlElement = element as HTMLElement;
-              
-              // Special handling for different element types
-              if (htmlElement.tagName === 'INPUT' || htmlElement.tagName === 'TEXTAREA') {
-                (htmlElement as HTMLInputElement).value = textResult.text;
-              } else {
-                htmlElement.textContent = textResult.text;
-              }
-              
-              console.log(`Applied saved text to ${elementId}:`, textResult.text);
-            }
-          } catch (error) {
-            console.error(`Error loading text for ${elementId}:`, error);
-          }
+        if (error) {
+          console.error('Error loading theme settings:', error);
+          return;
         }
+
+        if (!settings || settings.length === 0) {
+          console.log('No saved theme settings found for page:', pageName);
+          return;
+        }
+
+        console.log('🎨 Loading saved page styles...', settings.length, 'settings found');
+
+        // Apply all saved styles
+        settings.forEach(setting => {
+          const elementId = setting.setting_key;
+          
+          // Handle text content
+          if (!elementId.includes('_color') && !elementId.includes('_background')) {
+            const element = document.querySelector(`[data-editable="${elementId}"]`);
+            if (element && setting.setting_value) {
+              element.textContent = setting.setting_value;
+              console.log('📝 Applied text:', elementId, setting.setting_value);
+            }
+          }
+          
+          // Handle color styles
+          if (elementId.includes('_color')) {
+            const baseElementId = elementId.replace('_color', '');
+            const element = document.querySelector(`[data-editable="${baseElementId}"]`) as HTMLElement;
+            if (element && setting.setting_value) {
+              element.style.color = setting.setting_value;
+              console.log('🎨 Applied color:', baseElementId, setting.setting_value);
+            }
+          }
+          
+          // Handle background styles
+          if (elementId.includes('_background')) {
+            const baseElementId = elementId.replace('_background', '');
+            const element = document.querySelector(`[data-editable="${baseElementId}"]`) as HTMLElement;
+            if (element && setting.setting_value) {
+              element.style.backgroundColor = setting.setting_value;
+              console.log('🖼️ Applied background:', baseElementId, setting.setting_value);
+            }
+          }
+        });
       } catch (error) {
         console.error('Error loading saved theme data:', error);
       }

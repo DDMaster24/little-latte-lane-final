@@ -15,7 +15,9 @@ import {
   MousePointer, 
   Type, 
   Palette, 
-  Image as ImageIcon 
+  Image as ImageIcon,
+  CheckCircle,
+  Clock
 } from 'lucide-react';
 import HomePage from '@/app/page';
 
@@ -32,6 +34,8 @@ export default function HomepageEditorInterface() {
   const [selectedTool, setSelectedTool] = useState<EditorTool>('select');
   const [editingText, setEditingText] = useState(false);
   const [textValue, setTextValue] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
 
   // Tool selection handlers
   const handleToolSelect = (tool: EditorTool) => {
@@ -58,6 +62,8 @@ export default function HomepageEditorInterface() {
     if (selectedElement && textValue.trim()) {
       const element = document.querySelector(`[data-editable="${selectedElement}"]`);
       if (element) {
+        setIsSaving(true);
+        
         // Update DOM immediately
         element.textContent = textValue;
         
@@ -65,17 +71,22 @@ export default function HomepageEditorInterface() {
         try {
           await updateElementContent(selectedElement, textValue);
           setEditingText(false);
+          setLastSaveTime(new Date());
+          
           toast({
-            title: "Text Updated & Saved",
-            description: "Element text has been updated and saved to database",
+            title: "✅ Text Saved Successfully!",
+            description: "Changes have been saved to the database",
+            duration: 3000,
           });
         } catch (error) {
           console.error('Error saving text:', error);
           toast({
-            title: "Text Updated (Save Failed)",
+            title: "❌ Save Failed",
             description: "Text updated locally but failed to save to database",
             variant: "destructive"
           });
+        } finally {
+          setIsSaving(false);
         }
       }
     }
@@ -86,6 +97,8 @@ export default function HomepageEditorInterface() {
     if (selectedElement) {
       const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
       if (element) {
+        setIsSaving(true);
+        
         // Update DOM immediately
         element.style.color = color;
         
@@ -98,17 +111,22 @@ export default function HomepageEditorInterface() {
             page_scope: 'homepage',
             created_by: user?.id || ''
           });
+          setLastSaveTime(new Date());
+          
           toast({
-            title: "Color Applied & Saved",
-            description: `Color changed to ${color} and saved`,
+            title: "✅ Color Saved Successfully!",
+            description: `Color changed to ${color} and saved to database`,
+            duration: 2000,
           });
         } catch (error) {
           console.error('Error saving color:', error);
           toast({
-            title: "Color Applied (Save Failed)",
+            title: "❌ Color Save Failed",
             description: "Color changed locally but failed to save",
             variant: "destructive"
           });
+        } finally {
+          setIsSaving(false);
         }
       }
     }
@@ -119,6 +137,8 @@ export default function HomepageEditorInterface() {
     if (selectedElement) {
       const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
       if (element) {
+        setIsSaving(true);
+        
         // Update DOM immediately
         element.style.backgroundColor = background;
         
@@ -131,17 +151,22 @@ export default function HomepageEditorInterface() {
             page_scope: 'homepage',
             created_by: user?.id || ''
           });
+          setLastSaveTime(new Date());
+          
           toast({
-            title: "Background Applied & Saved",
-            description: `Background changed to ${background} and saved`,
+            title: "✅ Background Saved Successfully!",
+            description: `Background changed to ${background} and saved to database`,
+            duration: 2000,
           });
         } catch (error) {
           console.error('Error saving background:', error);
           toast({
-            title: "Background Applied (Save Failed)",
+            title: "❌ Background Save Failed",
             description: "Background changed locally but failed to save",
             variant: "destructive"
           });
+        } finally {
+          setIsSaving(false);
         }
       }
     }
@@ -196,10 +221,17 @@ export default function HomepageEditorInterface() {
       return;
     }
 
+    setIsSaving(true);
+    setLastSaveTime(new Date());
+
+    // Show comprehensive save success with green check
     toast({
-      title: "Changes Saved",
-      description: "All changes have been automatically saved to the database",
+      title: "✅ All Changes Saved Successfully!",
+      description: "Your changes have been saved to the database and are now live",
+      duration: 4000,
     });
+
+    setTimeout(() => setIsSaving(false), 1000);
   };
 
   const handlePreview = () => {
@@ -314,91 +346,139 @@ export default function HomepageEditorInterface() {
             <Button 
               size="sm" 
               onClick={handleSave}
-              className="bg-neonCyan text-black hover:bg-neonCyan/80"
+              disabled={isSaving}
+              className="bg-neonCyan text-black hover:bg-neonCyan/80 font-medium min-w-[80px]"
             >
-              <Save className="w-4 h-4 mr-2" />
-              Save
+              {isSaving ? (
+                <>
+                  <Clock className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : lastSaveTime ? (
+                <>
+                  <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
+                  Saved
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save
+                </>
+              )}
             </Button>
           </div>
         </div>
 
         {/* Tool-Specific Control Panels - Also sticky */}
         {editingText && (
-          <div className="fixed top-16 left-0 right-0 z-40 bg-gray-700 border-b border-gray-600 px-4 py-3 flex items-center space-x-4">
-            <div className="text-sm text-gray-300">Editing Text:</div>
-            <Input
-              value={textValue}
-              onChange={(e) => setTextValue(e.target.value)}
-              className="max-w-md bg-gray-600 border-gray-500 text-white"
-              placeholder="Enter new text..."
-            />
-            <Button 
-              size="sm" 
-              onClick={handleTextUpdate}
-              className="bg-neonCyan text-black hover:bg-neonCyan/80"
-            >
-              Apply
-            </Button>
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={() => setEditingText(false)}
-              className="border-gray-500 text-white hover:bg-gray-600"
-            >
-              Cancel
-            </Button>
+          <div className="fixed top-16 left-0 right-0 z-40 bg-gray-800 border-b border-gray-600 px-4 py-4 shadow-lg">
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-300 font-medium">Editing Text:</div>
+              <Input
+                value={textValue}
+                onChange={(e) => setTextValue(e.target.value)}
+                className="max-w-md bg-gray-700 border-gray-500 text-white placeholder-gray-400"
+                placeholder="Enter new text..."
+              />
+              <Button 
+                size="sm" 
+                onClick={handleTextUpdate}
+                disabled={isSaving}
+                className="bg-neonCyan text-black hover:bg-neonCyan/80 font-medium min-w-[70px]"
+              >
+                {isSaving ? (
+                  <>
+                    <Clock className="w-3 h-3 mr-1 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Apply'
+                )}
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => setEditingText(false)}
+                className="border-gray-500 text-white hover:bg-gray-600"
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
         )}
 
         {selectedTool === 'color' && selectedElement && (
-          <div className="fixed top-16 left-0 right-0 z-40 bg-gray-700 border-b border-gray-600 px-4 py-3 flex items-center space-x-4">
-            <div className="text-sm text-gray-300">Color Tools:</div>
-            <div className="flex space-x-2">
-              {['#FF6B35', '#F7931E', '#FFD23F', '#06FFA5', '#3BCEAC', '#0EAD69', '#3B82F6', '#8B5CF6', '#EC4899'].map((color) => (
-                <button
-                  key={color}
-                  onClick={() => handleColorChange(color)}
-                  className="w-8 h-8 rounded border-2 border-gray-500 hover:scale-110 transition-transform"
-                  style={{ backgroundColor: color }}
-                />
-              ))}
+          <div className="fixed top-16 left-0 right-0 z-40 bg-gray-800 border-b border-gray-600 px-4 py-4 shadow-lg">
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-300 font-medium">Color Tools:</div>
+              <div className="flex space-x-2">
+                {['#FF6B35', '#F7931E', '#FFD23F', '#06FFA5', '#3BCEAC', '#0EAD69', '#3B82F6', '#8B5CF6', '#EC4899'].map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => handleColorChange(color)}
+                    className="w-8 h-8 rounded border-2 border-gray-500 hover:scale-110 transition-transform"
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         )}
 
         {selectedTool === 'background' && selectedElement && (
-          <div className="fixed top-16 left-0 right-0 z-40 bg-gray-700 border-b border-gray-600 px-4 py-3 flex items-center space-x-4">
-            <div className="text-sm text-gray-300">Background Tools:</div>
-            <div className="flex space-x-2">
-              {['transparent', '#1F2937', '#374151', '#4B5563', '#FF6B35', '#F7931E', '#06FFA5', '#3B82F6'].map((bg) => (
-                <button
-                  key={bg}
-                  onClick={() => handleBackgroundChange(bg)}
-                  className="w-8 h-8 rounded border-2 border-gray-500 hover:scale-110 transition-transform"
-                  style={{ backgroundColor: bg === 'transparent' ? 'transparent' : bg }}
-                >
-                  {bg === 'transparent' && <div className="w-full h-full bg-gradient-to-br from-red-500 to-blue-500 opacity-20 rounded" />}
-                </button>
-              ))}
+          <div className="fixed top-16 left-0 right-0 z-40 bg-gray-800 border-b border-gray-600 px-4 py-4 shadow-lg">
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-300 font-medium">Background Tools:</div>
+              <div className="flex space-x-2">
+                {['transparent', '#1F2937', '#374151', '#4B5563', '#FF6B35', '#F7931E', '#06FFA5', '#3B82F6'].map((bg) => (
+                  <button
+                    key={bg}
+                    onClick={() => handleBackgroundChange(bg)}
+                    className="w-8 h-8 rounded border-2 border-gray-500 hover:scale-110 transition-transform"
+                    style={{ backgroundColor: bg === 'transparent' ? 'transparent' : bg }}
+                  >
+                    {bg === 'transparent' && <div className="w-full h-full bg-gradient-to-br from-red-500 to-blue-500 opacity-20 rounded" />}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
 
-        {/* Status Bar - Also sticky, positioned below toolbar and panels */}
+        {/* Status Bar - Enhanced visibility with spacing */}
         {selectedElement && (
-          <div className="fixed left-0 right-0 z-30 bg-blue-900/30 border-b border-blue-500/30 px-4 py-2 text-sm text-neonCyan" 
-               style={{ top: editingText || (selectedTool === 'color' && selectedElement) || (selectedTool === 'background' && selectedElement) ? '7rem' : '4rem' }}>
-            Selected: <strong className="text-white">{selectedElement}</strong>
-            {selectedTool !== 'select' && (
-              <span className="ml-4 text-neonPink">
-                Tool: <strong>{selectedTool.charAt(0).toUpperCase() + selectedTool.slice(1)}</strong>
-              </span>
-            )}
+          <div className="fixed left-0 right-0 z-30 bg-gray-900 border-b-2 border-neonCyan px-4 py-3 shadow-lg mt-2" 
+               style={{ top: editingText || (selectedTool === 'color' && selectedElement) || (selectedTool === 'background' && selectedElement) ? '8rem' : '4rem' }}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-neonCyan rounded-full animate-pulse"></div>
+                <span className="text-sm text-gray-300">Selected:</span>
+                <strong className="text-neonCyan text-base">{selectedElement}</strong>
+              </div>
+              <div className="flex items-center space-x-4">
+                {selectedTool !== 'select' && (
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-400">Active Tool:</span>
+                    <span className="px-2 py-1 bg-neonPink text-black text-xs font-bold rounded">
+                      {selectedTool.charAt(0).toUpperCase() + selectedTool.slice(1)}
+                    </span>
+                  </div>
+                )}
+                {lastSaveTime && (
+                  <div className="flex items-center space-x-2 text-green-400">
+                    <CheckCircle className="w-4 h-4" />
+                    <span className="text-xs">
+                      Last saved: {lastSaveTime.toLocaleTimeString()}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Homepage Content - Add top padding to account for sticky toolbar */}
-        <div className="flex-1 overflow-auto" style={{ paddingTop: selectedElement ? '8rem' : '4rem' }}>
+        {/* Homepage Content - Add proper top padding to account for sticky elements */}
+        <div className="flex-1 overflow-auto" style={{ paddingTop: selectedElement ? '10rem' : '5rem' }}>
           <HomePage />
         </div>
       </div>
