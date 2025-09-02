@@ -2,9 +2,12 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useHeaderLogo } from '@/hooks/useHeaderLogo';
 
 // Clean static version of Header component for editor - uses DIV instead of HEADER tag
 export default function StaticHeaderForEditor() {
+  const { logoUrl } = useHeaderLogo();
+  
   return (
     <div className="w-full">
       {/* Main Header - Using DIV instead of HEADER tag to fix rendering issue */}
@@ -17,7 +20,7 @@ export default function StaticHeaderForEditor() {
               <div className="bg-black rounded-lg p-2 sm:p-3">
                 <Image
                   data-editable="header-logo"
-                  src="/images/new-logo.png"
+                  src={logoUrl}
                   alt="Robert's Little Latte Lane Café & Deli"
                   width={120}
                   height={120}

@@ -243,8 +243,11 @@ export async function uploadImage(formData: FormData) {
   const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
 
   try {
+    // Determine bucket based on folder
+    const bucket = folder === 'logos' || folder === 'icons' ? 'menu-images' : 'menu-images';
+    
     const { error } = await supabase.storage
-      .from('menu-images')
+      .from(bucket)
       .upload(fileName, file);
 
     if (error) {
@@ -253,7 +256,7 @@ export async function uploadImage(formData: FormData) {
 
     // Get public URL
     const { data: urlData } = supabase.storage
-      .from('menu-images')
+      .from(bucket)
       .getPublicUrl(fileName);
 
     return { 

@@ -15,9 +15,11 @@ import {
   DialogOverlay,
 } from '@/components/ui/dialog';
 import LoginForm from '@/components/LoginForm';
+import { useHeaderLogo } from '@/hooks/useHeaderLogo';
 
 export default function Header() {
   const { user, profile, signOut } = useAuth();
+  const { logoUrl, isLoading: logoLoading } = useHeaderLogo();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -67,7 +69,7 @@ export default function Header() {
             <div className="bg-black rounded-lg p-2 sm:p-3">
               <Image
                 data-editable="header-logo"
-                src="/images/new-logo.png"
+                src={logoUrl}
                 alt="Robert's Little Latte Lane Café & Deli"
                 width={120}
                 height={120}
