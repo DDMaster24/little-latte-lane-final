@@ -66,7 +66,6 @@ export default function UniversalPageEditor({
   
   // Preview/Save state - NEW
   const [pendingChanges, setPendingChanges] = useState<Map<string, any>>(new Map());
-  const [isPreviewMode, setIsPreviewMode] = useState(false);
   
   // Modal states
   const [showAdvancedColorPicker, setShowAdvancedColorPicker] = useState(false);
@@ -166,7 +165,6 @@ export default function UniversalPageEditor({
         })));
         
         setEditingText(false);
-        setIsPreviewMode(true);
         
         toast({
           title: "📝 Text Preview Applied",
@@ -198,8 +196,6 @@ export default function UniversalPageEditor({
           originalValue: element.getAttribute('data-original-font-size')
         })));
         
-        setIsPreviewMode(true);
-        
         toast({
           title: "📏 Font Size Preview Applied",
           description: "Click 'Save Changes' to make it permanent",
@@ -230,8 +226,6 @@ export default function UniversalPageEditor({
           property: 'color',
           originalValue: element.getAttribute('data-original-color')
         })));
-        
-        setIsPreviewMode(true);
         
         toast({
           title: "🎨 Color Preview Applied",
@@ -419,8 +413,6 @@ export default function UniversalPageEditor({
           originalValue: originalValue
         })));
         
-        setIsPreviewMode(true);
-        
         toast({
           title: "🖼️ Image Preview Applied",
           description: "Click 'Save Changes' to make it permanent",
@@ -441,7 +433,6 @@ export default function UniversalPageEditor({
       return;
     }
     
-    setIsPreviewMode(true);
     toast({
       title: "🔍 Preview Mode Active",
       description: `${pendingChanges.size} changes are being previewed`,
@@ -489,7 +480,6 @@ export default function UniversalPageEditor({
       
       // Clear pending changes
       setPendingChanges(new Map());
-      setIsPreviewMode(false);
       setLastSaveTime(new Date());
       
       toast({
@@ -544,7 +534,6 @@ export default function UniversalPageEditor({
     
     // Clear pending changes
     setPendingChanges(new Map());
-    setIsPreviewMode(false);
     
     toast({
       title: "🔄 Changes Discarded",

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChromePicker, SketchPicker } from 'react-color';
+import { SketchPicker } from 'react-color';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

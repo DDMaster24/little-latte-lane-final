@@ -15,7 +15,6 @@ import {
   MousePointer, 
   Type, 
   Palette, 
-  Image as ImageIcon,
   CheckCircle,
   Clock,
   Pipette,
