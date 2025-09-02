@@ -263,8 +263,41 @@ export default function AdminPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm text-gray-300">Image Upload & Management</span>
+                  <span className="text-sm text-gray-300">Enhanced Image Upload</span>
                 </div>
+              </div>
+            </div>
+
+            {/* Enhanced Image Demo */}
+            <div className="mt-8 bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-xl p-6 border border-orange-500/20">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-2">🖼️ Enhanced Image Upload Demo</h3>
+                  <p className="text-gray-300 text-sm">
+                    Test the new drag & drop image system with live preview and transform controls
+                  </p>
+                  <div className="flex items-center gap-4 mt-3">
+                    <div className="flex items-center gap-1">
+                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                      <span className="text-xs text-gray-400">Drag & Drop</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                      <span className="text-xs text-gray-400">Live Preview</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                      <span className="text-xs text-gray-400">Transform Controls</span>
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => router.push('/admin/image-demo')}
+                  className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold"
+                >
+                  Try Demo
+                  <span className="ml-2 text-xs bg-white/20 px-2 py-1 rounded">NEW</span>
+                </Button>
               </div>
             </div>
           </div>

@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import AdvancedColorPicker from './AdvancedColorPicker';
 import GradientPicker from './GradientPicker';
-import ImageUploader from './ImageUploader';
+import EnhancedImageEditor from './EnhancedImageEditor';
 
 // Tool definitions for universal editor
 type EditorTool = 'select' | 'text' | 'color' | 'image';
@@ -71,7 +71,7 @@ export default function UniversalPageEditor({
   // Modal states
   const [showAdvancedColorPicker, setShowAdvancedColorPicker] = useState(false);
   const [showGradientPicker, setShowGradientPicker] = useState(false);
-  const [showImageUploader, setShowImageUploader] = useState(false);
+  const [showEnhancedImageEditor, setShowEnhancedImageEditor] = useState(false);
 
   // Initialize editor on mount
   useEffect(() => {
@@ -130,7 +130,7 @@ export default function UniversalPageEditor({
     // Reset modal states when switching tools
     setShowAdvancedColorPicker(false);
     setShowGradientPicker(false);
-    setShowImageUploader(false);
+    setShowEnhancedImageEditor(false);
     
     // Auto-select first sub-tool for multi-option tools
     if (tool === 'color') {
@@ -935,11 +935,11 @@ export default function UniversalPageEditor({
             <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-300 font-medium">Image Tools:</div>
               <Button
-                onClick={() => setShowImageUploader(true)}
+                onClick={() => setShowEnhancedImageEditor(true)}
                 className="bg-neonCyan text-black hover:bg-neonCyan/80"
               >
                 <Upload className="w-4 h-4 mr-2" />
-                Upload Image
+                Edit Image
               </Button>
             </div>
           </div>
@@ -1029,14 +1029,32 @@ export default function UniversalPageEditor({
           </div>
         )}
 
-        {showImageUploader && (
+        {showEnhancedImageEditor && (
           <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
-            <ImageUploader
+            <EnhancedImageEditor
+              currentImageUrl={(() => {
+                if (selectedElement) {
+                  const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
+                  if (element) {
+                    if (element.tagName === 'IMG') {
+                      return (element as HTMLImageElement).src;
+                    } else {
+                      // Extract URL from background-image
+                      const bgImage = element.style.backgroundImage;
+                      const match = bgImage.match(/url\(['"]?([^'")]+)['"]?\)/);
+                      return match ? match[1] : '';
+                    }
+                  }
+                }
+                return '';
+              })()}
+              elementId={selectedElement || undefined}
+              elementType={selectedElement?.includes('icon') ? 'icon' : selectedElement?.includes('background') ? 'background' : 'image'}
               onImageChange={(imageUrl: string) => {
                 handleImageChange(imageUrl);
-                setShowImageUploader(false);
+                setShowEnhancedImageEditor(false);
               }}
-              onClose={() => setShowImageUploader(false)}
+              onClose={() => setShowEnhancedImageEditor(false)}
             />
           </div>
         )}
