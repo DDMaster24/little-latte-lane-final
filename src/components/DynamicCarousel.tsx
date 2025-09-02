@@ -221,7 +221,7 @@ export default function DynamicCarousel({ panels = [], className = '' }: Dynamic
   };
 
   // Render panel content based on configuration
-  const renderPanelContent = (config: PanelConfig, isCenterCard: boolean) => {
+  const renderPanelContent = (config: PanelConfig, _isCenterCard: boolean) => {
     const components = [];
 
     // Render icon if enabled

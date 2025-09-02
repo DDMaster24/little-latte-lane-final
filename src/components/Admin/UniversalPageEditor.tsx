@@ -8,6 +8,14 @@ import { useToast } from '@/hooks/use-toast';
 import { usePageEditor } from '@/hooks/usePageEditor';
 import { useAuth } from '@/components/AuthProvider';
 import EditorLayout from '@/components/Admin/EditorLayout';
+
+interface PendingChange {
+  type: 'text' | 'font-size' | 'color' | 'background' | 'image';
+  value: string;
+  originalValue?: string;
+  elementId?: string;
+  property?: string;
+}
 import { 
   ArrowLeft, 
   Eye, 
@@ -65,7 +73,7 @@ export default function UniversalPageEditor({
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   
   // Preview/Save state - NEW
-  const [pendingChanges, setPendingChanges] = useState<Map<string, any>>(new Map());
+  const [pendingChanges, setPendingChanges] = useState<Map<string, PendingChange>>(new Map());
   
   // Modal states
   const [showAdvancedColorPicker, setShowAdvancedColorPicker] = useState(false);
@@ -161,7 +169,7 @@ export default function UniversalPageEditor({
         setPendingChanges(prev => new Map(prev.set(selectedElement, {
           type: 'text',
           value: textValue,
-          originalValue: element.getAttribute('data-original-text') || element.textContent
+          originalValue: element.getAttribute('data-original-text') || element.textContent || undefined
         })));
         
         setEditingText(false);
@@ -193,7 +201,7 @@ export default function UniversalPageEditor({
           type: 'font-size',
           value: size,
           elementId: selectedElement,
-          originalValue: element.getAttribute('data-original-font-size')
+          originalValue: element.getAttribute('data-original-font-size') || undefined
         })));
         
         toast({
@@ -224,7 +232,7 @@ export default function UniversalPageEditor({
           value: color,
           elementId: selectedElement,
           property: 'color',
-          originalValue: element.getAttribute('data-original-color')
+          originalValue: element.getAttribute('data-original-color') || undefined
         })));
         
         toast({
@@ -388,14 +396,14 @@ export default function UniversalPageEditor({
         // Store original value if not already stored
         let originalValue = '';
         if (element.tagName === 'IMG') {
-          originalValue = element.getAttribute('data-original-src') || (element as HTMLImageElement).src;
+          originalValue = element.getAttribute('data-original-src') || (element as HTMLImageElement).src || '';
           if (!element.getAttribute('data-original-src')) {
             element.setAttribute('data-original-src', (element as HTMLImageElement).src);
           }
           // Update DOM immediately for preview
           (element as HTMLImageElement).src = imageUrl;
         } else {
-          originalValue = element.getAttribute('data-original-bg-image') || element.style.backgroundImage;
+          originalValue = element.getAttribute('data-original-bg-image') || element.style.backgroundImage || '';
           if (!element.getAttribute('data-original-bg-image')) {
             element.setAttribute('data-original-bg-image', element.style.backgroundImage || 'none');
           }
@@ -410,7 +418,7 @@ export default function UniversalPageEditor({
           type: 'image',
           value: imageUrl,
           elementId: selectedElement,
-          originalValue: originalValue
+          originalValue: originalValue || undefined
         })));
         
         toast({

@@ -56,10 +56,10 @@ export default function PaymentSuccessPage() {
 
             {/* Next Steps */}
             <div className="bg-neonPink/10 border border-neonPink/30 rounded-lg p-4">
-              <h3 className="text-white font-semibold mb-2">What's Next?</h3>
+              <h3 className="text-white font-semibold mb-2">What&apos;s Next?</h3>
               <div className="text-gray-300 text-sm space-y-1">
-                <p>• You'll receive an email confirmation shortly</p>
-                <p>• We'll notify you when your order is ready</p>
+                <p>• You&apos;ll receive an email confirmation shortly</p>
+                <p>• We&apos;ll notify you when your order is ready</p>
                 <p>• Estimated preparation time: 15-20 minutes</p>
               </div>
             </div>

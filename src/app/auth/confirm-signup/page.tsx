@@ -43,7 +43,7 @@ export default function ConfirmSignupPage() {
             
             <div className="bg-gray-700/50 border border-neonCyan/30 rounded-lg p-4 mb-6">
               <p className="text-gray-300 text-sm leading-relaxed">
-                We've sent a <strong className="text-neonCyan">gorgeous welcome email</strong> to:
+                We&apos;ve sent a <strong className="text-neonCyan">gorgeous welcome email</strong> to:
               </p>
               {email && (
                 <p className="text-white font-semibold mt-2 break-all">
@@ -75,7 +75,7 @@ export default function ConfirmSignupPage() {
 
             <div className="mt-8 pt-6 border-t border-gray-600">
               <p className="text-xs text-gray-500 leading-relaxed">
-                <strong>Didn't get the email?</strong><br/>
+                <strong>Didn&apos;t get the email?</strong><br/>
                 Check your spam folder or contact us at{' '}
                 <span className="text-neonPink">support@littlelattelane.co.za</span>
               </p>

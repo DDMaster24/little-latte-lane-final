@@ -109,7 +109,7 @@ export default function StyleLoader({ pageScope, className }: StyleLoaderProps) 
         }
       }
     });
-  }, [pageSettings, isLoading]);
+  }, [pageSettings, isLoading, className]);
 
   return null; // This component doesn't render anything
 }

@@ -1,6 +1,6 @@
 export interface PanelComponent {
   enabled: boolean;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface PanelConfig {

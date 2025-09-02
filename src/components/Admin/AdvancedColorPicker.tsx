@@ -32,7 +32,7 @@ export default function AdvancedColorPicker({ color, onChange, onClose }: Advanc
     '#8B5CF6', '#EC4899', '#F97316', '#22C55E'
   ];
 
-  const handleColorChange = (colorResult: any) => {
+  const handleColorChange = (colorResult: { hex: string }) => {
     const newColor = colorResult.hex;
     setCurrentColor(newColor);
     setHexInput(newColor);

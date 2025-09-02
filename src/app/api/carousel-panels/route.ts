@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-server';
+import type { Json } from '@/types/supabase';
 
 // GET: Fetch all carousel panels
 export async function GET() {
@@ -107,7 +108,12 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const updateData: any = { updated_at: new Date().toISOString() };
+    const updateData: { 
+      updated_at: string; 
+      config?: Json; 
+      is_active?: boolean; 
+      panel_order?: number; 
+    } = { updated_at: new Date().toISOString() };
     
     if (config !== undefined) updateData.config = config;
     if (is_active !== undefined) updateData.is_active = is_active;

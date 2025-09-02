@@ -51,7 +51,13 @@ export async function POST(request: NextRequest) {
 /**
  * Handle new user signup
  */
-async function handleUserSignup(user: any) {
+async function handleUserSignup(user: { 
+  id: string; 
+  email: string; 
+  confirmation_url?: string; 
+  confirmation_token?: string;
+  user_metadata?: { full_name?: string };
+}) {
   try {
     console.log('🎉 Processing new user signup:', user.email);
 
@@ -87,7 +93,13 @@ async function handleUserSignup(user: any) {
 /**
  * Handle password reset request
  */
-async function handlePasswordReset(user: any) {
+async function handlePasswordReset(user: { 
+  id: string; 
+  email: string; 
+  recovery_url?: string; 
+  recovery_token?: string;
+  user_metadata?: { full_name?: string };
+}) {
   try {
     console.log('🔐 Processing password reset for:', user.email);
 
@@ -123,7 +135,11 @@ async function handlePasswordReset(user: any) {
 /**
  * Handle email change request
  */
-async function handleEmailChange(user: any) {
+async function handleEmailChange(user: { 
+  id: string; 
+  email: string; 
+  user_metadata?: { full_name?: string };
+}) {
   try {
     console.log('📧 Processing email change for:', user.email);
     

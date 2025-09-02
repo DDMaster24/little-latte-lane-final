@@ -37,6 +37,46 @@ Use centralized query classes in `src/lib/queries/`:
 - **Helper functions**: `public.is_staff_or_admin()` for RLS policies
 - **Critical**: Never query auth.users directly - always use profiles table
 
+## 🚨 CRITICAL: DEVELOPMENT METHODOLOGY - MANDATORY
+
+### **🎯 SYSTEMATIC APPROACH ONLY - NO BAND-AID FIXES**
+
+**MANDATORY DEVELOPMENT RULES:**
+1. **COMPLETE ANALYSIS FIRST** - Always run full diagnostics before making changes
+2. **WAIT FOR COMPLETION** - Never interrupt build/test processes to try "quick fixes"
+3. **ONE SYSTEMATIC FIX** - Address root cause, not symptoms
+4. **VERIFY PROPERLY** - Wait for commands to complete before declaring success
+5. **NO SCATTERED APPROACHES** - Use the most direct method, not multiple attempts
+
+**FORBIDDEN APPROACHES:**
+- ❌ Band-aid fixes while diagnostics are still running
+- ❌ Multiple different approaches when one systematic fix is needed
+- ❌ Declaring success before processes complete
+- ❌ Quick workarounds instead of proper solutions
+
+### **🖥️ WINDOWS POWERSHELL SYNTAX - MANDATORY**
+
+**CRITICAL TERMINAL COMMAND RULES:**
+1. **NEVER USE `&&` SYNTAX** - This is bash/Linux syntax that fails in PowerShell
+2. **USE SEMICOLON `;` FOR COMMAND CHAINING** - PowerShell standard
+3. **USE POWERSHELL CMDLETS** - `Get-Content`, `Remove-Item`, etc.
+4. **LEARN ONCE, APPLY ALWAYS** - Don't repeat the same syntax errors
+
+**CORRECT POWERSHELL SYNTAX:**
+```powershell
+# ✅ CORRECT - Use semicolon
+npm run build; npm run lint
+
+# ✅ CORRECT - PowerShell cmdlets
+Get-Content file.txt
+Remove-Item file.txt -Force
+
+# ❌ WRONG - Never use && in PowerShell
+npm run build && npm run lint
+```
+
+**THIS RULE MUST BE FOLLOWED ON FIRST ATTEMPT - NO LEARNING EACH TIME**
+
 ## 🚨 CRITICAL: ZERO CODE DRIFT PROTOCOL - MANDATORY
 
 ### **🛡️ ANTI-REGRESSION RULES (ADDED DUE TO REPEATED ISSUES)**

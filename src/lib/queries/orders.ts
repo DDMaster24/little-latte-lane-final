@@ -6,7 +6,7 @@
 import type { Database } from '@/types/supabase';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { getSupabaseServer, getSupabaseAdmin } from '@/lib/supabase-server';
-import { updateOrderStatusSimple } from '@/lib/orderStatusNotifications';
+import { updateOrderStatusSimple, type SimpleOrderStatus } from '@/lib/orderStatusNotifications';
 
 type Tables = Database['public']['Tables'];
 type OrderRow = Tables['orders']['Row'];
@@ -231,7 +231,7 @@ export class ServerOrderQueries {
     // Use the simplified notification system for status updates
     const success = await updateOrderStatusSimple(
       orderId,
-      status as any,
+      status as SimpleOrderStatus,
       additionalData
     );
 
