@@ -3,7 +3,7 @@
 import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import UniversalPageEditor from '@/components/Admin/UniversalPageEditor';
+import EnhancedUniversalPageEditor from '@/components/Admin/EnhancedUniversalPageEditor';
 import AccountPage from '@/app/account/page';
 import StyleLoader from '@/components/StyleLoader';
 
@@ -30,13 +30,12 @@ export default function AccountEditorPage() {
       {/* Load existing styles for account page */}
       <StyleLoader pageScope="account" />
       
-      <UniversalPageEditor
+      <EnhancedUniversalPageEditor
         pageScope="account"
-        pageName="Account"
-        enabledTools={['select', 'text', 'color']}
+        pageName="Account Page"
       >
         <AccountPage />
-      </UniversalPageEditor>
+      </EnhancedUniversalPageEditor>
     </>
   );
 }

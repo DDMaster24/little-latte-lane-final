@@ -3,7 +3,7 @@
 import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import UniversalPageEditor from '@/components/Admin/UniversalPageEditor';
+import EnhancedUniversalPageEditor from '@/components/Admin/EnhancedUniversalPageEditor';
 import MenuPage from '@/app/menu/page';
 import StyleLoader from '@/components/StyleLoader';
 
@@ -30,13 +30,12 @@ export default function MenuEditorPage() {
       {/* Load existing styles for menu page */}
       <StyleLoader pageScope="menu" />
       
-      <UniversalPageEditor
+      <EnhancedUniversalPageEditor
         pageScope="menu"
-        pageName="Menu"
-        enabledTools={['select', 'text', 'color', 'image']}
+        pageName="Menu Page"
       >
         <MenuPage />
-      </UniversalPageEditor>
+      </EnhancedUniversalPageEditor>
     </>
   );
 }

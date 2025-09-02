@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import UniversalPageEditor from '@/components/Admin/UniversalPageEditor';
+import EnhancedUniversalPageEditor from '@/components/Admin/EnhancedUniversalPageEditor';
 import ImagePlaceholder, { LogoPlaceholder, BackgroundImagePlaceholder } from '@/components/Admin/ImagePlaceholder';
 
 /**
@@ -10,10 +10,9 @@ import ImagePlaceholder, { LogoPlaceholder, BackgroundImagePlaceholder } from '@
  */
 export default function ImageUploadDemoPage() {
   return (
-    <UniversalPageEditor
+    <EnhancedUniversalPageEditor
       pageScope="image-demo"
       pageName="Enhanced Image Upload Demo"
-      enabledTools={['select', 'image']}
     >
       <div className="min-h-screen bg-gray-900 text-white">
         {/* Hero Section with Background Image */}
@@ -190,6 +189,6 @@ export default function ImageUploadDemoPage() {
           </div>
         </footer>
       </div>
-    </UniversalPageEditor>
+    </EnhancedUniversalPageEditor>
   );
 }

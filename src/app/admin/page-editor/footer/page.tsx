@@ -4,7 +4,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Link from 'next/link';
-import UniversalPageEditor from '@/components/Admin/UniversalPageEditor';
+import EnhancedUniversalPageEditor from '@/components/Admin/EnhancedUniversalPageEditor';
 import StyleLoader from '@/components/StyleLoader';
 
 // Create a demo footer component for editing
@@ -214,10 +214,9 @@ export default function FooterEditorPage() {
       {/* Load existing styles for footer */}
       <StyleLoader pageScope="footer" />
       
-      <UniversalPageEditor
+      <EnhancedUniversalPageEditor
         pageScope="footer"
-        pageName="Footer"
-        enabledTools={['select', 'text', 'color']}
+        pageName="Footer Component"
       >
         <div className="bg-darkBg min-h-screen">
           {/* Preview Information */}
@@ -252,7 +251,7 @@ export default function FooterEditorPage() {
 
           <EditableFooter />
         </div>
-      </UniversalPageEditor>
+      </EnhancedUniversalPageEditor>
     </>
   );
 }
