@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { EditorModeProvider } from '@/contexts/EditorModeContext';
 
 interface EditorLayoutProps {
@@ -8,20 +9,76 @@ interface EditorLayoutProps {
 }
 
 export default function EditorLayout({ children }: EditorLayoutProps) {
+  const pathname = usePathname();
+
   // Clean setup - add necessary body classes
   useEffect(() => {
+    console.log('🎨 EditorLayout: Activating editor mode...');
     document.body.classList.add('editor-active', 'editor-mode');
     
+    // Add global event listener for safe navigation restoration
+    const handleRouteChange = () => {
+      console.log('🔄 EditorLayout: Route change detected, checking if still in editor...');
+      if (!window.location.pathname.includes('/admin/page-editor/')) {
+        console.log('🚫 EditorLayout: No longer in page editor, restoring navigation...');
+        restoreNavigation();
+      }
+    };
+
+    // Listen for route changes
+    window.addEventListener('popstate', handleRouteChange);
+    
+    // Cleanup function that ALWAYS runs when leaving editor
     return () => {
-      document.body.classList.remove('editor-active', 'editor-mode');
+      console.log('🔧 EditorLayout: Cleanup triggered, restoring navigation...');
+      restoreNavigation();
+      window.removeEventListener('popstate', handleRouteChange);
     };
   }, []);
+
+  // Additional safety check for route changes within React
+  useEffect(() => {
+    // If we're no longer on a page editor route, restore navigation
+    if (!pathname.includes('/admin/page-editor/')) {
+      console.log('🔄 EditorLayout: Pathname changed, no longer in editor, restoring navigation...');
+      restoreNavigation();
+    }
+  }, [pathname]);
+
+  // Robust navigation restoration function
+  const restoreNavigation = () => {
+    try {
+      console.log('🔄 Restoring navigation: Removing editor classes...');
+      document.body.classList.remove('editor-active', 'editor-mode');
+      
+      // Additional safety: remove any lingering editor styles
+      const editorStyles = document.querySelectorAll('style[data-editor-styles]');
+      editorStyles.forEach(style => style.remove());
+      
+      // Force visibility of navigation elements
+      const navElements = document.querySelectorAll('header, footer, nav[role="navigation"]');
+      navElements.forEach(element => {
+        const htmlElement = element as HTMLElement;
+        htmlElement.style.display = '';
+        htmlElement.style.visibility = '';
+      });
+      
+      console.log('✅ Navigation restored successfully!');
+    } catch (error) {
+      console.error('❌ Error restoring navigation:', error);
+      // Force page reload as last resort if restoration fails
+      console.log('🔄 Force reloading page to restore navigation...');
+      window.location.reload();
+    }
+  };
 
   return (
     <EditorModeProvider isEditorMode={true}>
       <div className="min-h-screen">
         {/* MINIMAL editor styles with targeted white background fixes */}
-        <style dangerouslySetInnerHTML={{
+        <style 
+          data-editor-styles 
+          dangerouslySetInnerHTML={{
           __html: `
             /* Hide navigation in editor mode only */
             body.editor-active header,
