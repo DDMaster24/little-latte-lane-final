@@ -98,6 +98,15 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
     const tagName = element.tagName.toLowerCase();
     const classList = Array.from(element.classList);
 
+    // Header Background
+    if (elementId === 'header-background' || tagName === 'header') {
+      return {
+        type: 'header-text',
+        allowedTools: ['color'],
+        description: 'Header Background - Main header background color'
+      };
+    }
+
     // Logo
     if (elementId.includes('header-logo') || elementId.includes('logo')) {
       return {

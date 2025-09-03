@@ -60,7 +60,10 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-darkBg text-neonText py-3 xs:py-4 shadow-neon relative z-40">
+    <header 
+      data-editable="header-background"
+      className="bg-darkBg text-neonText py-3 xs:py-4 shadow-neon relative z-40"
+    >
       <div className="container-full flex items-center justify-between">
         
         {/* Left Section - Modern Logo */}

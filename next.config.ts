@@ -67,28 +67,24 @@ const nextConfig = {
   // Webpack optimization to handle large strings better and reduce warnings
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   webpack: (config: any, _context: any) => {
-    // Optimize caching strategy to reduce large string serialization
+    // Suppress cache warnings specifically
+    config.ignoreWarnings = [
+      /Failed to collect dependencies/,
+      /Can't resolve.*next\.config\.compiled\.js/,
+      /webpack\.cache\.PackFileCacheStrategy/,
+      /Caching failed for pack/,
+    ];
+    
+    // Reduce memory usage for builds
     if (config.cache && typeof config.cache === 'object') {
-      config.cache.compression = 'gzip';
       config.cache.maxMemoryGenerations = 1;
-      // Use filesystem cache with better optimization
-      config.cache.type = 'filesystem';
-      config.cache.buildDependencies = {
-        config: [__filename],
-      };
+      config.cache.compression = 'gzip';
     }
     
     // Optimize module resolution
     config.resolve.symlinks = false;
     
-    // Optimize for large modules
-    config.optimization = {
-      ...config.optimization,
-      moduleIds: 'deterministic',
-      chunkIds: 'deterministic',
-    };
-    
-    // Reduce webpack logging in development
+    // Reduce webpack logging verbosity
     if (process.env.NODE_ENV === 'development') {
       config.infrastructureLogging = {
         level: 'error',
