@@ -276,6 +276,39 @@ export default function AdminPage() {
                 </Button>
               </div>
             </div>
+
+            {/* Debug Save Functionality */}
+            <div className="mt-8 bg-gradient-to-r from-red-500/10 to-yellow-500/10 rounded-xl p-6 border border-red-500/20">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-2">🔧 Debug Save Functionality</h3>
+                  <p className="text-gray-300 text-sm">
+                    Test database connection and troubleshoot "Save Changes" button issues
+                  </p>
+                  <div className="flex items-center gap-4 mt-3">
+                    <div className="flex items-center gap-1">
+                      <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                      <span className="text-xs text-gray-400">Database Test</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                      <span className="text-xs text-gray-400">Save Test</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                      <span className="text-xs text-gray-400">Debug Logs</span>
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => router.push('/admin/debug-save')}
+                  className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white font-semibold"
+                >
+                  Debug Save
+                  <span className="ml-2 text-xs bg-white/20 px-2 py-1 rounded">DEBUG</span>
+                </Button>
+              </div>
+            </div>
           </div>
         );
       case 'qrcode':

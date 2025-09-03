@@ -213,10 +213,162 @@ export async function deleteMenuItem(id: string) {
 }
 
 /**
- * Upload an image to Supabase Storage
- * @param formData FormData containing file and folder
- * @returns { success: boolean, data?: { url: string, path: string }, message?: string }
+ * Save or update a theme setting (for page editor functionality)
+ * @param setting Theme setting data
+ * @returns { success: boolean, data?: any, message?: string }
  */
+export async function saveThemeSetting(setting: {
+  setting_key: string;
+  setting_value: string;
+  category?: string;
+  page_scope?: string;
+  created_by?: string;
+}) {
+  console.log('🔍 DEBUG: saveThemeSetting called with:', setting);
+  
+  const supabase = getSupabaseAdmin();
+  
+  try {
+    // Check if setting already exists
+    const { data: existing, error: selectError } = await supabase
+      .from('theme_settings')
+      .select('id')
+      .eq('setting_key', setting.setting_key)
+      .eq('page_scope', setting.page_scope || '')
+      .eq('category', setting.category || '')
+      .single();
+
+    console.log('🔍 DEBUG: Existing setting check:', { existing, selectError });
+
+    if (selectError && selectError.code !== 'PGRST116') { // PGRST116 = not found
+      console.log('🔍 DEBUG: Select error (not "not found"):', selectError);
+      return { success: false, message: `Database query error: ${selectError.message}` };
+    }
+
+    let result;
+    if (existing) {
+      console.log('🔍 DEBUG: Updating existing setting with ID:', existing.id);
+      // Update existing record
+      result = await supabase
+        .from('theme_settings')
+        .update({
+          setting_value: setting.setting_value,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existing.id)
+        .select()
+        .single();
+    } else {
+      console.log('🔍 DEBUG: Creating new setting');
+      // Insert new record
+      result = await supabase
+        .from('theme_settings')
+        .insert([{
+          ...setting,
+          updated_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
+    }
+
+    console.log('🔍 DEBUG: Save operation result:', result);
+
+    if (result.error) {
+      console.log('🔍 DEBUG: Save operation error:', result.error);
+      return { success: false, message: `Save failed: ${result.error.message}` };
+    }
+
+    if (!result.data) {
+      console.log('🔍 DEBUG: No data returned from save operation');
+      return { success: false, message: 'No data returned from save operation' };
+    }
+
+    console.log('🔍 DEBUG: Save successful:', result.data);
+    return { success: true, data: result.data };
+
+  } catch (error) {
+    console.log('🔍 DEBUG: Catch block error:', error);
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Unknown error occurred' 
+    };
+  }
+}
+
+/**
+ * Test database connection and theme_settings table
+ * @returns { success: boolean, message?: string, details?: any }
+ */
+export async function testDatabaseConnection() {
+  console.log('🔍 DEBUG: Testing database connection');
+  
+  const supabase = getSupabaseAdmin();
+  
+  try {
+    // Test basic connection
+    const { data: connectionTest, error: connectionError } = await supabase
+      .from('theme_settings')
+      .select('id')
+      .limit(1);
+
+    if (connectionError) {
+      console.log('🔍 DEBUG: Connection test failed:', connectionError);
+      return { 
+        success: false, 
+        message: `Database connection failed: ${connectionError.message}`,
+        details: { error: connectionError }
+      };
+    }
+
+    // Test write access with a dummy setting
+    const testSetting = {
+      setting_key: 'connection_test_' + Date.now(),
+      setting_value: 'test',
+      category: 'test',
+      page_scope: 'test'
+    };
+
+    const { data: writeTest, error: writeError } = await supabase
+      .from('theme_settings')
+      .insert([testSetting])
+      .select()
+      .single();
+
+    if (writeError) {
+      console.log('🔍 DEBUG: Write test failed:', writeError);
+      return {
+        success: false,
+        message: `Write access failed: ${writeError.message}`,
+        details: { error: writeError }
+      };
+    }
+
+    // Clean up test setting
+    await supabase
+      .from('theme_settings')
+      .delete()
+      .eq('id', writeTest.id);
+
+    console.log('🔍 DEBUG: Database test successful');
+    return { 
+      success: true, 
+      message: 'Database connection and write access confirmed',
+      details: { 
+        readAccess: true, 
+        writeAccess: true,
+        recordCount: connectionTest?.length || 0
+      }
+    };
+
+  } catch (error) {
+    console.log('🔍 DEBUG: Database test catch error:', error);
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Unknown database error',
+      details: { error }
+    };
+  }
+}
 export async function uploadImage(formData: FormData) {
   const supabase = getSupabaseAdmin();
   
@@ -243,10 +395,25 @@ export async function uploadImage(formData: FormData) {
     return { success: false, message: `Invalid file type "${fileType}". Please upload PNG, JPG, JPEG, GIF, or WebP images.` };
   }
 
-  // Validate file size (5MB max)
-  if (file.size > 5 * 1024 * 1024) {
+  // Validate file size with more detailed feedback
+  const fileSizeKB = Math.round(file.size / 1024);
+  const fileSizeMB = Math.round((file.size / 1024 / 1024) * 100) / 100;
+  
+  console.log('🔍 DEBUG: File size details', { 
+    bytes: file.size, 
+    kilobytes: fileSizeKB, 
+    megabytes: fileSizeMB 
+  });
+  
+  // Increase limit to 10MB to handle larger images
+  if (file.size > 10 * 1024 * 1024) {
     console.log('🔍 DEBUG: File too large', file.size);
-    return { success: false, message: `File too large (${Math.round(file.size / 1024 / 1024)}MB). Maximum size is 5MB.` };
+    return { success: false, message: `File too large (${fileSizeMB}MB). Maximum size is 10MB.` };
+  }
+  
+  // Warn for large files but allow them
+  if (file.size > 2 * 1024 * 1024) {
+    console.log('🔍 DEBUG: Large file detected', `${fileSizeMB}MB - processing may take longer`);
   }
 
   // Validate file is not corrupted (has actual content)

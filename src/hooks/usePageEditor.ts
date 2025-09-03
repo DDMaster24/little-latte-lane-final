@@ -89,65 +89,52 @@ export function usePageEditor(pageScope: string, adminUserId?: string): UsePageE
   const savePageSetting = useCallback(async (setting: Omit<ThemeSettingInsert, 'id' | 'created_at' | 'updated_at'>) => {
     if (!isAdmin) throw new Error('Admin access required');
 
-    // First, try to find existing setting
-    const { data: existing } = await supabase
-      .from('theme_settings')
-      .select('id')
-      .eq('setting_key', setting.setting_key)
-      .eq('page_scope', setting.page_scope || '')
-      .eq('category', setting.category || '')
-      .single();
+    console.log('🔍 DEBUG: usePageEditor savePageSetting called with:', setting);
 
-    let data;
-    let error;
+    try {
+      // Use server action for better error handling and debugging
+      const { saveThemeSetting } = await import('@/app/admin/actions');
+      const result = await saveThemeSetting({
+        setting_key: setting.setting_key,
+        setting_value: setting.setting_value,
+        category: setting.category || '',
+        page_scope: setting.page_scope || '',
+        created_by: setting.created_by || ''
+      });
 
-    if (existing) {
-      // Update existing record
-      const result = await supabase
-        .from('theme_settings')
-        .update({
-          setting_value: setting.setting_value,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', existing.id)
-        .select()
-        .single();
-      
-      data = result.data;
-      error = result.error;
-    } else {
-      // Insert new record
-      const result = await supabase
-        .from('theme_settings')
-        .insert([{
-          ...setting,
-          updated_at: new Date().toISOString()
-        }])
-        .select()
-        .single();
-      
-      data = result.data;
-      error = result.error;
-    }
+      console.log('🔍 DEBUG: Server action result:', result);
 
-    if (error) throw error;
-    if (!data) throw new Error('No data returned from save operation');
-
-    // Update local state
-    setPageSettings(prev => {
-      const existingIndex = prev.findIndex(s => 
-        s.setting_key === setting.setting_key && 
-        s.page_scope === setting.page_scope && 
-        s.category === setting.category
-      );
-      
-      if (existingIndex >= 0) {
-        return prev.map((s, i) => i === existingIndex ? data : s);
-      } else {
-        return [data, ...prev];
+      if (!result.success) {
+        throw new Error(result.message || 'Save operation failed');
       }
-    });
-  }, [supabase, isAdmin]);
+
+      const data = result.data;
+      if (!data) {
+        throw new Error('No data returned from save operation');
+      }
+
+      // Update local state
+      setPageSettings(prev => {
+        const existingIndex = prev.findIndex(s => 
+          s.setting_key === setting.setting_key && 
+          s.page_scope === setting.page_scope && 
+          s.category === setting.category
+        );
+        
+        if (existingIndex >= 0) {
+          return prev.map((s, i) => i === existingIndex ? data : s);
+        } else {
+          return [data, ...prev];
+        }
+      });
+
+      console.log('✅ savePageSetting completed successfully');
+
+    } catch (error) {
+      console.error('❌ savePageSetting failed:', error);
+      throw error;
+    }
+  }, [isAdmin]);
 
   // Get element setting
   const getElementSetting = useCallback((elementId: string): ThemeSetting | undefined => {

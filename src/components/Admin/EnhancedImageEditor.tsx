@@ -33,6 +33,13 @@ interface ImageTransform {
   y: number;
   width: number;
   height: number;
+  cropX: number;
+  cropY: number;
+  cropWidth: number;
+  cropHeight: number;
+  brightness: number;
+  contrast: number;
+  saturation: number;
 }
 
 export default function EnhancedImageEditor({ 
@@ -56,7 +63,14 @@ export default function EnhancedImageEditor({
     x: 0,
     y: 0,
     width: 100,
-    height: 100
+    height: 100,
+    cropX: 0,
+    cropY: 0,
+    cropWidth: 100,
+    cropHeight: 100,
+    brightness: 100,
+    contrast: 100,
+    saturation: 100,
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -199,7 +213,14 @@ export default function EnhancedImageEditor({
       x: 0,
       y: 0,
       width: 100,
-      height: 100
+      height: 100,
+      cropX: 0,
+      cropY: 0,
+      cropWidth: 100,
+      cropHeight: 100,
+      brightness: 100,
+      contrast: 100,
+      saturation: 100,
     });
   };
 
@@ -459,17 +480,41 @@ export default function EnhancedImageEditor({
                   style={{
                     transform: `scale(${transform.scale}) rotate(${transform.rotation}deg) translate(${transform.x}px, ${transform.y}px)`,
                     width: `${transform.width}%`,
-                    height: `${transform.height}%`
+                    height: `${transform.height}%`,
+                    filter: `brightness(${transform.brightness}%) contrast(${transform.contrast}%) saturate(${transform.saturation}%)`
                   }}
                 >
-                  <Image
-                    ref={imageRef}
-                    src={preview}
-                    alt="Preview"
-                    fill
-                    className="object-contain"
-                    onError={() => setPreview('')}
-                  />
+                  <div
+                    className="relative overflow-hidden"
+                    style={{
+                      clipPath: transform.cropWidth < 100 || transform.cropHeight < 100 
+                        ? `inset(${transform.cropY}% ${100 - transform.cropX - transform.cropWidth}% ${100 - transform.cropY - transform.cropHeight}% ${transform.cropX}%)`
+                        : 'none'
+                    }}
+                  >
+                    <Image
+                      ref={imageRef}
+                      src={preview}
+                      alt="Preview"
+                      fill
+                      className="object-contain"
+                      onError={() => setPreview('')}
+                    />
+                    {/* Crop overlay indicators */}
+                    {(transform.cropWidth < 100 || transform.cropHeight < 100) && (
+                      <div className="absolute inset-0 pointer-events-none">
+                        <div 
+                          className="absolute border-2 border-neonCyan border-dashed opacity-50"
+                          style={{
+                            left: `${transform.cropX}%`,
+                            top: `${transform.cropY}%`,
+                            width: `${transform.cropWidth}%`,
+                            height: `${transform.cropHeight}%`
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               )
             ) : (
@@ -483,62 +528,226 @@ export default function EnhancedImageEditor({
 
           {/* Edit Controls */}
           {isEditing && preview && !isEmoji(preview) && (
-            <div className="mt-4 space-y-3 border-t border-gray-600 pt-4">
-              <div className="grid grid-cols-2 gap-4">
-                {/* Scale */}
-                <div className="space-y-2">
-                  <Label className="text-gray-300 text-sm">Scale</Label>
-                  <Slider
-                    value={[transform.scale]}
-                    onValueChange={([value]) => updateTransform('scale', value)}
-                    min={0.1}
-                    max={3}
-                    step={0.1}
-                    className="w-full"
-                  />
-                  <div className="text-xs text-gray-400">{transform.scale.toFixed(1)}x</div>
-                </div>
+            <div className="mt-4 space-y-4 border-t border-gray-600 pt-4">
+              {/* Transform Controls */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-neonCyan">Transform</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Scale */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-300 text-sm">Scale</Label>
+                    <Slider
+                      value={[transform.scale]}
+                      onValueChange={([value]) => updateTransform('scale', value)}
+                      min={0.1}
+                      max={3}
+                      step={0.1}
+                      className="w-full"
+                    />
+                    <div className="text-xs text-gray-400">{transform.scale.toFixed(1)}x</div>
+                  </div>
 
-                {/* Rotation */}
-                <div className="space-y-2">
-                  <Label className="text-gray-300 text-sm">Rotation</Label>
-                  <Slider
-                    value={[transform.rotation]}
-                    onValueChange={([value]) => updateTransform('rotation', value)}
-                    min={0}
-                    max={360}
-                    step={15}
-                    className="w-full"
-                  />
-                  <div className="text-xs text-gray-400">{transform.rotation}°</div>
-                </div>
+                  {/* Rotation */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-300 text-sm">Rotation</Label>
+                    <Slider
+                      value={[transform.rotation]}
+                      onValueChange={([value]) => updateTransform('rotation', value)}
+                      min={0}
+                      max={360}
+                      step={15}
+                      className="w-full"
+                    />
+                    <div className="text-xs text-gray-400">{transform.rotation}°</div>
+                  </div>
 
-                {/* X Position */}
-                <div className="space-y-2">
-                  <Label className="text-gray-300 text-sm">Position X</Label>
-                  <Slider
-                    value={[transform.x]}
-                    onValueChange={([value]) => updateTransform('x', value)}
-                    min={-100}
-                    max={100}
-                    step={5}
-                    className="w-full"
-                  />
-                  <div className="text-xs text-gray-400">{transform.x}px</div>
-                </div>
+                  {/* X Position */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-300 text-sm">Position X</Label>
+                    <Slider
+                      value={[transform.x]}
+                      onValueChange={([value]) => updateTransform('x', value)}
+                      min={-100}
+                      max={100}
+                      step={5}
+                      className="w-full"
+                    />
+                    <div className="text-xs text-gray-400">{transform.x}px</div>
+                  </div>
 
-                {/* Y Position */}
-                <div className="space-y-2">
-                  <Label className="text-gray-300 text-sm">Position Y</Label>
-                  <Slider
-                    value={[transform.y]}
-                    onValueChange={([value]) => updateTransform('y', value)}
-                    min={-100}
-                    max={100}
-                    step={5}
-                    className="w-full"
-                  />
-                  <div className="text-xs text-gray-400">{transform.y}px</div>
+                  {/* Y Position */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-300 text-sm">Position Y</Label>
+                    <Slider
+                      value={[transform.y]}
+                      onValueChange={([value]) => updateTransform('y', value)}
+                      min={-100}
+                      max={100}
+                      step={5}
+                      className="w-full"
+                    />
+                    <div className="text-xs text-gray-400">{transform.y}px</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Crop Controls */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-neonPink">Crop</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Crop X */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-300 text-sm">Crop X</Label>
+                    <Slider
+                      value={[transform.cropX]}
+                      onValueChange={([value]) => updateTransform('cropX', value)}
+                      min={0}
+                      max={100}
+                      step={1}
+                      className="w-full"
+                    />
+                    <div className="text-xs text-gray-400">{transform.cropX}%</div>
+                  </div>
+
+                  {/* Crop Y */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-300 text-sm">Crop Y</Label>
+                    <Slider
+                      value={[transform.cropY]}
+                      onValueChange={([value]) => updateTransform('cropY', value)}
+                      min={0}
+                      max={100}
+                      step={1}
+                      className="w-full"
+                    />
+                    <div className="text-xs text-gray-400">{transform.cropY}%</div>
+                  </div>
+
+                  {/* Crop Width */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-300 text-sm">Crop Width</Label>
+                    <Slider
+                      value={[transform.cropWidth]}
+                      onValueChange={([value]) => updateTransform('cropWidth', value)}
+                      min={10}
+                      max={100}
+                      step={1}
+                      className="w-full"
+                    />
+                    <div className="text-xs text-gray-400">{transform.cropWidth}%</div>
+                  </div>
+
+                  {/* Crop Height */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-300 text-sm">Crop Height</Label>
+                    <Slider
+                      value={[transform.cropHeight]}
+                      onValueChange={([value]) => updateTransform('cropHeight', value)}
+                      min={10}
+                      max={100}
+                      step={1}
+                      className="w-full"
+                    />
+                    <div className="text-xs text-gray-400">{transform.cropHeight}%</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Color Adjustments */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-orange-400">Color Adjustments</h4>
+                <div className="grid grid-cols-1 gap-4">
+                  {/* Brightness */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-300 text-sm">Brightness</Label>
+                    <Slider
+                      value={[transform.brightness]}
+                      onValueChange={([value]) => updateTransform('brightness', value)}
+                      min={50}
+                      max={150}
+                      step={5}
+                      className="w-full"
+                    />
+                    <div className="text-xs text-gray-400">{transform.brightness}%</div>
+                  </div>
+
+                  {/* Contrast */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-300 text-sm">Contrast</Label>
+                    <Slider
+                      value={[transform.contrast]}
+                      onValueChange={([value]) => updateTransform('contrast', value)}
+                      min={50}
+                      max={150}
+                      step={5}
+                      className="w-full"
+                    />
+                    <div className="text-xs text-gray-400">{transform.contrast}%</div>
+                  </div>
+
+                  {/* Saturation */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-300 text-sm">Saturation</Label>
+                    <Slider
+                      value={[transform.saturation]}
+                      onValueChange={([value]) => updateTransform('saturation', value)}
+                      min={0}
+                      max={200}
+                      step={10}
+                      className="w-full"
+                    />
+                    <div className="text-xs text-gray-400">{transform.saturation}%</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-green-400">Quick Actions</h4>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => updateTransform('rotation', (transform.rotation + 90) % 360)}
+                    className="border-gray-500 text-gray-300 hover:bg-gray-700"
+                  >
+                    Rotate 90°
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      updateTransform('scale', transform.scale === 1 ? 1.5 : 1);
+                    }}
+                    className="border-gray-500 text-gray-300 hover:bg-gray-700"
+                  >
+                    {transform.scale === 1 ? 'Zoom In' : 'Zoom Out'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      updateTransform('cropX', 10);
+                      updateTransform('cropY', 10);
+                      updateTransform('cropWidth', 80);
+                      updateTransform('cropHeight', 80);
+                    }}
+                    className="border-gray-500 text-gray-300 hover:bg-gray-700"
+                  >
+                    Center Crop
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={resetTransform}
+                    className="border-gray-500 text-gray-300"
+                  >
+                    Reset
+                  </Button>
                 </div>
               </div>
             </div>
