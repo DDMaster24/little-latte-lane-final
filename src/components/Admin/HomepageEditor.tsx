@@ -1057,10 +1057,10 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
           )}
 
           {/* Color Editing Panel - Auto-visible when color tool is active */}
-          {/* Enhanced Color Editor with Gradient Support - HeaderEditor Style Floating Panel */}
+          {/* Enhanced Color Editor with Gradient Support - Compact Floating Panel */}
           {selectedTool === 'color' && selectedElement && (
-            <div className="fixed top-32 left-4 z-[100001] bg-gray-900 border border-gray-700 rounded-lg shadow-2xl p-4 max-w-4xl">
-              <div className="flex items-center justify-between mb-4">
+            <div className="fixed top-32 left-4 z-[100001] bg-gray-900 border border-gray-700 rounded-lg shadow-2xl p-3 max-w-6xl max-h-[calc(100vh-140px)] overflow-y-auto">
+              <div className="flex items-center justify-between mb-3">
                 <div className="text-sm text-gray-300 font-medium">Color Tools</div>
                 <Button
                   data-editor-action="true"
@@ -1073,74 +1073,71 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
                 </Button>
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {/* Color Mode Toggle */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium text-gray-300">Color Mode:</span>
-                    <Button
-                      data-editor-action="true"
-                      onClick={() => setColorMode('text')}
-                      variant={colorMode === 'text' ? 'default' : 'outline'}
-                      size="sm"
-                      className={
-                        colorMode === 'text'
-                          ? 'border-2 border-neonCyan shadow-[0_0_8px_2px_#00FFFF55] text-white'
-                          : 'border border-gray-500 text-gray-300'
-                      }
-                    >
-                      Text Color
-                    </Button>
-                    <Button
-                      data-editor-action="true"
-                      onClick={() => setColorMode('background')}
-                      variant={colorMode === 'background' ? 'default' : 'outline'}
-                      size="sm"
-                      className={
-                        colorMode === 'background'
-                          ? 'border-2 border-neonPink shadow-[0_0_8px_2px_#FF00FF55] text-white'
-                          : 'border border-gray-500 text-gray-300'
-                      }
-                    >
-                      Background
-                    </Button>
-                  </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs font-medium text-gray-300">Mode:</span>
+                  <Button
+                    data-editor-action="true"
+                    onClick={() => setColorMode('text')}
+                    variant={colorMode === 'text' ? 'default' : 'outline'}
+                    size="sm"
+                    className={
+                      colorMode === 'text'
+                        ? 'border-2 border-neonCyan shadow-[0_0_8px_2px_#00FFFF55] text-white text-xs px-3 py-1'
+                        : 'border border-gray-500 text-gray-300 text-xs px-3 py-1'
+                    }
+                  >
+                    Text
+                  </Button>
+                  <Button
+                    data-editor-action="true"
+                    onClick={() => setColorMode('background')}
+                    variant={colorMode === 'background' ? 'default' : 'outline'}
+                    size="sm"
+                    className={
+                      colorMode === 'background'
+                        ? 'border-2 border-neonPink shadow-[0_0_8px_2px_#FF00FF55] text-white text-xs px-3 py-1'
+                        : 'border border-gray-500 text-gray-300 text-xs px-3 py-1'
+                    }
+                  >
+                    Background
+                  </Button>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Color Picker Section */}
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-medium text-gray-300">Color Picker</h3>
+                <div className="grid grid-cols-4 gap-4">
+                  {/* Color Picker Section - Compact */}
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-medium text-gray-300">Color Picker</h3>
                     <HexColorPicker
                       color={selectedColor}
                       onChange={setSelectedColor}
-                      style={{ width: '100%', height: '200px' }}
+                      style={{ width: '100%', height: '120px' }}
                     />
-                    <div className="flex items-center space-x-2 mt-3">
-                      <span className="text-xs text-gray-400">Hex:</span>
+                    <div className="flex items-center space-x-1">
                       <Input
                         value={selectedColor}
                         onChange={(e) => setSelectedColor(e.target.value)}
                         placeholder="#ffffff"
-                        className="flex-1 bg-gray-700 border-gray-600 text-white font-mono text-sm"
+                        className="flex-1 bg-gray-700 border-gray-600 text-white font-mono text-xs h-6"
                       />
                       <div 
-                        className="w-12 h-8 rounded border border-gray-600"
+                        className="w-6 h-6 rounded border border-gray-600"
                         style={{ backgroundColor: selectedColor }}
                       ></div>
                     </div>
                   </div>
 
-                  {/* Theme Colors Section */}
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-medium text-gray-300">Website Theme Colors</h3>
-                    <div className="grid grid-cols-4 gap-2">
+                  {/* Theme Colors Section - Compact */}
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-medium text-gray-300">Theme Colors</h3>
+                    <div className="grid grid-cols-3 gap-1">
                       {THEME_COLORS.map((color) => (
                         <button
                           key={color}
                           data-editor-action="true"
                           onClick={() => setSelectedColor(color)}
-                          className="w-12 h-12 rounded border-2 border-gray-600 hover:border-white transition-colors"
+                          className="w-7 h-7 rounded border border-gray-600 hover:border-white transition-colors"
                           style={{ backgroundColor: color }}
                           title={color}
                         />
@@ -1148,96 +1145,111 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
                     </div>
                   </div>
 
-                  {/* Gradient Editor - Always Visible */}
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-medium text-gray-300">Gradient Editor</h3>
-                    {/* Gradient Color 1 */}
-                    <div>
-                      <label className="text-xs text-gray-400 mb-2 block">Start Color</label>
-                      <HexColorPicker
-                        color={gradientColor1}
-                        onChange={setGradientColor1}
-                        style={{ width: '100%', height: '120px' }}
-                      />
-                      <Input
-                        value={gradientColor1}
-                        onChange={(e) => setGradientColor1(e.target.value)}
-                        className="mt-2 bg-gray-700 border-gray-600 text-white font-mono text-sm"
-                      />
-                    </div>
-                    {/* Gradient Color 2 */}
-                    <div>
-                      <label className="text-xs text-gray-400 mb-2 block">End Color</label>
-                      <HexColorPicker
-                        color={gradientColor2}
-                        onChange={setGradientColor2}
-                        style={{ width: '100%', height: '120px' }}
-                      />
-                      <Input
-                        value={gradientColor2}
-                        onChange={(e) => setGradientColor2(e.target.value)}
-                        className="mt-2 bg-gray-700 border-gray-600 text-white font-mono text-sm"
-                      />
-                    </div>
-                    {/* Gradient Direction */}
-                    <div>
-                      <label className="text-xs text-gray-400 mb-2 block">Direction</label>
-                      <select
-                        value={gradientDirection}
-                        onChange={(e) => setGradientDirection(e.target.value as typeof gradientDirection)}
-                        className="w-full bg-gray-700 border-gray-600 text-white text-sm rounded px-3 py-2"
-                      >
-                        <option value="to right">Left to Right</option>
-                        <option value="to left">Right to Left</option>
-                        <option value="to bottom">Top to Bottom</option>
-                        <option value="to top">Bottom to Top</option>
-                        <option value="45deg">Diagonal ↗</option>
-                        <option value="135deg">Diagonal ↘</option>
-                      </select>
-                    </div>
-                    {/* Gradient Presets */}
-                    <div className="space-y-2">
+                  {/* Gradient Start Color */}
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-medium text-gray-300">Gradient Start</h3>
+                    <HexColorPicker
+                      color={gradientColor1}
+                      onChange={setGradientColor1}
+                      style={{ width: '100%', height: '120px' }}
+                    />
+                    <Input
+                      value={gradientColor1}
+                      onChange={(e) => setGradientColor1(e.target.value)}
+                      className="bg-gray-700 border-gray-600 text-white font-mono text-xs h-6"
+                    />
+                  </div>
+
+                  {/* Gradient End Color */}
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-medium text-gray-300">Gradient End</h3>
+                    <HexColorPicker
+                      color={gradientColor2}
+                      onChange={setGradientColor2}
+                      style={{ width: '100%', height: '120px' }}
+                    />
+                    <Input
+                      value={gradientColor2}
+                      onChange={(e) => setGradientColor2(e.target.value)}
+                      className="bg-gray-700 border-gray-600 text-white font-mono text-xs h-6"
+                    />
+                  </div>
+                </div>
+
+                {/* Gradient Controls */}
+                <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-700">
+                  {/* Direction */}
+                  <div>
+                    <label className="text-xs text-gray-400 mb-1 block">Direction</label>
+                    <select
+                      value={gradientDirection}
+                      onChange={(e) => setGradientDirection(e.target.value as typeof gradientDirection)}
+                      className="w-full bg-gray-700 border-gray-600 text-white text-xs rounded px-2 py-1 h-6"
+                    >
+                      <option value="to right">Left to Right</option>
+                      <option value="to left">Right to Left</option>
+                      <option value="to bottom">Top to Bottom</option>
+                      <option value="to top">Bottom to Top</option>
+                      <option value="45deg">Diagonal ↗</option>
+                      <option value="135deg">Diagonal ↘</option>
+                    </select>
+                  </div>
+
+                  {/* Gradient Presets */}
+                  <div>
+                    <label className="text-xs text-gray-400 mb-1 block">Presets</label>
+                    <div className="grid grid-cols-2 gap-1">
                       {GRADIENT_PRESETS.map((preset) => (
                         <button
                           key={preset.name}
                           data-editor-action="true"
                           onClick={() => handleGradientPreset(preset.value)}
-                          className="w-full h-8 rounded border border-gray-600 hover:border-white transition-colors text-left px-3 text-xs text-white"
+                          className="h-5 rounded border border-gray-600 hover:border-white transition-colors text-xs text-white overflow-hidden"
                           style={{ background: preset.value }}
+                          title={preset.name}
                         >
-                          {preset.name}
+                          {preset.name.split(' ')[0]}
                         </button>
                       ))}
-                    </div>
-                    {/* Gradient Apply/Clear Buttons */}
-                    <div className="flex space-x-2 pt-2">
-                      <Button
-                        data-editor-action="true"
-                        onClick={handleColorApply}
-                        disabled={isSaving}
-                        className="bg-green-600 hover:bg-green-700 text-white px-8"
-                      >
-                        {isSaving ? (
-                          <RefreshCw className="w-4 h-4 animate-spin mr-2" />
-                        ) : (
-                          <Paintbrush className="w-4 h-4 mr-2" />
-                        )}
-                        Apply Gradient to {colorMode === 'text' ? 'Text' : 'Background'}
-                      </Button>
-                      <Button
-                        data-editor-action="true"
-                        onClick={handleClearGradient}
-                        variant="destructive"
-                        size="sm"
-                      >
-                        <X className="w-4 h-4" />
-                        Clear Gradient
-                      </Button>
                     </div>
                   </div>
                 </div>
 
-                {/* No separate apply button needed, handled above */}
+                {/* Action Buttons - Compact */}
+                <div className="flex justify-center space-x-2 pt-2 border-t border-gray-700">
+                  <Button
+                    data-editor-action="true"
+                    onClick={handleColorApply}
+                    disabled={isSaving}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs"
+                    size="sm"
+                  >
+                    {isSaving ? (
+                      <RefreshCw className="w-3 h-3 animate-spin mr-1" />
+                    ) : (
+                      <Paintbrush className="w-3 h-3 mr-1" />
+                    )}
+                    Apply Color
+                  </Button>
+                  <Button
+                    data-editor-action="true"
+                    onClick={handleColorApply}
+                    disabled={isSaving}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 text-xs"
+                    size="sm"
+                  >
+                    Apply Gradient
+                  </Button>
+                  <Button
+                    data-editor-action="true"
+                    onClick={handleClearGradient}
+                    variant="destructive"
+                    size="sm"
+                    className="px-2 py-1 text-xs"
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
               </div>
             </div>
           )}
