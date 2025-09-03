@@ -17,8 +17,35 @@ import {
   Save,
   X,
   AlertTriangle,
-  Upload
+  Upload,
+  RefreshCw,
+  Paintbrush
 } from 'lucide-react';
+
+// Theme colors from tailwind.config.js
+const THEME_COLORS = [
+  '#00FFFF', // neonCyan
+  '#FF00FF', // neonPink  
+  '#1A1A1A', // darkBg
+  '#7DD3FC', // neonCyan-200
+  '#F8BBD9', // neonPink-200
+  '#0D9488', // teal-600
+  '#7C3AED', // violet-600
+  '#DC2626', // red-600
+  '#EA580C', // orange-600
+  '#CA8A04', // yellow-600
+  '#16A34A', // green-600
+  '#2563EB'  // blue-600
+];
+
+const GRADIENT_PRESETS = [
+  { name: 'Neon Cyan', value: 'linear-gradient(45deg, #00FFFF, #7DD3FC)' },
+  { name: 'Neon Pink', value: 'linear-gradient(45deg, #FF00FF, #F8BBD9)' },
+  { name: 'Cyber Blue', value: 'linear-gradient(135deg, #0D9488, #2563EB)' },
+  { name: 'Retro Purple', value: 'linear-gradient(45deg, #7C3AED, #FF00FF)' },
+  { name: 'Sunset Orange', value: 'linear-gradient(135deg, #EA580C, #CA8A04)' },
+  { name: 'Matrix Green', value: 'linear-gradient(45deg, #16A34A, #00FFFF)' }
+];
 
 // Footer-specific editor tool types
 type FooterEditorTool = 'text' | 'color' | 'image';
@@ -56,9 +83,12 @@ export default function FooterEditor({ children }: FooterEditorProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   
-  // Color picker state - Always visible when color tool is active
+  // Enhanced color picker state
   const [colorMode, setColorMode] = useState<'text' | 'background'>('text');
-  const [selectedColor, setSelectedColor] = useState('#ffffff');
+  const [selectedColor, setSelectedColor] = useState('#00FFFF');
+  const [gradientColor1, setGradientColor1] = useState('#00FFFF');
+  const [gradientColor2, setGradientColor2] = useState('#FF00FF');
+  const [gradientDirection, setGradientDirection] = useState<'to right' | 'to left' | 'to bottom' | 'to top' | '45deg' | '135deg'>('to right');
   
   // Image editor state
   const [showEnhancedImageEditor, setShowEnhancedImageEditor] = useState(false);

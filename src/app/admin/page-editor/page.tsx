@@ -3,7 +3,7 @@
 import { Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Home, Menu, Calendar, User, Navigation, Layout, Edit } from 'lucide-react';
+import { Home, Menu, Calendar, Navigation, Layout, Edit } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 function PageEditorSelector() {
@@ -33,14 +33,6 @@ function PageEditorSelector() {
       icon: Calendar,
       path: '/admin/page-editor/bookings',
       color: 'yellow-500'
-    },
-    {
-      id: 'account',
-      title: 'Account Page',
-      description: 'Edit user account and profile sections',
-      icon: User,
-      path: '/admin/page-editor/account',
-      color: 'green-500'
     },
     {
       id: 'header',

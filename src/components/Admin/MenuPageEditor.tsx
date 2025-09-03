@@ -20,11 +20,37 @@ import {
   Paintbrush,
   Tag,
   FileText,
-  Settings
+  Settings,
+  RefreshCw
 } from 'lucide-react';
-import { ChromePicker } from 'react-color';
+import { HexColorPicker } from 'react-colorful';
 import { usePageEditor } from '@/hooks/usePageEditor';
 import EnhancedImageEditor from './EnhancedImageEditor';
+
+// Theme colors from tailwind.config.js
+const THEME_COLORS = [
+  '#00FFFF', // neonCyan
+  '#FF00FF', // neonPink  
+  '#1A1A1A', // darkBg
+  '#7DD3FC', // neonCyan-200
+  '#F8BBD9', // neonPink-200
+  '#0D9488', // teal-600
+  '#7C3AED', // violet-600
+  '#DC2626', // red-600
+  '#EA580C', // orange-600
+  '#CA8A04', // yellow-600
+  '#16A34A', // green-600
+  '#2563EB'  // blue-600
+];
+
+const GRADIENT_PRESETS = [
+  { name: 'Neon Cyan', value: 'linear-gradient(45deg, #00FFFF, #7DD3FC)' },
+  { name: 'Neon Pink', value: 'linear-gradient(45deg, #FF00FF, #F8BBD9)' },
+  { name: 'Cyber Blue', value: 'linear-gradient(135deg, #0D9488, #2563EB)' },
+  { name: 'Retro Purple', value: 'linear-gradient(45deg, #7C3AED, #FF00FF)' },
+  { name: 'Sunset Orange', value: 'linear-gradient(135deg, #EA580C, #CA8A04)' },
+  { name: 'Matrix Green', value: 'linear-gradient(45deg, #16A34A, #00FFFF)' }
+];
 
 interface MenuPageEditorProps {
   children: React.ReactNode;
@@ -155,8 +181,17 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
   const [editableId, setEditableId] = useState('');
   const [pendingChanges, setPendingChanges] = useState<Record<string, string>>({});
   const [isPreviewMode, setIsPreviewMode] = useState(false);
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const [currentColor, setCurrentColor] = useState('#00ffff');
+  const [selectedTool, setSelectedTool] = useState<'text' | 'color' | 'image'>('text');
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Enhanced color picker state
+  const [selectedColor, setSelectedColor] = useState('#00FFFF');
+  const [gradientColor1, setGradientColor1] = useState('#00FFFF');
+  const [gradientColor2, setGradientColor2] = useState('#FF00FF');
+  const [gradientDirection, setGradientDirection] = useState<'to right' | 'to left' | 'to bottom' | 'to top' | '45deg' | '135deg'>('to right');
+  const [colorMode, setColorMode] = useState<'text' | 'background'>('text');
+  const [textValue, setTextValue] = useState('');
+  
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [activeTab, setActiveTab] = useState<'text' | 'color' | 'image'>('text');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -311,6 +346,7 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
         setEditableId(editableId);
         setEditingText(htmlElement.textContent || '');
         setOriginalText(htmlElement.textContent || '');
+        setTextValue(htmlElement.textContent || ''); // Sync textValue state
         setIsToolbarVisible(true);
         setActiveTab('text');
 
@@ -319,9 +355,9 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
         htmlElement.style.backgroundColor = 'rgba(255, 0, 128, 0.15)';
         htmlElement.style.transition = 'all 0.3s ease';
 
-        // Get current color for color picker
+        // Get current color for enhanced color picker
         const computedStyle = window.getComputedStyle(htmlElement);
-        setCurrentColor(computedStyle.color || '#00ffff');
+        setSelectedColor(computedStyle.color || '#00FFFF');
       };
 
       htmlElement.addEventListener('mouseenter', handleMouseEnter);
@@ -370,30 +406,65 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
     }
   };
 
-  // Handle saving color changes
-  const handleColorChange = async (color: { hex: string }) => {
+  // Enhanced color application function  
+  const handleColorApply = async () => {
     if (!selectedElement || !editableId) return;
 
-    const hexColor = color.hex;
-    setCurrentColor(hexColor);
-
+    setIsSaving(true);
+    
     try {
-      // Apply color immediately
-      selectedElement.style.color = hexColor;
+      const property = colorMode === 'text' ? 'color' : 'backgroundColor';
+      let newValue: string;
       
+      // Check if we're applying a gradient (only for background)
+      if (colorMode === 'background' && (gradientColor1 !== gradientColor2)) {
+        newValue = `linear-gradient(${gradientDirection}, ${gradientColor1}, ${gradientColor2})`;
+        selectedElement.style.background = newValue;
+      } else {
+        newValue = selectedColor;
+        selectedElement.style[property] = newValue;
+      }
+
       // Save to database
-      const result = await saveStyleChange(editableId, 'color', hexColor);
+      const result = await saveStyleChange(editableId, property, newValue);
       
       if (result.success) {
-        setPendingChanges(prev => ({ ...prev, [`${editableId}_color`]: hexColor }));
+        setPendingChanges(prev => ({ ...prev, [`${editableId}_${property}`]: newValue }));
         setHasUnsavedChanges(true);
-        console.log(`[MenuPageEditor] Saved color change for ${editableId}: ${hexColor}`);
+        console.log(`[MenuPageEditor] Applied ${colorMode} color: ${newValue}`);
       } else {
         console.error('[MenuPageEditor] Failed to save color change:', result.error);
       }
     } catch (error) {
-      console.error('[MenuPageEditor] Error saving color:', error);
+      console.error('[MenuPageEditor] Error applying color:', error);
+    } finally {
+      setIsSaving(false);
     }
+  };
+
+  // Clear gradient
+  const handleClearGradient = () => {
+    if (!selectedElement) return;
+    
+    selectedElement.style.background = '';
+    selectedElement.style.backgroundImage = '';
+    console.log('[MenuPageEditor] Gradient cleared');
+  };
+
+  // Apply gradient preset
+  const handleGradientPreset = (gradient: string) => {
+    if (!selectedElement) return;
+    
+    selectedElement.style.background = gradient;
+    
+    // Parse gradient to update color picker values
+    const colorMatch = gradient.match(/#[a-fA-F0-9]{6}/g);
+    if (colorMatch && colorMatch.length >= 2) {
+      setGradientColor1(colorMatch[0]);
+      setGradientColor2(colorMatch[1]);
+    }
+    
+    console.log(`[MenuPageEditor] Applied gradient preset: ${gradient}`);
   };
 
   // Handle image changes
@@ -447,7 +518,6 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
     setEditingText('');
     setOriginalText('');
     setEditableId('');
-    setShowColorPicker(false);
     setShowImageEditor(false);
   };
 
@@ -560,32 +630,171 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
               </div>
             )}
 
-            {/* Color Picker */}
+            {/* Enhanced Color Editor with Gradient Support */}
             {activeTab === 'color' && (
               <div className="space-y-3">
-                <label className="text-xs font-medium text-gray-300 uppercase tracking-wide">
-                  Element Color
-                </label>
-                <div className="space-y-3">
-                  <button
-                    onClick={() => setShowColorPicker(!showColorPicker)}
-                    className="w-full h-10 rounded-lg border-2 border-gray-600 hover:border-neonCyan/50 transition-colors flex items-center justify-center gap-2 text-sm font-medium text-white"
-                    style={{ backgroundColor: currentColor }}
+                {/* Color Mode Toggle */}
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs font-medium text-gray-300">Mode:</span>
+                  <Button
+                    onClick={() => setColorMode('text')}
+                    variant={colorMode === 'text' ? 'default' : 'outline'}
+                    size="sm"
+                    className={
+                      colorMode === 'text'
+                        ? 'border-2 border-neonCyan shadow-[0_0_8px_2px_#00FFFF55] text-white text-xs px-3 py-1'
+                        : 'border border-gray-500 text-gray-300 text-xs px-3 py-1'
+                    }
                   >
-                    <Paintbrush className="h-4 w-4" />
-                    {currentColor}
-                  </button>
-                  
-                  {showColorPicker && (
-                    <div className="border border-gray-600 rounded-lg overflow-hidden">
-                      <ChromePicker
-                        color={currentColor}
-                        onChange={handleColorChange}
-                        disableAlpha={false}
-                        className="!bg-gray-800 !shadow-none"
+                    Text
+                  </Button>
+                  <Button
+                    onClick={() => setColorMode('background')}
+                    variant={colorMode === 'background' ? 'default' : 'outline'}
+                    size="sm"
+                    className={
+                      colorMode === 'background'
+                        ? 'border-2 border-neonPink shadow-[0_0_8px_2px_#FF00FF55] text-white text-xs px-3 py-1'
+                        : 'border border-gray-500 text-gray-300 text-xs px-3 py-1'
+                    }
+                  >
+                    Background
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Color Picker Section */}
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-medium text-gray-300">Color Picker</h3>
+                    <HexColorPicker
+                      color={selectedColor}
+                      onChange={setSelectedColor}
+                      style={{ width: '100%', height: '100px' }}
+                    />
+                    <div className="flex items-center space-x-1">
+                      <Input
+                        value={selectedColor}
+                        onChange={(e) => setSelectedColor(e.target.value)}
+                        placeholder="#ffffff"
+                        className="flex-1 bg-gray-700 border-gray-600 text-white font-mono text-xs h-6"
+                      />
+                      <div 
+                        className="w-6 h-6 rounded border border-gray-600"
+                        style={{ backgroundColor: selectedColor }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Theme Colors Section */}
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-medium text-gray-300">Theme Colors</h3>
+                    <div className="grid grid-cols-3 gap-1">
+                      {THEME_COLORS.map((color) => (
+                        <button
+                          key={color}
+                          onClick={() => setSelectedColor(color)}
+                          className="w-6 h-6 rounded border border-gray-600 hover:border-white transition-colors"
+                          style={{ backgroundColor: color }}
+                          title={color}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Gradient Editor */}
+                <div className="space-y-2 pt-2 border-t border-gray-700">
+                  <h3 className="text-xs font-medium text-gray-300">Gradient Editor</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Gradient Start Color */}
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">Start</label>
+                      <HexColorPicker
+                        color={gradientColor1}
+                        onChange={setGradientColor1}
+                        style={{ width: '100%', height: '80px' }}
+                      />
+                      <Input
+                        value={gradientColor1}
+                        onChange={(e) => setGradientColor1(e.target.value)}
+                        className="mt-1 bg-gray-700 border-gray-600 text-white font-mono text-xs h-6"
                       />
                     </div>
-                  )}
+
+                    {/* Gradient End Color */}
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">End</label>
+                      <HexColorPicker
+                        color={gradientColor2}
+                        onChange={setGradientColor2}
+                        style={{ width: '100%', height: '80px' }}
+                      />
+                      <Input
+                        value={gradientColor2}
+                        onChange={(e) => setGradientColor2(e.target.value)}
+                        className="mt-1 bg-gray-700 border-gray-600 text-white font-mono text-xs h-6"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Direction & Presets */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">Direction</label>
+                      <select
+                        value={gradientDirection}
+                        onChange={(e) => setGradientDirection(e.target.value as typeof gradientDirection)}
+                        className="w-full bg-gray-700 border-gray-600 text-white text-xs rounded px-2 py-1 h-6"
+                      >
+                        <option value="to right">→</option>
+                        <option value="to left">←</option>
+                        <option value="to bottom">↓</option>
+                        <option value="to top">↑</option>
+                        <option value="45deg">↗</option>
+                        <option value="135deg">↘</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">Presets</label>
+                      <div className="grid grid-cols-2 gap-1">
+                        {GRADIENT_PRESETS.slice(0, 4).map((preset) => (
+                          <button
+                            key={preset.name}
+                            onClick={() => handleGradientPreset(preset.value)}
+                            className="h-4 rounded border border-gray-600 hover:border-white transition-colors text-xs"
+                            style={{ background: preset.value }}
+                            title={preset.name}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex justify-center space-x-2 pt-2">
+                    <Button
+                      onClick={handleColorApply}
+                      disabled={isSaving}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs"
+                      size="sm"
+                    >
+                      {isSaving ? (
+                        <RefreshCw className="w-3 h-3 animate-spin mr-1" />
+                      ) : (
+                        <Paintbrush className="w-3 h-3 mr-1" />
+                      )}
+                      Apply
+                    </Button>
+                    <Button
+                      onClick={handleClearGradient}
+                      variant="destructive"
+                      size="sm"
+                      className="px-2 py-1 text-xs"
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}

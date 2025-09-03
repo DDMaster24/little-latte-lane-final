@@ -17,8 +17,35 @@ import {
   Save,
   X,
   AlertTriangle,
-  Upload
+  Upload,
+  RefreshCw,
+  Paintbrush
 } from 'lucide-react';
+
+// Theme colors from tailwind.config.js
+const THEME_COLORS = [
+  '#00FFFF', // neonCyan
+  '#FF00FF', // neonPink  
+  '#1A1A1A', // darkBg
+  '#7DD3FC', // neonCyan-200
+  '#F8BBD9', // neonPink-200
+  '#0D9488', // teal-600
+  '#7C3AED', // violet-600
+  '#DC2626', // red-600
+  '#EA580C', // orange-600
+  '#CA8A04', // yellow-600
+  '#16A34A', // green-600
+  '#2563EB'  // blue-600
+];
+
+const GRADIENT_PRESETS = [
+  { name: 'Neon Cyan', value: 'linear-gradient(45deg, #00FFFF, #7DD3FC)' },
+  { name: 'Neon Pink', value: 'linear-gradient(45deg, #FF00FF, #F8BBD9)' },
+  { name: 'Cyber Blue', value: 'linear-gradient(135deg, #0D9488, #2563EB)' },
+  { name: 'Retro Purple', value: 'linear-gradient(45deg, #7C3AED, #FF00FF)' },
+  { name: 'Sunset Orange', value: 'linear-gradient(135deg, #EA580C, #CA8A04)' },
+  { name: 'Matrix Green', value: 'linear-gradient(45deg, #16A34A, #00FFFF)' }
+];
 
 // Header-specific editor tool types
 type HeaderEditorTool = 'text' | 'color' | 'image';
@@ -55,9 +82,12 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   
-  // Color picker state - Always visible when color tool is active
+  // Enhanced color picker state
   const [colorMode, setColorMode] = useState<'text' | 'background'>('text');
-  const [selectedColor, setSelectedColor] = useState('#ffffff');
+  const [selectedColor, setSelectedColor] = useState('#00FFFF');
+  const [gradientColor1, setGradientColor1] = useState('#00FFFF');
+  const [gradientColor2, setGradientColor2] = useState('#FF00FF');
+  const [gradientDirection, setGradientDirection] = useState<'to right' | 'to left' | 'to bottom' | 'to top' | '45deg' | '135deg'>('to right');
   
   // Image editor state
   const [showEnhancedImageEditor, setShowEnhancedImageEditor] = useState(false);
@@ -305,39 +335,88 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
     setIsSaving(false);
   };
 
-  // Color application function
+  // Enhanced color application function
   const handleColorApply = () => {
-    if (!selectedElement || !selectedColor) return;
+    if (!selectedElement) return;
     
     const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
-    if (element) {
-      const originalValue = colorMode === 'text' 
-        ? element.style.color || ''
-        : element.style.backgroundColor || '';
-      
-      // Apply preview
+    if (!element) return;
+
+    const property = colorMode === 'text' ? 'color' : 'backgroundColor';
+    const originalValue = colorMode === 'text' 
+      ? element.style.color || ''
+      : element.style.backgroundColor || '';
+    
+    let newValue: string;
+    
+    // Check if we're applying a gradient (only for background)
+    if (colorMode === 'background' && (gradientColor1 !== gradientColor2)) {
+      newValue = `linear-gradient(${gradientDirection}, ${gradientColor1}, ${gradientColor2})`;
+      element.style.background = newValue;
+    } else {
+      newValue = selectedColor;
       if (colorMode === 'text') {
-        element.style.color = selectedColor;
+        element.style.color = newValue;
       } else {
-        element.style.backgroundColor = selectedColor;
+        element.style.backgroundColor = newValue;
       }
-      
-      // Add to pending changes
-      const newPendingChanges = new Map(pendingChanges);
-      newPendingChanges.set(`${selectedElement}-${colorMode}`, {
-        type: 'color',
-        value: selectedColor,
-        originalValue,
-        elementId: selectedElement
-      });
-      setPendingChanges(newPendingChanges);
-      
-      toast({
-        title: `🎨 ${colorMode === 'text' ? 'Text' : 'Background'} Color Preview Applied`,
-        description: "Click 'Save Changes' to make it permanent",
-        duration: 3000,
-      });
     }
+
+    // Add to pending changes
+    const newPendingChanges = new Map(pendingChanges);
+    newPendingChanges.set(`${selectedElement}-${colorMode}`, {
+      type: 'color',
+      value: newValue,
+      originalValue,
+      elementId: selectedElement
+    });
+    setPendingChanges(newPendingChanges);
+
+    toast({
+      title: `🎨 ${colorMode === 'background' && (gradientColor1 !== gradientColor2) ? 'Gradient' : (colorMode === 'text' ? 'Text' : 'Background')} Color Preview Applied`,
+      description: "Click 'Save Changes' to make it permanent",
+      duration: 3000,
+    });
+  };
+
+  // Clear gradient
+  const handleClearGradient = () => {
+    if (!selectedElement) return;
+    
+    const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
+    if (!element) return;
+    
+    element.style.background = '';
+    element.style.backgroundImage = '';
+    
+    toast({
+      title: "🧹 Gradient Cleared",
+      description: "Background gradient removed",
+      duration: 1500
+    });
+  };
+
+  // Apply gradient preset
+  const handleGradientPreset = (gradient: string) => {
+    if (!selectedElement) return;
+    
+    const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
+    if (!element) return;
+    
+    element.style.background = gradient;
+    
+    // Parse gradient to update color picker values
+    const colorMatch = gradient.match(/#[a-fA-F0-9]{6}/g);
+    if (colorMatch && colorMatch.length >= 2) {
+      setGradientColor1(colorMatch[0]);
+      setGradientColor2(colorMatch[1]);
+    }
+    
+    toast({
+      title: "🎨 Gradient Preset Applied",
+      description: "Gradient preview applied",
+      duration: 1500
+    });
   };
 
   // Image change handler
@@ -830,10 +909,10 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
             </div>
           )}
 
-          {/* Color Editing Panel - FLOATING PANEL to avoid overlapping content */}
+          {/* Enhanced Color Editor with Gradient Support - Compact Floating Panel */}
           {selectedTool === 'color' && selectedElement && (
-            <div className="fixed top-32 left-4 z-[100001] bg-gray-800 border border-gray-600 rounded-lg shadow-2xl p-4 max-w-md">
-              <div className="flex items-center justify-between mb-4">
+            <div className="fixed top-32 left-4 z-[100001] bg-gray-900 border border-gray-700 rounded-lg shadow-2xl p-3 max-w-6xl max-h-[calc(100vh-140px)] overflow-y-auto">
+              <div className="flex items-center justify-between mb-3">
                 <div className="text-sm text-gray-300 font-medium">Color Tools</div>
                 <Button
                   data-editor-action="true"
@@ -846,78 +925,181 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
                 </Button>
               </div>
               
-              <div className="flex flex-col space-y-4">
+              <div className="space-y-3">
                 {/* Color Mode Toggle */}
                 <div className="flex items-center space-x-2">
+                  <span className="text-xs font-medium text-gray-300">Mode:</span>
                   <Button
                     data-editor-action="true"
+                    onClick={() => setColorMode('text')}
                     variant={colorMode === 'text' ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setColorMode('text')}
-                    className={colorMode === 'text' ? 'bg-blue-600 text-white' : 'border-gray-500 text-gray-300'}
+                    className={
+                      colorMode === 'text'
+                        ? 'border-2 border-neonCyan shadow-[0_0_8px_2px_#00FFFF55] text-white text-xs px-3 py-1'
+                        : 'border border-gray-500 text-gray-300 text-xs px-3 py-1'
+                    }
                   >
-                    Text Color
+                    Text
                   </Button>
                   <Button
                     data-editor-action="true"
+                    onClick={() => setColorMode('background')}
                     variant={colorMode === 'background' ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setColorMode('background')}
-                    className={colorMode === 'background' ? 'bg-purple-600 text-white' : 'border-gray-500 text-gray-300'}
+                    className={
+                      colorMode === 'background'
+                        ? 'border-2 border-neonPink shadow-[0_0_8px_2px_#FF00FF55] text-white text-xs px-3 py-1'
+                        : 'border border-gray-500 text-gray-300 text-xs px-3 py-1'
+                    }
                   >
-                    Background Color
+                    Background
                   </Button>
                 </div>
 
-                {/* Professional Color Picker */}
-                <div className="flex flex-col items-center space-y-3">
-                  <HexColorPicker 
-                    color={selectedColor} 
-                    onChange={setSelectedColor}
-                    style={{ width: '200px', height: '120px' }}
-                  />
-                  
-                  {/* Hex Input */}
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs text-gray-400">Hex:</span>
-                    <Input
-                      value={selectedColor}
-                      onChange={(e) => setSelectedColor(e.target.value)}
-                      placeholder="#ffffff"
-                      className="w-24 bg-gray-700 border-gray-600 text-white text-xs"
+                <div className="grid grid-cols-4 gap-4">
+                  {/* Color Picker Section - Compact */}
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-medium text-gray-300">Color Picker</h3>
+                    <HexColorPicker
+                      color={selectedColor}
+                      onChange={setSelectedColor}
+                      style={{ width: '100%', height: '120px' }}
                     />
-                    <div 
-                      className="w-6 h-6 rounded border border-gray-500"
-                      style={{ backgroundColor: selectedColor }}
-                    />
-                  </div>
-                  
-                  {/* Color Presets */}
-                  <div className="grid grid-cols-8 gap-1">
-                    {[
-                      '#ffffff', '#000000', '#ff0000', '#00ff00', 
-                      '#0000ff', '#ffff00', '#ff00ff', '#00ffff',
-                      '#888888', '#ff8800', '#8800ff', '#0088ff',
-                      '#88ff00', '#ff0088', '#00ff88', '#ff8888'
-                    ].map((color) => (
-                      <button
-                        key={color}
-                        data-editor-action="true"
-                        className="w-6 h-6 rounded border border-gray-500 hover:scale-110 transition-transform"
-                        style={{ backgroundColor: color }}
-                        onClick={() => setSelectedColor(color)}
+                    <div className="flex items-center space-x-1">
+                      <Input
+                        value={selectedColor}
+                        onChange={(e) => setSelectedColor(e.target.value)}
+                        placeholder="#ffffff"
+                        className="flex-1 bg-gray-700 border-gray-600 text-white font-mono text-xs h-6"
                       />
-                    ))}
+                      <div 
+                        className="w-6 h-6 rounded border border-gray-600"
+                        style={{ backgroundColor: selectedColor }}
+                      ></div>
+                    </div>
                   </div>
 
-                  {/* Apply Button */}
+                  {/* Theme Colors Section - Compact */}
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-medium text-gray-300">Theme Colors</h3>
+                    <div className="grid grid-cols-3 gap-1">
+                      {THEME_COLORS.map((color) => (
+                        <button
+                          key={color}
+                          data-editor-action="true"
+                          onClick={() => setSelectedColor(color)}
+                          className="w-7 h-7 rounded border border-gray-600 hover:border-white transition-colors"
+                          style={{ backgroundColor: color }}
+                          title={color}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Gradient Start Color */}
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-medium text-gray-300">Gradient Start</h3>
+                    <HexColorPicker
+                      color={gradientColor1}
+                      onChange={setGradientColor1}
+                      style={{ width: '100%', height: '120px' }}
+                    />
+                    <Input
+                      value={gradientColor1}
+                      onChange={(e) => setGradientColor1(e.target.value)}
+                      className="bg-gray-700 border-gray-600 text-white font-mono text-xs h-6"
+                    />
+                  </div>
+
+                  {/* Gradient End Color */}
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-medium text-gray-300">Gradient End</h3>
+                    <HexColorPicker
+                      color={gradientColor2}
+                      onChange={setGradientColor2}
+                      style={{ width: '100%', height: '120px' }}
+                    />
+                    <Input
+                      value={gradientColor2}
+                      onChange={(e) => setGradientColor2(e.target.value)}
+                      className="bg-gray-700 border-gray-600 text-white font-mono text-xs h-6"
+                    />
+                  </div>
+                </div>
+
+                {/* Gradient Controls */}
+                <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-700">
+                  {/* Direction */}
+                  <div>
+                    <label className="text-xs text-gray-400 mb-1 block">Direction</label>
+                    <select
+                      value={gradientDirection}
+                      onChange={(e) => setGradientDirection(e.target.value as typeof gradientDirection)}
+                      className="w-full bg-gray-700 border-gray-600 text-white text-xs rounded px-2 py-1 h-6"
+                    >
+                      <option value="to right">Left to Right</option>
+                      <option value="to left">Right to Left</option>
+                      <option value="to bottom">Top to Bottom</option>
+                      <option value="to top">Bottom to Top</option>
+                      <option value="45deg">Diagonal ↗</option>
+                      <option value="135deg">Diagonal ↘</option>
+                    </select>
+                  </div>
+
+                  {/* Gradient Presets */}
+                  <div>
+                    <label className="text-xs text-gray-400 mb-1 block">Presets</label>
+                    <div className="grid grid-cols-2 gap-1">
+                      {GRADIENT_PRESETS.map((preset) => (
+                        <button
+                          key={preset.name}
+                          data-editor-action="true"
+                          onClick={() => handleGradientPreset(preset.value)}
+                          className="h-5 rounded border border-gray-600 hover:border-white transition-colors text-xs text-white overflow-hidden"
+                          style={{ background: preset.value }}
+                          title={preset.name}
+                        >
+                          {preset.name.split(' ')[0]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons - Compact */}
+                <div className="flex justify-center space-x-2 pt-2 border-t border-gray-700">
                   <Button
                     data-editor-action="true"
                     onClick={handleColorApply}
-                    className="bg-yellow-600 hover:bg-yellow-700 text-black w-full"
+                    disabled={isSaving}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs"
+                    size="sm"
                   >
-                    <Palette className="w-4 h-4 mr-2" />
-                    Apply {colorMode === 'text' ? 'Text' : 'Background'} Color
+                    {isSaving ? (
+                      <RefreshCw className="w-3 h-3 animate-spin mr-1" />
+                    ) : (
+                      <Paintbrush className="w-3 h-3 mr-1" />
+                    )}
+                    Apply Color
+                  </Button>
+                  <Button
+                    data-editor-action="true"
+                    onClick={handleColorApply}
+                    disabled={isSaving}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 text-xs"
+                    size="sm"
+                  >
+                    Apply Gradient
+                  </Button>
+                  <Button
+                    data-editor-action="true"
+                    onClick={handleClearGradient}
+                    variant="destructive"
+                    size="sm"
+                    className="px-2 py-1 text-xs"
+                  >
+                    <X className="w-3 h-3" />
                   </Button>
                 </div>
               </div>
