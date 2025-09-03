@@ -1,41 +1,32 @@
 'use client';
 
+import { Suspense } from 'react';
+import MenuPageEditor from '@/components/Admin/MenuPageEditor';
+import { EditorModeProvider } from '@/contexts/EditorModeContext';
+import AuthRequiredPrompt from '@/components/AuthRequiredPrompt';
 import { useAuth } from '@/components/AuthProvider';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import EnhancedUniversalPageEditor from '@/components/Admin/EnhancedUniversalPageEditor';
+import { LoadingSpinner } from '@/components/LoadingComponents';
 import MenuPage from '@/app/menu/page';
-import StyleLoader from '@/components/StyleLoader';
 
 export default function MenuEditorPage() {
-  const { user } = useAuth();
-  const router = useRouter();
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    if (!user) {
-      router.push('/auth/callback');
-    }
-  }, [user, router]);
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
   if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-darkBg">
-        <div className="text-white">Loading...</div>
-      </div>
-    );
+    return <AuthRequiredPrompt />;
   }
 
   return (
-    <>
-      {/* Load existing styles for menu page */}
-      <StyleLoader pageScope="menu" />
-      
-      <EnhancedUniversalPageEditor
-        pageScope="menu"
-        pageName="Menu Page"
-      >
-        <MenuPage />
-      </EnhancedUniversalPageEditor>
-    </>
+    <EditorModeProvider isEditorMode={true}>
+      <Suspense fallback={<LoadingSpinner />}>
+        <MenuPageEditor>
+          {/* This will render the actual menu page in edit mode */}
+          <MenuPage />
+        </MenuPageEditor>
+      </Suspense>
+    </EditorModeProvider>
   );
 }

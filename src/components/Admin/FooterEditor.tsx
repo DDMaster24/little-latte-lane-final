@@ -20,16 +20,17 @@ import {
   Upload
 } from 'lucide-react';
 
-// Header-specific editor tool types
-type HeaderEditorTool = 'text' | 'color' | 'image';
-type HeaderElementType = 'nav-link' | 'auth-button' | 'logo' | 'mobile-nav' | 'header-text';
+// Footer-specific editor tool types
+type FooterEditorTool = 'text' | 'color' | 'image';
 
-interface HeaderElementConfig {
-  type: HeaderElementType;
-  allowedTools: HeaderEditorTool[];
+// Footer element configuration
+interface FooterElementConfig {
+  type: 'contact-info' | 'social-link' | 'footer-text' | 'footer-logo' | 'footer-link' | 'footer-icon';
+  allowedTools: FooterEditorTool[];
   description: string;
 }
 
+// Pending change type for footer
 interface PendingChange {
   type: 'text' | 'color' | 'image';
   value: string;
@@ -37,19 +38,19 @@ interface PendingChange {
   elementId: string;
 }
 
-interface HeaderEditorProps {
+interface FooterEditorProps {
   children: React.ReactNode;
 }
 
-export default function HeaderEditor({ children }: HeaderEditorProps) {
+export default function FooterEditor({ children }: FooterEditorProps) {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { savePageSetting } = usePageEditor('header', user?.id);
+  const { savePageSetting } = usePageEditor('footer', user?.id);
 
   // Editor state - Start with 'text' as default
-  const [selectedTool, setSelectedTool] = useState<HeaderEditorTool>('text');
+  const [selectedTool, setSelectedTool] = useState<FooterEditorTool>('text');
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
-  const [selectedElementConfig, setSelectedElementConfig] = useState<HeaderElementConfig | null>(null);
+  const [selectedElementConfig, setSelectedElementConfig] = useState<FooterElementConfig | null>(null);
   const [editingText, setEditingText] = useState(false);
   const [textValue, setTextValue] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -65,89 +66,78 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
   // Preview/Save state - NO AUTO-SAVE
   const [pendingChanges, setPendingChanges] = useState<Map<string, PendingChange>>(new Map());
 
-  // Header-specific element configuration
-  const getHeaderElementConfig = (element: HTMLElement): HeaderElementConfig => {
+  // Footer-specific element configuration
+  const getFooterElementConfig = (element: HTMLElement): FooterElementConfig => {
     const elementId = element.getAttribute('data-editable') || '';
     const tagName = element.tagName.toLowerCase();
-    const classList = Array.from(element.classList);
 
-    // Logo
-    if (elementId.includes('header-logo') || elementId.includes('logo')) {
+    // Footer Logo
+    if (elementId.includes('footer-logo') || elementId.includes('logo')) {
       return {
-        type: 'logo',
+        type: 'footer-logo',
         allowedTools: ['image'],
-        description: 'Header Logo - Company logo image'
+        description: 'Footer Logo - Company logo in footer'
       };
     }
     
-    // Navigation links (desktop)
-    if (elementId.includes('nav-link-')) {
+    // Contact Information
+    if (elementId.includes('contact-') || elementId.includes('phone') || elementId.includes('email') || elementId.includes('address')) {
       return {
-        type: 'nav-link',
+        type: 'contact-info',
         allowedTools: ['text', 'color'],
-        description: 'Navigation Link - Header menu item'
+        description: 'Contact Info - Phone, email, or address'
       };
     }
     
-    // Mobile navigation links
-    if (elementId.includes('mobile-nav-')) {
+    // Social Media Links
+    if (elementId.includes('social-') || elementId.includes('facebook') || elementId.includes('instagram') || elementId.includes('twitter')) {
       return {
-        type: 'mobile-nav',
-        allowedTools: ['text', 'color'],
-        description: 'Mobile Navigation - Mobile menu item'
+        type: 'social-link',
+        allowedTools: ['text', 'color', 'image'],
+        description: 'Social Media Link - Social platform link'
       };
     }
     
-    // Auth buttons
-    if (elementId.includes('auth-') || elementId.includes('login') || elementId.includes('logout')) {
+    // Footer Links (About, Privacy, Terms, etc.)
+    if (elementId.includes('footer-link-') || elementId.includes('privacy') || elementId.includes('terms') || elementId.includes('about')) {
       return {
-        type: 'auth-button',
+        type: 'footer-link',
         allowedTools: ['text', 'color'],
-        description: 'Auth Button - Login/logout button'
+        description: 'Footer Link - Legal or informational link'
       };
     }
     
-    // Button elements
-    if (tagName === 'button' || elementId.includes('button') || 
-        classList.some(c => c.includes('button'))) {
+    // Footer Icons
+    if (elementId.includes('footer-icon-') || elementId.includes('icon')) {
       return {
-        type: 'auth-button',
-        allowedTools: ['text', 'color'],
-        description: 'Header Button - Interactive button'
+        type: 'footer-icon',
+        allowedTools: ['image', 'color'],
+        description: 'Footer Icon - Decorative or functional icon'
       };
     }
     
     // Images
     if (tagName === 'img' || elementId.includes('image')) {
       return {
-        type: 'logo',
+        type: 'footer-logo',
         allowedTools: ['image'],
-        description: 'Header Image - Header image content'
+        description: 'Footer Image - Footer image content'
       };
     }
     
-    // Links
-    if (tagName === 'a' || elementId.includes('link')) {
-      return {
-        type: 'nav-link',
-        allowedTools: ['text', 'color'],
-        description: 'Header Link - Navigation link'
-      };
-    }
-    
-    // Default text elements
+    // Default footer text elements
     return {
-      type: 'header-text',
+      type: 'footer-text',
       allowedTools: ['text', 'color'],
-      description: 'Header Text - Header text content'
+      description: 'Footer Text - General footer text content'
     };
   };
 
-  // Handle element selection with header-specific logic
+  // Handle element selection with footer-specific logic
   const handleElementClick = useCallback((e: MouseEvent) => {
     const target = e.target as HTMLElement;
     
-    console.log('🖱️ Click detected on:', target.tagName, target.className);
+    console.log('🖱️ Footer Click detected on:', target.tagName, target.className);
     
     // CRITICAL: Block ALL navigation attempts - no exceptions
     e.preventDefault();
@@ -175,7 +165,7 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
           (target.tagName === 'BUTTON' && !target.closest('[data-editor-action]'))) {
         toast({
           title: "🚫 Navigation Blocked",
-          description: "Exit header editor to navigate. Click elements to edit them instead.",
+          description: "Exit footer editor to navigate. Click elements to edit them instead.",
           variant: "destructive",
           duration: 2000
         });
@@ -197,7 +187,7 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
       editableElement.style.outline = '3px solid #ff0000'; // RED neon border for selection
       editableElement.classList.add('editor-selected');
       
-      const config = getHeaderElementConfig(editableElement);
+      const config = getFooterElementConfig(editableElement);
       console.log('⚙️ Element config:', config);
       
       setSelectedElement(elementId);
@@ -210,46 +200,31 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
         variant: "default",
         duration: 1500
       });
-      
+
       // Auto-select appropriate tool
-      if (config.allowedTools.includes('text')) {
+      if (config.allowedTools.includes('text') && config.type !== 'footer-logo') {
         setSelectedTool('text');
-      } else if (config.allowedTools.includes('color')) {
-        setSelectedTool('color');
       } else if (config.allowedTools.includes('image')) {
         setSelectedTool('image');
+      } else if (config.allowedTools.includes('color')) {
+        setSelectedTool('color');
       }
     }
   }, [toast]);
 
-  // Handle tool selection with validation
-  const handleToolSelect = (tool: HeaderEditorTool) => {
-    if (!selectedElement) {
-      toast({
-        title: "🎯 Select Element First",
-        description: "Please select a header element before choosing a tool",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
-    if (element && selectedElementConfig) {
-      if (!selectedElementConfig.allowedTools.includes(tool)) {
-        toast({
-          title: "🚫 Tool Not Allowed",
-          description: `${tool} tool is not available for this header element type`,
-          variant: "destructive"
-        });
-        return;
+  // Tool selection handler
+  const handleToolSelect = (tool: FooterEditorTool) => {
+    setSelectedTool(tool);
+    setEditingText(false); // Exit text editing mode
+    
+    // Reset color picker when switching tools
+    if (tool === 'color' && selectedElement) {
+      const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
+      if (element) {
+        const currentColor = window.getComputedStyle(element).color;
+        setSelectedColor(currentColor);
       }
     }
-
-    setSelectedTool(tool);
-    
-    // Reset editing states when switching tools
-    setEditingText(false);
-    setTextValue('');
   };
 
   // Text editing functions
@@ -258,86 +233,76 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
     
     const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
     if (element) {
-      const currentText = element.textContent || '';
-      setTextValue(currentText);
+      setTextValue(element.textContent || '');
       setEditingText(true);
     }
   };
 
-  const handleTextSave = async () => {
+  const handleTextSave = () => {
     if (!selectedElement || !textValue.trim()) return;
     
-    setIsSaving(true);
-    try {
-      const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
-      if (element) {
-        const originalText = element.textContent || '';
-        
-        // Apply preview
-        element.textContent = textValue;
-        
-        // Add to pending changes
-        const newPendingChanges = new Map(pendingChanges);
-        newPendingChanges.set(selectedElement, {
-          type: 'text',
-          value: textValue,
-          originalValue: originalText,
-          elementId: selectedElement
-        });
-        setPendingChanges(newPendingChanges);
-        
-        setEditingText(false);
-        
-        toast({
-          title: "✏️ Text Preview Applied",
-          description: "Click 'Save Changes' to make it permanent",
-          duration: 3000,
-        });
-      }
-    } catch (error) {
-      console.error('Error applying text preview:', error);
-      toast({
-        title: "❌ Preview Failed",
-        description: "Could not apply text preview",
-        variant: "destructive"
-      });
-    }
-    setIsSaving(false);
+    const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
+    if (!element) return;
+    
+    const originalValue = element.textContent || '';
+    
+    // Apply the change immediately for preview
+    element.textContent = textValue;
+    
+    // Add to pending changes for database save
+    const newPendingChanges = new Map(pendingChanges);
+    newPendingChanges.set(selectedElement, {
+      elementId: selectedElement,
+      type: 'text',
+      value: textValue,
+      originalValue
+    });
+    setPendingChanges(newPendingChanges);
+    
+    setEditingText(false);
+    
+    toast({
+      title: "📝 Text Preview Applied",
+      description: "Click 'Save Changes' to make it permanent",
+      duration: 3000,
+    });
   };
 
-  // Color application function
+  // Color change handler
   const handleColorApply = () => {
     if (!selectedElement || !selectedColor) return;
     
     const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
-    if (element) {
-      const originalValue = colorMode === 'text' 
-        ? element.style.color || ''
-        : element.style.backgroundColor || '';
-      
-      // Apply preview
-      if (colorMode === 'text') {
-        element.style.color = selectedColor;
-      } else {
-        element.style.backgroundColor = selectedColor;
-      }
-      
-      // Add to pending changes
-      const newPendingChanges = new Map(pendingChanges);
-      newPendingChanges.set(`${selectedElement}-${colorMode}`, {
-        type: 'color',
-        value: selectedColor,
-        originalValue,
-        elementId: selectedElement
-      });
-      setPendingChanges(newPendingChanges);
-      
-      toast({
-        title: `🎨 ${colorMode === 'text' ? 'Text' : 'Background'} Color Preview Applied`,
-        description: "Click 'Save Changes' to make it permanent",
-        duration: 3000,
-      });
+    if (!element) return;
+    
+    // Store original value for undo functionality
+    const originalValue = colorMode === 'text' 
+      ? window.getComputedStyle(element).color
+      : window.getComputedStyle(element).backgroundColor;
+    
+    // Apply the change immediately for preview
+    if (colorMode === 'text') {
+      element.style.color = selectedColor;
+    } else {
+      element.style.backgroundColor = selectedColor;
     }
+    
+    // Add to pending changes
+    const changeKey = `${selectedElement}_${colorMode}`;
+    const newPendingChanges = new Map(pendingChanges);
+    newPendingChanges.set(changeKey, {
+      type: 'color',
+      value: selectedColor,
+      originalValue,
+      elementId: selectedElement
+    });
+    setPendingChanges(newPendingChanges);
+    
+    toast({
+      title: `🎨 ${colorMode === 'text' ? 'Text' : 'Background'} Color Preview Applied`,
+      description: "Click 'Save Changes' to make it permanent",
+      duration: 3000,
+    });
   };
 
   // Image change handler
@@ -387,7 +352,7 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
         return savePageSetting({
           setting_key: change.elementId,
           setting_value: change.value,
-          page_scope: 'header',
+          page_scope: 'footer',
           category: change.type
         });
       });
@@ -398,7 +363,7 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
       
       toast({
         title: "✅ Changes Saved",
-        description: `Successfully saved ${savePromises.length} changes to header`,
+        description: `Successfully saved ${savePromises.length} changes to footer`,
         duration: 5000,
       });
     } catch (error) {
@@ -617,49 +582,20 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
               <Button
                 data-editor-action="true"
                 variant="ghost"
-                size="sm"
-                onClick={() => {
-                  // COMPLETE EDITOR STATE RESET
-                  console.log('🚪 Exiting Header Editor - Complete state reset');
-                  
-                  // Reset all editor state
-                  setSelectedTool('text');
-                  setSelectedElement(null);
-                  setSelectedElementConfig(null);
-                  setEditingText(false);
-                  setTextValue('');
-                  setColorMode('text');
-                  setSelectedColor('#ffffff');
-                  setPendingChanges(new Map());
-                  setIsSaving(false);
-                  setLastSaveTime(null);
-                  
-                  // Clean up all editable elements
-                  document.querySelectorAll('[data-editable]').forEach(el => {
-                    const element = el as HTMLElement;
-                    element.style.outline = 'none';
-                    element.style.cursor = 'auto';
-                    element.style.pointerEvents = 'auto';
-                    element.classList.remove('editor-selected', 'editor-hovering');
-                    element.removeAttribute('data-editor-selected');
-                    element.removeAttribute('data-editor-hover');
-                  });
-                  
-                  // Force navigation back to admin
-                  setTimeout(() => {
-                    window.location.href = '/admin';
-                  }, 100);
-                }}
+                onClick={() => window.history.back()}
                 className="text-gray-300 hover:text-white"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Exit Header Editor
+                Exit Footer Editor
               </Button>
-              <div className="text-lg font-semibold text-neonCyan">
-                Header Editor
+              
+              <div className="h-6 w-px bg-gray-600" />
+              
+              <div className="text-xl font-bold text-neonPink">
+                Footer Editor
               </div>
               <div className="text-sm text-gray-400">
-                Edit header navigation and layout
+                Edit footer content and layout
               </div>
               {selectedElement && selectedElementConfig && (
                 <div className="px-3 py-1 bg-neonPink/20 rounded-lg border border-neonPink/30">
@@ -719,29 +655,26 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
                 </>
               )}
               
-              {lastSaveTime && pendingChanges.size === 0 && (
-                <div className="flex items-center space-x-2 text-green-400">
-                  <span className="text-xs">
-                    ✅ Saved: {lastSaveTime.toLocaleTimeString()}
-                  </span>
+              {lastSaveTime && (
+                <div className="text-xs text-green-400">
+                  Last saved: {lastSaveTime.toLocaleTimeString()}
                 </div>
               )}
             </div>
           </div>
 
-          {/* Tool Selection Bar - ALWAYS VISIBLE */}
-          <div className="flex items-center justify-between px-4 py-3 bg-gray-800 border-t border-gray-700">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-400 font-medium">Header Tools:</span>
+          {/* Tool Selection Bar */}
+          <div className="border-t border-gray-700 px-4 py-3 bg-gray-800">
+            <div className="flex items-center space-x-3">
+              <span className="text-sm text-gray-300 font-medium">Footer Tools:</span>
               
-              {/* ALWAYS show basic tools, enable/disable based on selection */}
               <Button
                 data-editor-action="true"
                 variant={selectedTool === 'text' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => handleToolSelect('text')}
                 disabled={!selectedElement || !selectedElementConfig?.allowedTools.includes('text')}
-                className={selectedTool === 'text' ? 'bg-neonPink text-black' : 'border-gray-500 text-gray-300'}
+                className={selectedTool === 'text' ? 'bg-neonCyan text-black' : 'border-gray-500 text-gray-300'}
               >
                 <Type className="w-4 h-4 mr-2" />
                 Text {!selectedElement && '(Select Element)'}
@@ -771,21 +704,9 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
                 Image {!selectedElement && '(Select Element)'}
               </Button>
             </div>
-
-            {/* Current Selection Info */}
-            {selectedElement && (
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-neonCyan rounded-full animate-pulse"></div>
-                <span className="text-sm text-gray-300">Selected:</span>
-                <strong className="text-neonCyan text-sm">{selectedElement}</strong>
-                {selectedElementConfig && (
-                  <span className="text-xs text-gray-400">({selectedElementConfig.type})</span>
-                )}
-              </div>
-            )}
           </div>
 
-          {/* Text Editing Panel */}
+          {/* Text Editing Panel - ONLY VISIBLE when text tool is selected */}
           {selectedTool === 'text' && selectedElement && (
             <div className="px-4 py-3 bg-gray-800 border-t border-gray-600">
               <div className="flex items-center space-x-4">
@@ -826,6 +747,26 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
                     </Button>
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Image Editing Panel */}
+          {selectedTool === 'image' && selectedElement && (
+            <div className="px-4 py-3 bg-gray-800 border-t border-gray-600">
+              <div className="flex items-center space-x-4">
+                <div className="text-sm text-gray-300 font-medium">Image Tools:</div>
+                <Button
+                  data-editor-action="true"
+                  onClick={() => setShowEnhancedImageEditor(true)}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Edit Image
+                </Button>
+                <span className="text-xs text-gray-400">
+                  Upload, replace, or edit footer images
+                </span>
               </div>
             </div>
           )}
@@ -920,26 +861,6 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
                     Apply {colorMode === 'text' ? 'Text' : 'Background'} Color
                   </Button>
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* Image Editing Panel */}
-          {selectedTool === 'image' && selectedElement && (
-            <div className="px-4 py-3 bg-gray-800 border-t border-gray-600">
-              <div className="flex items-center space-x-4">
-                <div className="text-sm text-gray-300 font-medium">Image Tools:</div>
-                <Button
-                  data-editor-action="true"
-                  onClick={() => setShowEnhancedImageEditor(true)}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Edit Image
-                </Button>
-                <span className="text-xs text-gray-400">
-                  Upload, replace, or edit header images
-                </span>
               </div>
             </div>
           )}

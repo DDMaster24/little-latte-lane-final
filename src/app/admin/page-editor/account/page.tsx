@@ -2,10 +2,11 @@
 
 import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import EnhancedUniversalPageEditor from '@/components/Admin/EnhancedUniversalPageEditor';
+import { useEffect, Suspense } from 'react';
+import AccountPageEditor from '@/components/Admin/AccountPageEditor';
 import AccountPage from '@/app/account/page';
 import StyleLoader from '@/components/StyleLoader';
+import { EditorModeProvider } from '@/contexts/EditorModeContext';
 
 export default function AccountEditorPage() {
   const { user } = useAuth();
@@ -30,12 +31,17 @@ export default function AccountEditorPage() {
       {/* Load existing styles for account page */}
       <StyleLoader pageScope="account" />
       
-      <EnhancedUniversalPageEditor
-        pageScope="account"
-        pageName="Account Page"
-      >
-        <AccountPage />
-      </EnhancedUniversalPageEditor>
+      <EditorModeProvider>
+        <Suspense fallback={
+          <div className="flex items-center justify-center min-h-screen bg-darkBg">
+            <div className="text-white">Loading editor...</div>
+          </div>
+        }>
+          <AccountPageEditor>
+            <AccountPage />
+          </AccountPageEditor>
+        </Suspense>
+      </EditorModeProvider>
     </>
   );
 }

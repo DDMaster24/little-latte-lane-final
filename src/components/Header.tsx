@@ -19,7 +19,7 @@ import { useHeaderLogo } from '@/hooks/useHeaderLogo';
 
 export default function Header() {
   const { user, profile, signOut } = useAuth();
-  const { logoUrl, isLoading: logoLoading } = useHeaderLogo();
+  const { logoUrl, isLoading: _logoLoading } = useHeaderLogo();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
