@@ -1,38 +1,30 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { Suspense } from 'react';
+import HomepageEditor from '@/components/Admin/HomepageEditor';
+import WelcomingSection from '@/components/WelcomingSection';
+import EventsSpecialsSection from '@/components/EventsSpecialsSection';
+import CategoriesSection from '@/components/CategoriesSection';
+import BookingsSection from '@/components/BookingsSection';
+import { LoadingSpinner } from '@/components/LoadingComponents';
 
-export default function HomepageEditorPage() {
-  const router = useRouter();
-
+export default function AdminHomepageEditorPage() {
   return (
-    <div className="min-h-screen bg-darkBg text-white p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push('/admin')}
-              className="text-gray-300 hover:text-white"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Admin
-            </Button>
-            <h1 className="text-2xl font-bold text-neonCyan">Homepage Editor</h1>
-          </div>
-        </div>
-
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Homepage Content Editor</h2>
-          <p className="text-gray-400">
-            Homepage editor functionality will be implemented here.
-            This will allow editing of hero section, categories, events, and specials.
-          </p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-darkBg">
+      <Suspense fallback={<LoadingSpinner />}>
+        <HomepageEditor>
+          <main className="min-h-screen animate-fade-in">
+            {/* Homepage sections for editing */}
+            <WelcomingSection />
+            
+            <div className="space-y-8 xs:space-y-12 sm:space-y-16">
+              <EventsSpecialsSection />
+              <CategoriesSection />
+              <BookingsSection />
+            </div>
+          </main>
+        </HomepageEditor>
+      </Suspense>
     </div>
   );
 }
