@@ -223,41 +223,73 @@ export async function uploadImage(formData: FormData) {
   const file = formData.get('file') as File;
   const folder = formData.get('folder') as string || 'categories';
   
+  console.log('🔍 DEBUG: Upload started', { 
+    fileName: file?.name, 
+    fileSize: file?.size, 
+    fileType: file?.type,
+    folder 
+  });
+  
   if (!file) {
     return { success: false, message: 'No file provided' };
   }
 
-  // Validate file type
+  // Enhanced file validation
   const allowedTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif', 'image/webp'];
-  if (!allowedTypes.includes(file.type)) {
-    return { success: false, message: 'Invalid file type. Please upload PNG, JPG, JPEG, GIF, or WebP images.' };
+  const fileType = file.type.toLowerCase();
+  
+  if (!allowedTypes.includes(fileType)) {
+    console.log('🔍 DEBUG: Invalid file type', fileType);
+    return { success: false, message: `Invalid file type "${fileType}". Please upload PNG, JPG, JPEG, GIF, or WebP images.` };
   }
 
   // Validate file size (5MB max)
   if (file.size > 5 * 1024 * 1024) {
-    return { success: false, message: 'File too large. Maximum size is 5MB.' };
+    console.log('🔍 DEBUG: File too large', file.size);
+    return { success: false, message: `File too large (${Math.round(file.size / 1024 / 1024)}MB). Maximum size is 5MB.` };
   }
 
-  // Generate unique filename
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+  // Validate file is not corrupted (has actual content)
+  if (file.size === 0) {
+    console.log('🔍 DEBUG: Empty file');
+    return { success: false, message: 'File appears to be empty or corrupted.' };
+  }
 
   try {
+    // Sanitize filename - remove special characters that might cause issues
+    const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const fileExt = originalName.split('.').pop()?.toLowerCase() || 'jpg';
+    const timestamp = Date.now();
+    const randomId = Math.random().toString(36).substring(2, 8);
+    const fileName = `${folder}/${timestamp}-${randomId}.${fileExt}`;
+
+    console.log('🔍 DEBUG: Generated filename', fileName);
+
     // Determine bucket based on folder
     const bucket = folder === 'logos' || folder === 'icons' ? 'menu-images' : 'menu-images';
     
+    console.log('🔍 DEBUG: Uploading to bucket', bucket);
+    
     const { error } = await supabase.storage
       .from(bucket)
-      .upload(fileName, file);
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false // Don't overwrite existing files
+      });
 
     if (error) {
-      return { success: false, message: error.message };
+      console.log('🔍 DEBUG: Upload error', error);
+      return { success: false, message: `Upload failed: ${error.message}` };
     }
+
+    console.log('🔍 DEBUG: Upload successful, getting URL');
 
     // Get public URL
     const { data: urlData } = supabase.storage
       .from(bucket)
       .getPublicUrl(fileName);
+
+    console.log('🔍 DEBUG: Public URL generated', urlData.publicUrl);
 
     return { 
       success: true, 
@@ -267,6 +299,7 @@ export async function uploadImage(formData: FormData) {
       } 
     };
   } catch (error) {
+    console.log('🔍 DEBUG: Catch block error', error);
     return { success: false, message: error instanceof Error ? error.message : 'Upload failed' };
   }
 }

@@ -8,12 +8,12 @@
   "background_color": "#0f0f0f",
   "icons": [
     {
-      "src": "/images/new-logo.png",
+      "src": "/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/images/new-logo.png",
+      "src": "/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
