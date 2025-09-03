@@ -90,7 +90,7 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <Button
-                      onClick={() => router.push('/admin/page-editor/homepage')}
+                      onClick={() => router.push('/admin/editor/homepage')}
                       className="bg-neonCyan hover:bg-neonCyan/80 text-darkBg font-semibold w-full"
                     >
                       <Edit className="h-4 w-4 mr-2" />
@@ -114,7 +114,7 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <Button
-                      onClick={() => router.push('/admin/page-editor/header')}
+                      onClick={() => router.push('/admin/editor/header')}
                       className="bg-neonPink hover:bg-neonPink/80 text-darkBg font-semibold w-full"
                     >
                       <Edit className="h-4 w-4 mr-2" />
@@ -138,7 +138,7 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <Button
-                      onClick={() => router.push('/admin/page-editor/menu')}
+                      onClick={() => router.push('/admin/editor/menu')}
                       className="bg-orange-500 hover:bg-orange-500/80 text-white font-semibold w-full"
                     >
                       <Edit className="h-4 w-4 mr-2" />
@@ -162,35 +162,11 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <Button
-                      onClick={() => router.push('/admin/page-editor/bookings')}
+                      onClick={() => router.push('/admin/editor/bookings')}
                       className="bg-blue-500 hover:bg-blue-500/80 text-white font-semibold w-full"
                     >
                       <Edit className="h-4 w-4 mr-2" />
                       Edit Bookings
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Account Page Card */}
-              <Card className="bg-darkBg/50 border-gray-700 hover:border-green-500/50 transition-all duration-200">
-                <CardContent className="p-6">
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="p-3 bg-green-500/10 rounded-lg">
-                        <Users className="h-6 w-6 text-green-500" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-white">Account Page</h3>
-                        <p className="text-gray-400 text-sm">Edit user account interface</p>
-                      </div>
-                    </div>
-                    <Button
-                      onClick={() => router.push('/admin/page-editor/account')}
-                      className="bg-green-500 hover:bg-green-500/80 text-white font-semibold w-full"
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Account
                     </Button>
                   </div>
                 </CardContent>
@@ -234,7 +210,7 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <Button
-                      onClick={() => router.push('/admin/page-editor/footer')}
+                      onClick={() => router.push('/admin/editor/footer')}
                       className="bg-teal-500 hover:bg-teal-500/80 text-white font-semibold w-full"
                     >
                       <Edit className="h-4 w-4 mr-2" />

@@ -238,7 +238,7 @@ export default function CarouselEditor() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => router.push('/admin/page-editor')}
+                onClick={() => router.push('/admin')}
                 className="border-neonCyan text-neonCyan hover:bg-neonCyan hover:text-darkBg"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
