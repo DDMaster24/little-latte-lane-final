@@ -130,6 +130,7 @@ export default function EnhancedImageEditor({
 
   // Handle file input change
   const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault(); // Prevent any form submission behavior
     const file = event.target.files?.[0];
     if (file) {
       handleFileUpload(file);
@@ -327,6 +328,7 @@ export default function EnhancedImageEditor({
                       <p className="text-sm text-gray-400">or</p>
                     </div>
                     <Button
+                      type="button"
                       variant="outline"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={uploading}
@@ -558,6 +560,7 @@ export default function EnhancedImageEditor({
         
         <div className="flex space-x-2">
           <Button
+            type="button"
             variant="outline"
             size="sm"
             onClick={onClose}
@@ -566,6 +569,7 @@ export default function EnhancedImageEditor({
             Cancel
           </Button>
           <Button
+            type="button"
             size="sm"
             onClick={handleApply}
             disabled={!preview || uploading}
