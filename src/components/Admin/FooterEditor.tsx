@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePageEditor } from '@/hooks/usePageEditor';
 import { useAuth } from '@/components/AuthProvider';
 import { HexColorPicker } from 'react-colorful';
-import EnhancedImageEditor from './EnhancedImageEditor';
+import SimpleImageEditor from './SimpleImageEditor';
 import { 
   ArrowLeft, 
   Eye, 
@@ -91,7 +91,7 @@ export default function FooterEditor({ children }: FooterEditorProps) {
   const [gradientDirection, setGradientDirection] = useState<'to right' | 'to left' | 'to bottom' | 'to top' | '45deg' | '135deg'>('to right');
   
   // Image editor state
-  const [showEnhancedImageEditor, setShowEnhancedImageEditor] = useState(false);
+  const [showSimpleImageEditor, setShowSimpleImageEditor] = useState(false);
   
   // Preview/Save state - NO AUTO-SAVE
   const [pendingChanges, setPendingChanges] = useState<Map<string, PendingChange>>(new Map());
@@ -382,7 +382,6 @@ export default function FooterEditor({ children }: FooterEditorProps) {
         return savePageSetting({
           setting_key: change.elementId,
           setting_value: change.value,
-          page_scope: 'footer',
           category: change.type
         });
       });
@@ -788,7 +787,7 @@ export default function FooterEditor({ children }: FooterEditorProps) {
                 <div className="text-sm text-gray-300 font-medium">Image Tools:</div>
                 <Button
                   data-editor-action="true"
-                  onClick={() => setShowEnhancedImageEditor(true)}
+                  onClick={() => setShowSimpleImageEditor(true)}
                   className="bg-purple-600 hover:bg-purple-700"
                 >
                   <Upload className="w-4 h-4 mr-2" />
@@ -903,9 +902,9 @@ export default function FooterEditor({ children }: FooterEditorProps) {
       </div>
 
       {/* Enhanced Image Editor Modal */}
-      {showEnhancedImageEditor && (
+      {showSimpleImageEditor && (
         <div className="fixed inset-0 bg-black/50 z-[100002] flex items-center justify-center p-4">
-          <EnhancedImageEditor
+          <SimpleImageEditor
             currentImageUrl={(() => {
               if (selectedElement) {
                 const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
@@ -926,9 +925,9 @@ export default function FooterEditor({ children }: FooterEditorProps) {
             elementType={selectedElement?.includes('logo') ? 'icon' : 'image'}
             onImageChange={(imageUrl: string) => {
               handleImageChange(imageUrl);
-              setShowEnhancedImageEditor(false);
+              setShowSimpleImageEditor(false);
             }}
-            onClose={() => setShowEnhancedImageEditor(false)}
+            onClose={() => setShowSimpleImageEditor(false)}
           />
         </div>
       )}

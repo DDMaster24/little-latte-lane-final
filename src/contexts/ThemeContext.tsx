@@ -57,7 +57,9 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
       const settingsMap: Record<string, string> = {};
       data?.forEach((setting) => {
-        settingsMap[setting.setting_key] = setting.setting_value;
+        if (setting.setting_value) {
+          settingsMap[setting.setting_key] = setting.setting_value;
+        }
       });
 
       setSettings(settingsMap);

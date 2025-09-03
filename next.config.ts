@@ -28,6 +28,14 @@ const CSP_DIRECTIVES = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Server Actions configuration for large file uploads
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb', // Increase from default 1MB to 10MB for image uploads
+    },
+    scrollRestoration: true,
+    optimizePackageImports: ['lucide-react', '@supabase/auth-helpers-nextjs'],
+  },
   // TypeScript and ESLint validation - TypeScript re-enabled ✅, ESLint warnings causing build issues 
   typescript: {
     ignoreBuildErrors: false, // Re-enabled: TypeScript validation during builds
@@ -55,11 +63,6 @@ const nextConfig = {
         hostname: 'localhost',
       },
     ],
-  },
-  // Experimental features for better performance
-  experimental: {
-    scrollRestoration: true,
-    optimizePackageImports: ['lucide-react', '@supabase/auth-helpers-nextjs'],
   },
   // Webpack optimization to handle large strings better and reduce warnings
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

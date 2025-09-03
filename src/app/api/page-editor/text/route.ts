@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
       throw error;
     }
 
-    if (data) {
+    if (data && data.setting_value) {
       const parsed = JSON.parse(data.setting_value);
       return NextResponse.json({ success: true, text: parsed.text });
     }

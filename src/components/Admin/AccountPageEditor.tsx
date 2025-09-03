@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { ChromePicker } from 'react-color';
 import { usePageEditor } from '@/hooks/usePageEditor';
-import EnhancedImageEditor from './EnhancedImageEditor';
+import SimpleImageEditor from './SimpleImageEditor';
 
 interface AccountPageEditorProps {
   children: React.ReactNode;
@@ -164,9 +164,7 @@ export default function AccountPageEditor({ children }: AccountPageEditorProps) 
       await savePageSetting({
         setting_key: elementId,
         setting_value: content,
-        category: 'page_editor',
-        page_scope: 'account',
-        created_by: 'admin' // TODO: Get actual admin user ID
+        category: 'page_editor'
       });
       return { success: true };
     } catch (error) {
@@ -183,9 +181,7 @@ export default function AccountPageEditor({ children }: AccountPageEditorProps) 
       await savePageSetting({
         setting_key: `${elementId}_${property}`,
         setting_value: value,
-        category: 'page_editor',
-        page_scope: 'account',
-        created_by: 'admin' // TODO: Get actual admin user ID
+        category: 'page_editor'
       });
       return { success: true };
     } catch (error) {
@@ -630,7 +626,7 @@ export default function AccountPageEditor({ children }: AccountPageEditorProps) 
                 </Button>
               </div>
             </div>
-            <EnhancedImageEditor
+            <SimpleImageEditor
               onImageChange={handleImageChange}
               onClose={() => setShowImageEditor(false)}
               currentImageUrl=""

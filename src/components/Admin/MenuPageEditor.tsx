@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { HexColorPicker } from 'react-colorful';
 import { usePageEditor } from '@/hooks/usePageEditor';
-import EnhancedImageEditor from './EnhancedImageEditor';
+import SimpleImageEditor from './SimpleImageEditor';
 
 // Theme colors from tailwind.config.js
 const THEME_COLORS = [
@@ -210,9 +210,7 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
       await savePageSetting({
         setting_key: elementId,
         setting_value: content,
-        category: 'page_editor',
-        page_scope: 'menu',
-        created_by: 'admin' // TODO: Get actual admin user ID
+        category: 'page_editor'
       });
       return { success: true };
     } catch (error) {
@@ -229,9 +227,7 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
       await savePageSetting({
         setting_key: `${elementId}_${property}`,
         setting_value: value,
-        category: 'page_editor',
-        page_scope: 'menu',
-        created_by: 'admin' // TODO: Get actual admin user ID
+        category: 'page_editor'
       });
       return { success: true };
     } catch (error) {
@@ -849,7 +845,7 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
                 </Button>
               </div>
             </div>
-            <EnhancedImageEditor
+            <SimpleImageEditor
               onImageChange={handleImageChange}
               onClose={() => setShowImageEditor(false)}
               currentImageUrl=""

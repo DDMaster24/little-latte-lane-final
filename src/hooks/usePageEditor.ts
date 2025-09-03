@@ -14,7 +14,7 @@ interface UsePageEditorReturn {
   savePageSetting: (setting: Omit<ThemeSettingInsert, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
   getElementSetting: (elementId: string) => ThemeSetting | undefined;
   updateElementContent: (elementId: string, content: string) => Promise<void>;
-  deleteSetting: (settingId: string) => Promise<void>;
+  deleteSetting: (settingId: number) => Promise<void>;
 }
 
 /**
@@ -96,10 +96,8 @@ export function usePageEditor(pageScope: string, adminUserId?: string): UsePageE
       const { saveThemeSetting } = await import('@/app/admin/actions');
       const result = await saveThemeSetting({
         setting_key: setting.setting_key,
-        setting_value: setting.setting_value,
-        category: setting.category || '',
-        page_scope: setting.page_scope || '',
-        created_by: setting.created_by || ''
+        setting_value: setting.setting_value || '',
+        category: setting.category || ''
       });
 
       console.log('🔍 DEBUG: Server action result:', result);
@@ -117,7 +115,6 @@ export function usePageEditor(pageScope: string, adminUserId?: string): UsePageE
       setPageSettings(prev => {
         const existingIndex = prev.findIndex(s => 
           s.setting_key === setting.setting_key && 
-          s.page_scope === setting.page_scope && 
           s.category === setting.category
         );
         
@@ -148,14 +145,12 @@ export function usePageEditor(pageScope: string, adminUserId?: string): UsePageE
     await savePageSetting({
       setting_key: elementId,
       setting_value: content,
-      category: 'page_editor',
-      page_scope: pageScope,
-      created_by: adminUserId
+      category: 'page_editor'
     });
-  }, [savePageSetting, isAdmin, adminUserId, pageScope]);
+  }, [savePageSetting, isAdmin, adminUserId]);
 
   // Delete setting
-  const deleteSetting = useCallback(async (settingId: string) => {
+  const deleteSetting = useCallback(async (settingId: number) => {
     if (!isAdmin) throw new Error('Admin access required');
 
     const { error } = await supabase

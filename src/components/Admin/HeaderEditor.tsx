@@ -4,10 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { usePageEditor } from '@/hooks/usePageEditor';
-import { useAuth } from '@/components/AuthProvider';
 import { HexColorPicker } from 'react-colorful';
-import EnhancedImageEditor from './EnhancedImageEditor';
+import SimpleImageEditor from './SimpleImageEditor';
 import { 
   ArrowLeft, 
   Eye, 
@@ -70,8 +68,8 @@ interface HeaderEditorProps {
 
 export default function HeaderEditor({ children }: HeaderEditorProps) {
   const { toast } = useToast();
-  const { user } = useAuth();
-  const { savePageSetting } = usePageEditor('header', user?.id);
+  // Authentication handled in parent component
+  // No longer using usePageEditor hook directly - using simplified save functions
 
   // Editor state - Start with 'text' as default
   const [selectedTool, setSelectedTool] = useState<HeaderEditorTool>('text');
@@ -90,7 +88,7 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
   const [gradientDirection, setGradientDirection] = useState<'to right' | 'to left' | 'to bottom' | 'to top' | '45deg' | '135deg'>('to right');
   
   // Image editor state
-  const [showEnhancedImageEditor, setShowEnhancedImageEditor] = useState(false);
+  const [showSimpleImageEditor, setShowSimpleImageEditor] = useState(false);
   
   // Preview/Save state - NO AUTO-SAVE
   const [pendingChanges, setPendingChanges] = useState<Map<string, PendingChange>>(new Map());
@@ -342,7 +340,7 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
     const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
     if (!element) return;
 
-    const property = colorMode === 'text' ? 'color' : 'backgroundColor';
+    const _property = colorMode === 'text' ? 'color' : 'backgroundColor';
     const originalValue = colorMode === 'text' 
       ? element.style.color || ''
       : element.style.backgroundColor || '';
@@ -462,16 +460,35 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
     setIsSaving(true);
     try {
       const savePromises = Array.from(pendingChanges.values()).map(async (change) => {
-        // Create proper setting data for the database
-        return savePageSetting({
-          setting_key: change.elementId,
-          setting_value: change.value,
-          page_scope: 'header',
-          category: change.type
-        });
+        // Use appropriate save function based on change type
+        if (change.type === 'image') {
+          const { saveImageSetting } = await import('@/app/admin/actions');
+          return saveImageSetting({
+            setting_key: change.elementId,
+            setting_value: change.value,
+            category: 'page_editor',
+            page_scope: 'header'
+          });
+        } else {
+          // For text and color changes, use general theme setting save
+          const { saveThemeSetting } = await import('@/app/admin/actions');
+          return saveThemeSetting({
+            setting_key: change.elementId,
+            setting_value: change.value,
+            category: 'page_editor',
+            page_scope: 'header'
+          });
+        }
       });
       
-      await Promise.all(savePromises);
+      const results = await Promise.all(savePromises);
+      
+      // Check if any saves failed
+      const failedSaves = results.filter(result => !result.success);
+      if (failedSaves.length > 0) {
+        throw new Error(`${failedSaves.length} saves failed: ${failedSaves.map(f => f.message).join(', ')}`);
+      }
+      
       setPendingChanges(new Map());
       setLastSaveTime(new Date());
       
@@ -1113,7 +1130,7 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
                 <div className="text-sm text-gray-300 font-medium">Image Tools:</div>
                 <Button
                   data-editor-action="true"
-                  onClick={() => setShowEnhancedImageEditor(true)}
+                  onClick={() => setShowSimpleImageEditor(true)}
                   className="bg-purple-600 hover:bg-purple-700"
                 >
                   <Upload className="w-4 h-4 mr-2" />
@@ -1134,9 +1151,9 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
       </div>
 
       {/* Enhanced Image Editor Modal */}
-      {showEnhancedImageEditor && (
+      {showSimpleImageEditor && (
         <div className="fixed inset-0 bg-black/50 z-[100002] flex items-center justify-center p-4">
-          <EnhancedImageEditor
+          <SimpleImageEditor
             currentImageUrl={(() => {
               if (selectedElement) {
                 const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
@@ -1157,9 +1174,9 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
             elementType={selectedElement?.includes('logo') ? 'icon' : 'image'}
             onImageChange={(imageUrl: string) => {
               handleImageChange(imageUrl);
-              setShowEnhancedImageEditor(false);
+              setShowSimpleImageEditor(false);
             }}
-            onClose={() => setShowEnhancedImageEditor(false)}
+            onClose={() => setShowSimpleImageEditor(false)}
           />
         </div>
       )}

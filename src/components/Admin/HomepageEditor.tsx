@@ -560,7 +560,6 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
         return savePageSetting({
           setting_key: change.elementId,
           setting_value: change.value,
-          page_scope: 'homepage',
           category: change.type
         });
       });

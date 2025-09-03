@@ -213,10 +213,27 @@ export async function deleteMenuItem(id: string) {
 }
 
 /**
- * Save or update a theme setting (for page editor functionality)
- * @param setting Theme setting data
+ * Save theme setting for image changes with proper category and page_scope support
+ * @param setting Theme setting data with optional category and page_scope
  * @returns { success: boolean, data?: any, message?: string }
  */
+export async function saveImageSetting(setting: {
+  setting_key: string;
+  setting_value: string;
+  category?: string;
+  page_scope?: string;
+}) {
+  console.log('🔍 DEBUG: saveImageSetting called with:', setting);
+  
+  // Use the full saveThemeSetting function for complete functionality
+  return saveThemeSetting({
+    setting_key: setting.setting_key,
+    setting_value: setting.setting_value,
+    category: setting.category || 'page_editor',
+    page_scope: setting.page_scope || 'header'
+  });
+}
+
 export async function saveThemeSetting(setting: {
   setting_key: string;
   setting_value: string;
@@ -234,7 +251,6 @@ export async function saveThemeSetting(setting: {
       .from('theme_settings')
       .select('id')
       .eq('setting_key', setting.setting_key)
-      .eq('page_scope', setting.page_scope || '')
       .eq('category', setting.category || '')
       .single();
 
@@ -264,7 +280,9 @@ export async function saveThemeSetting(setting: {
       result = await supabase
         .from('theme_settings')
         .insert([{
-          ...setting,
+          setting_key: setting.setting_key,
+          setting_value: setting.setting_value,
+          category: setting.category || 'page_editor',
           updated_at: new Date().toISOString()
         }])
         .select()
@@ -432,8 +450,15 @@ export async function uploadImage(formData: FormData) {
 
     console.log('🔍 DEBUG: Generated filename', fileName);
 
-    // Determine bucket based on folder
-    const bucket = folder === 'logos' || folder === 'icons' ? 'menu-images' : 'menu-images';
+    // Determine bucket based on folder - use dedicated buckets for different content types
+    let bucket: string;
+    if (folder === 'logos' || folder === 'headers' || folder === 'icons') {
+      bucket = 'header-assets'; // Dedicated bucket for header images
+    } else if (folder === 'uploads') {
+      bucket = 'page-editor'; // Dedicated bucket for page editor uploads
+    } else {
+      bucket = 'menu-images'; // Default for menu content
+    }
     
     console.log('🔍 DEBUG: Uploading to bucket', bucket);
     

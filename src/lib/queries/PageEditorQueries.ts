@@ -30,8 +30,8 @@ export class PageEditorQueries {
         setting_value: typeof item.setting_value === 'string' 
           ? JSON.parse(item.setting_value) 
           : item.setting_value,
-        created_at: item.created_at,
-        updated_at: item.updated_at
+        created_at: item.created_at ?? undefined,
+        updated_at: item.updated_at ?? undefined
       }));
     } catch (error) {
       console.error('Error fetching page styles:', error);
@@ -60,8 +60,8 @@ export class PageEditorQueries {
         setting_value: typeof data.setting_value === 'string' 
           ? JSON.parse(data.setting_value) 
           : data.setting_value,
-        created_at: data.created_at,
-        updated_at: data.updated_at
+        created_at: data.created_at ?? undefined,
+        updated_at: data.updated_at ?? undefined
       };
     } catch (error) {
       console.error('Error fetching element styles:', error);

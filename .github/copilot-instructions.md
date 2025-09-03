@@ -97,77 +97,60 @@ npm run build && npm run lint
 - Always verify `pointer-events` don't block interactive elements
 - Test hover states and interactive functionality
 
-## 🚨 CRITICAL: DOCKER-FIRST DATABASE PROTOCOL - MANDATORY
+## 🚨 ARCHIVED: DOCKER DATABASE PROTOCOL - REPLACED BY SUPABASE EXTENSION
 
-### **🔴 DOCKER-FIRST DATABASE RULE (ADDED DUE TO REPEATED ISSUES)**
+### **🔴 DEPRECATED: This section is kept for reference only**
+**USE SUPABASE EXTENSION INSTEAD - See section above**
 
-**BEFORE ANY DATABASE OPERATIONS:**
-1. **ALWAYS START WITH DOCKER CONNECTION** - No exceptions
-2. **VERIFY DOCKER DATABASE ACCESS** - Test connection works properly  
-3. **USE DIRECT SQL EXECUTION** - Provide SQL scripts for manual execution if needed
-4. **NEVER ATTEMPT MIGRATIONS FIRST** - They consistently fail and waste time
-5. **NO QUICK FIXES OR WORKAROUNDS** - If Docker doesn't work, fix Docker or ask user to install it
+The Docker database approach has been replaced by the official Supabase VS Code extension.
+If you see references to Docker database connections, redirect to `@supabase` commands instead.
 
-#### **Mandatory Docker Workflow:**
-```bash
-# Step 1: Start Docker services
-npm run docker:up
+## 🚨 MANDATORY: SUPABASE CLI v2.39.2 PROTOCOL - LATEST OFFICIAL METHOD!
 
-# Step 2: Verify database connection
-npm run docker:logs
+### 🎯 CRITICAL RULE: Use Updated Supabase CLI for All Database Operations
+**Updated CLI approach with latest features and bug fixes - NO LEGACY METHODS!**
 
-# Step 3: Use direct SQL execution or provide SQL scripts
-# Step 4: Only attempt other approaches if Docker fails
-```
-
-#### **STRICT NO-SHORTCUT RULE:**
-- **NEVER attempt alternative methods** if Docker fails
-- **NEVER use quick fixes** like direct Supabase CLI calls
-- **IMMEDIATELY stop and fix Docker** or ask user to install Docker Desktop
-- **NO EXCEPTIONS** - This rule has been violated repeatedly causing wasted time
-
-#### **SQL Script Fallback:**
-If Docker approach fails, **IMMEDIATELY** provide SQL scripts for manual execution in Supabase SQL Editor.
-
-**This protocol prevents the recurring pattern of:**
-1. Try migration → fails
-2. Try different approach → fails  
-3. Try another approach → fails
-4. User stops and asks to use Docker → works
-
-### **🚨 USER HAS EMPHASIZED: NO QUICK FIXES - FIX DOCKER PROPERLY OR REQUEST INSTALLATION**
-
-## MANDATORY: Live Database Protocol - NO STATIC FILES!
-
-### 🚨 CRITICAL RULE: Always Use Live Database Connection
-**NEVER reference SQL files, migration files, or static schema documentation!**
-
-### Database Development Protocol - LIVE ONLY!
+### 🔗 Supabase CLI Database Protocol - CURRENT STANDARD!
 **When working with database:**
-1. **Connect to live Supabase** using environment variables in `.env.local`
-2. **Query actual tables** to see current structure and data using Supabase CLI:
+1. **Use Supabase CLI v2.39.2** - Updated with latest features and bug fixes
+2. **Project is properly linked**: `supabase link --project-ref awytuszmunxvthuizyur` ✅ COMPLETED
+3. **Available CLI Commands**:
    ```bash
-   # Get complete schema
-   supabase db dump --schema=public --data-only=false
-   
-   # Generate fresh TypeScript types
-   supabase gen types typescript --project-id awytuszmunxvthuizyur > src/types/supabase.ts
+   supabase status                    # Check connection status
+   supabase db dump --schema=public   # Get current schema
+   supabase gen types typescript     # Generate TypeScript types
+   supabase storage ls               # List storage buckets
    ```
-3. **Never trust static files** - they are always outdated and incorrect
-4. **Test database operations** immediately on live connection
-5. **Update TypeScript types** after any schema inspection: `npm run db:generate-types`
-6. **Delete temporary scripts** after use - keep nothing static!
+4. **Environment Variables**: Use `.env.local` for direct database access when needed
+5. **Update TypeScript types** after schema changes: `npm run db:generate-types`
+6. **Live Production Database**: `https://awytuszmunxvthuizyur.supabase.co`
 
-### What NOT to Do:
-- ❌ **NO static SQL files** - delete them if found
-- ❌ **NO migration file references** - they're often wrong
-- ❌ **NO static schema documentation** - always outdated
-- ❌ **NO assumptions about database structure** - always verify live
+### 🚀 NEW CLI CAPABILITIES (v2.39.2)
+**Enhanced features in latest CLI version:**
+- Improved storage bucket management
+- Better error handling and debugging
+- Enhanced TypeScript type generation
+- Faster database schema introspection
+- More reliable project linking
+
+### 🔄 DATABASE ACCESS HIERARCHY
+**Use in this priority order:**
+1. **Supabase CLI commands** - Primary method for schema access
+2. **Direct Supabase client calls** - For runtime operations in code
+3. **Environment-based connections** - For testing and validation scripts
+4. **Test scripts** - Create temporary, then delete after use
+
+### 🚫 BANNED APPROACHES:
+- ❌ **NO outdated CLI versions** - Always use latest (v2.39.2+)
+- ❌ **NO static schema files** - Always use live CLI commands
+- ❌ **NO Docker database connections** - Use production CLI access
+- ❌ **NO assumptions about database structure** - Always verify live
 
 ### Live Database Connection Details:
 - **Production Supabase**: `https://awytuszmunxvthuizyur.supabase.co`
+- **CLI Version**: v2.39.2 (updated with latest features)
 - **Environment File**: `.env.local` (contains live credentials)
-- **Schema Access**: Via Supabase CLI and direct queries only
+- **Schema Access**: Via Supabase CLI commands primarily
 - **TypeScript Types**: Auto-generated from live database in `src/types/supabase.ts`
 
 ## PayFast Integration Specifics

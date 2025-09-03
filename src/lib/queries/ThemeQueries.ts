@@ -79,7 +79,6 @@ export class ThemeQueries {
       const newSetting: ThemeSettingInsert = {
         setting_key: settingKey,
         setting_value: settingValue,
-        page_scope: pageScope,
         category: options.category || 'content',
       };
       

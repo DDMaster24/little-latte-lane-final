@@ -400,9 +400,7 @@ export default function EnhancedUniversalPageEditor({
         await savePageSetting({
           setting_key: `${change.elementId}_${change.type}`,
           setting_value: change.value,
-          category: 'page_editor',
-          page_scope: pageScope,
-          created_by: user?.id || ''
+          category: 'page_editor'
         });
         savedCount++;
       }
