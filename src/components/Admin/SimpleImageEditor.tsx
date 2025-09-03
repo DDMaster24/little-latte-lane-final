@@ -287,6 +287,7 @@ export default function SimpleImageEditor({
             <div className="mt-6 p-4 bg-gray-900/50 rounded-lg">
               <h4 className="text-sm font-semibold text-white mb-2">Instructions:</h4>
               <ul className="text-xs text-gray-400 space-y-1">
+                <li>• Align your image within the dashed frame</li>
                 <li>• Click and drag the image to position it</li>
                 <li>• Use scroll wheel to zoom in/out</li>
                 <li>• Drag the corner handles to crop</li>
@@ -301,7 +302,7 @@ export default function SimpleImageEditor({
               <h3 className="text-lg font-semibold text-white">Preview & Edit</h3>
             </div>
 
-            {/* Preview Container */}
+            {/* Preview Container with Static Frame */}
             <div 
               ref={containerRef}
               className="flex-1 bg-gray-900 flex items-center justify-center relative overflow-hidden cursor-move"
@@ -319,6 +320,55 @@ export default function SimpleImageEditor({
                 }));
               }}
             >
+              {/* Static Frame Overlay - Shows Target Container Size */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                {elementId === 'header-logo' && (
+                  <div className="relative">
+                    {/* Frame outline showing target logo dimensions */}
+                    <div 
+                      className="border-2 border-dashed border-neonCyan bg-transparent"
+                      style={{
+                        width: '128px',  // lg:w-32 = 128px (largest responsive size)
+                        height: '128px', // lg:h-32 = 128px 
+                        borderRadius: '8px' // rounded-lg
+                      }}
+                    >
+                      {/* Corner markers */}
+                      <div className="absolute -top-1 -left-1 w-3 h-3 border-l-2 border-t-2 border-neonCyan"></div>
+                      <div className="absolute -top-1 -right-1 w-3 h-3 border-r-2 border-t-2 border-neonCyan"></div>
+                      <div className="absolute -bottom-1 -left-1 w-3 h-3 border-l-2 border-b-2 border-neonCyan"></div>
+                      <div className="absolute -bottom-1 -right-1 w-3 h-3 border-r-2 border-b-2 border-neonCyan"></div>
+                    </div>
+                    {/* Size label */}
+                    <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-neonCyan font-mono bg-gray-800 px-2 py-1 rounded">
+                      128×128px (Logo Container)
+                    </div>
+                  </div>
+                )}
+                {(elementType === 'background' || elementType === 'image') && (
+                  <div className="relative">
+                    {/* Frame for other image types */}
+                    <div 
+                      className="border-2 border-dashed border-neonPink bg-transparent"
+                      style={{
+                        width: '300px',  // Standard image container
+                        height: '200px'  // Standard aspect ratio
+                      }}
+                    >
+                      {/* Corner markers */}
+                      <div className="absolute -top-1 -left-1 w-3 h-3 border-l-2 border-t-2 border-neonPink"></div>
+                      <div className="absolute -top-1 -right-1 w-3 h-3 border-r-2 border-t-2 border-neonPink"></div>
+                      <div className="absolute -bottom-1 -left-1 w-3 h-3 border-l-2 border-b-2 border-neonPink"></div>
+                      <div className="absolute -bottom-1 -right-1 w-3 h-3 border-r-2 border-b-2 border-neonPink"></div>
+                    </div>
+                    {/* Size label */}
+                    <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-neonPink font-mono bg-gray-800 px-2 py-1 rounded">
+                      300×200px (Image Container)
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {preview ? (
                 isEmoji(preview) ? (
                   <div 

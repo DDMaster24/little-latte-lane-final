@@ -247,14 +247,7 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
         duration: 1500
       });
       
-      // Auto-select appropriate tool
-      if (config.allowedTools.includes('text')) {
-        setSelectedTool('text');
-      } else if (config.allowedTools.includes('color')) {
-        setSelectedTool('color');
-      } else if (config.allowedTools.includes('image')) {
-        setSelectedTool('image');
-      }
+      // Don't auto-select tools - let user choose manually for consistent behavior
     }
   }, [toast]);
 
