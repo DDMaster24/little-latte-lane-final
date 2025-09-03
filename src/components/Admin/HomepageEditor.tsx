@@ -7,16 +7,46 @@ import { useToast } from '@/hooks/use-toast';
 import { usePageEditor } from '@/hooks/usePageEditor';
 import { useAuth } from '@/components/AuthProvider';
 import { HexColorPicker } from 'react-colorful';
-import { 
-  ArrowLeft, 
-  Eye, 
-  Type, 
-  Palette, 
+import {
+  Type,
+  Palette,
   Image as ImageIcon,
   Save,
+  RefreshCw,
+  ArrowLeft,
+  Settings,
+  Paintbrush,
+  Zap,
   X,
-  AlertTriangle
+  AlertTriangle,
+  Eye
 } from 'lucide-react';
+
+// Website theme colors from tailwind.config.js
+const THEME_COLORS = [
+  '#FFFFFF', // Pure white
+  '#1A1A1A', // darkBg
+  '#00FFFF', // neonCyan
+  '#FF00FF', // neonPink
+  '#00FF00', // neon-green
+  '#0080FF', // neon-blue
+  '#8000FF', // neon-purple
+  '#FF8000', // neon-orange
+  '#FFFF00', // neon-yellow
+  '#FF4500', // neon-sunset
+  '#000000', // Pure black
+  '#888888', // Gray
+];
+
+// Gradient presets for the website theme
+const GRADIENT_PRESETS = [
+  { name: 'Neon Gradient', value: 'linear-gradient(to right, #00FFFF, #FF00FF)' },
+  { name: 'Cyber Blue', value: 'linear-gradient(45deg, #00FFFF, #0080FF)' },
+  { name: 'Pink Sunset', value: 'linear-gradient(135deg, #FF00FF, #FF4500)' },
+  { name: 'Electric Green', value: 'linear-gradient(to bottom, #00FF00, #00FFFF)' },
+  { name: 'Purple Dream', value: 'linear-gradient(90deg, #8000FF, #FF00FF)' },
+  { name: 'Orange Glow', value: 'linear-gradient(180deg, #FF8000, #FFFF00)' },
+];
 
 // Homepage-specific editor tool types
 type HomepageEditorTool = 'text' | 'color' | 'image';
@@ -56,6 +86,12 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
   // Color picker state - Always visible when color tool is active
   const [colorMode, setColorMode] = useState<'text' | 'background'>('text');
   const [selectedColor, setSelectedColor] = useState('#ffffff');
+  
+  // Enhanced gradient support
+  const [isGradientMode, setIsGradientMode] = useState(false);
+  const [gradientColor1, setGradientColor1] = useState('#00FFFF');
+  const [gradientColor2, setGradientColor2] = useState('#FF00FF');
+  const [gradientDirection, setGradientDirection] = useState<'to right' | 'to left' | 'to bottom' | 'to top' | '45deg' | '135deg'>('to right');
   
   // Preview/Save state - NO AUTO-SAVE
   const [pendingChanges, setPendingChanges] = useState<Map<string, PendingChange>>(new Map());
@@ -332,6 +368,11 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
       setSelectedElement(elementId);
       setSelectedElementConfig(config);
       
+      // FIXED: Update text value when switching elements
+      const currentText = editableElement.textContent || '';
+      setTextValue(currentText);
+      setEditingText(false); // Exit text editing mode when switching
+      
       // Auto-select appropriate tool
       if (config.allowedTools.includes('text')) {
         setSelectedTool('text');
@@ -431,37 +472,82 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
 
   // Color application function
   const handleColorApply = () => {
-    if (!selectedElement || !selectedColor) return;
+    if (!selectedElement) return;
     
     const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
-    if (element) {
-      const originalValue = colorMode === 'text' 
-        ? element.style.color || ''
-        : element.style.backgroundColor || '';
-      
-      // Apply preview
-      if (colorMode === 'text') {
-        element.style.color = selectedColor;
-      } else {
-        element.style.backgroundColor = selectedColor;
-      }
-      
-      // Add to pending changes
-      const newPendingChanges = new Map(pendingChanges);
-      newPendingChanges.set(`${selectedElement}-${colorMode}`, {
-        type: 'color',
-        value: selectedColor,
-        originalValue,
-        elementId: selectedElement
-      });
-      setPendingChanges(newPendingChanges);
-      
-      toast({
-        title: `🎨 ${colorMode === 'text' ? 'Text' : 'Background'} Color Preview Applied`,
-        description: "Click 'Save Changes' to make it permanent",
-        duration: 3000,
-      });
+    if (!element) return;
+
+    const property = colorMode === 'text' ? 'color' : 'backgroundColor';
+    const oldValue = element.style[property] || '';
+    
+    let newValue: string;
+    
+    if (isGradientMode && colorMode === 'background') {
+      newValue = `linear-gradient(${gradientDirection}, ${gradientColor1}, ${gradientColor2})`;
+      element.style.background = newValue;
+    } else {
+      newValue = selectedColor;
+      element.style[property] = newValue;
     }
+
+    // Add to pending changes
+    const newPendingChanges = new Map(pendingChanges);
+    newPendingChanges.set(`${selectedElement}-${colorMode}`, {
+      type: 'color',
+      value: newValue,
+      originalValue: oldValue,
+      elementId: selectedElement
+    });
+    setPendingChanges(newPendingChanges);
+
+    toast({
+      title: `🎨 ${isGradientMode && colorMode === 'background' ? 'Gradient' : (colorMode === 'text' ? 'Text' : 'Background')} Color Preview Applied`,
+      description: "Click 'Save Changes' to make it permanent",
+      duration: 3000,
+    });
+  };
+
+  // Clear gradient
+  const handleClearGradient = () => {
+    if (!selectedElement) return;
+    
+    const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
+    if (!element) return;
+    
+    element.style.background = '';
+    element.style.backgroundImage = '';
+    
+    toast({
+      title: "🧹 Gradient Cleared",
+      description: "Background gradient removed",
+      duration: 1500
+    });
+  };
+
+  // Apply gradient preset
+  const handleGradientPreset = (gradient: string) => {
+    if (!selectedElement) return;
+    
+    const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
+    if (!element) return;
+    
+    element.style.background = gradient;
+    
+    // Add to pending changes
+    const newPendingChanges = new Map(pendingChanges);
+    newPendingChanges.set(`${selectedElement}-background`, {
+      type: 'color',
+      value: gradient,
+      originalValue: element.style.background || '',
+      elementId: selectedElement
+    });
+    setPendingChanges(newPendingChanges);
+    
+    toast({
+      title: "🌈 Gradient Applied",
+      description: "Preset gradient applied successfully",
+      duration: 1500
+    });
   };
 
   // Save/Preview/Discard functions
@@ -972,84 +1058,210 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
           )}
 
           {/* Color Editing Panel - Auto-visible when color tool is active */}
+          {/* Enhanced Color Editor with Gradient Support - HeaderEditor Style Floating Panel */}
           {selectedTool === 'color' && selectedElement && (
-            <div className="px-4 py-3 bg-gray-800 border-t border-gray-600">
-              <div className="flex items-center space-x-4 mb-4">
-                <div className="text-sm text-gray-300 font-medium">Color Tools:</div>
+            <div className="fixed top-32 left-4 z-[100001] bg-gray-900 border border-gray-700 rounded-lg shadow-2xl p-4 max-w-4xl">
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-sm text-gray-300 font-medium">Color Tools</div>
                 <Button
                   data-editor-action="true"
-                  variant={colorMode === 'text' ? 'default' : 'outline'}
+                  variant="ghost"
                   size="sm"
-                  onClick={() => setColorMode('text')}
-                  className={colorMode === 'text' ? 'bg-blue-500 text-white' : 'border-gray-500 text-gray-300'}
+                  onClick={() => setSelectedTool('text')}
+                  className="text-gray-400 hover:text-white p-1"
                 >
-                  Text Color
-                </Button>
-                <Button
-                  data-editor-action="true"
-                  variant={colorMode === 'background' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setColorMode('background')}
-                  className={colorMode === 'background' ? 'bg-purple-500 text-white' : 'border-gray-500 text-gray-300'}
-                >
-                  Background Color
+                  <X className="w-4 h-4" />
                 </Button>
               </div>
               
-              {/* Color picker is always visible when color tool is active */}
-              <div className="flex items-start space-x-6">
-                <div className="flex-shrink-0">
-                  <HexColorPicker
-                    color={selectedColor}
-                    onChange={setSelectedColor}
-                    style={{ width: '200px', height: '150px' }}
-                  />
-                </div>
-                <div className="flex-1 space-y-3">
+              <div className="space-y-4">
+                {/* Color Mode Toggle */}
+                <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <label className="text-sm text-gray-300 w-16">Hex:</label>
-                    <Input
-                      value={selectedColor}
-                      onChange={(e) => setSelectedColor(e.target.value)}
-                      placeholder="#ffffff"
-                      className="flex-1 bg-gray-700 border-gray-600 text-white font-mono text-sm"
-                    />
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div 
-                      className="w-12 h-8 rounded border border-gray-600"
-                      style={{ backgroundColor: selectedColor }}
-                    ></div>
-                    <span className="text-sm text-gray-400">Preview</span>
-                  </div>
-                  <div className="flex space-x-2">
+                    <span className="text-sm font-medium text-gray-300">Color Mode:</span>
                     <Button
                       data-editor-action="true"
-                      onClick={handleColorApply}
-                      disabled={isSaving}
-                      className="bg-green-600 hover:bg-green-700 text-white"
+                      onClick={() => setColorMode('text')}
+                      variant={colorMode === 'text' ? 'default' : 'outline'}
+                      size="sm"
                     >
-                      Apply {colorMode === 'text' ? 'Text' : 'Background'} Color
+                      Text Color
+                    </Button>
+                    <Button
+                      data-editor-action="true"
+                      onClick={() => setColorMode('background')}
+                      variant={colorMode === 'background' ? 'default' : 'outline'}
+                      size="sm"
+                    >
+                      Background
                     </Button>
                   </div>
-                  <div className="grid grid-cols-8 gap-1 mt-3">
-                    {/* Quick color presets */}
-                    {[
-                      '#ffffff', '#000000', '#ff0000', '#00ff00', 
-                      '#0000ff', '#ffff00', '#ff00ff', '#00ffff',
-                      '#ff8c00', '#ff0066', '#00ff99', '#9966ff',
-                      '#ff6600', '#66ff00', '#0066ff', '#ff0099'
-                    ].map((color) => (
-                      <button
-                        key={color}
+                  
+                  {colorMode === 'background' && (
+                    <div className="flex items-center space-x-2">
+                      <Button
                         data-editor-action="true"
-                        onClick={() => setSelectedColor(color)}
-                        className="w-6 h-6 rounded border border-gray-600 hover:scale-110 transition-transform"
-                        style={{ backgroundColor: color }}
-                        title={color}
-                      />
-                    ))}
+                        onClick={() => setIsGradientMode(!isGradientMode)}
+                        variant={isGradientMode ? 'default' : 'outline'}
+                        size="sm"
+                        className="flex items-center space-x-2"
+                      >
+                        <Zap className="w-4 h-4" />
+                        <span>Gradient Mode</span>
+                      </Button>
+                      {isGradientMode && (
+                        <Button
+                          data-editor-action="true"
+                          onClick={handleClearGradient}
+                          variant="destructive"
+                          size="sm"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Color Picker Section */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-gray-300">
+                      {isGradientMode ? 'Gradient Colors' : 'Color Picker'}
+                    </h3>
+                    
+                    {isGradientMode && colorMode === 'background' ? (
+                      <div className="space-y-4">
+                        {/* Gradient Color 1 */}
+                        <div>
+                          <label className="text-xs text-gray-400 mb-2 block">Start Color</label>
+                          <HexColorPicker
+                            color={gradientColor1}
+                            onChange={setGradientColor1}
+                            style={{ width: '100%', height: '120px' }}
+                          />
+                          <Input
+                            value={gradientColor1}
+                            onChange={(e) => setGradientColor1(e.target.value)}
+                            className="mt-2 bg-gray-700 border-gray-600 text-white font-mono text-sm"
+                          />
+                        </div>
+                        
+                        {/* Gradient Color 2 */}
+                        <div>
+                          <label className="text-xs text-gray-400 mb-2 block">End Color</label>
+                          <HexColorPicker
+                            color={gradientColor2}
+                            onChange={setGradientColor2}
+                            style={{ width: '100%', height: '120px' }}
+                          />
+                          <Input
+                            value={gradientColor2}
+                            onChange={(e) => setGradientColor2(e.target.value)}
+                            className="mt-2 bg-gray-700 border-gray-600 text-white font-mono text-sm"
+                          />
+                        </div>
+                        
+                        {/* Gradient Direction */}
+                        <div>
+                          <label className="text-xs text-gray-400 mb-2 block">Direction</label>
+                          <select
+                            value={gradientDirection}
+                            onChange={(e) => setGradientDirection(e.target.value as typeof gradientDirection)}
+                            className="w-full bg-gray-700 border-gray-600 text-white text-sm rounded px-3 py-2"
+                          >
+                            <option value="to right">Left to Right</option>
+                            <option value="to left">Right to Left</option>
+                            <option value="to bottom">Top to Bottom</option>
+                            <option value="to top">Bottom to Top</option>
+                            <option value="45deg">Diagonal ↗</option>
+                            <option value="135deg">Diagonal ↘</option>
+                          </select>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <HexColorPicker
+                          color={selectedColor}
+                          onChange={setSelectedColor}
+                          style={{ width: '100%', height: '200px' }}
+                        />
+                        <div className="flex items-center space-x-2 mt-3">
+                          <span className="text-xs text-gray-400">Hex:</span>
+                          <Input
+                            value={selectedColor}
+                            onChange={(e) => setSelectedColor(e.target.value)}
+                            placeholder="#ffffff"
+                            className="flex-1 bg-gray-700 border-gray-600 text-white font-mono text-sm"
+                          />
+                          <div 
+                            className="w-12 h-8 rounded border border-gray-600"
+                            style={{ backgroundColor: selectedColor }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Theme Colors Section */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-gray-300">Website Theme Colors</h3>
+                    <div className="grid grid-cols-4 gap-2">
+                      {THEME_COLORS.map((color) => (
+                        <button
+                          key={color}
+                          data-editor-action="true"
+                          onClick={() => {
+                            if (isGradientMode && colorMode === 'background') {
+                              setGradientColor1(color);
+                            } else {
+                              setSelectedColor(color);
+                            }
+                          }}
+                          className="w-12 h-12 rounded border-2 border-gray-600 hover:border-white transition-colors"
+                          style={{ backgroundColor: color }}
+                          title={color}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Gradient Presets */}
+                  {isGradientMode && colorMode === 'background' && (
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium text-gray-300">Gradient Presets</h3>
+                      <div className="space-y-2">
+                        {GRADIENT_PRESETS.map((preset) => (
+                          <button
+                            key={preset.name}
+                            data-editor-action="true"
+                            onClick={() => handleGradientPreset(preset.value)}
+                            className="w-full h-8 rounded border border-gray-600 hover:border-white transition-colors text-left px-3 text-xs text-white"
+                            style={{ background: preset.value }}
+                          >
+                            {preset.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Apply Button */}
+                <div className="flex justify-center pt-4">
+                  <Button
+                    data-editor-action="true"
+                    onClick={handleColorApply}
+                    disabled={isSaving}
+                    className="bg-green-600 hover:bg-green-700 text-white px-8"
+                  >
+                    {isSaving ? (
+                      <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                    ) : (
+                      <Paintbrush className="w-4 h-4 mr-2" />
+                    )}
+                    Apply {isGradientMode && colorMode === 'background' ? 'Gradient' : 'Color'}
+                  </Button>
                 </div>
               </div>
             </div>
