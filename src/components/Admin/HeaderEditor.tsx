@@ -8,7 +8,6 @@ import { HexColorPicker } from 'react-colorful';
 import SimpleImageEditor from './SimpleImageEditor';
 import { 
   ArrowLeft, 
-  Eye, 
   Type, 
   Palette, 
   Image as ImageIcon,
@@ -417,7 +416,7 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
     });
   };
 
-  // Image change handler
+  // Image change handler with immediate preview
   const handleImageChange = (imageUrl: string) => {
     if (!selectedElement) return;
     
@@ -429,11 +428,19 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
       ? (element as HTMLImageElement).src
       : element.style.backgroundImage;
     
+    // Create cache-busting URL for immediate preview
+    const cacheBustingUrl = `${imageUrl}?t=${Date.now()}`;
+    
     // Apply the change immediately for preview
     if (element.tagName === 'IMG') {
-      (element as HTMLImageElement).src = imageUrl;
+      const imgElement = element as HTMLImageElement;
+      imgElement.src = cacheBustingUrl;
+      // Force reload by setting source again
+      imgElement.onload = () => {
+        console.log('🖼️ Image preview loaded successfully');
+      };
     } else {
-      element.style.backgroundImage = `url('${imageUrl}')`;
+      element.style.backgroundImage = `url('${cacheBustingUrl}')`;
     }
     
     // Add to pending changes
@@ -463,11 +470,12 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
         // Use appropriate save function based on change type
         if (change.type === 'image') {
           const { saveImageSetting } = await import('@/app/admin/actions');
+          // Use the correct key format for header logo that matches useHeaderLogo hook
+          const settingKey = change.elementId.includes('header-logo') ? 'header-logo_image' : change.elementId;
           return saveImageSetting({
-            setting_key: change.elementId,
+            setting_key: settingKey,
             setting_value: change.value,
-            category: 'page_editor',
-            page_scope: 'header'
+            category: 'page_editor'
           });
         } else {
           // For text and color changes, use general theme setting save
@@ -475,8 +483,7 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
           return saveThemeSetting({
             setting_key: change.elementId,
             setting_value: change.value,
-            category: 'page_editor',
-            page_scope: 'header'
+            category: 'page_editor'
           });
         }
       });
@@ -492,11 +499,23 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
       setPendingChanges(new Map());
       setLastSaveTime(new Date());
       
+      // Check if any image changes were saved (especially logo)
+      const hasImageChanges = Array.from(pendingChanges.values()).some(change => 
+        change.type === 'image' && change.elementId.includes('header-logo')
+      );
+      
       toast({
         title: "✅ Changes Saved",
-        description: `Successfully saved ${savePromises.length} changes to header`,
+        description: `Successfully saved ${savePromises.length} changes to header${hasImageChanges ? ' - Logo updated!' : ''}`,
         duration: 5000,
       });
+      
+      // If logo was changed, trigger a page refresh to update the header
+      if (hasImageChanges) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      }
     } catch (error) {
       console.error('Error saving changes:', error);
       toast({
@@ -506,14 +525,6 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
       });
     }
     setIsSaving(false);
-  };
-
-  const handlePreviewChanges = () => {
-    toast({
-      title: "👁️ Preview Mode",
-      description: "All changes are already previewed live",
-      duration: 2000,
-    });
   };
 
   const handleDiscardChanges = () => {
@@ -777,17 +788,7 @@ export default function HeaderEditor({ children }: HeaderEditorProps) {
                     </span>
                   </div>
                   
-                  <Button
-                    data-editor-action="true"
-                    variant="outline"
-                    size="sm"
-                    onClick={handlePreviewChanges}
-                    className="border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-white"
-                    disabled={isSaving}
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    Preview
-                  </Button>
+
                   
                   <Button
                     data-editor-action="true"
