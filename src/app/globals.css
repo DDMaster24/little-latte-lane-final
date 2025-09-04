@@ -546,4 +546,26 @@ body {
 @layer utilities {
   /* Keep only essential utility classes, no editor-specific styles */
   /* Essential utilities only */
+  
+  /* Logo Transparency and Blending */
+  [data-editable="header-logo"] {
+    /* Remove any background artifacts */
+    background: transparent !important;
+    /* Blend with dark backgrounds */
+    mix-blend-mode: screen;
+    /* Enhance contrast for better visibility */
+    filter: brightness(1.1) contrast(1.1);
+    /* Ensure smooth rendering */
+    image-rendering: crisp-edges;
+    /* Remove any potential borders or shadows */
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+  
+  /* Additional transparency for logo container */
+  [data-editable="header-logo"]:before,
+  [data-editable="header-logo"]:after {
+    display: none !important;
+  }
 }
