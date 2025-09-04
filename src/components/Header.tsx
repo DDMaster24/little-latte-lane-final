@@ -74,13 +74,14 @@ export default function Header() {
                 data-editable="header-logo"
                 src={logoUrl}
                 alt="Robert's Little Latte Lane Café & Deli"
-                width={112}
-                height={112}
+                width={200}
+                height={200}
                 className="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 object-contain"
                 priority
+                quality={95}
                 style={{
-                  filter: 'drop-shadow(0 0 10px rgba(0, 255, 255, 0.3))',
-                  background: 'transparent'
+                  background: 'transparent',
+                  imageRendering: 'crisp-edges'
                 }}
               />
             ) : (
