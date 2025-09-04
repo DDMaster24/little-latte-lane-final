@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePageEditor } from '@/hooks/usePageEditor';
 import { useAuth } from '@/components/AuthProvider';
 import { HexColorPicker } from 'react-colorful';
+import { EditorModeProvider } from '@/contexts/EditorModeContext';
 import {
   Type,
   Palette,
@@ -14,7 +15,6 @@ import {
   Save,
   RefreshCw,
   ArrowLeft,
-  Settings,
   Paintbrush,
   X,
   AlertTriangle,
@@ -82,9 +82,10 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   
-  // Color picker state - Always visible when color tool is active
+  // Color picker state - Only visible when manually activated
   const [colorMode, setColorMode] = useState<'text' | 'background'>('text');
   const [selectedColor, setSelectedColor] = useState('#ffffff');
+  const [showColorPanel, setShowColorPanel] = useState(false);
   
   // Enhanced gradient support
   const [gradientColor1, setGradientColor1] = useState('#00FFFF');
@@ -370,6 +371,7 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
       const currentText = editableElement.textContent || '';
       setTextValue(currentText);
       setEditingText(false); // Exit text editing mode when switching
+      setShowColorPanel(false); // Hide color panel when switching elements
       
       // Auto-select appropriate tool
       if (config.allowedTools.includes('text')) {
@@ -409,9 +411,11 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
 
     setSelectedTool(tool);
     
-    // Reset color mode when switching away from color tool  
-    if (tool !== 'color') {
-      setColorMode('text');
+    // Toggle color panel visibility manually
+    if (tool === 'color') {
+      setShowColorPanel(!showColorPanel);
+    } else {
+      setShowColorPanel(false);
     }
   };
 
@@ -830,7 +834,7 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
   return (
     <>
       {/* FULL SCREEN OVERLAY - Complete isolation from main site */}
-      <div className="fixed inset-0 z-[99999] bg-darkBg text-white overflow-auto">
+      <div className="fixed inset-0 z-[99999] bg-darkBg text-white overflow-hidden">
         {/* FIXED TOOLBAR */}
         <div 
           className="fixed top-0 left-0 right-0 z-[100000] bg-gray-900 border-b border-gray-700 shadow-lg"
@@ -1055,9 +1059,9 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
             </div>
           )}
 
-          {/* Color Editing Panel - Auto-visible when color tool is active */}
+          {/* Color Editing Panel - Only visible when manually activated */}
           {/* Enhanced Color Editor with Gradient Support - Compact Floating Panel */}
-          {selectedTool === 'color' && selectedElement && (
+          {showColorPanel && selectedTool === 'color' && selectedElement && (
             <div className="fixed top-32 left-4 z-[100001] bg-gray-900 border border-gray-700 rounded-lg shadow-2xl p-3 max-w-6xl max-h-[calc(100vh-140px)] overflow-y-auto">
               <div className="flex items-center justify-between mb-3">
                 <div className="text-sm text-gray-300 font-medium">Color Tools</div>
@@ -1065,7 +1069,10 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
                   data-editor-action="true"
                   variant="ghost"
                   size="sm"
-                  onClick={() => setSelectedTool('text')}
+                  onClick={() => {
+                    setShowColorPanel(false);
+                    setSelectedTool('text');
+                  }}
                   className="text-gray-400 hover:text-white p-1"
                 >
                   <X className="w-4 h-4" />
@@ -1255,8 +1262,10 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
         </div>
 
         {/* Homepage Content Container - Isolated within overlay */}
-        <div className="pt-40 min-h-screen bg-darkBg">
-          {children}
+        <div className="pt-40 min-h-screen bg-darkBg overflow-y-auto h-full">
+          <EditorModeProvider isEditorMode={true}>
+            {children}
+          </EditorModeProvider>
         </div>
       </div>
     </>

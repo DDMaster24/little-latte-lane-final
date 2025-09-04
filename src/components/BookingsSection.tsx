@@ -2,8 +2,11 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { useEditorMode } from '@/contexts/EditorModeContext';
 
 export default function BookingsSection() {
+  const { isEditorMode } = useEditorMode();
+
   return (
     <section 
       className="bg-darkBg shadow-neon animate-fade-in"
@@ -23,10 +26,14 @@ export default function BookingsSection() {
           Book the virtual golf simulator and optionally pre-order food. Choose
           your time slot and we&apos;ll have everything ready.
         </p>
-        <Link href="/bookings" aria-label="Book a golf session">
+        
+        {/* Conditional rendering for editor vs normal mode */}
+        {isEditorMode ? (
+          // Editor mode: Button without navigation
           <Button 
             className="neon-button px-4 xs:px-6 py-3 xs:py-4 text-fluid-base xs:text-fluid-lg hover:shadow-xl touch-target"
-            data-editable="bookings-button-container"
+            data-editable="bookings-button"
+            type="button"
           >
             <span 
               data-editable="bookings-button-text"
@@ -35,7 +42,16 @@ export default function BookingsSection() {
               Book Now
             </span>
           </Button>
-        </Link>
+        ) : (
+          // Normal mode: Button with navigation
+          <Link href="/bookings" aria-label="Book a golf session">
+            <Button 
+              className="neon-button px-4 xs:px-6 py-3 xs:py-4 text-fluid-base xs:text-fluid-lg hover:shadow-xl touch-target"
+            >
+              Book Now
+            </Button>
+          </Link>
+        )}
       </div>
     </section>
   );
