@@ -547,20 +547,22 @@ body {
   /* Keep only essential utility classes, no editor-specific styles */
   /* Essential utilities only */
   
-  /* Logo Transparency and Blending */
+  /* Logo Integration and Blending */
   [data-editable="header-logo"] {
     /* Remove any background artifacts */
     background: transparent !important;
-    /* Blend with dark backgrounds */
-    mix-blend-mode: screen;
-    /* Enhance contrast for better visibility */
-    filter: brightness(1.1) contrast(1.1);
+    /* Subtle border radius for better integration */
+    border-radius: 8px;
+    /* Enhance contrast and saturation for better visibility */
+    filter: contrast(1.1) saturate(1.1);
     /* Ensure smooth rendering */
     image-rendering: crisp-edges;
     /* Remove any potential borders or shadows */
     border: none !important;
     box-shadow: none !important;
     outline: none !important;
+    /* Small padding for better visual spacing */
+    padding: 2px;
   }
   
   /* Additional transparency for logo container */

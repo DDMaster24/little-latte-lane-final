@@ -26,13 +26,15 @@ export default function StaticHeaderForEditor() {
                   alt="Robert's Little Latte Lane Café & Deli"
                   width={200}
                   height={200}
-                  className="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 object-contain mix-blend-screen"
+                  className="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 object-contain"
                   priority
                   quality={95}
                   style={{
                     background: 'transparent',
                     imageRendering: 'crisp-edges',
-                    filter: 'brightness(1.1) contrast(1.1)'
+                    filter: 'contrast(1.1) saturate(1.1)',
+                    borderRadius: '8px',
+                    padding: '2px'
                   }}
                 />
               ) : (
