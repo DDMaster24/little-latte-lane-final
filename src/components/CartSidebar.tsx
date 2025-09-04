@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select';
 import { X, ShoppingCart, Plus, Minus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { performCheckout } from '@/lib/orderActions';
+import { createOrderServerAction } from '@/app/actions';
 import YocoPayment from '@/components/YocoPayment';
 import {
   formatSouthAfricanPhone,
@@ -186,25 +186,18 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         customization: item.customization as Record<string, unknown>,
       }));
 
-      // Step 2: Create order
+      // Step 2: Create order using server action (bypasses RLS issues)
       await new Promise(resolve => setTimeout(resolve, 300));
       currentStep = 2;
       toast.loading(orderSteps[currentStep], { id: 'create-order' });
 
-      const result = await performCheckout(
-        profile.id,
-        checkoutItems,
+      const result = await createOrderServerAction({
+        userId: profile.id,
+        items: checkoutItems,
         total,
         deliveryType,
-        user?.email || 'customer@example.com',
-        {
-          firstName: profile.full_name?.split(' ')[0] || 'Customer',
-          lastName: profile.full_name?.split(' ').slice(1).join(' ') || 'User',
-          phone: validFormattedPhone,
-          address: deliveryType === 'delivery' ? address : undefined,
-        },
-        specialInstructions.trim() || undefined // Pass special instructions
-      );
+        specialInstructions: specialInstructions.trim() || undefined,
+      });
 
       // Step 3: Finalize
       currentStep = 3;

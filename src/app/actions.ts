@@ -972,3 +972,123 @@ export async function getAdminAnalytics(period: 'day' | 'week' | 'month') {
     };
   }
 }
+
+/**
+ * Server-side order creation action
+ * This bypasses RLS issues by using server-side authentication
+ */
+export async function createOrderServerAction(orderData: {
+  userId: string;
+  items: {
+    id: string;
+    quantity: number;
+    price?: number;
+    name?: string;
+    customization?: Record<string, unknown>;
+  }[];
+  total: number;
+  deliveryType: string;
+  specialInstructions?: string;
+}) {
+  try {
+    console.log('🔄 Server-side order creation for user:', orderData.userId);
+    
+    const supabase = getSupabaseAdmin();
+    
+    // Verify user exists
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, email')
+      .eq('id', orderData.userId)
+      .single();
+    
+    if (profileError || !profile) {
+      throw new Error('User not found');
+    }
+    
+    console.log('✅ User verified:', profile.email);
+    
+    // Create order
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .insert({
+        user_id: orderData.userId,
+        total_amount: orderData.total,
+        status: 'draft',
+        payment_status: 'awaiting_payment',
+        delivery_method: orderData.deliveryType,
+        special_instructions: orderData.specialInstructions || null,
+        created_at: new Date().toISOString(),
+      })
+      .select('id, order_number')
+      .single();
+    
+    if (orderError) throw orderError;
+    
+    console.log('✅ Order created:', order.order_number);
+    
+    // Create order items
+    const orderItems = [];
+    
+    for (const item of orderData.items) {
+      if (item.customization?.isCustomized) {
+        // Customized item
+        orderItems.push({
+          order_id: order.id,
+          menu_item_id: null,
+          quantity: item.quantity,
+          price: item.price || 0,
+          special_instructions: JSON.stringify({
+            type: 'customized',
+            customized_id: item.id,
+            name: item.name || 'Custom Item',
+            customization_details: item.customization,
+          }),
+        });
+      } else {
+        // Regular menu item
+        const { data: menuItem, error: menuError } = await supabase
+          .from('menu_items')
+          .select('price, name')
+          .eq('id', item.id)
+          .single();
+        
+        if (menuError || !menuItem) {
+          throw new Error(`Menu item ${item.id} not found`);
+        }
+        
+        orderItems.push({
+          order_id: order.id,
+          menu_item_id: item.id,
+          quantity: item.quantity,
+          price: parseFloat(menuItem.price.toString()),
+        });
+      }
+    }
+    
+    // Insert order items using service role (bypasses RLS)
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .insert(orderItems);
+    
+    if (itemsError) {
+      console.error('❌ Order items creation failed:', itemsError);
+      throw itemsError;
+    }
+    
+    console.log('✅ Order items created:', orderItems.length);
+    
+    return {
+      success: true,
+      orderId: order.id,
+      orderNumber: order.order_number,
+    };
+    
+  } catch (error) {
+    console.error('❌ Server-side order creation failed:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}

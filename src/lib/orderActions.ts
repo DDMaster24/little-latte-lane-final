@@ -163,10 +163,31 @@ export async function performCheckout(
     }
 
     if (orderItems.length > 0) {
+      console.log('📝 Inserting order items with authenticated session...');
+      console.log('   Items to insert:', orderItems.length);
+      console.log('   User session active:', session ? 'YES' : 'NO');
+      console.log('   Auth UID:', user?.id);
+      
       const { error: itemsError } = await supabase
         .from('order_items')
         .insert(orderItems);
-      if (itemsError) throw itemsError;
+      
+      if (itemsError) {
+        console.error('❌ Order items insertion failed!');
+        console.error('Error details:', {
+          message: itemsError.message,
+          code: itemsError.code,
+          details: itemsError.details,
+          hint: itemsError.hint,
+          userAuthenticated: !!user,
+          sessionActive: !!session,
+          userId: user?.id,
+          orderItemsToInsert: orderItems.length
+        });
+        throw itemsError;
+      }
+      
+      console.log('✅ Order items inserted successfully');
     }
 
     // Don't send confirmation email yet - wait for payment confirmation
