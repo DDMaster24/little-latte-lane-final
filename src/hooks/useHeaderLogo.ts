@@ -6,7 +6,7 @@ import { getSupabaseClient } from '@/lib/supabase-client';
  * Falls back to default if no custom logo is set
  */
 export function useHeaderLogo() {
-  const [logoUrl, setLogoUrl] = useState('/images/new-logo.png'); // Default fallback
+  const [logoUrl, setLogoUrl] = useState<string | null>(null); // Start with null to prevent flashing
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchHeaderLogo = useCallback(async () => {
@@ -27,13 +27,13 @@ export function useHeaderLogo() {
         setLogoUrl(data.setting_value);
       } else {
         console.log('🖼️ Using default header logo');
-        setLogoUrl('/images/new-logo.png');
+        setLogoUrl('/images/logo.jpg');
       }
-      // If no custom logo found, keep the default
+      // If no custom logo found, use the default
     } catch (error) {
       console.error('Error fetching header logo:', error);
-      // Keep default logo on error
-      setLogoUrl('/images/new-logo.png');
+      // Use default logo on error
+      setLogoUrl('/images/logo.jpg');
     } finally {
       setIsLoading(false);
     }

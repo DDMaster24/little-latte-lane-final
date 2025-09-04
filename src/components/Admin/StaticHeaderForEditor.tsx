@@ -6,7 +6,7 @@ import { useHeaderLogo } from '@/hooks/useHeaderLogo';
 
 // Clean static version of Header component for editor - uses DIV instead of HEADER tag
 export default function StaticHeaderForEditor() {
-  const { logoUrl } = useHeaderLogo();
+  const { logoUrl, isLoading } = useHeaderLogo();
   
   return (
     <div className="w-full">
@@ -18,15 +18,21 @@ export default function StaticHeaderForEditor() {
           <div className="flex items-center min-w-0">
             <Link href="/" className="flex items-center">
               <div className="bg-black rounded-lg p-2 sm:p-3">
-                <Image
-                  data-editable="header-logo"
-                  src={logoUrl}
-                  alt="Robert's Little Latte Lane Café & Deli"
-                  width={120}
-                  height={120}
-                  className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 object-contain"
-                  priority
-                />
+                {isLoading ? (
+                  <div className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 bg-gray-700 animate-pulse rounded"></div>
+                ) : logoUrl ? (
+                  <Image
+                    data-editable="header-logo"
+                    src={logoUrl}
+                    alt="Robert's Little Latte Lane Café & Deli"
+                    width={120}
+                    height={120}
+                    className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 object-contain"
+                    priority
+                  />
+                ) : (
+                  <div className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 bg-gray-700 rounded"></div>
+                )}
               </div>
             </Link>
           </div>

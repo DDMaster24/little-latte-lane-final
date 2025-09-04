@@ -11,9 +11,9 @@ export const metadata: Metadata = {
   description: 'Café & Deli - Where Great Food Meets Amazing Experiences',
   manifest: '/manifest.json',
   icons: {
-    icon: '/images/new-logo.png',
-    apple: '/images/new-logo.png',
-    shortcut: '/images/new-logo.png',
+    icon: '/images/logo.jpg',
+    apple: '/images/logo.jpg',
+    shortcut: '/images/logo.jpg',
   },
   other: {
     'mobile-web-app-capable': 'yes',

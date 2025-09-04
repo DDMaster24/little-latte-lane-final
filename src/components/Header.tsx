@@ -19,7 +19,7 @@ import { useHeaderLogo } from '@/hooks/useHeaderLogo';
 
 export default function Header() {
   const { user, profile, signOut } = useAuth();
-  const { logoUrl, isLoading: _logoLoading } = useHeaderLogo();
+  const { logoUrl, isLoading: logoLoading } = useHeaderLogo();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -33,14 +33,12 @@ export default function Header() {
   if (!mounted) {
     return (
       <header
-        className="bg-darkBg text-neonText py-3 xs:py-4 shadow-neon relative z-40"
+        className="bg-darkBg text-neonText py-2 xs:py-3 shadow-neon relative z-40"
         suppressHydrationWarning={true}
       >
         <div className="container-full flex items-center justify-between">
           <div className="flex items-center min-w-0">
-            <div className="bg-black rounded-lg p-2 sm:p-3">
-              <div className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 bg-gray-700 animate-pulse rounded"></div>
-            </div>
+            <div className="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gray-700 animate-pulse rounded"></div>
           </div>
 
           <div className="hidden lg:flex items-center">
@@ -62,24 +60,32 @@ export default function Header() {
   return (
     <header 
       data-editable="header-background"
-      className="bg-darkBg text-neonText py-3 xs:py-4 shadow-neon relative z-40"
+      className="bg-darkBg text-neonText py-2 xs:py-3 shadow-neon relative z-40"
     >
       <div className="container-full flex items-center justify-between">
         
-        {/* Left Section - Modern Logo */}
+        {/* Left Section - Seamless Logo */}
         <div className="flex items-center min-w-0">
           <Link href="/" className="flex items-center">
-            <div className="bg-black rounded-lg p-2 sm:p-3">
+            {logoLoading ? (
+              <div className="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gray-700 animate-pulse rounded"></div>
+            ) : logoUrl ? (
               <Image
                 data-editable="header-logo"
                 src={logoUrl}
                 alt="Robert's Little Latte Lane Café & Deli"
-                width={120}
-                height={120}
-                className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 object-contain"
+                width={112}
+                height={112}
+                className="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 object-contain"
                 priority
+                style={{
+                  filter: 'drop-shadow(0 0 10px rgba(0, 255, 255, 0.3))',
+                  background: 'transparent'
+                }}
               />
-            </div>
+            ) : (
+              <div className="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gray-700 rounded"></div>
+            )}
           </Link>
         </div>
 
@@ -263,10 +269,10 @@ export default function Header() {
             {/* Mobile Auth Section */}
             <div className="pt-4 border-t border-gray-700/50 mt-4">
               {user ? (
-                <div className="flex flex-col items-center space-y-3">
+                <div className="flex items-center space-y-3">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 xs:w-12 xs:h-12 rounded-full bg-gradient-to-br from-neonCyan to-neonPink flex items-center justify-center border-2 border-neonCyan">
-                      <span className="text-black font-bold text-sm xs:text-base">
+                    <div className="w-8 h-8 xs:w-10 xs:h-10 rounded-full bg-gradient-to-br from-neonCyan to-neonPink flex items-center justify-center border-2 border-neonCyan">
+                      <span className="text-black font-bold text-xs xs:text-sm">
                         {(profile?.full_name || user.email || 'U').charAt(0).toUpperCase()}
                       </span>
                     </div>
