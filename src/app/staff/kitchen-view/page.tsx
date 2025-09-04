@@ -322,9 +322,14 @@ export default function KitchenView() {
   };
 
   const getCompletedOrders = () => {
-    // Orders that are completed but awaiting pickup/delivery
+    // Orders that are completed and awaiting pickup/delivery
+    // Don't show orders that have been picked up or delivered
     return orders
-      .filter(order => order.status === 'completed')
+      .filter(order => {
+        const status = order.status;
+        // Show only orders that are completed but not yet collected
+        return status === 'completed';
+      })
       .sort((a, b) => {
         const timeA = new Date(a.updated_at || a.created_at || 0).getTime();
         const timeB = new Date(b.updated_at || b.created_at || 0).getTime();
@@ -607,9 +612,18 @@ export default function KitchenView() {
                     <p className="text-xs sm:text-sm text-gray-200 font-medium truncate">
                       {order.profiles?.full_name || order.profiles?.email?.split('@')[0] || 'Walk-in Customer'}
                     </p>
-                    <p className="text-xs text-gray-400">
-                      Total: R{order.total_amount?.toFixed(2) || '0.00'}
-                    </p>
+                    <div className="flex justify-between items-center">
+                      <p className="text-xs text-gray-400">
+                        Total: R{order.total_amount?.toFixed(2) || '0.00'}
+                      </p>
+                      <Badge className={`text-xs px-2 py-1 ${
+                        order.delivery_method === 'delivery' 
+                          ? 'bg-blue-600/20 border-blue-600/50 text-blue-300'
+                          : 'bg-green-600/20 border-green-600/50 text-green-300'
+                      }`}>
+                        {order.delivery_method === 'delivery' ? '🚚 Delivery' : '📦 Pickup'}
+                      </Badge>
+                    </div>
                   </div>
 
                   <div className="mb-3">
@@ -628,12 +642,22 @@ export default function KitchenView() {
                   </div>
 
                   <div className="space-y-2">
-                    <Button
-                      onClick={() => handleUpdateStatus(order.id, 'picked_up')}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-2 font-medium transition-all duration-300"
-                    >
-                      📦 <span className="hidden sm:inline">Mark as Picked Up</span><span className="sm:hidden">Picked Up</span>
-                    </Button>
+                    {/* Different buttons based on delivery method */}
+                    {order.delivery_method === 'delivery' ? (
+                      <Button
+                        onClick={() => handleUpdateStatus(order.id, 'delivered')}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 font-medium transition-all duration-300"
+                      >
+                        🚚 <span className="hidden sm:inline">Mark as Delivered</span><span className="sm:hidden">Delivered</span>
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => handleUpdateStatus(order.id, 'picked_up')}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-2 font-medium transition-all duration-300"
+                      >
+                        📦 <span className="hidden sm:inline">Mark as Picked Up</span><span className="sm:hidden">Picked Up</span>
+                      </Button>
+                    )}
                     <Button
                       onClick={() => handleViewOrder(order)}
                       variant="outline"

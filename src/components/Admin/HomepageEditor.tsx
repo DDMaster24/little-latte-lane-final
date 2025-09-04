@@ -329,27 +329,32 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
   const handleElementClick = useCallback((e: MouseEvent) => {
     const target = e.target as HTMLElement;
     
-    // CRITICAL: Block ALL navigation attempts - no exceptions
+    console.log('🖱️ Homepage click detected on:', target.tagName, target.className);
+    
+    // Block navigation but allow editor functionality
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
     
     // Ignore clicks on editor toolbar
     if (target.closest('[data-editor-toolbar]') || target.closest('[data-editor-action]')) {
+      console.log('🚫 Toolbar click ignored');
       return;
     }
     
     // Find the closest editable element
     const editableElement = target.closest('[data-editable]') as HTMLElement;
+    console.log('🎯 Found editable element:', editableElement?.getAttribute('data-editable'));
     
     if (!editableElement) {
-      // Clicked outside editable area - clear selection
+      console.log('❌ No editable element - clearing selection');
       setSelectedElement(null);
       setSelectedElementConfig(null);
       return;
     }
     
     const elementId = editableElement.getAttribute('data-editable');
+    console.log('🆔 Element ID:', elementId);
     
     if (elementId) {
       // Clear previous selection
@@ -363,10 +368,19 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
       editableElement.classList.add('editor-selected');
       
       const config = getHomepageElementConfig(editableElement);
+      console.log('⚙️ Element config:', config);
       
       setSelectedElement(elementId);
       setSelectedElementConfig(config);
       
+      // Show success toast
+      toast({
+        title: "🎯 Element Selected",
+        description: `Selected ${config?.description || 'element'} for editing`,
+        variant: "default",
+        duration: 1500
+      });
+
       // FIXED: Update text value when switching elements
       const currentText = editableElement.textContent || '';
       setTextValue(currentText);
@@ -384,7 +398,7 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
       
       console.log(`🎯 Selected homepage element: ${elementId} (${config.type})`);
     }
-  }, []);
+  }, [toast]);
 
   // Handle tool selection with validation
   const handleToolSelect = (tool: HomepageEditorTool) => {
@@ -620,214 +634,109 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
     });
   };
 
-  // ULTIMATE Navigation Blocking - Block EVERYTHING that could cause navigation
+  // SIMPLIFIED Navigation Blocking - Only block what's necessary
   useEffect(() => {
-    const blockAllNavigation = (e: Event) => {
+    // Block only link navigation and form submissions - DON'T interfere with element selection
+    const blockNavigation = (e: Event) => {
       const target = e.target as HTMLElement;
       
-      // ALLOW: Editor toolbar and actions
+      // ALWAYS ALLOW: Editor toolbar and actions
       if (target.closest('[data-editor-action]') || 
           target.closest('[data-editor-toolbar]') ||
           target.closest('[data-editor-form]')) {
         return;
       }
 
-      // ALLOW: Clicks on editable elements for selection (but still block navigation)
-      const editableElement = target.closest('[data-editable]');
-      if (editableElement && e.type === 'click') {
-        // Let the click through for element selection, but prevent any navigation
+      // BLOCK ONLY: Actual navigation links and form submissions
+      if (e.type === 'click') {
         const linkElement = target.closest('a');
-        const buttonElement = target.closest('button');
+        const formElement = target.closest('form');
         
-        if (linkElement || buttonElement) {
+        if (linkElement && !target.closest('[data-editable]')) {
           e.preventDefault();
           e.stopPropagation();
-          e.stopImmediatePropagation();
-          
           toast({
             title: "🚫 Navigation Blocked",
-            description: "Click detected - element will be selected for editing instead",
+            description: "Exit editor to navigate",
             variant: "destructive",
-            duration: 2000
+            duration: 1500
           });
         }
         
-        // Allow the click to continue for element selection
-        return;
-      }
-
-      // BLOCK EVERYTHING ELSE - no exceptions
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      
-      // Show toast for blocked navigation attempts
-      if (target.tagName === 'A' || target.closest('a')) {
-        toast({
-          title: "🚫 Navigation Blocked",
-          description: "Exit homepage editor to navigate. Click elements to edit them instead.",
-          variant: "destructive",
-          duration: 2000
-        });
-      }
-      
-      return false;
-    };
-
-    // COMPREHENSIVE event blocking - capture ALL possible navigation events
-    const eventTypes = [
-      'click',
-      'mousedown', 
-      'mouseup',
-      'touchstart',
-      'touchend',
-      'keydown',
-      'keyup',
-      'submit',
-      'change'
-    ];
-
-    // Block at document level with capture phase to catch everything
-    eventTypes.forEach(eventType => {
-      document.addEventListener(eventType, blockAllNavigation, {
-        capture: true,
-        passive: false
-      });
-    });
-
-    // Additional specific blocking for navigation
-    const blockKeyboardNavigation = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      
-      // Allow only in editor areas
-      if (target.closest('[data-editor-action]') || 
-          target.closest('[data-editor-toolbar]') ||
-          target.closest('[data-editor-form]')) {
-        return;
-      }
-
-      // ALLOW essential browser shortcuts
-      if (
-        e.key === 'F12' || // DevTools
-        e.key === 'F5' || // Refresh
-        (e.ctrlKey && e.key === 'r') || // Ctrl+R refresh
-        (e.ctrlKey && e.shiftKey && e.key === 'R') || // Ctrl+Shift+R hard refresh
-        (e.ctrlKey && e.shiftKey && e.key === 'I') || // Ctrl+Shift+I DevTools
-        (e.ctrlKey && e.shiftKey && e.key === 'J') || // Ctrl+Shift+J DevTools Console
-        (e.ctrlKey && e.key === 'u') || // Ctrl+U view source
-        (e.ctrlKey && e.key === 's') || // Ctrl+S save (for dev)
-        (e.altKey && e.key === 'Tab') || // Alt+Tab window switching
-        e.key === 'Escape' // Escape key
-      ) {
-        return; // Allow these shortcuts
-      }
-
-      // Block navigation keys for page elements
-      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Tab') {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
+        if (formElement && !target.closest('[data-editor-form]')) {
+          e.preventDefault();
+          e.stopPropagation();
+          toast({
+            title: "🚫 Form Submission Blocked", 
+            description: "Exit editor to submit forms",
+            variant: "destructive",
+            duration: 1500
+          });
+        }
       }
     };
 
-    document.addEventListener('keydown', blockKeyboardNavigation, { capture: true, passive: false });
-
-    // Block form submissions completely
-    const blockFormSubmission = (e: Event) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest('[data-editor-form]')) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        
-        toast({
-          title: "🚫 Form Submission Blocked",
-          description: "Exit editor to submit forms",
-          variant: "destructive"
-        });
-      }
-    };
-
-    document.addEventListener('submit', blockFormSubmission, { capture: true, passive: false });
-
-    // Override window navigation methods
-    const originalPushState = window.history.pushState;
-    const originalReplaceState = window.history.replaceState;
-    
-    window.history.pushState = function() {
-      toast({
-        title: "🚫 Navigation Blocked",
-        description: "History navigation blocked in editor mode",
-        variant: "destructive"
-      });
-      return;
-    };
-    
-    window.history.replaceState = function() {
-      toast({
-        title: "🚫 Navigation Blocked", 
-        description: "History navigation blocked in editor mode",
-        variant: "destructive"
-      });
-      return;
-    };
+    // Only block essential navigation events - NOT all events
+    document.addEventListener('click', blockNavigation, { capture: true, passive: false });
+    document.addEventListener('submit', blockNavigation, { capture: true, passive: false });
 
     return () => {
-      // Cleanup all event listeners
-      eventTypes.forEach(eventType => {
-        document.removeEventListener(eventType, blockAllNavigation, true);
-      });
-      
-      document.removeEventListener('keydown', blockKeyboardNavigation, true);
-      document.removeEventListener('submit', blockFormSubmission, true);
-      
-      // Restore window methods
-      window.history.pushState = originalPushState;
-      window.history.replaceState = originalReplaceState;
+      document.removeEventListener('click', blockNavigation, true);
+      document.removeEventListener('submit', blockNavigation, true);
     };
   }, [toast]);
 
   // Add element hover effects and click handlers
   useEffect(() => {
-    const handleMouseEnter = (e: Event) => {
-      const target = e.target as HTMLElement;
-      const editableElement = target.closest('[data-editable]') as HTMLElement;
-      
-      if (editableElement && editableElement.getAttribute('data-editable')) {
-        // Only show orange hover if element is NOT currently selected
-        if (!editableElement.classList.contains('editor-selected')) {
-          editableElement.style.outline = '2px solid #ff8c00'; // ORANGE neon border for hover
-          editableElement.classList.add('editor-hovering');
+    // Longer delay to ensure components are fully rendered
+    const timeoutId = setTimeout(() => {
+      const handleMouseEnter = (e: Event) => {
+        const target = e.target as HTMLElement;
+        const editableElement = target.closest('[data-editable]') as HTMLElement;
+        
+        if (editableElement && editableElement.getAttribute('data-editable')) {
+          // Only show orange hover if element is NOT currently selected
+          if (!editableElement.classList.contains('editor-selected')) {
+            editableElement.style.outline = '2px solid #ff8c00'; // ORANGE neon border for hover
+            editableElement.classList.add('editor-hovering');
+          }
         }
-      }
-    };
+      };
 
-    const handleMouseLeave = (e: Event) => {
-      const target = e.target as HTMLElement;
-      const editableElement = target.closest('[data-editable]') as HTMLElement;
-      
-      if (editableElement && editableElement.classList.contains('editor-hovering')) {
-        // Only remove hover outline if element is NOT selected
-        if (!editableElement.classList.contains('editor-selected')) {
-          editableElement.style.outline = 'none';
+      const handleMouseLeave = (e: Event) => {
+        const target = e.target as HTMLElement;
+        const editableElement = target.closest('[data-editable]') as HTMLElement;
+        
+        if (editableElement && editableElement.classList.contains('editor-hovering')) {
+          // Only remove hover outline if element is NOT selected
+          if (!editableElement.classList.contains('editor-selected')) {
+            editableElement.style.outline = 'none';
+          }
+          editableElement.classList.remove('editor-hovering');
         }
-        editableElement.classList.remove('editor-hovering');
-      }
-    };
+      };
 
-    const editableElements = document.querySelectorAll('[data-editable]');
-    editableElements.forEach(element => {
-      element.addEventListener('mouseenter', handleMouseEnter);
-      element.addEventListener('mouseleave', handleMouseLeave);
-      element.addEventListener('click', handleElementClick as EventListener);
-    });
+      const editableElements = document.querySelectorAll('[data-editable]');
+      console.log('🎯 Found homepage editable elements:', editableElements.length);
+      console.log('🎯 Element list:', Array.from(editableElements).map(el => el.getAttribute('data-editable')));
+      
+      editableElements.forEach(element => {
+        element.addEventListener('mouseenter', handleMouseEnter);
+        element.addEventListener('mouseleave', handleMouseLeave);
+        element.addEventListener('click', handleElementClick as EventListener);
+      });
+
+      return () => {
+        editableElements.forEach(element => {
+          element.removeEventListener('mouseenter', handleMouseEnter);
+          element.removeEventListener('mouseleave', handleMouseLeave);
+          element.removeEventListener('click', handleElementClick as EventListener);
+        });
+      };
+    }, 2000); // Increased delay to 2 seconds to ensure full rendering
 
     return () => {
-      editableElements.forEach(element => {
-        element.removeEventListener('mouseenter', handleMouseEnter);
-        element.removeEventListener('mouseleave', handleMouseLeave);
-        element.removeEventListener('click', handleElementClick as EventListener);
-      });
+      clearTimeout(timeoutId);
     };
   }, [handleElementClick]);
 
