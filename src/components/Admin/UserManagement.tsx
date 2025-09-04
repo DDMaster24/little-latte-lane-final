@@ -1,0 +1,326 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { getSupabaseClient } from '@/lib/supabase-client';
+import { 
+  Users, Search, User, Mail, Calendar,
+  RefreshCw, Crown, Briefcase
+} from 'lucide-react';
+import toast from 'react-hot-toast';
+
+interface UserProfile {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  phone: string | null;
+  is_admin: boolean | null;
+  is_staff: boolean | null;
+  created_at: string | null;
+}
+
+export default function UserManagement() {
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterRole, setFilterRole] = useState('all'); // all, admin, staff, customer
+
+  const supabase = getSupabaseClient();
+
+  const fetchUsers = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setUsers(profiles || []);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast.error('Failed to load users');
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = !searchTerm || 
+      user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesRole = filterRole === 'all' ||
+      (filterRole === 'admin' && user.is_admin) ||
+      (filterRole === 'staff' && user.is_staff) ||
+      (filterRole === 'customer' && !user.is_admin && !user.is_staff);
+
+    return matchesSearch && matchesRole;
+  });
+
+  const handleRoleToggle = async (userId: string, role: 'admin' | 'staff', value: boolean) => {
+    try {
+      const updateData = role === 'admin' 
+        ? { is_admin: value }
+        : { is_staff: value };
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(updateData)
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      setUsers(prev => prev.map(user => 
+        user.id === userId 
+          ? { ...user, ...updateData }
+          : user
+      ));
+
+      toast.success(`User ${role} status updated`);
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      toast.error('Failed to update user role');
+    }
+  };
+
+  const getRoleBadge = (user: UserProfile) => {
+    if (user.is_admin) {
+      return <Badge className="bg-red-500 text-white">Admin</Badge>;
+    }
+    if (user.is_staff) {
+      return <Badge className="bg-blue-500 text-white">Staff</Badge>;
+    }
+    return <Badge variant="outline" className="border-gray-500 text-gray-300">Customer</Badge>;
+  };
+
+  const getStatusBadge = (_user: UserProfile) => {
+    // For now, assume all users are verified since we don't have email_confirmed_at
+    return <Badge className="bg-green-500 text-white">Verified</Badge>;
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Never';
+    return new Date(dateString).toLocaleDateString('en-ZA', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <RefreshCw className="h-8 w-8 animate-spin text-neonCyan" />
+        <span className="ml-2 text-gray-300">Loading users...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-white mb-2">User Management</h2>
+          <p className="text-gray-400">Manage user accounts and permissions</p>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={fetchUsers} className="neon-button">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="bg-gray-800/50 border-gray-700/50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-400">Total Users</p>
+                <p className="text-3xl font-bold text-white">{users.length}</p>
+              </div>
+              <Users className="h-12 w-12 text-neonCyan" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-800/50 border-gray-700/50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-400">Admins</p>
+                <p className="text-3xl font-bold text-white">
+                  {users.filter(u => u.is_admin).length}
+                </p>
+              </div>
+              <Crown className="h-12 w-12 text-red-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-800/50 border-gray-700/50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-400">Staff</p>
+                <p className="text-3xl font-bold text-white">
+                  {users.filter(u => u.is_staff && !u.is_admin).length}
+                </p>
+              </div>
+              <Briefcase className="h-12 w-12 text-blue-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-800/50 border-gray-700/50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-400">Customers</p>
+                <p className="text-3xl font-bold text-white">
+                  {users.filter(u => !u.is_admin && !u.is_staff).length}
+                </p>
+              </div>
+              <User className="h-12 w-12 text-green-400" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Search users by name or email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 bg-gray-800/50 border-gray-700/50 text-white"
+          />
+        </div>
+        <div className="flex gap-2">
+          {['all', 'admin', 'staff', 'customer'].map((role) => (
+            <Button
+              key={role}
+              onClick={() => setFilterRole(role)}
+              variant={filterRole === role ? 'default' : 'outline'}
+              className={
+                filterRole === role 
+                  ? 'bg-neonCyan text-black' 
+                  : 'border-gray-700 text-gray-300 hover:bg-gray-700/50'
+              }
+            >
+              {role.charAt(0).toUpperCase() + role.slice(1)}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {/* Users Table */}
+      <Card className="bg-gray-800/50 border-gray-700/50">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <Users className="w-5 h-5 text-neonCyan" />
+            Users ({filteredUsers.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <div className="space-y-4">
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map((user) => (
+                  <div key={user.id} className="bg-gray-700/30 rounded-lg p-4">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                      {/* User Info */}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-10 h-10 bg-gradient-to-r from-neonCyan to-neonPink rounded-full flex items-center justify-center">
+                            <span className="text-black font-bold text-sm">
+                              {user.full_name?.charAt(0) || user.email?.charAt(0)?.toUpperCase() || 'U'}
+                            </span>
+                          </div>
+                          <div>
+                            <h3 className="text-white font-medium">
+                              {user.full_name || 'No name'}
+                            </h3>
+                            <p className="text-gray-400 text-sm flex items-center gap-1">
+                              <Mail className="w-3 h-3" />
+                              {user.email || 'No email'}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {getRoleBadge(user)}
+                          {getStatusBadge(user)}
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-400">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            Joined: {formatDate(user.created_at)}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <User className="w-3 h-3" />
+                            Status: Active
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Role Controls */}
+                      <div className="flex flex-col gap-3 lg:w-64">
+                        <div className="flex items-center justify-between bg-gray-800/50 rounded-lg p-3">
+                          <div className="flex items-center gap-2">
+                            <Crown className="w-4 h-4 text-red-400" />
+                            <span className="text-sm text-white">Admin</span>
+                          </div>
+                          <Switch
+                            checked={user.is_admin || false}
+                            onCheckedChange={(checked) => handleRoleToggle(user.id, 'admin', checked)}
+                            className="data-[state=checked]:bg-red-500"
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between bg-gray-800/50 rounded-lg p-3">
+                          <div className="flex items-center gap-2">
+                            <Briefcase className="w-4 h-4 text-blue-400" />
+                            <span className="text-sm text-white">Staff</span>
+                          </div>
+                          <Switch
+                            checked={user.is_staff || false}
+                            onCheckedChange={(checked) => handleRoleToggle(user.id, 'staff', checked)}
+                            className="data-[state=checked]:bg-blue-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-12">
+                  <Users className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-400">No users found matching your criteria</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
