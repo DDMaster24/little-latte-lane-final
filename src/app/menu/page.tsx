@@ -97,9 +97,6 @@ function MenuContent() {
     return '🏠'; // Default fallback
   };
 
-  // Function to get categories for a specific section (now handled by our grouping)
-  // This function is no longer needed since we group categories directly
-
   if (loading) {
     return (
       <main className="bg-darkBg py-4 sm:py-8 px-4 sm:px-6 overflow-x-hidden">
@@ -161,9 +158,9 @@ function MenuContent() {
   }
 
   return (
-    <main className="bg-darkBg py-4 sm:py-8 px-4 sm:px-6 overflow-x-hidden min-h-screen">
+    <main className="bg-darkBg py-4 sm:py-8 overflow-x-hidden min-h-screen">
       {/* Header - Matching Homepage Style */}
-      <div className="text-center mb-8 sm:mb-12">
+      <div className="text-center mb-8 sm:mb-12 px-4 sm:px-6">
         <h1 
           data-editable="menu-page-title"
           className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-neonCyan via-neonBlue to-neonPink bg-clip-text text-transparent mb-4 flex items-center justify-center gap-2 sm:gap-4"
@@ -190,90 +187,99 @@ function MenuContent() {
         </p>
       </div>
 
-      {/* Sections - Display organized categories */}
-      <div className="space-y-6 sm:space-y-12 max-w-7xl mx-auto">
+      {/* Sections - Display organized categories with full-width background */}
+      <div className="space-y-6 sm:space-y-12">
         {sections.map((section, index) => {
           const sectionCategories = section.categories;
           
           return (
-            <div key={`section-${index}`} className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-gray-700/50">
-              {/* Section Header - Enhanced with glassmorphism */}
-              <div className="text-center mb-6 sm:mb-8">
-                <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2">
-                  <span className="text-2xl sm:text-3xl">{section.icon}</span>
-                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-neonCyan to-neonPink bg-clip-text text-transparent">
-                    {section.name}
-                  </h2>
-                  <span className="text-2xl sm:text-3xl">{section.icon}</span>
+            <div key={`section-${index}`} className="w-full">
+              {/* Full-width background container */}
+              <div className="bg-gray-900/50 border-y border-gray-700/50 py-6 sm:py-8">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                  {/* Section Header */}
+                  <div className="text-center mb-6 sm:mb-8">
+                    <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2">
+                      <span className="text-2xl sm:text-3xl">{section.icon}</span>
+                      <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-neonCyan to-neonPink bg-clip-text text-transparent">
+                        {section.name}
+                      </h2>
+                      <span className="text-2xl sm:text-3xl">{section.icon}</span>
+                    </div>
+                  </div>
+
+                  {/* Categories Grid - Centered Layout */}
+                  {sectionCategories.length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="text-4xl sm:text-6xl mb-4">🚧</div>
+                      <h3 className="text-lg sm:text-xl font-semibold text-gray-400 mb-2">Coming Soon</h3>
+                      <p className="text-sm sm:text-base text-gray-500">We&apos;re working on adding items to this section</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+                      {sectionCategories.map((category: Category) => (
+                        <div
+                          key={category.id}
+                          className="category-card flex-none w-72 sm:w-80"
+                        >
+                          <Link
+                            href={`/menu/modern?category=${category.id}`}
+                            className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 p-4 sm:p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in w-full h-full block"
+                            style={{ 
+                              background: 'rgba(0, 0, 0, 0.4)',
+                              backdropFilter: 'blur(10px)',
+                              boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)'
+                            }}
+                            prefetch={true}
+                          >
+                            {/* Category Icon Section */}
+                            <div className="flex flex-col items-center text-center">
+                              <div 
+                                data-editable="category-icon-container"
+                                className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mb-3 sm:mb-4 flex items-center justify-center rounded-xl bg-black/30 backdrop-blur-sm border border-neonCyan/20 group-hover:border-neonPink/40 transition-all duration-300"
+                              >
+                                <span 
+                                  data-editable="category-icon"
+                                  className="text-2xl sm:text-3xl lg:text-4xl"
+                                >
+                                  {getCategoryIcon(category.name)}
+                                </span>
+                              </div>
+                              
+                              {/* Category Name */}
+                              <h3 
+                                data-editable="category-name"
+                                className="text-lg sm:text-xl font-bold text-neonCyan group-hover:text-neonPink transition-colors duration-300 mb-2"
+                              >
+                                {category.name}
+                              </h3>
+                              
+                              {/* Category Description */}
+                              {category.description && (
+                                <p 
+                                  data-editable="category-description"
+                                  className="text-gray-300 text-xs sm:text-sm leading-relaxed group-hover:text-gray-200 transition-colors duration-300 line-clamp-3"
+                                >
+                                  {category.description}
+                                </p>
+                              )}
+                              
+                              {/* Hover Effect Glow */}
+                              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-neonCyan/5 to-neonPink/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                            </div>
+                          </Link>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
-
-              {/* Categories Grid */}
-              {sectionCategories.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="text-4xl sm:text-6xl mb-4">🚧</div>
-                  <h3 className="text-lg sm:text-xl font-semibold text-gray-400 mb-2">Coming Soon</h3>
-                  <p className="text-sm sm:text-base text-gray-500">We&apos;re working on adding items to this section</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 w-full">
-                  {sectionCategories.map((category: Category) => (
-                    <Link
-                      key={category.id}
-                      href={`/menu/modern?category=${category.id}`}
-                      className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 p-4 sm:p-6 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in w-full h-full"
-                      style={{ 
-                        background: 'rgba(0, 0, 0, 0.4)',
-                        backdropFilter: 'blur(10px)',
-                        boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)'
-                      }}
-                      prefetch={true}
-                    >
-                      {/* Category Icon Section */}
-                      <div className="flex flex-col items-center text-center">
-                        <div 
-                          data-editable="category-icon-container"
-                          className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mb-3 sm:mb-4 flex items-center justify-center rounded-xl bg-black/30 backdrop-blur-sm border border-neonCyan/20 group-hover:border-neonPink/40 transition-all duration-300"
-                        >
-                          <span 
-                            data-editable="category-icon"
-                            className="text-2xl sm:text-3xl lg:text-4xl"
-                          >
-                            {getCategoryIcon(category.name)}
-                          </span>
-                        </div>
-                        
-                        {/* Category Name */}
-                        <h3 
-                          data-editable="category-name"
-                          className="text-lg sm:text-xl font-bold text-neonCyan group-hover:text-neonPink transition-colors duration-300 mb-2"
-                        >
-                          {category.name}
-                        </h3>
-                        
-                        {/* Category Description */}
-                        {category.description && (
-                          <p 
-                            data-editable="category-description"
-                            className="text-gray-300 text-xs sm:text-sm leading-relaxed group-hover:text-gray-200 transition-colors duration-300 line-clamp-3"
-                          >
-                            {category.description}
-                          </p>
-                        )}
-                        
-                        {/* Hover Effect Glow */}
-                        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-neonCyan/5 to-neonPink/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
             </div>
           );
         })}
       </div>
 
-      {/* View All Items Button - Matching Homepage Style */}
+      {/* View All Items Button */}
       <div className="flex justify-center mt-8 sm:mt-12 px-4">
         <Link
           href="/menu/modern"
@@ -307,6 +313,44 @@ function MenuContent() {
           </span>
         </Link>
       </div>
+
+      {/* CSS for responsive centered grid */}
+      <style jsx>{`
+        @media (min-width: 1536px) {
+          .category-card {
+            width: calc(20% - 1.2rem);
+            min-width: 280px;
+          }
+        }
+        
+        @media (min-width: 1280px) and (max-width: 1535px) {
+          .category-card {
+            width: calc(25% - 1.125rem);
+            min-width: 280px;
+          }
+        }
+        
+        @media (min-width: 1024px) and (max-width: 1279px) {
+          .category-card {
+            width: calc(33.333% - 1rem);
+            min-width: 280px;
+          }
+        }
+        
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .category-card {
+            width: calc(50% - 1rem);
+            min-width: 280px;
+          }
+        }
+        
+        @media (max-width: 767px) {
+          .category-card {
+            width: 100%;
+            max-width: 400px;
+          }
+        }
+      `}</style>
     </main>
   );
 }
