@@ -114,27 +114,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
     let cancelled = false;
     let profileFetchInProgress = false;
 
-    // Get initial session
+    // Get initial session with retry logic
     const getInitialSession = async () => {
       try {
+        console.log('🔍 AuthProvider: Getting initial session...');
         const {
           data: { session: initialSession },
         } = await supabase.auth.getSession();
 
         if (cancelled) return;
 
+        console.log('📧 AuthProvider: Initial session:', initialSession?.user?.email || 'none');
         setSession(initialSession);
 
-        if (initialSession?.user && !profile && !profileFetchInProgress) {
+        if (initialSession?.user && !profileFetchInProgress) {
           profileFetchInProgress = true;
+          console.log('👤 AuthProvider: Fetching profile for initial session...');
+          
+          // Add small delay to ensure database is ready
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
           const userProfile = await fetchProfile(initialSession.user.id);
           if (!cancelled) {
+            console.log('✅ AuthProvider: Profile set:', userProfile ? 'found' : 'not found');
             setProfile(userProfile);
           }
           profileFetchInProgress = false;
         }
       } catch (error) {
-        console.error('Error getting initial session:', error);
+        console.error('❌ AuthProvider: Error getting initial session:', error);
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -144,25 +152,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     getInitialSession();
 
-    // Listen for auth changes
+    // Listen for auth changes with improved handling
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event: string, newSession: Session | null) => {
       if (cancelled) return;
 
+      console.log('🔄 AuthProvider: Auth state change:', event, newSession?.user?.email || 'none');
       setSession(newSession);
 
       if (newSession?.user && !profileFetchInProgress) {
         // Only fetch profile if we don't have one or if it's a different user
         if (!profile || profile.id !== newSession.user.id) {
           profileFetchInProgress = true;
+          console.log('👤 AuthProvider: Fetching profile for auth change...');
+          
+          // Add delay for database consistency
+          await new Promise(resolve => setTimeout(resolve, 200));
+          
           const userProfile = await fetchProfile(newSession.user.id);
           if (!cancelled) {
+            console.log('✅ AuthProvider: Profile updated:', userProfile ? 'found' : 'not found');
             setProfile(userProfile);
           }
           profileFetchInProgress = false;
         }
       } else if (!newSession?.user) {
+        console.log('🚪 AuthProvider: User signed out, clearing profile');
         setProfile(null);
       }
 

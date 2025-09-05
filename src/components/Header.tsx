@@ -18,7 +18,7 @@ import LoginForm from '@/components/LoginForm';
 import { useHeaderLogo } from '@/hooks/useHeaderLogo';
 
 export default function Header() {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, loading: authLoading } = useAuth();
   const { logoUrl, isLoading: logoLoading } = useHeaderLogo();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -28,6 +28,14 @@ export default function Header() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Add effect to trigger profile refresh if user exists but profile is missing
+  useEffect(() => {
+    if (user && !profile && !authLoading) {
+      console.log('🔄 Header: User exists but no profile, this might indicate a role loading issue');
+      // The AuthProvider should handle this, but we can add logging here for debugging
+    }
+  }, [user, profile, authLoading]);
 
   // Don't render auth-dependent content until mounted
   if (!mounted) {
@@ -141,6 +149,11 @@ export default function Header() {
               >
                 {profile?.is_staff && !profile?.is_admin ? "🍳 Kitchen" : "Staff Panel"}
               </Link>
+            )}
+            {user && !profile && authLoading && (
+              <div className="text-xs text-gray-400 px-3 py-2">
+                Loading roles...
+              </div>
             )}
           </nav>
         </div>

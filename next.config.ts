@@ -20,9 +20,10 @@ const CSP_DIRECTIVES = [
   "img-src 'self' data: blob: https:",
   "connect-src 'self' wss: https://*.payfast.co.za https://payfast.co.za https://www.payfast.co.za https://awytuszmunxvthuizyur.supabase.co wss://awytuszmunxvthuizyur.supabase.co https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.googletagmanager.com https://overbridgenet.com https://*.sentry.io https://vercel.live https://*.vercel.live",
   "worker-src 'self' blob:",
-  "child-src 'self' blob:",
+  "child-src 'self' blob: https://vercel.live https://*.vercel.live",
+  "frame-src 'self' blob: https://vercel.live https://*.vercel.live",
   "form-action 'self' https: http:",
-  "frame-ancestors 'self'",
+  "frame-ancestors 'self' https://vercel.live https://*.vercel.live",
 ].join('; ');
 
 /** @type {import('next').NextConfig} */
