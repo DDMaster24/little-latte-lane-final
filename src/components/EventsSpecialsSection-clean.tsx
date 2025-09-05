@@ -162,7 +162,7 @@ export default function EventsSpecialsSection() {
   if (eventsToShow.length === 0) {
     return (
       <section 
-        className="w-full shadow-neon rounded-xl animate-fade-in"
+        className="container-responsive section-padding-sm shadow-neon rounded-xl animate-fade-in"
         style={{ 
           backgroundColor: settings.section_background_color,
           backgroundImage: settings.section_background_image ? `url(${settings.section_background_image})` : undefined,
@@ -171,7 +171,7 @@ export default function EventsSpecialsSection() {
         }}
         data-editable="events-section"
       >
-        <div className="text-center py-8 xs:py-12 px-6">
+        <div className="text-center">
           <h2 
             className={`text-fluid-2xl xs:text-fluid-3xl md:text-fluid-4xl font-bold ${settings.title_gradient} bg-clip-text text-transparent mb-4`}
             style={{ color: settings.title_gradient.includes('gradient') ? undefined : settings.section_text_color }}
@@ -202,11 +202,11 @@ export default function EventsSpecialsSection() {
 
   return (
     <section 
-      className="w-full"
+      className="container-responsive section-padding-sm"
       data-editable="events-section-container"
     >
       <div 
-        className="w-full shadow-neon rounded-xl overflow-hidden animate-fade-in"
+        className="shadow-neon rounded-xl overflow-hidden animate-fade-in"
         style={{ 
           backgroundColor: settings.section_background_color,
           backgroundImage: settings.section_background_image ? `url(${settings.section_background_image})` : undefined,

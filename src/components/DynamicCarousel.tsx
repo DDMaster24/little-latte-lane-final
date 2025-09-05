@@ -228,8 +228,8 @@ export default function DynamicCarousel({ panels = [], className = '' }: Dynamic
     if (config.icon?.enabled && config.icon.name && iconMap[config.icon.name]) {
       const IconComponent = iconMap[config.icon.name];
       components.push(
-        <div key="icon" className="text-center mb-4">
-          <IconComponent className="h-12 w-12 text-neonCyan mx-auto" />
+        <div key="icon" className="text-center mb-6">
+          <IconComponent className="h-16 w-16 text-neonCyan mx-auto" />
         </div>
       );
     }
@@ -237,14 +237,14 @@ export default function DynamicCarousel({ panels = [], className = '' }: Dynamic
     // Render image if enabled
     if (config.image?.enabled && config.image.src) {
       components.push(
-        <div key="image" className="relative flex-shrink-0 mb-3">
+        <div key="image" className="relative flex-shrink-0 mb-4">
           <Image
             src={config.image.src}
             alt={config.image.alt || 'Panel image'}
-            width={160}
-            height={90}
-            className="rounded-lg mx-auto object-cover w-full h-16 xs:h-20 sm:h-24 max-w-40 xs:max-w-48"
-            sizes="(max-width: 475px) 160px, (max-width: 640px) 180px, 200px"
+            width={240}
+            height={135}
+            className="rounded-lg mx-auto object-cover w-full h-20 xs:h-24 sm:h-28 md:h-32 max-w-60 xs:max-w-64 sm:max-w-72"
+            sizes="(max-width: 475px) 240px, (max-width: 640px) 256px, 288px"
             priority={false}
             loading="lazy"
           />
@@ -255,11 +255,11 @@ export default function DynamicCarousel({ panels = [], className = '' }: Dynamic
     // Render schedule if enabled
     if (config.schedule?.enabled && config.schedule.items) {
       components.push(
-        <div key="schedule" className="space-y-2 text-sm mb-4">
+        <div key="schedule" className="space-y-3 text-sm mb-6">
           {config.schedule.items.map((item, index) => (
             <div key={index} className="flex justify-between">
-              <span className="text-gray-300">{item.day}</span>
-              <span className="text-white font-medium">{item.hours}</span>
+              <span className="text-gray-300 font-medium">{item.day}</span>
+              <span className="text-white font-semibold">{item.hours}</span>
             </div>
           ))}
         </div>
@@ -291,9 +291,9 @@ export default function DynamicCarousel({ panels = [], className = '' }: Dynamic
       const enabledItems = config.featureList.items.filter(item => item.enabled);
       if (enabledItems.length > 0) {
         components.push(
-          <div key="featureList" className="space-y-1 text-xs mb-3">
+          <div key="featureList" className="space-y-2 text-sm mb-4">
             {enabledItems.map((item, index) => (
-              <div key={index} className="truncate">{item.text}</div>
+              <div key={index} className="text-center font-medium text-gray-200">{item.text}</div>
             ))}
           </div>
         );
@@ -322,9 +322,9 @@ export default function DynamicCarousel({ panels = [], className = '' }: Dynamic
       const enabledItems = config.socialGrid.items.filter(item => item.enabled);
       if (enabledItems.length > 0) {
         components.push(
-          <div key="socialGrid" className="grid grid-cols-2 gap-2 text-xs mb-3">
+          <div key="socialGrid" className="grid grid-cols-2 gap-3 text-sm mb-4">
             {enabledItems.map((item, index) => (
-              <div key={index} className="bg-gray-700 p-1 rounded">{item.text}</div>
+              <div key={index} className="bg-gray-700/50 p-3 rounded-lg text-center font-medium">{item.text}</div>
             ))}
           </div>
         );
@@ -334,7 +334,7 @@ export default function DynamicCarousel({ panels = [], className = '' }: Dynamic
     // Render handle if enabled
     if (config.handle?.enabled && config.handle.text) {
       components.push(
-        <div key="handle" className="text-center text-sm text-gray-300 mb-3">
+        <div key="handle" className="text-center text-lg font-semibold text-neonCyan mb-3">
           {config.handle.text}
         </div>
       );
