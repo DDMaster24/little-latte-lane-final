@@ -18,7 +18,7 @@ interface PWAInstallPromptProps {
 }
 
 export default function PWAInstallPrompt({ 
-  className = '',
+  className: _className = '',
   source = 'auto'
 }: PWAInstallPromptProps) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -131,17 +131,8 @@ export default function PWAInstallPrompt({
 
   // Show install button for installable apps
   if (isInstallable && !showPrompt) {
-    return (
-      <button
-        onClick={() => setShowPrompt(true)}
-        className={`flex items-center gap-2 px-4 py-2 bg-neonCyan hover:bg-cyan-400 text-black rounded-lg font-medium transition-colors shadow-lg ${className}`}
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-        </svg>
-        Install App
-      </button>
-    );
+    // Don't show persistent button - only show when prompted
+    return null;
   }
 
   // Main install prompt modal

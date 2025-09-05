@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { Button } from '@/components/ui/button';
@@ -15,11 +14,10 @@ import {
   DialogOverlay,
 } from '@/components/ui/dialog';
 import LoginForm from '@/components/LoginForm';
-import { useHeaderLogo } from '@/hooks/useHeaderLogo';
+import CSSNeonLogo from '@/components/CSSNeonLogo';
 
 export default function Header() {
   const { user, profile, signOut, loading: authLoading } = useAuth();
-  const { logoUrl, isLoading: logoLoading } = useHeaderLogo();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -46,7 +44,11 @@ export default function Header() {
       >
         <div className="container-full flex items-center justify-between">
           <div className="flex items-center min-w-0">
-            <div className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 xl:w-36 xl:h-36 bg-gray-700 animate-pulse rounded"></div>
+            <CSSNeonLogo 
+              size="sm"
+              animated={true}
+              className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 xl:w-36 xl:h-36 flex items-center justify-center"
+            />
           </div>
 
           <div className="hidden lg:flex items-center">
@@ -72,33 +74,14 @@ export default function Header() {
     >
       <div className="container-full flex items-center justify-between">
         
-        {/* Left Section - Seamless Logo */}
+        {/* Left Section - CSS Neon Logo (Temporary) */}
         <div className="flex items-center min-w-0">
           <Link href="/" className="flex items-center">
-            {logoLoading ? (
-              <div className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 xl:w-36 xl:h-36 bg-gray-700 animate-pulse rounded"></div>
-            ) : logoUrl ? (
-              <Image
-                data-editable="header-logo"
-                src={logoUrl}
-                alt="Robert's Little Latte Lane Café & Deli"
-                width={512}
-                height={512}
-                className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 xl:w-36 xl:h-36 object-contain"
-                priority
-                quality={100}
-                unoptimized={logoUrl.endsWith('.svg')}
-                style={{
-                  background: 'transparent',
-                  imageRendering: logoUrl.endsWith('.svg') ? 'auto' : 'crisp-edges',
-                  filter: 'contrast(1.15) saturate(1.2) brightness(1.05) drop-shadow(0 0 8px rgba(0, 255, 255, 0.3))',
-                  borderRadius: '6px',
-                  padding: '1px'
-                }}
-              />
-            ) : (
-              <div className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 xl:w-36 xl:h-36 bg-gray-700 rounded"></div>
-            )}
+            <CSSNeonLogo 
+              size="sm"
+              animated={true}
+              className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 xl:w-36 xl:h-36 flex items-center justify-center"
+            />
           </Link>
         </div>
 

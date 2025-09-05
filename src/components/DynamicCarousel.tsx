@@ -255,11 +255,11 @@ export default function DynamicCarousel({ panels = [], className = '' }: Dynamic
     // Render schedule if enabled
     if (config.schedule?.enabled && config.schedule.items) {
       components.push(
-        <div key="schedule" className="space-y-3 text-sm mb-6">
+        <div key="schedule" className="space-y-4 text-sm mb-6">
           {config.schedule.items.map((item, index) => (
-            <div key={index} className="flex justify-between">
-              <span className="text-gray-300 font-medium">{item.day}</span>
-              <span className="text-white font-semibold">{item.hours}</span>
+            <div key={index} className="flex justify-between items-center px-2">
+              <span className="text-gray-300 font-medium min-w-[80px]">{item.day}</span>
+              <span className="text-white font-semibold ml-4">{item.hours}</span>
             </div>
           ))}
         </div>
