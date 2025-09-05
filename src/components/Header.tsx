@@ -46,7 +46,7 @@ export default function Header() {
       >
         <div className="container-full flex items-center justify-between">
           <div className="flex items-center min-w-0">
-            <div className="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gray-700 animate-pulse rounded"></div>
+            <div className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 xl:w-36 xl:h-36 bg-gray-700 animate-pulse rounded"></div>
           </div>
 
           <div className="hidden lg:flex items-center">
@@ -76,27 +76,28 @@ export default function Header() {
         <div className="flex items-center min-w-0">
           <Link href="/" className="flex items-center">
             {logoLoading ? (
-              <div className="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gray-700 animate-pulse rounded"></div>
+              <div className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 xl:w-36 xl:h-36 bg-gray-700 animate-pulse rounded"></div>
             ) : logoUrl ? (
               <Image
                 data-editable="header-logo"
                 src={logoUrl}
                 alt="Robert's Little Latte Lane Café & Deli"
-                width={200}
-                height={200}
-                className="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 object-contain"
+                width={512}
+                height={512}
+                className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 xl:w-36 xl:h-36 object-contain"
                 priority
-                quality={95}
+                quality={100}
+                unoptimized={logoUrl.endsWith('.svg')}
                 style={{
                   background: 'transparent',
-                  imageRendering: 'crisp-edges',
-                  filter: 'contrast(1.1) saturate(1.1)',
-                  borderRadius: '8px',
-                  padding: '2px'
+                  imageRendering: logoUrl.endsWith('.svg') ? 'auto' : 'crisp-edges',
+                  filter: 'contrast(1.15) saturate(1.2) brightness(1.05) drop-shadow(0 0 8px rgba(0, 255, 255, 0.3))',
+                  borderRadius: '6px',
+                  padding: '1px'
                 }}
               />
             ) : (
-              <div className="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gray-700 rounded"></div>
+              <div className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 xl:w-36 xl:h-36 bg-gray-700 rounded"></div>
             )}
           </Link>
         </div>
