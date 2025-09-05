@@ -1,222 +1,259 @@
+/**
+ * Permanent QR Code Generator for PWA Installation
+ * Creates a fixed, unchangeable QR code for printing and physical deployment
+ */
+
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
-import { toast } from 'sonner';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Download, Printer, ExternalLink, Check } from 'lucide-react';
 
-interface QRCodeGeneratorProps {
-  url?: string;
-  size?: number;
-  className?: string;
-}
+// PERMANENT INSTALL URL - This never changes!
+const PERMANENT_INSTALL_URL = 'https://littlelattelane.co.za/install';
 
-export default function QRCodeGenerator({ 
-  url = 'https://littlelattelane.co.za', 
-  size = 256,
-  className = ''
-}: QRCodeGeneratorProps) {
-  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
-  const [isGenerating, setIsGenerating] = useState(false);
+export const QRCodeGenerator = () => {
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  // Add PWA installation parameters to URL
-  const pwaUrl = `${url}?pwa=true&source=qr`;
+  // Generate the permanent QR code on mount
+  useEffect(() => {
+    generatePermanentQRCode();
+  }, []);
 
-  const generateQRCode = async () => {
-    setIsGenerating(true);
+  const generatePermanentQRCode = async () => {
     try {
-      const qrString = await QRCode.toDataURL(pwaUrl, {
-        width: size,
+      setIsLoaded(false);
+      
+      // Generate QR code with optimal settings for printing
+      const qrCodeOptions = {
+        errorCorrectionLevel: 'H' as const, // High error correction for physical printing
+        type: 'image/png' as const,
+        quality: 1,
         margin: 2,
         color: {
-          dark: '#000000',
-          light: '#FFFFFF'
+          dark: '#000000',  // Black for maximum contrast
+          light: '#FFFFFF'  // White background
         },
-        errorCorrectionLevel: 'M'
-      });
-      setQrCodeUrl(qrString);
-      console.log('✅ QR Code generated for:', pwaUrl);
+        width: 512,  // High resolution for printing
+      };
+
+      const qrCodeUrl = await QRCode.toDataURL(PERMANENT_INSTALL_URL, qrCodeOptions);
+      setQrCodeDataUrl(qrCodeUrl);
+      setIsLoaded(true);
     } catch (error) {
-      console.error('❌ QR Code generation failed:', error);
-      toast.error('Failed to generate QR code');
-    } finally {
-      setIsGenerating(false);
+      console.error('Error generating permanent QR code:', error);
     }
   };
 
-  useEffect(() => {
-    generateQRCode();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url, size, pwaUrl]);
-
-  const handleDownload = () => {
-    if (!qrCodeUrl) return;
+  const downloadQRCode = () => {
+    if (!qrCodeDataUrl) return;
 
     const link = document.createElement('a');
-    link.download = 'little-latte-lane-qr-code.png';
-    link.href = qrCodeUrl;
+    link.href = qrCodeDataUrl;
+    link.download = 'little-latte-lane-install-qr-code.png';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
-    toast.success('QR Code downloaded!');
   };
 
-  const handlePrint = () => {
-    if (!qrCodeUrl) return;
+  const printQRCode = () => {
+    if (!qrCodeDataUrl) return;
 
     const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Little Latte Lane - QR Code</title>
-            <style>
-              body {
-                margin: 0;
-                padding: 40px;
-                text-align: center;
-                font-family: Arial, sans-serif;
-              }
-              .header {
-                margin-bottom: 30px;
-              }
-              .qr-container {
-                margin: 20px 0;
-              }
-              .instructions {
-                margin-top: 20px;
-                color: #666;
-                font-size: 14px;
-                max-width: 400px;
-                margin-left: auto;
-                margin-right: auto;
-              }
-              @media print {
-                body { margin: 0; padding: 20px; }
-              }
-            </style>
-          </head>
-          <body>
-            <div class="header">
-              <h1>Little Latte Lane</h1>
-              <h2>Scan to Order & Install App</h2>
-            </div>
-            <div class="qr-container">
-              <img src="${qrCodeUrl}" alt="QR Code" style="max-width: 300px; height: auto;" />
-            </div>
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Little Latte Lane - Install QR Code</title>
+          <style>
+            body {
+              margin: 0;
+              padding: 40px;
+              font-family: Arial, sans-serif;
+              text-align: center;
+              background: white;
+            }
+            .qr-container {
+              max-width: 400px;
+              margin: 0 auto;
+              padding: 20px;
+              border: 2px solid #000;
+              border-radius: 10px;
+            }
+            .qr-code {
+              width: 300px;
+              height: 300px;
+              margin: 20px auto;
+              display: block;
+            }
+            .title {
+              font-size: 24px;
+              font-weight: bold;
+              margin-bottom: 10px;
+              color: #000;
+            }
+            .subtitle {
+              font-size: 16px;
+              margin-bottom: 20px;
+              color: #333;
+            }
+            .url {
+              font-size: 14px;
+              font-family: monospace;
+              background: #f5f5f5;
+              padding: 10px;
+              border-radius: 5px;
+              margin-top: 20px;
+              word-break: break-all;
+            }
+            .instructions {
+              font-size: 12px;
+              color: #666;
+              margin-top: 15px;
+              text-align: left;
+            }
+            @media print {
+              body { margin: 0; padding: 20px; }
+              .qr-container { border: 1px solid #000; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="qr-container">
+            <div class="title">Little Latte Lane</div>
+            <div class="subtitle">Scan to Install Mobile App</div>
+            <img src="${qrCodeDataUrl}" alt="QR Code for Little Latte Lane App" class="qr-code" />
+            <div class="url">${PERMANENT_INSTALL_URL}</div>
             <div class="instructions">
-              <p><strong>How to use:</strong></p>
-              <p>1. Open your phone's camera app</p>
-              <p>2. Point at this QR code</p>
-              <p>3. Tap the notification to open</p>
-              <p>4. Install the app when prompted</p>
-              <p>5. Start ordering delicious food!</p>
+              <strong>Instructions:</strong><br>
+              1. Open your phone's camera app<br>
+              2. Point it at this QR code<br>
+              3. Tap the notification to install<br>
+              4. Or visit the URL above manually
             </div>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
+          </div>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    setTimeout(() => {
       printWindow.print();
-    }
+      printWindow.close();
+    }, 500);
   };
 
-  const copyUrl = () => {
-    navigator.clipboard.writeText(pwaUrl);
-    toast.success('URL copied to clipboard!');
+  const openInstallPage = () => {
+    window.open(PERMANENT_INSTALL_URL, '_blank');
   };
 
   return (
-    <div className={`bg-white rounded-xl p-6 shadow-lg ${className}`}>
-      <div className="text-center">
-        <h3 className="text-xl font-bold text-gray-800 mb-2">
-          Customer QR Code
-        </h3>
-        <p className="text-gray-600 text-sm mb-4">
-          Customers scan this to visit & install the app
-        </p>
-
-        {/* QR Code Display */}
-        <div className="bg-gray-50 rounded-lg p-4 mb-4 inline-block">
-          {isGenerating ? (
-            <div className="animate-spin w-8 h-8 border-4 border-neonCyan border-t-transparent rounded-full mx-auto"></div>
-          ) : qrCodeUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img 
-              src={qrCodeUrl} 
-              alt="QR Code for Little Latte Lane" 
-              className="mx-auto"
-              style={{ width: size, height: size }}
-            />
-          ) : (
-            <div className="w-64 h-64 bg-gray-200 rounded-lg flex items-center justify-center">
-              <span className="text-gray-500">No QR Code</span>
+    <div className="space-y-6">
+      <Card className="bg-gradient-to-br from-gray-900 to-darkBg border-neonCyan/30">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-neonCyan">
+            <Check className="w-5 h-5" />
+            Permanent PWA Install QR Code
+          </CardTitle>
+          <CardDescription>
+            Fixed QR code for printing and physical deployment. This QR code never changes!
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* QR Code Display */}
+          <div className="flex justify-center">
+            <div className="bg-white p-4 rounded-lg shadow-lg">
+              {isLoaded && qrCodeDataUrl ? (
+                <Image
+                  src={qrCodeDataUrl}
+                  alt="Permanent QR Code for Little Latte Lane App Installation"
+                  width={256}
+                  height={256}
+                  className="mx-auto"
+                  unoptimized // Required for data URLs
+                />
+              ) : (
+                <div className="w-64 h-64 bg-gray-200 flex items-center justify-center rounded">
+                  <span className="text-gray-500">Generating QR Code...</span>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </div>
 
-        {/* URL Display */}
-        <div className="bg-gray-100 rounded-lg p-3 mb-4">
-          <p className="text-xs text-gray-600 mb-1">QR Code URL:</p>
-          <div className="flex items-center justify-between">
-            <code className="text-xs text-gray-800 break-all flex-1">
-              {pwaUrl}
-            </code>
-            <button
-              onClick={copyUrl}
-              className="ml-2 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+          {/* URL Display */}
+          <div className="text-center">
+            <p className="text-sm text-gray-400 mb-2">Permanent Install URL:</p>
+            <div className="bg-gray-800 px-4 py-2 rounded font-mono text-sm text-neonCyan break-all">
+              {PERMANENT_INSTALL_URL}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Button
+              onClick={downloadQRCode}
+              disabled={!isLoaded}
+              className="bg-neonBlue hover:bg-blue-600 text-white"
             >
-              Copy
-            </button>
+              <Download className="w-4 h-4 mr-2" />
+              Download PNG
+            </Button>
+            
+            <Button
+              onClick={printQRCode}
+              disabled={!isLoaded}
+              className="bg-neonGreen hover:bg-green-600 text-white"
+            >
+              <Printer className="w-4 h-4 mr-2" />
+              Print QR Code
+            </Button>
+            
+            <Button
+              onClick={openInstallPage}
+              variant="outline"
+              className="border-neonCyan text-neonCyan hover:bg-neonCyan hover:text-black"
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Test Install Page
+            </Button>
           </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2 justify-center flex-wrap">
-          <button
-            onClick={handleDownload}
-            disabled={!qrCodeUrl}
-            className="flex items-center gap-2 px-4 py-2 bg-neonCyan hover:bg-cyan-400 text-black rounded-lg font-medium transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-            </svg>
-            Download PNG
-          </button>
-
-          <button
-            onClick={handlePrint}
-            disabled={!qrCodeUrl}
-            className="flex items-center gap-2 px-4 py-2 bg-neonPink hover:bg-pink-400 text-black rounded-lg font-medium transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-            </svg>
-            Print
-          </button>
-
-          <button
-            onClick={generateQRCode}
-            disabled={isGenerating}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Regenerate
-          </button>
-        </div>
-
-        {/* Usage Instructions */}
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-          <h4 className="font-semibold text-blue-800 mb-2">📱 Usage Instructions</h4>
-          <div className="text-sm text-blue-700 text-left space-y-1">
-            <p>• <strong>For customers:</strong> Scan with phone camera</p>
-            <p>• <strong>Marketing:</strong> Print for table tents, posters, business cards</p>
-            <p>• <strong>Social media:</strong> Share the image online</p>
-            <p>• <strong>Auto-install:</strong> Shows PWA install prompt automatically</p>
+          {/* Important Notes */}
+          <div className="bg-gradient-to-r from-neonPink/20 to-neonCyan/20 border border-neonPink/30 rounded-lg p-4">
+            <h4 className="font-bold text-neonPink mb-2">🔒 PERMANENT QR CODE</h4>
+            <ul className="text-sm text-gray-300 space-y-1">
+              <li>• This QR code URL never changes - safe for printing</li>
+              <li>• High error correction (Level H) for damaged/worn prints</li>
+              <li>• Works on all devices and browsers</li>
+              <li>• Direct install page with manual instructions</li>
+              <li>• 512x512 resolution optimal for printing</li>
+            </ul>
           </div>
-        </div>
-      </div>
+
+          {/* Backup Instructions */}
+          <div className="bg-gray-800 border border-gray-600 rounded-lg p-4">
+            <h4 className="font-bold text-neonGreen mb-2">� BACKUP PLAN</h4>
+            <p className="text-sm text-gray-300 mb-2">
+              If QR scanning fails, users can manually visit:
+            </p>
+            <div className="bg-black px-3 py-2 rounded font-mono text-xs text-neonCyan">
+              littlelattelane.co.za/install
+            </div>
+            <p className="text-xs text-gray-400 mt-2">
+              This page provides platform-specific installation instructions
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
-}
+};
+
+// Legacy export for backward compatibility
+export default QRCodeGenerator;

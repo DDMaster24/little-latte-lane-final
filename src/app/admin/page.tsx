@@ -17,7 +17,7 @@ import AnalyticsDashboard from '@/components/Admin/AnalyticsDashboard';
 import UserManagement from '@/components/Admin/UserManagement';
 import BookingManagement from '@/components/Admin/BookingManagement';
 import AdminOverview from '@/components/Admin/AdminOverview';
-import QRCodeGenerator from '@/components/QRCodeGenerator';
+import { QRCodeGenerator } from '@/components/QRCodeGenerator';
 
 const tabs = [
   { id: 'overview', label: 'Overview', icon: BarChart3, color: 'neonCyan' },
@@ -319,11 +319,7 @@ export default function AdminPage() {
               <p className="text-gray-400 text-sm">Generate QR codes for customers to easily access and install your app</p>
             </div>
             <div className="flex justify-center">
-              <QRCodeGenerator 
-                url="https://littlelattelane.co.za" 
-                size={300}
-                className="w-full max-w-md"
-              />
+              <QRCodeGenerator />
             </div>
           </div>
         );
