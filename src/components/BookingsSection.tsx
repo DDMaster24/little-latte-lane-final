@@ -9,10 +9,10 @@ export default function BookingsSection() {
 
   return (
     <section 
-      className="bg-darkBg shadow-neon animate-fade-in"
+      className="container-responsive section-padding-sm shadow-neon rounded-xl animate-fade-in"
       data-editable="bookings-section-background"
     >
-      <div className="text-center py-8 xs:py-12 px-6">
+      <div className="text-center">
         <h2 
           className="text-fluid-2xl xs:text-fluid-3xl md:text-fluid-4xl font-bold mb-4 xs:mb-6 bg-neon-gradient bg-clip-text text-transparent"
           data-editable="bookings-title"

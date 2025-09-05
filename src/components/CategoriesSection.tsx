@@ -56,11 +56,11 @@ export default function CategoriesSection() {
       }
     >
       <section 
-        className="bg-darkBg shadow-neon"
+        className="container-responsive section-padding-sm shadow-neon rounded-xl"
         data-editable="categories-section-background"
       >
         {/* Centered Header with Fluid Typography */}
-        <div className="text-center py-8 xs:py-12 px-6">
+        <div className="text-center">
           <h2 
             className="text-fluid-2xl xs:text-fluid-3xl md:text-fluid-4xl font-bold bg-neon-gradient bg-clip-text text-transparent"
             data-editable="categories-title"
@@ -70,7 +70,7 @@ export default function CategoriesSection() {
         </div>
 
         {/* Responsive Category Grid - Mobile First Design */}
-        <div className="container-full pb-8 xs:pb-12">
+        <div className="pt-8 xs:pt-12">
           <div className="grid-responsive-4 max-w-7xl mx-auto">
             {mainCategories.map((category, index) => {
               const categoryCard = (
@@ -139,7 +139,7 @@ export default function CategoriesSection() {
         </div>
 
         {/* Centered View Full Menu Button - Responsive */}
-        <div className="text-center pb-8 xs:pb-12 animate-bounce-in" style={{ animationDelay: '0.5s' }}>
+        <div className="text-center pt-8 xs:pt-12 animate-bounce-in" style={{ animationDelay: '0.5s' }}>
           {isEditorMode ? (
             // Editor mode: Button without navigation
             <button

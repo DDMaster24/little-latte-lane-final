@@ -14,8 +14,12 @@ export default function FooterSection() {
               Contact Number:
             </h3>
             <p className="text-fluid-sm xs:text-fluid-base">+27 (0)12 345 6789</p>
-            <p className="text-fluid-xs text-gray-400 mt-2">Operating Hours:</p>
-            <p className="text-fluid-xs xs:text-fluid-sm">Mon-Sun: 8:00 AM - 10:00 PM</p>
+            <p className="text-fluid-xs text-gray-400 mt-2">Opening Hours:</p>
+            <div className="text-fluid-xs xs:text-fluid-sm space-y-1">
+              <p>Mon - Fri: 6:00 AM - 6:00 PM</p>
+              <p>Sat: 8:00 AM - 3:00 PM</p>
+              <p>Sun: 8:00 AM - 1:00 PM</p>
+            </div>
           </div>
 
           {/* Location - Responsive Layout */}
@@ -23,26 +27,30 @@ export default function FooterSection() {
             <h3 className="text-fluid-base xs:text-fluid-lg font-bold mb-3 xs:mb-4 bg-neon-gradient bg-clip-text text-transparent">
               Location:
             </h3>
-            <p className="text-fluid-sm xs:text-fluid-base">Roberts Estate, Gate 1</p>
-            <p className="text-fluid-sm xs:text-fluid-base">Roberts Drive, Little Latte Lane</p>
-            <p className="text-fluid-xs text-gray-400 mt-2">Johannesburg, South Africa</p>
+            <p className="text-fluid-sm xs:text-fluid-base">11 Aristea Crescent</p>
+            <p className="text-fluid-sm xs:text-fluid-base">Roberts Estate</p>
+            <p className="text-fluid-sm xs:text-fluid-base">Middleburg 1050</p>
+            <p className="text-fluid-xs text-gray-400 mt-2">South Africa</p>
           </div>
 
-          {/* Social Links - Touch-friendly */}
+          {/* Social Links - Modern Icons and Better Alignment */}
           <div>
             <h3 className="text-fluid-base xs:text-fluid-lg font-bold mb-3 xs:mb-4 bg-neon-gradient bg-clip-text text-transparent">
               Connect With Us:
             </h3>
-            <ul className="space-y-2 xs:space-y-3">
+            <ul className="space-y-3 xs:space-y-4">
               <li>
                 <a
                   href="https://facebook.com/littlelattelane"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-neonPink hover:shadow-neon transition-all duration-300 touch-target flex items-center text-fluid-sm xs:text-fluid-base"
+                  className="hover:text-neonCyan hover:shadow-neon transition-all duration-300 touch-target flex items-center gap-3 text-fluid-sm xs:text-fluid-base group"
                   aria-label="Facebook"
                 >
-                  📘 Facebook
+                  <div className="w-6 h-6 flex items-center justify-center bg-blue-600 rounded text-white text-sm group-hover:bg-neonCyan group-hover:text-black transition-all">
+                    <span>📘</span>
+                  </div>
+                  <span>Facebook</span>
                 </a>
               </li>
               <li>
@@ -50,10 +58,13 @@ export default function FooterSection() {
                   href="https://instagram.com/littlelattelane"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-neonPink hover:shadow-neon transition-all duration-300 touch-target flex items-center text-fluid-sm xs:text-fluid-base"
+                  className="hover:text-neonPink hover:shadow-neon transition-all duration-300 touch-target flex items-center gap-3 text-fluid-sm xs:text-fluid-base group"
                   aria-label="Instagram"
                 >
-                  📸 Instagram
+                  <div className="w-6 h-6 flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500 rounded text-white text-sm group-hover:from-neonPink group-hover:to-neonCyan transition-all">
+                    <span>�</span>
+                  </div>
+                  <span>Instagram</span>
                 </a>
               </li>
               <li>
@@ -61,19 +72,25 @@ export default function FooterSection() {
                   href="https://littlelattelane.co.za"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-neonPink hover:shadow-neon transition-all duration-300 touch-target flex items-center text-fluid-sm xs:text-fluid-base"
+                  className="hover:text-neonBlue hover:shadow-neon transition-all duration-300 touch-target flex items-center gap-3 text-fluid-sm xs:text-fluid-base group"
                   aria-label="Website"
                 >
-                  🌐 Website
+                  <div className="w-6 h-6 flex items-center justify-center bg-gray-600 rounded text-white text-sm group-hover:bg-neonBlue group-hover:text-black transition-all">
+                    <span>🌐</span>
+                  </div>
+                  <span>Website</span>
                 </a>
               </li>
               <li>
                 <a
                   href="mailto:info@littlelattelane.co.za"
-                  className="hover:text-neonPink hover:shadow-neon transition-all duration-300 touch-target flex items-center text-fluid-sm xs:text-fluid-base"
+                  className="hover:text-neonGreen hover:shadow-neon transition-all duration-300 touch-target flex items-center gap-3 text-fluid-sm xs:text-fluid-base group"
                   aria-label="Email"
                 >
-                  ✉️ Email Us
+                  <div className="w-6 h-6 flex items-center justify-center bg-green-600 rounded text-white text-sm group-hover:bg-neonGreen group-hover:text-black transition-all">
+                    <span>✉️</span>
+                  </div>
+                  <span>Email Us</span>
                 </a>
               </li>
             </ul>
