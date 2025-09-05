@@ -29,6 +29,10 @@ const CSP_DIRECTIVES = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Disable Vercel toolbar
+  env: {
+    VERCEL_TOOLBAR: 'false',
+  },
   // Server Actions configuration for large file uploads
   experimental: {
     serverActions: {

@@ -36,6 +36,19 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Disable Vercel Toolbar
+              if (typeof window !== 'undefined') {
+                window.__VERCEL_TOOLBAR_DISABLED = true;
+                window.VERCEL_TOOLBAR = false;
+              }
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${inter.className} bg-gradient-to-br from-gray-900 to-black text-white min-h-screen flex flex-col`}
         suppressHydrationWarning
