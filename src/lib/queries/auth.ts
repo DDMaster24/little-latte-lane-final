@@ -95,7 +95,8 @@ export class AuthQueries {
       options: {
         data: userData,
         emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-        // Note: We handle email confirmation through our custom branded system
+        // CRITICAL: We handle ALL email confirmation through our custom branded system
+        // Supabase default emails should be disabled in dashboard settings
       },
     });
 
