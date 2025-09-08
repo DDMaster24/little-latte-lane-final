@@ -137,11 +137,12 @@ export default function PWAInstallPage() {
       <div className="container-responsive py-8">
         <div className="text-center mb-8">
           <Image
-            src="/images/Logo.png"
-            alt="Little Latte Lane"
+            src="/images/logo.svg"
+            alt="Little Latte Lane - Café and Deli"
             width={120}
-            height={120}
-            className="mx-auto mb-4 rounded-lg"
+            height={60}
+            className="mx-auto mb-4 h-auto w-auto max-w-[120px]"
+            priority
           />
           <h1 className="text-3xl xs:text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-2">
             Install Little Latte Lane
