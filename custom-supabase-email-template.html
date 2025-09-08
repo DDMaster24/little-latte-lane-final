@@ -1,0 +1,100 @@
+<!-- Custom Supabase Email Template for Little Latte Lane -->
+<!-- This should be used in Supabase Dashboard → Auth → Emails → Templates → Confirm signup -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Little Latte Lane!</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); color: #ffffff;">
+    
+    <!-- Main Container -->
+    <div style="max-width: 600px; margin: 0 auto; background: #000000; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 255, 255, 0.1);">
+        
+        <!-- Header with Neon Logo -->
+        <div style="background: linear-gradient(45deg, #ff00ff, #00ffff); padding: 2px;">
+            <div style="background: #000000; padding: 40px 30px; text-align: center;">
+                <!-- Neon Logo Text -->
+                <div style="font-size: 28px; font-weight: bold; margin-bottom: 10px;">
+                    <span style="color: #ff00ff; text-shadow: 0 0 10px #ff00ff;">LITTLE</span>
+                    <span style="color: #00ffff; text-shadow: 0 0 10px #00ffff;"> LATTE </span>
+                    <span style="color: #ff00ff; text-shadow: 0 0 10px #ff00ff;">LANE</span>
+                </div>
+                <div style="color: #00ffff; font-size: 14px; text-shadow: 0 0 5px #00ffff;">Café & Deli</div>
+            </div>
+        </div>
+        
+        <!-- Content -->
+        <div style="padding: 40px 30px;">
+            <h1 style="color: #00ffff; font-size: 24px; margin: 0 0 20px 0; text-align: center; text-shadow: 0 0 10px #00ffff;">
+                🎉 Welcome to Little Latte Lane!
+            </h1>
+            
+            <p style="color: #ffffff; font-size: 16px; line-height: 1.6; margin: 0 0 25px 0;">
+                Hi there! 👋
+            </p>
+            
+            <p style="color: #cccccc; font-size: 16px; line-height: 1.6; margin: 0 0 25px 0;">
+                Thank you for joining the Little Latte Lane family! We're excited to have you on board for amazing coffee, delicious food, and great experiences.
+            </p>
+            
+            <p style="color: #cccccc; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+                Please confirm your email address to complete your account setup:
+            </p>
+            
+            <!-- Neon Confirm Button -->
+            <div style="text-align: center; margin: 40px 0;">
+                <a href="{{ .ConfirmationURL }}" style="
+                    display: inline-block;
+                    background: linear-gradient(45deg, #ff00ff, #00ffff);
+                    color: #000000;
+                    text-decoration: none;
+                    padding: 16px 40px;
+                    font-size: 18px;
+                    font-weight: bold;
+                    border-radius: 12px;
+                    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+                    transition: all 0.3s ease;
+                ">
+                    ✨ Confirm Your Account
+                </a>
+            </div>
+            
+            <!-- Features -->
+            <div style="background: #111111; border-radius: 12px; padding: 25px; margin: 30px 0; border: 1px solid #333333;">
+                <h3 style="color: #ff00ff; font-size: 18px; margin: 0 0 15px 0; text-shadow: 0 0 5px #ff00ff;">
+                    What's waiting for you:
+                </h3>
+                <ul style="color: #cccccc; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px;">
+                    <li>☕ Premium coffee and specialty drinks</li>
+                    <li>🍕 Fresh pizzas and delicious meals</li>
+                    <li>📱 Easy online ordering and reservations</li>
+                    <li>🎮 Virtual golf experiences (coming soon!)</li>
+                    <li>🎉 Exclusive events and special offers</li>
+                </ul>
+            </div>
+            
+            <p style="color: #888888; font-size: 14px; line-height: 1.6; margin: 30px 0 0 0; text-align: center;">
+                Need help? Contact us at <a href="mailto:admin@littlelattelane.co.za" style="color: #00ffff; text-decoration: none;">admin@littlelattelane.co.za</a>
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background: #111111; padding: 30px; text-align: center; border-top: 1px solid #333333;">
+            <p style="color: #666666; font-size: 12px; margin: 0 0 10px 0;">
+                Little Latte Lane | Where Great Food Meets Amazing Experiences
+            </p>
+            <p style="color: #666666; font-size: 12px; margin: 0;">
+                🌐 <a href="https://www.littlelattelane.co.za" style="color: #00ffff; text-decoration: none;">www.littlelattelane.co.za</a>
+            </p>
+        </div>
+        
+    </div>
+    
+    <!-- Footer spacing -->
+    <div style="height: 40px;"></div>
+    
+</body>
+</html>

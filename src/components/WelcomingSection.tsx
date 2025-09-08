@@ -26,8 +26,7 @@ export default function WelcomingSection() {
             data-editable="hero-subheading"
             className="text-fluid-lg xs:text-fluid-xl sm:text-fluid-2xl text-gray-300 mb-4 xs:mb-6 max-w-4xl mx-auto"
           >
-            Roberts&apos; Café and Deli - Where Great Food Meets Amazing
-            Experiences
+            Café & Deli - Where Great Food Meets Amazing Experiences
           </p>
           <div className="flex flex-wrap justify-center gap-2 xs:gap-3 mb-8 xs:mb-12">
             <Badge 

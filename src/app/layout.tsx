@@ -7,8 +7,8 @@ import { Toaster } from 'sonner';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Robert\'s Little Latte Lane',
-  description: 'Café & Deli - Where Great Food Meets Amazing Experiences',
+  title: 'Little Latte Lane Café & Deli',
+  description: 'Premium café and deli experience with specialty coffee, fresh pizzas, and delicious meals in a vibrant atmosphere.',
   manifest: '/manifest.json',
   icons: {
     icon: [
@@ -18,6 +18,7 @@ export const metadata: Metadata = {
     ],
     apple: [
       { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512x512.png', sizes: '512x512', type: 'image/png' },
     ],
     shortcut: '/favicon.ico',
   },
@@ -45,6 +46,9 @@ export const metadata: Metadata = {
     'msapplication-TileImage': '/icon-192x192.png',
     'msapplication-square150x150logo': '/icon-192x192.png',
     'msapplication-square310x310logo': '/icon-512x512.png',
+    // Additional favicon meta tags for better search engine recognition
+    'icon': '/favicon.ico',
+    'shortcut icon': '/favicon.ico',
   },
 };
 
