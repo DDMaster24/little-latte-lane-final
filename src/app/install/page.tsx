@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+  platforms?: string[];
 }
 
 export default function PWAInstallPage() {
@@ -32,36 +33,124 @@ export default function PWAInstallPage() {
     }
 
     // Check if already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true);
+      return;
     }
 
-    // Listen for beforeinstallprompt event
+    // Check for iOS standalone mode
+    if ((window.navigator as { standalone?: boolean }).standalone === true) {
+      setIsInstalled(true);
+      return;
+    }
+
+    // Enhanced beforeinstallprompt event handling
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('📱 PWA install prompt intercepted');
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      const beforeInstallEvent = e as BeforeInstallPromptEvent;
+      setDeferredPrompt(beforeInstallEvent);
       setIsInstallable(true);
+      
+      // Log available platforms
+      if (beforeInstallEvent.platforms) {
+        console.log('📱 Available platforms:', beforeInstallEvent.platforms);
+      }
+    };
+
+    // Listen for app installed event
+    const handleAppInstalled = (e: Event) => {
+      console.log('✅ PWA installation successful:', e);
+      setIsInstalled(true);
+      setIsInstallable(false);
+      setDeferredPrompt(null);
+    };
+
+    // Enhanced installation detection
+    const checkInstallability = () => {
+      // Check if service worker is supported and registered
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          console.log('🔧 Service Worker registrations:', registrations.length);
+          if (registrations.length > 0) {
+            console.log('✅ Service Worker is registered');
+          }
+        });
+      }
+
+      // Force installability for testing (temporary)
+      setTimeout(() => {
+        if (!isInstallable && !isInstalled) {
+          console.log('🔧 Forcing installability check...');
+          // Create a synthetic install event for testing
+          setIsInstallable(true);
+        }
+      }, 3000);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+    
+    checkInstallability();
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
-  }, []);
+  }, [isInstallable, isInstalled]);
 
   const handleInstallClick = async () => {
+    console.log('🚀 Install button clicked');
+    console.log('📱 Deferred prompt available:', !!deferredPrompt);
+    console.log('📱 Is installable:', isInstallable);
+    
     if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const choiceResult = await deferredPrompt.userChoice;
+      try {
+        console.log('📱 Attempting to show install prompt...');
+        await deferredPrompt.prompt();
+        
+        const choiceResult = await deferredPrompt.userChoice;
+        console.log('📱 User choice:', choiceResult.outcome);
+        
+        if (choiceResult.outcome === 'accepted') {
+          console.log('✅ PWA installation accepted by user');
+          setIsInstalled(true);
+        } else {
+          console.log('❌ PWA installation dismissed by user');
+        }
+        
+        setDeferredPrompt(null);
+        setIsInstallable(false);
+      } catch (error) {
+        console.error('❌ Error during installation:', error);
+        
+        // Fallback: Show manual installation instructions
+        alert(`Installation failed. Please install manually:
+        
+Chrome/Edge: Menu → Install "Little Latte Lane"
+Safari: Share → Add to Home Screen
+Firefox: Menu → Install`);
+      }
+    } else {
+      // No native prompt available - show manual instructions
+      console.log('📱 No native install prompt available, showing manual instructions');
       
-      if (choiceResult.outcome === 'accepted') {
-        console.log('✅ PWA installed successfully');
-        setIsInstalled(true);
+      const userAgent = navigator.userAgent.toLowerCase();
+      let instructions = '';
+      
+      if (userAgent.includes('chrome') && !userAgent.includes('edg')) {
+        instructions = 'Chrome: Click the menu (⋮) → "Install Little Latte Lane"';
+      } else if (userAgent.includes('safari') && !userAgent.includes('chrome')) {
+        instructions = 'Safari: Click Share (□↗) → "Add to Home Screen"';
+      } else if (userAgent.includes('firefox')) {
+        instructions = 'Firefox: Click menu (☰) → "Install Little Latte Lane"';
+      } else if (userAgent.includes('edg')) {
+        instructions = 'Edge: Click menu (⋯) → "Apps" → "Install Little Latte Lane"';
+      } else {
+        instructions = 'Look for "Install" or "Add to Home Screen" in your browser menu';
       }
       
-      setDeferredPrompt(null);
-      setIsInstallable(false);
+      alert(`Install Little Latte Lane manually:\n\n${instructions}\n\nOr bookmark this page: ${window.location.href}`);
     }
   };
 

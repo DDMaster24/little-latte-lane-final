@@ -2,28 +2,35 @@
   "name": "Little Latte Lane",
   "short_name": "Little Latte Lane",
   "description": "Café & Deli - Where Great Food Meets Amazing Experiences",
-  "start_url": "/",
+  "start_url": "/?pwa=true",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "theme_color": "#00ffff",
   "background_color": "#0f0f0f",
-  "categories": ["food", "restaurant", "cafe"],
+  "categories": ["food", "restaurant", "cafe", "lifestyle"],
   "lang": "en",
   "dir": "ltr",
   "prefer_related_applications": false,
+  "id": "little-latte-lane-pwa",
   "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32 48x48",
+      "type": "image/x-icon",
+      "purpose": "any"
+    },
     {
       "src": "/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any maskable"
     },
     {
       "src": "/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any maskable"
     }
   ],
   "shortcuts": [
@@ -31,7 +38,7 @@
       "name": "Menu",
       "short_name": "Menu",
       "description": "View our full menu",
-      "url": "/menu",
+      "url": "/menu?pwa=true",
       "icons": [
         {
           "src": "/icon-192x192.png",
@@ -43,7 +50,7 @@
       "name": "Book Table",
       "short_name": "Booking",
       "description": "Make a reservation",
-      "url": "/bookings",
+      "url": "/bookings?pwa=true",
       "icons": [
         {
           "src": "/icon-192x192.png",
@@ -53,12 +60,16 @@
     }
   ],
   "share_target": {
-    "action": "/",
+    "action": "/?pwa=true",
     "method": "GET",
     "params": {
       "title": "title",
       "text": "text",
       "url": "url"
     }
+  },
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
+  "edge_side_panel": {
+    "preferred_width": 400
   }
 }
