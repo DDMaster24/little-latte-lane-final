@@ -209,6 +209,34 @@
   animation: shimmer 2s infinite;
 }
 
+/* Enhanced neon shimmer for loading components */
+.shimmer-neon {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 255, 255, 0.2),
+    rgba(255, 0, 128, 0.15),
+    rgba(0, 255, 255, 0.2),
+    transparent
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2.5s infinite;
+}
+
+@keyframes shimmer-neon {
+  0% {
+    background-position: -1000px 0;
+    box-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(255, 0, 128, 0.4);
+  }
+  100% {
+    background-position: 1000px 0;
+    box-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+  }
+}
+
 html {
   height: 100%; /* Full height for the root element */
   margin: 0; /* Remove any default margins */

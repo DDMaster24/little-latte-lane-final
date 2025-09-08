@@ -23,7 +23,7 @@ export default function Home() {
       </ErrorBoundary>
           
       {/* Full-width sections with consistent spacing and neon borders */}
-      <div className="space-y-6 xs:space-y-8 sm:space-y-10 px-2 xs:px-3 sm:px-4">
+      <div className="space-y-6 xs:space-y-8 sm:space-y-10 px-2 xs:px-3 sm:px-4 pb-8 xs:pb-10 sm:pb-12">
         <ErrorBoundary>
           <Suspense
             fallback={

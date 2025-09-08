@@ -51,7 +51,7 @@ export function LoadingProgress({ steps, currentStep, className = '' }: LoadingP
   );
 }
 
-// Enhanced Category Skeleton with staggered animations
+// Enhanced Category Skeleton with sophisticated neon animations
 export function CategorySkeleton({
   count = 6,
   className = '',
@@ -63,27 +63,30 @@ export function CategorySkeleton({
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="bg-gray-800/50 backdrop-blur-sm p-4 xs:p-6 rounded-xl shadow-lg border border-gray-700/50 flex flex-col items-center space-y-3 xs:space-y-4 animate-pulse touch-target"
+          className="bg-black/40 backdrop-blur-sm p-4 xs:p-6 rounded-xl shadow-neon-subtle border border-neonCyan/20 flex flex-col items-center space-y-3 xs:space-y-4 animate-pulse touch-target hover:border-neonCyan/40 transition-all duration-500"
           style={{ 
             animationDelay: `${i * 0.1}s`,
             minHeight: '200px' // Match our category cards
           }}
         >
-          {/* Image skeleton with responsive sizing */}
-          <div className="w-full h-20 xs:h-24 sm:h-32 bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 rounded-lg shimmer" />
-          {/* Title skeleton */}
-          <div className="w-3/4 h-4 xs:h-5 bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 rounded shimmer" />
+          {/* Image skeleton with neon glow effect */}
+          <div className="w-full h-20 xs:h-24 sm:h-32 bg-gradient-to-br from-neonCyan/10 via-black/50 to-neonPink/10 rounded-lg shimmer-neon relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-t from-neonCyan/5 to-transparent animate-pulse" />
+            <div className="absolute top-2 right-2 w-3 h-3 bg-neonCyan/60 rounded-full animate-ping" />
+          </div>
+          {/* Title skeleton with neon glow */}
+          <div className="w-3/4 h-4 xs:h-5 bg-gradient-to-r from-neonCyan/30 via-neonPink/20 to-neonCyan/30 rounded shimmer-neon shadow-sm shadow-neonCyan/20" />
           {/* Description skeleton */}
-          <div className="w-full h-3 bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 rounded shimmer" />
-          {/* Button skeleton */}
-          <div className="w-20 h-8 bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 rounded shimmer" />
+          <div className="w-full h-3 bg-gradient-to-r from-gray-700/60 via-gray-600/40 to-gray-700/60 rounded shimmer" />
+          {/* Button skeleton with enhanced glow */}
+          <div className="w-20 h-8 bg-gradient-to-r from-neonPink/30 via-neonCyan/20 to-neonPink/30 rounded-lg shimmer-neon shadow-md shadow-neonPink/20" />
         </div>
       ))}
     </div>
   );
 }
 
-// Enhanced Menu Item Skeleton with realistic proportions
+// Enhanced Menu Item Skeleton with neon styling
 export function MenuItemSkeleton({
   count = 8,
   className = '',
@@ -93,28 +96,29 @@ export function MenuItemSkeleton({
       {Array.from({ length: count }).map((_, i) => (
         <div 
           key={i} 
-          className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-700/50 animate-pulse space-y-4 hover:scale-105 transition-transform duration-300"
+          className="bg-black/40 backdrop-blur-sm rounded-xl p-6 shadow-neon-subtle border border-neonCyan/20 animate-pulse space-y-4 hover:scale-105 hover:border-neonCyan/40 transition-all duration-300"
           style={{ animationDelay: `${i * 0.15}s` }}
         >
-          {/* Image skeleton with aspect ratio */}
-          <div className="w-full aspect-video bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 rounded-lg shimmer relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+          {/* Image skeleton with neon glow */}
+          <div className="w-full aspect-video bg-gradient-to-br from-neonCyan/10 via-black/50 to-neonPink/10 rounded-lg shimmer-neon relative overflow-hidden shadow-md shadow-neonCyan/20">
+            <div className="absolute inset-0 bg-gradient-to-t from-neonCyan/10 to-transparent" />
+            <div className="absolute top-3 right-3 w-4 h-4 bg-gradient-to-br from-neonCyan to-neonPink rounded-full animate-ping" />
           </div>
-          {/* Title skeleton */}
-          <div className="w-3/4 h-6 bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 rounded shimmer" />
-          {/* Description skeleton - multiple lines */}
+          {/* Title skeleton with enhanced glow */}
+          <div className="w-3/4 h-6 bg-gradient-to-r from-neonCyan/30 via-neonPink/20 to-neonCyan/30 rounded shimmer-neon shadow-sm shadow-neonCyan/30" />
+          {/* Description skeleton - multiple lines with neon accents */}
           <div className="space-y-2">
-            <div className="w-full h-4 bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 rounded shimmer" />
-            <div className="w-4/5 h-4 bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 rounded shimmer" />
-            <div className="w-3/5 h-4 bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 rounded shimmer" />
+            <div className="w-full h-4 bg-gradient-to-r from-gray-700/60 via-gray-600/40 to-gray-700/60 rounded shimmer" />
+            <div className="w-4/5 h-4 bg-gradient-to-r from-gray-700/60 via-gray-600/40 to-gray-700/60 rounded shimmer" />
+            <div className="w-3/5 h-4 bg-gradient-to-r from-gray-700/60 via-gray-600/40 to-gray-700/60 rounded shimmer" />
           </div>
-          {/* Price and button skeleton */}
+          {/* Price and button skeleton with enhanced neon effects */}
           <div className="flex justify-between items-center pt-2">
             <div className="flex items-center space-x-2">
-              <div className="w-1 h-6 bg-neonCyan rounded-full" />
-              <div className="w-20 h-6 bg-gradient-to-r from-neonCyan/30 via-neonCyan/20 to-neonCyan/30 rounded shimmer" />
+              <div className="w-1 h-6 bg-neonCyan rounded-full shadow-sm shadow-neonCyan/50" />
+              <div className="w-20 h-6 bg-gradient-to-r from-neonCyan/40 via-neonCyan/30 to-neonCyan/40 rounded shimmer-neon shadow-md shadow-neonCyan/30" />
             </div>
-            <div className="w-24 h-10 bg-gradient-to-r from-neonPink/30 via-neonPink/20 to-neonPink/30 rounded-lg shimmer" />
+            <div className="w-24 h-10 bg-gradient-to-r from-neonPink/40 via-neonPink/30 to-neonPink/40 rounded-lg shimmer-neon shadow-md shadow-neonPink/30" />
           </div>
         </div>
       ))}
@@ -122,7 +126,7 @@ export function MenuItemSkeleton({
   );
 }
 
-// Enhanced Loading Spinner with multiple variants
+// Enhanced Loading Spinner with advanced neon variants
 export function LoadingSpinner({
   size = 'md',
   className = '',
@@ -148,13 +152,16 @@ export function LoadingSpinner({
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="w-3 h-3 bg-neonCyan rounded-full animate-bounce"
-              style={{ animationDelay: `${i * 0.2}s` }}
+              className="w-3 h-3 bg-gradient-to-br from-neonCyan to-neonPink rounded-full animate-bounce shadow-lg shadow-neonCyan/50"
+              style={{ 
+                animationDelay: `${i * 0.2}s`,
+                filter: 'drop-shadow(0 0 4px currentColor)'
+              }}
             />
           ))}
         </div>
         {text && (
-          <p className="text-neonText text-sm font-medium animate-pulse">
+          <p className="text-neonText text-sm font-medium animate-pulse bg-gradient-to-r from-neonCyan to-neonPink bg-clip-text text-transparent">
             {text}
           </p>
         )}
@@ -166,10 +173,11 @@ export function LoadingSpinner({
     return (
       <div className={`flex flex-col items-center justify-center space-y-4 ${className}`}>
         <div
-          className={`bg-gradient-to-r from-neonCyan to-neonPink rounded-full animate-pulse ${sizeClasses[size]}`}
+          className={`bg-gradient-to-r from-neonCyan to-neonPink rounded-full animate-pulse shadow-lg shadow-neonCyan/50 ${sizeClasses[size]}`}
+          style={{ filter: 'drop-shadow(0 0 8px currentColor)' }}
         />
         {text && (
-          <p className="text-neonText text-sm font-medium animate-pulse">
+          <p className="text-neonText text-sm font-medium animate-pulse bg-gradient-to-r from-neonCyan to-neonPink bg-clip-text text-transparent">
             {text}
           </p>
         )}
@@ -184,16 +192,17 @@ export function LoadingSpinner({
           {[0, 1, 2, 3].map((i) => (
             <div
               key={i}
-              className="w-2 h-8 bg-gradient-to-t from-neonCyan to-neonPink rounded-full animate-pulse"
+              className="w-2 h-8 bg-gradient-to-t from-neonCyan to-neonPink rounded-full animate-pulse shadow-md shadow-neonCyan/40"
               style={{ 
                 animationDelay: `${i * 0.1}s`,
-                animationDuration: '1s'
+                animationDuration: '1s',
+                filter: 'drop-shadow(0 0 3px currentColor)'
               }}
             />
           ))}
         </div>
         {text && (
-          <p className="text-neonText text-sm font-medium">
+          <p className="text-neonText text-sm font-medium bg-gradient-to-r from-neonCyan to-neonPink bg-clip-text text-transparent">
             {text}
           </p>
         )}
@@ -201,14 +210,15 @@ export function LoadingSpinner({
     );
   }
 
-  // Default spinner
+  // Enhanced default spinner with neon glow
   return (
     <div className={`flex flex-col items-center justify-center space-y-3 ${className}`}>
       <div
-        className={`animate-spin rounded-full border-4 border-gray-600 border-t-neonCyan ${sizeClasses[size]}`}
+        className={`animate-spin rounded-full border-4 border-gray-700/30 border-t-neonCyan shadow-lg shadow-neonCyan/30 ${sizeClasses[size]}`}
+        style={{ filter: 'drop-shadow(0 0 6px rgb(0, 255, 255, 0.5))' }}
       />
       {text && (
-        <p className="text-neonText text-sm font-medium animate-pulse">
+        <p className="text-neonText text-sm font-medium animate-pulse bg-gradient-to-r from-neonCyan to-neonPink bg-clip-text text-transparent">
           {text}
         </p>
       )}
@@ -216,26 +226,26 @@ export function LoadingSpinner({
   );
 }
 
-// Enhanced Page Loading Skeleton
+// Enhanced Page Loading Skeleton with sophisticated neon styling
 export function PageLoadingSkeleton() {
   return (
     <div className="space-y-8 p-6 animate-fade-in">
-      {/* Header skeleton with gradient effect */}
+      {/* Header skeleton with enhanced neon gradient effect */}
       <div className="space-y-4 text-center">
-        <div className="w-1/3 h-12 bg-gradient-to-r from-neonCyan/30 via-neonPink/30 to-neonCyan/30 rounded-lg shimmer mx-auto" />
-        <div className="w-2/3 h-6 bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 rounded shimmer mx-auto" />
+        <div className="w-1/3 h-12 bg-gradient-to-r from-neonCyan/40 via-neonPink/40 to-neonCyan/40 rounded-lg shimmer-neon mx-auto shadow-lg shadow-neonCyan/30" />
+        <div className="w-2/3 h-6 bg-gradient-to-r from-gray-700/60 via-gray-600/40 to-gray-700/60 rounded shimmer mx-auto" />
         <div className="flex justify-center space-x-4 mt-6">
-          <div className="w-24 h-8 bg-neonCyan/20 rounded-full shimmer" />
-          <div className="w-32 h-8 bg-neonPink/20 rounded-full shimmer" />
+          <div className="w-24 h-8 bg-gradient-to-r from-neonCyan/30 to-neonCyan/20 rounded-full shimmer-neon shadow-md shadow-neonCyan/20" />
+          <div className="w-32 h-8 bg-gradient-to-r from-neonPink/30 to-neonPink/20 rounded-full shimmer-neon shadow-md shadow-neonPink/20" />
         </div>
       </div>
       
-      {/* Content skeleton */}
+      {/* Content skeleton with enhanced neon effects */}
       <CategorySkeleton count={6} />
       
-      {/* Footer action skeleton */}
+      {/* Footer action skeleton with enhanced glow */}
       <div className="flex justify-center">
-        <div className="w-48 h-12 bg-gradient-to-r from-neonCyan/30 to-neonPink/30 rounded-xl shimmer" />
+        <div className="w-48 h-12 bg-gradient-to-r from-neonCyan/40 to-neonPink/40 rounded-xl shimmer-neon shadow-lg shadow-neonCyan/30" />
       </div>
     </div>
   );
