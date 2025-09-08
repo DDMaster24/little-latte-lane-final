@@ -8,7 +8,6 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -134,9 +133,6 @@ export default function PWAInstallPage() {
 
   return (
     <div className="min-h-screen bg-darkBg text-neonText">
-      {/* PWA Install Prompt for QR Code Users */}
-      <PWAInstallPrompt source="qr" />
-      
       {/* Header */}
       <div className="container-responsive py-8">
         <div className="text-center mb-8">
