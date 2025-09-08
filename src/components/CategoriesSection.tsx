@@ -43,26 +43,31 @@ export default function CategoriesSection() {
   return (
     <ClientOnly
       fallback={
-        <section className="bg-darkBg shadow-neon">
+        <section className="w-full shadow-neon rounded-xl" style={{ backgroundColor: '#0f0f0f' }}>
           <div className="text-center py-8 xs:py-12 px-6">
             <h2 className="text-fluid-2xl xs:text-fluid-3xl md:text-fluid-4xl font-bold bg-neon-gradient bg-clip-text text-transparent">
               🍽️ View Our Categories
             </h2>
           </div>
-          <div className="container-full pb-8 xs:pb-12">
+          <div className="px-4 xs:px-6 sm:px-8 pb-8 xs:pb-12">
             <CategorySkeleton count={4} className="grid-responsive-4 max-w-7xl mx-auto" />
           </div>
         </section>
       }
     >
       <section 
-        className="container-responsive section-padding-sm shadow-neon rounded-xl"
+        className="w-full shadow-neon rounded-xl animate-fade-in"
+        style={{
+          backgroundColor: '#0f0f0f',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
         data-editable="categories-section-background"
       >
         {/* Centered Header with Fluid Typography */}
-        <div className="text-center">
+        <div className="text-center py-8 xs:py-12 px-6">
           <h2 
-            className="text-fluid-2xl xs:text-fluid-3xl md:text-fluid-4xl font-bold bg-neon-gradient bg-clip-text text-transparent"
+            className="text-fluid-2xl xs:text-fluid-3xl md:text-fluid-4xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-4"
             data-editable="categories-title"
           >
             🍽️ View Our Categories
@@ -70,7 +75,7 @@ export default function CategoriesSection() {
         </div>
 
         {/* Responsive Category Grid - Mobile First Design */}
-        <div className="pt-8 xs:pt-12">
+        <div className="px-4 xs:px-6 sm:px-8 pb-8 xs:pb-12">
           <div className="grid-responsive-4 max-w-7xl mx-auto">
             {mainCategories.map((category, index) => {
               const categoryCard = (
@@ -139,7 +144,7 @@ export default function CategoriesSection() {
         </div>
 
         {/* Centered View Full Menu Button - Responsive */}
-        <div className="text-center pt-8 xs:pt-12 animate-bounce-in" style={{ animationDelay: '0.5s' }}>
+        <div className="text-center px-4 xs:px-6 sm:px-8 pb-8 xs:pb-12 animate-bounce-in" style={{ animationDelay: '0.5s' }}>
           {isEditorMode ? (
             // Editor mode: Button without navigation
             <button

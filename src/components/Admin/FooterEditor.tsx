@@ -18,12 +18,12 @@ import {
   X,
   AlertTriangle,
   Upload,
-  RefreshCw,
-  Paintbrush
+  RefreshCw as _RefreshCw,
+  Paintbrush as _Paintbrush
 } from 'lucide-react';
 
 // Theme colors from tailwind.config.js
-const THEME_COLORS = [
+const _THEME_COLORS = [
   '#00FFFF', // neonCyan
   '#FF00FF', // neonPink  
   '#1A1A1A', // darkBg
@@ -38,7 +38,7 @@ const THEME_COLORS = [
   '#2563EB'  // blue-600
 ];
 
-const GRADIENT_PRESETS = [
+const _GRADIENT_PRESETS = [
   { name: 'Neon Cyan', value: 'linear-gradient(45deg, #00FFFF, #7DD3FC)' },
   { name: 'Neon Pink', value: 'linear-gradient(45deg, #FF00FF, #F8BBD9)' },
   { name: 'Cyber Blue', value: 'linear-gradient(135deg, #0D9488, #2563EB)' },
@@ -86,9 +86,9 @@ export default function FooterEditor({ children }: FooterEditorProps) {
   // Enhanced color picker state
   const [colorMode, setColorMode] = useState<'text' | 'background'>('text');
   const [selectedColor, setSelectedColor] = useState('#00FFFF');
-  const [gradientColor1, setGradientColor1] = useState('#00FFFF');
-  const [gradientColor2, setGradientColor2] = useState('#FF00FF');
-  const [gradientDirection, setGradientDirection] = useState<'to right' | 'to left' | 'to bottom' | 'to top' | '45deg' | '135deg'>('to right');
+  const [_gradientColor1, _setGradientColor1] = useState('#00FFFF');
+  const [_gradientColor2, _setGradientColor2] = useState('#FF00FF');
+  const [_gradientDirection, _setGradientDirection] = useState<'to right' | 'to left' | 'to bottom' | 'to top' | '45deg' | '135deg'>('to right');
   
   // Image editor state
   const [showSimpleImageEditor, setShowSimpleImageEditor] = useState(false);

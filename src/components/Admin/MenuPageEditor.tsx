@@ -181,7 +181,7 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
   const [editableId, setEditableId] = useState('');
   const [pendingChanges, setPendingChanges] = useState<Record<string, string>>({});
   const [isPreviewMode, setIsPreviewMode] = useState(false);
-  const [selectedTool, setSelectedTool] = useState<'text' | 'color' | 'image'>('text');
+  const [_selectedTool, _setSelectedTool] = useState<'text' | 'color' | 'image'>('text');
   const [isSaving, setIsSaving] = useState(false);
   
   // Enhanced color picker state
@@ -190,7 +190,7 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
   const [gradientColor2, setGradientColor2] = useState('#FF00FF');
   const [gradientDirection, setGradientDirection] = useState<'to right' | 'to left' | 'to bottom' | 'to top' | '45deg' | '135deg'>('to right');
   const [colorMode, setColorMode] = useState<'text' | 'background'>('text');
-  const [textValue, setTextValue] = useState('');
+  const [_textValue, _setTextValue] = useState('');
   
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [activeTab, setActiveTab] = useState<'text' | 'color' | 'image'>('text');
@@ -342,7 +342,7 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
         setEditableId(editableId);
         setEditingText(htmlElement.textContent || '');
         setOriginalText(htmlElement.textContent || '');
-        setTextValue(htmlElement.textContent || ''); // Sync textValue state
+        _setTextValue(htmlElement.textContent || ''); // Sync textValue state
         setIsToolbarVisible(true);
         setActiveTab('text');
 
