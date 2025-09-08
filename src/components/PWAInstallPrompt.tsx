@@ -30,13 +30,29 @@ export default function PWAInstallPrompt({
   useEffect(() => {
     // Check if PWA is supported
     const checkSupport = () => {
-      const isSupported = 'serviceWorker' in navigator && 'BeforeInstallPromptEvent' in window;
+      const hasServiceWorker = 'serviceWorker' in navigator;
+      const hasManifest = !!document.querySelector('link[rel="manifest"]');
+      const isHttps = location.protocol === 'https:' || location.hostname === 'localhost';
+      
+      const isSupported = hasServiceWorker && hasManifest && isHttps;
       setIsSupported(isSupported);
       
       // Check if already installed
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
       const isInWebView = (window.navigator as { standalone?: boolean }).standalone === true;
-      setIsInstalled(isStandalone || isInWebView);
+      const isInstalled = isStandalone || isInWebView;
+      setIsInstalled(isInstalled);
+      
+      // Log debugging info
+      console.log('🔍 PWA Support Check:', {
+        hasServiceWorker,
+        hasManifest: !!hasManifest,
+        isHttps,
+        isSupported,
+        isInstalled,
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+      });
       
       return isSupported;
     };
@@ -219,8 +235,17 @@ export default function PWAInstallPrompt({
                 <p className="text-amber-800 text-sm font-medium mb-1">
                   Install option not available in this browser
                 </p>
-                <p className="text-amber-700 text-xs">
-                  For one-click installation, try opening this link in <strong>Chrome</strong> (Android) or <strong>Safari</strong> (iOS). Copy this URL: <span className="font-mono bg-amber-100 px-1 rounded">littlelattelane.co.za/install</span>
+                <p className="text-amber-700 text-xs mb-2">
+                  For one-click installation, try opening this link in:
+                </p>
+                <ul className="text-amber-700 text-xs space-y-1 ml-2">
+                  <li>• <strong>Chrome</strong> (Android/Desktop)</li>
+                  <li>• <strong>Safari</strong> (iPhone/iPad)</li>
+                  <li>• <strong>Edge</strong> (Windows/Desktop)</li>
+                  <li>• <strong>Firefox</strong> (Android/Desktop)</li>
+                </ul>
+                <p className="text-amber-700 text-xs mt-2">
+                  Copy this URL: <span className="font-mono bg-amber-100 px-1 rounded">littlelattelane.co.za/install</span>
                 </p>
               </div>
             </div>

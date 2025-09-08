@@ -11,22 +11,49 @@ export const metadata: Metadata = {
   description: 'Café & Deli - Where Great Food Meets Amazing Experiences',
   manifest: '/manifest.json',
   icons: {
-    icon: '/images/Logo.png',
-    apple: '/images/Logo.png',
-    shortcut: '/images/Logo.png',
+    icon: [
+      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    shortcut: '/icon-192x192.png',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Little Latte Lane',
+    startupImage: [
+      {
+        url: '/icon-512x512.png',
+        media: '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)',
+      },
+    ],
   },
   other: {
     'mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-status-bar-style': 'black-translucent',
+    'apple-mobile-web-app-title': 'Little Latte Lane',
+    'application-name': 'Little Latte Lane',
+    'msapplication-TileColor': '#00ffff',
+    'msapplication-config': '/browserconfig.xml',
+    'format-detection': 'telephone=no',
   },
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  themeColor: '#0f0f0f',
+  maximumScale: 5,
+  minimumScale: 1,
+  userScalable: true,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#00ffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0f0f0f' },
+  ],
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({

@@ -7,7 +7,8 @@ const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development', // Disable PWA in dev mode to avoid warnings and file errors
+  disable: false, // Enable PWA in all environments for better testing
+  sw: 'sw.js',
 });
 
 // Content Security Policy - extracted to reduce bundle size
