@@ -44,7 +44,14 @@ export default function Header() {
       >
         <div className="container-full flex items-center justify-between">
           <div className="flex items-center min-w-0">
-            <div className="w-20 h-12 xs:w-24 xs:h-14 sm:w-28 sm:h-16 lg:w-32 lg:h-18 xl:w-36 xl:h-20 bg-gray-700 animate-pulse rounded"></div>
+            <Image
+              src="/images/logo.svg"
+              alt="Little Latte Lane - Café and Deli"
+              width={120}
+              height={60}
+              className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 xl:w-36 xl:h-36"
+              priority
+            />
           </div>
 
           <div className="hidden lg:flex items-center">
@@ -78,7 +85,7 @@ export default function Header() {
               alt="Little Latte Lane - Café and Deli"
               width={120}
               height={60}
-              className="h-auto w-auto max-w-[80px] xs:max-w-[100px] sm:max-w-[120px] lg:max-w-[140px] xl:max-w-[160px]"
+              className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 xl:w-36 xl:h-36 flex items-center justify-center"
               priority
             />
           </Link>
