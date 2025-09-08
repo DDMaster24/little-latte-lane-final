@@ -8,7 +8,11 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Little Latte Lane Café & Deli',
-  description: 'Premium café and deli experience with specialty coffee, fresh pizzas, and delicious meals in a vibrant atmosphere.',
+  description: 'Premium café and deli experience with specialty coffee, fresh pizzas, and delicious meals in a vibrant atmosphere. Located in Roberts Estate, Middleburg.',
+  keywords: ['café', 'deli', 'coffee', 'pizza', 'restaurant', 'Middleburg', 'Roberts Estate', 'Little Latte Lane'],
+  authors: [{ name: 'Little Latte Lane' }],
+  creator: 'Little Latte Lane',
+  publisher: 'Little Latte Lane',
   manifest: '/manifest.json',
   icons: {
     icon: [
@@ -49,6 +53,18 @@ export const metadata: Metadata = {
     // Additional favicon meta tags for better search engine recognition
     'icon': '/favicon.ico',
     'shortcut icon': '/favicon.ico',
+    // Open Graph tags for social media and search engines
+    'og:title': 'Little Latte Lane Café & Deli',
+    'og:description': 'Premium café and deli experience with specialty coffee, fresh pizzas, and delicious meals in a vibrant atmosphere.',
+    'og:type': 'website',
+    'og:url': 'https://littlelattelane.co.za',
+    'og:image': '/icon-512x512.png',
+    'og:site_name': 'Little Latte Lane',
+    // Twitter Card tags
+    'twitter:card': 'summary_large_image',
+    'twitter:title': 'Little Latte Lane Café & Deli',
+    'twitter:description': 'Premium café and deli experience with specialty coffee, fresh pizzas, and delicious meals.',
+    'twitter:image': '/icon-512x512.png',
   },
 };
 

@@ -56,9 +56,9 @@ export const PANEL_TEMPLATES: PanelTemplate[] = [
       schedule: {
         enabled: true,
         items: [
-          { day: 'Mon - Fri', hours: '06:00 - 22:00' },
-          { day: 'Saturday', hours: '07:00 - 23:00' },
-          { day: 'Sunday', hours: '08:00 - 21:00' }
+          { day: 'Mon - Fri', hours: '06:00 - 18:00' },
+          { day: 'Saturday', hours: '08:00 - 15:00' },
+          { day: 'Sunday', hours: '08:00 - 13:00' }
         ]
       },
       badge: { enabled: true, text: 'Now Open', color: 'bg-green-500' }
