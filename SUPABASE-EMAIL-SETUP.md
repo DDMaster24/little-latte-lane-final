@@ -28,9 +28,9 @@ Go to: `https://app.supabase.com/project/awytuszmunxvthuizyur/auth/settings`
 ✅ SMTP Host: smtp.resend.com
 ✅ Port: 587
 ✅ Username: resend
-✅ Password: re_f8WW7SKj_P2r4W29fbNv3PNKm19U3EiFM
+✅ Password: [YOUR_RESEND_API_KEY_FROM_ENV_FILE]
 ✅ Sender Name: Little Latte Lane
-✅ Sender Email: welcome@littlelattelane.co.za
+✅ Sender Email: admin@littlelattelane.co.za
 ```
 
 ### Step 3: Email Templates (if using SMTP)
@@ -46,7 +46,7 @@ Go to: `https://app.supabase.com/project/awytuszmunxvthuizyur/auth/settings`
 ```
 
 ## 🎯 CURRENT STATUS:
-- ✅ Resend API Key: Configured (`re_f8WW7SKj_P2r4W29fbNv3PNKm19U3EiFM`)
+- ✅ Resend API Key: Configured (check .env.local file for key)
 - ✅ Branded Email Templates: Ready in code
 - ✅ Welcome Email System: Working
 - ❌ **Supabase Dashboard Settings: NEEDS UPDATE** ← THIS IS THE ISSUE!
