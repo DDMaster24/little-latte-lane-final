@@ -44,18 +44,16 @@ export default function PWAInstallPage() {
       return;
     }
 
-    // Enhanced beforeinstallprompt event handling
+    // Force installability - assume all browsers can install
+    setIsInstallable(true);
+
+    // Listen for beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('📱 PWA install prompt intercepted');
+      console.log('📱 PWA install prompt available');
       e.preventDefault();
       const beforeInstallEvent = e as BeforeInstallPromptEvent;
       setDeferredPrompt(beforeInstallEvent);
       setIsInstallable(true);
-      
-      // Log available platforms
-      if (beforeInstallEvent.platforms) {
-        console.log('📱 Available platforms:', beforeInstallEvent.platforms);
-      }
     };
 
     // Listen for app installed event
@@ -66,38 +64,14 @@ export default function PWAInstallPage() {
       setDeferredPrompt(null);
     };
 
-    // Enhanced installation detection
-    const checkInstallability = () => {
-      // Check if service worker is supported and registered
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(registrations => {
-          console.log('🔧 Service Worker registrations:', registrations.length);
-          if (registrations.length > 0) {
-            console.log('✅ Service Worker is registered');
-          }
-        });
-      }
-
-      // Force installability for testing (temporary)
-      setTimeout(() => {
-        if (!isInstallable && !isInstalled) {
-          console.log('🔧 Forcing installability check...');
-          // Create a synthetic install event for testing
-          setIsInstallable(true);
-        }
-      }, 3000);
-    };
-
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
-    
-    checkInstallability();
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
-  }, [isInstallable, isInstalled]);
+  }, []);
 
   const handleInstallClick = async () => {
     console.log('🚀 Install button clicked');
@@ -278,20 +252,18 @@ Firefox: Menu → Install`);
             </div>
           </div>
 
-          {/* Install Button */}
-          {isInstallable && (
-            <div className="text-center mb-8">
-              <Button
-                onClick={handleInstallClick}
-                className="bg-gradient-to-r from-neonCyan to-neonPink hover:from-cyan-400 hover:to-pink-400 text-black font-bold py-4 px-8 rounded-xl text-lg shadow-neon"
-              >
-                🚀 Install App Now
-              </Button>
-              <p className="text-sm text-gray-400 mt-2">
-                One click to install on your device
-              </p>
-            </div>
-          )}
+          {/* Install Button - ALWAYS AVAILABLE */}
+          <div className="text-center mb-8">
+            <Button
+              onClick={handleInstallClick}
+              className="bg-gradient-to-r from-neonCyan to-neonPink hover:from-cyan-400 hover:to-pink-400 text-black font-bold py-4 px-8 rounded-xl text-lg shadow-neon"
+            >
+              🚀 Install App Now
+            </Button>
+            <p className="text-sm text-gray-400 mt-2">
+              Works on all browsers and devices
+            </p>
+          </div>
 
           {/* Manual Instructions */}
           <div className="bg-gradient-to-br from-gray-900 to-darkBg border border-gray-700 rounded-xl p-6">
@@ -311,13 +283,11 @@ Firefox: Menu → Install`);
               ))}
             </div>
 
-            {!isInstallable && (
-              <div className="mt-6 p-4 bg-gray-800 rounded-lg">
-                <p className="text-yellow-400 text-sm">
-                  💡 <strong>Tip:</strong> If you don&apos;t see an install option, make sure you&apos;re using a supported browser (Chrome, Safari, Edge, or Firefox) and that you haven&apos;t already installed the app.
-                </p>
-              </div>
-            )}
+            <div className="mt-6 p-4 bg-green-800/20 rounded-lg border border-green-500/30">
+              <p className="text-green-400 text-sm">
+                ✅ <strong>Universal Support:</strong> This app works on all browsers and devices. If the install button doesn&apos;t work, use the manual steps above.
+              </p>
+            </div>
           </div>
 
           {/* Alternative Actions */}
