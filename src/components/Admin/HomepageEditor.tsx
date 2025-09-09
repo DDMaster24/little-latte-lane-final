@@ -87,10 +87,14 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
   const [selectedColor, setSelectedColor] = useState('#ffffff');
   const [showColorPanel, setShowColorPanel] = useState(false);
   
-  // Enhanced gradient support
+  // Enhanced gradient support with improved workflow
+  const [gradientMode, setGradientMode] = useState(false); // NEW: Controls if gradient editing is active
   const [gradientColor1, setGradientColor1] = useState('#00FFFF');
   const [gradientColor2, setGradientColor2] = useState('#FF00FF');
   const [gradientDirection, setGradientDirection] = useState<'to right' | 'to left' | 'to bottom' | 'to top' | '45deg' | '135deg'>('to right');
+  
+  // Live preview state - shows changes in real-time without saving
+  const [_livePreviewStyle, setLivePreviewStyle] = useState<Record<string, string>>({});
   
   // Preview/Save state - NO AUTO-SAVE
   const [pendingChanges, setPendingChanges] = useState<Map<string, PendingChange>>(new Map());
@@ -330,6 +334,8 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
     const target = e.target as HTMLElement;
     
     console.log('🖱️ Homepage click detected on:', target.tagName, target.className);
+    console.log('🖱️ Target data-editable:', target.getAttribute('data-editable'));
+    console.log('🖱️ Target textContent:', target.textContent?.slice(0, 50));
     
     // Block navigation but allow editor functionality
     e.preventDefault();
@@ -525,7 +531,7 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
   };
 
   // Clear gradient
-  const handleClearGradient = () => {
+  const _handleClearGradient = () => {
     if (!selectedElement) return;
     
     const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
@@ -565,6 +571,69 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
       description: "Preset gradient applied successfully",
       duration: 1500
     });
+  };
+
+  // Live Preview Functions - Show changes in real-time without saving
+  const applyLivePreview = (elementId: string, property: string, value: string) => {
+    const element = document.querySelector(`[data-editable="${elementId}"]`) as HTMLElement;
+    if (element) {
+      // Apply the style change immediately for live preview
+      if (property === 'color') {
+        element.style.color = value;
+      } else if (property === 'backgroundColor') {
+        element.style.backgroundColor = value;
+      } else if (property === 'background') {
+        element.style.background = value;
+      }
+      
+      // Store the live preview state
+      setLivePreviewStyle(prev => ({
+        ...prev,
+        [elementId]: value
+      }));
+    }
+  };
+
+  const clearLivePreview = (elementId: string) => {
+    const element = document.querySelector(`[data-editable="${elementId}"]`) as HTMLElement;
+    if (element) {
+      // Reset to original or saved state
+      const pendingChange = pendingChanges.get(elementId);
+      if (pendingChange) {
+        // If there's a pending change, revert to original
+        if (pendingChange.type === 'color') {
+          if (colorMode === 'text') {
+            element.style.color = pendingChange.originalValue;
+          } else {
+            element.style.backgroundColor = pendingChange.originalValue;
+          }
+        }
+      }
+      
+      // Clear from live preview state
+      setLivePreviewStyle(prev => {
+        const newState = { ...prev };
+        delete newState[elementId];
+        return newState;
+      });
+    }
+  };
+
+  const handleLiveColorChange = (newColor: string) => {
+    setSelectedColor(newColor);
+    
+    // Apply live preview if an element is selected
+    if (selectedElement) {
+      const property = colorMode === 'text' ? 'color' : 'backgroundColor';
+      applyLivePreview(selectedElement, property, newColor);
+    }
+  };
+
+  const handleLiveGradientChange = () => {
+    if (selectedElement && gradientMode) {
+      const gradientValue = `linear-gradient(${gradientDirection}, ${gradientColor1}, ${gradientColor2})`;
+      applyLivePreview(selectedElement, 'background', gradientValue);
+    }
   };
 
   // Save/Preview/Discard functions
@@ -686,10 +755,15 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
     };
   }, [toast]);
 
-  // Add element hover effects and click handlers
+  // Add element hover effects and click handlers with retry mechanism
   useEffect(() => {
-    // Reduced delay to 500ms for better responsiveness
-    const timeoutId = setTimeout(() => {
+    let retryCount = 0;
+    const maxRetries = 5;
+    const retryDelay = 1000; // 1 second between retries
+    
+    const setupEventListeners = () => {
+      console.log(`🔍 Setting up homepage element listeners (attempt ${retryCount + 1}/${maxRetries})...`);
+      
       const handleMouseEnter = (e: Event) => {
         const target = e.target as HTMLElement;
         const editableElement = target.closest('[data-editable]') as HTMLElement;
@@ -718,9 +792,22 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
 
       const editableElements = document.querySelectorAll('[data-editable]');
       console.log('🎯 Found homepage editable elements:', editableElements.length);
-      console.log('🎯 Element list:', Array.from(editableElements).map(el => el.getAttribute('data-editable')));
+      console.log('🎯 Element list:', Array.from(editableElements).map(el => {
+        const elementId = el.getAttribute('data-editable');
+        const text = el.textContent?.slice(0, 30);
+        return `${elementId}: "${text}"`;
+      }));
       
-      editableElements.forEach(element => {
+      // If we don't have enough elements, retry (expecting at least booking elements)
+      if (editableElements.length < 3 && retryCount < maxRetries) {
+        retryCount++;
+        console.log(`⏳ Only found ${editableElements.length} elements, retrying in ${retryDelay}ms...`);
+        setTimeout(setupEventListeners, retryDelay);
+        return null;
+      }
+      
+      editableElements.forEach((element, index) => {
+        console.log(`📎 Attaching listeners to element ${index + 1}:`, element.getAttribute('data-editable'));
         element.addEventListener('mouseenter', handleMouseEnter);
         element.addEventListener('mouseleave', handleMouseLeave);
         element.addEventListener('click', handleElementClick as EventListener);
@@ -733,11 +820,10 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
           element.removeEventListener('click', handleElementClick as EventListener);
         });
       };
-    }, 500); // Reduced delay to 500ms for better responsiveness
-
-    return () => {
-      clearTimeout(timeoutId);
     };
+
+    const cleanup = setupEventListeners();
+    return cleanup || undefined;
   }, [handleElementClick]);
 
   return (
@@ -968,12 +1054,11 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
             </div>
           )}
 
-          {/* Color Editing Panel - Only visible when manually activated */}
-          {/* Enhanced Color Editor with Gradient Support - Compact Floating Panel */}
+          {/* Color Editing Panel - Enhanced visibility and live preview */}
           {showColorPanel && selectedTool === 'color' && selectedElement && (
-            <div className="fixed top-32 left-4 z-[100001] bg-gray-900 border border-gray-700 rounded-lg shadow-2xl p-3 max-w-6xl max-h-[calc(100vh-140px)] overflow-y-auto">
-              <div className="flex items-center justify-between mb-3">
-                <div className="text-sm text-gray-300 font-medium">Color Tools</div>
+            <div className="fixed top-32 left-4 z-[100001] bg-white border-2 border-gray-300 rounded-lg shadow-2xl p-4 max-w-6xl max-h-[calc(100vh-140px)] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-lg text-gray-800 font-semibold">Color Tools</div>
                 <Button
                   data-editor-action="true"
                   variant="ghost"
@@ -982,16 +1067,16 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
                     setShowColorPanel(false);
                     setSelectedTool('text');
                   }}
-                  className="text-gray-400 hover:text-white p-1"
+                  className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 p-2 rounded"
                 >
                   <X className="w-4 h-4" />
                 </Button>
               </div>
               
               <div className="space-y-3">
-                {/* Color Mode Toggle */}
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs font-medium text-gray-300">Mode:</span>
+                {/* Color Mode Toggle - Enhanced styling */}
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm font-medium text-gray-700">Mode:</span>
                   <Button
                     data-editor-action="true"
                     onClick={() => setColorMode('text')}
@@ -999,8 +1084,8 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
                     size="sm"
                     className={
                       colorMode === 'text'
-                        ? 'border-2 border-neonCyan shadow-[0_0_8px_2px_#00FFFF55] text-white text-xs px-3 py-1'
-                        : 'border border-gray-500 text-gray-300 text-xs px-3 py-1'
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 border-2 border-blue-600'
+                        : 'border-2 border-gray-400 text-gray-700 text-sm px-4 py-2 hover:bg-gray-100'
                     }
                   >
                     Text
@@ -1012,8 +1097,8 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
                     size="sm"
                     className={
                       colorMode === 'background'
-                        ? 'border-2 border-neonPink shadow-[0_0_8px_2px_#FF00FF55] text-white text-xs px-3 py-1'
-                        : 'border border-gray-500 text-gray-300 text-xs px-3 py-1'
+                        ? 'bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-2 border-2 border-purple-600'
+                        : 'border-2 border-gray-400 text-gray-700 text-sm px-4 py-2 hover:bg-gray-100'
                     }
                   >
                     Background
@@ -1021,38 +1106,38 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
                 </div>
 
                 <div className="grid grid-cols-4 gap-4">
-                  {/* Color Picker Section - Compact */}
+                  {/* Color Picker Section - Enhanced with live preview */}
                   <div className="space-y-2">
-                    <h3 className="text-xs font-medium text-gray-300">Color Picker</h3>
+                    <h3 className="text-sm font-medium text-gray-700">Color Picker</h3>
                     <HexColorPicker
                       color={selectedColor}
-                      onChange={setSelectedColor}
+                      onChange={handleLiveColorChange}
                       style={{ width: '100%', height: '120px' }}
                     />
                     <div className="flex items-center space-x-1">
                       <Input
                         value={selectedColor}
-                        onChange={(e) => setSelectedColor(e.target.value)}
+                        onChange={(e) => handleLiveColorChange(e.target.value)}
                         placeholder="#ffffff"
-                        className="flex-1 bg-gray-700 border-gray-600 text-white font-mono text-xs h-6"
+                        className="flex-1 bg-gray-100 border-gray-400 text-gray-800 font-mono text-xs h-8 px-2"
                       />
                       <div 
-                        className="w-6 h-6 rounded border border-gray-600"
+                        className="w-8 h-8 rounded border-2 border-gray-400"
                         style={{ backgroundColor: selectedColor }}
                       ></div>
                     </div>
                   </div>
 
-                  {/* Theme Colors Section - Compact */}
+                  {/* Theme Colors Section - Enhanced styling */}
                   <div className="space-y-2">
-                    <h3 className="text-xs font-medium text-gray-300">Theme Colors</h3>
-                    <div className="grid grid-cols-3 gap-1">
+                    <h3 className="text-sm font-medium text-gray-700">Theme Colors</h3>
+                    <div className="grid grid-cols-3 gap-2">
                       {THEME_COLORS.map((color) => (
                         <button
                           key={color}
                           data-editor-action="true"
-                          onClick={() => setSelectedColor(color)}
-                          className="w-7 h-7 rounded border border-gray-600 hover:border-white transition-colors"
+                          onClick={() => handleLiveColorChange(color)}
+                          className="w-8 h-8 rounded border-2 border-gray-400 hover:border-gray-600 transition-colors shadow-sm"
                           style={{ backgroundColor: color }}
                           title={color}
                         />
@@ -1060,110 +1145,160 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
                     </div>
                   </div>
 
-                  {/* Gradient Start Color */}
-                  <div className="space-y-2">
-                    <h3 className="text-xs font-medium text-gray-300">Gradient Start</h3>
-                    <HexColorPicker
-                      color={gradientColor1}
-                      onChange={setGradientColor1}
-                      style={{ width: '100%', height: '120px' }}
-                    />
-                    <Input
-                      value={gradientColor1}
-                      onChange={(e) => setGradientColor1(e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white font-mono text-xs h-6"
-                    />
-                  </div>
+                  {/* Gradient Section - Improved workflow */}
+                  {!gradientMode ? (
+                    <div className="space-y-2 col-span-2">
+                      <h3 className="text-sm font-medium text-gray-700">Gradient</h3>
+                      <Button
+                        data-editor-action="true"
+                        onClick={() => setGradientMode(true)}
+                        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-3 px-4 rounded"
+                      >
+                        Add Gradient
+                      </Button>
+                      <p className="text-xs text-gray-500 mt-1">Click to enable gradient editing mode</p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Gradient Start Color */}
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-medium text-gray-700">Gradient Start</h3>
+                        <HexColorPicker
+                          color={gradientColor1}
+                          onChange={(color) => {
+                            setGradientColor1(color);
+                            handleLiveGradientChange();
+                          }}
+                          style={{ width: '100%', height: '120px' }}
+                        />
+                        <Input
+                          value={gradientColor1}
+                          onChange={(e) => {
+                            setGradientColor1(e.target.value);
+                            handleLiveGradientChange();
+                          }}
+                          className="bg-gray-100 border-gray-400 text-gray-800 font-mono text-xs h-8 px-2"
+                        />
+                      </div>
 
-                  {/* Gradient End Color */}
-                  <div className="space-y-2">
-                    <h3 className="text-xs font-medium text-gray-300">Gradient End</h3>
-                    <HexColorPicker
-                      color={gradientColor2}
-                      onChange={setGradientColor2}
-                      style={{ width: '100%', height: '120px' }}
-                    />
-                    <Input
-                      value={gradientColor2}
-                      onChange={(e) => setGradientColor2(e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white font-mono text-xs h-6"
-                    />
-                  </div>
+                      {/* Gradient End Color */}
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-medium text-gray-700">Gradient End</h3>
+                        <HexColorPicker
+                          color={gradientColor2}
+                          onChange={(color) => {
+                            setGradientColor2(color);
+                            handleLiveGradientChange();
+                          }}
+                          style={{ width: '100%', height: '120px' }}
+                        />
+                        <Input
+                          value={gradientColor2}
+                          onChange={(e) => {
+                            setGradientColor2(e.target.value);
+                            handleLiveGradientChange();
+                          }}
+                          className="bg-gray-100 border-gray-400 text-gray-800 font-mono text-xs h-8 px-2"
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
 
-                {/* Gradient Controls */}
-                <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-700">
-                  {/* Direction */}
-                  <div>
-                    <label className="text-xs text-gray-400 mb-1 block">Direction</label>
-                    <select
-                      value={gradientDirection}
-                      onChange={(e) => setGradientDirection(e.target.value as typeof gradientDirection)}
-                      className="w-full bg-gray-700 border-gray-600 text-white text-xs rounded px-2 py-1 h-6"
-                    >
-                      <option value="to right">Left to Right</option>
-                      <option value="to left">Right to Left</option>
-                      <option value="to bottom">Top to Bottom</option>
-                      <option value="to top">Bottom to Top</option>
-                      <option value="45deg">Diagonal ↗</option>
-                      <option value="135deg">Diagonal ↘</option>
-                    </select>
-                  </div>
+                {/* Gradient Controls - Only show when gradient mode is active */}
+                {gradientMode && (
+                  <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-300">
+                    {/* Direction */}
+                    <div>
+                      <label className="text-sm text-gray-700 mb-2 block font-medium">Direction</label>
+                      <select
+                        value={gradientDirection}
+                        onChange={(e) => {
+                          setGradientDirection(e.target.value as typeof gradientDirection);
+                          handleLiveGradientChange();
+                        }}
+                        className="w-full bg-gray-100 border-gray-400 text-gray-800 text-sm rounded px-3 py-2 h-10"
+                      >
+                        <option value="to right">Left to Right</option>
+                        <option value="to left">Right to Left</option>
+                        <option value="to bottom">Top to Bottom</option>
+                        <option value="to top">Bottom to Top</option>
+                        <option value="45deg">Diagonal ↗</option>
+                        <option value="135deg">Diagonal ↘</option>
+                      </select>
+                    </div>
 
-                  {/* Gradient Presets */}
-                  <div>
-                    <label className="text-xs text-gray-400 mb-1 block">Presets</label>
-                    <div className="grid grid-cols-2 gap-1">
-                      {GRADIENT_PRESETS.map((preset) => (
-                        <button
-                          key={preset.name}
-                          data-editor-action="true"
-                          onClick={() => handleGradientPreset(preset.value)}
-                          className="h-5 rounded border border-gray-600 hover:border-white transition-colors text-xs text-white overflow-hidden"
-                          style={{ background: preset.value }}
-                          title={preset.name}
-                        >
-                          {preset.name.split(' ')[0]}
-                        </button>
-                      ))}
+                    {/* Gradient Presets */}
+                    <div>
+                      <label className="text-sm text-gray-700 mb-2 block font-medium">Presets</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {GRADIENT_PRESETS.map((preset) => (
+                          <button
+                            key={preset.name}
+                            data-editor-action="true"
+                            onClick={() => {
+                              handleGradientPreset(preset.value);
+                              handleLiveGradientChange();
+                            }}
+                            className="h-8 rounded border-2 border-gray-400 hover:border-gray-600 transition-colors text-xs text-white overflow-hidden shadow-sm"
+                            style={{ background: preset.value }}
+                            title={preset.name}
+                          >
+                            {preset.name.split(' ')[0]}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
-                {/* Action Buttons - Compact */}
-                <div className="flex justify-center space-x-2 pt-2 border-t border-gray-700">
-                  <Button
-                    data-editor-action="true"
-                    onClick={handleColorApply}
-                    disabled={isSaving}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs"
-                    size="sm"
-                  >
-                    {isSaving ? (
-                      <RefreshCw className="w-3 h-3 animate-spin mr-1" />
-                    ) : (
-                      <Paintbrush className="w-3 h-3 mr-1" />
-                    )}
-                    Apply Color
-                  </Button>
-                  <Button
-                    data-editor-action="true"
-                    onClick={handleColorApply}
-                    disabled={isSaving}
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 text-xs"
-                    size="sm"
-                  >
-                    Apply Gradient
-                  </Button>
-                  <Button
-                    data-editor-action="true"
-                    onClick={handleClearGradient}
-                    variant="destructive"
-                    size="sm"
-                    className="px-2 py-1 text-xs"
-                  >
-                    <X className="w-3 h-3" />
-                  </Button>
+                {/* Action Buttons - Improved workflow */}
+                <div className="flex justify-center space-x-3 pt-4 border-t border-gray-300">
+                  {gradientMode ? (
+                    <>
+                      <Button
+                        data-editor-action="true"
+                        onClick={handleColorApply}
+                        disabled={isSaving}
+                        className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-2 text-sm font-medium"
+                        size="sm"
+                      >
+                        {isSaving ? (
+                          <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                        ) : (
+                          <Paintbrush className="w-4 h-4 mr-2" />
+                        )}
+                        Apply Gradient
+                      </Button>
+                      <Button
+                        data-editor-action="true"
+                        onClick={() => {
+                          setGradientMode(false);
+                          clearLivePreview(selectedElement || '');
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="px-4 py-2 text-sm border-gray-400 text-gray-700 hover:bg-gray-100"
+                      >
+                        Cancel Gradient
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      data-editor-action="true"
+                      onClick={handleColorApply}
+                      disabled={isSaving}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 text-sm font-medium"
+                      size="sm"
+                    >
+                      {isSaving ? (
+                        <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                      ) : (
+                        <Paintbrush className="w-4 h-4 mr-2" />
+                      )}
+                      Apply Color
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>

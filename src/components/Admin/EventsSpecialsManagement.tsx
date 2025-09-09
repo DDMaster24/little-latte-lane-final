@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+// import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
@@ -52,7 +52,7 @@ type SectionSettings = {
 
 export default function EventsSpecialsManagement() {
   const { profile } = useAuth();
-  const supabase = getSupabaseClient();
+  const _supabase = getSupabaseClient();
   
   const [events, setEvents] = useState<Event[]>([]);
   const [settings, setSettings] = useState<SectionSettings>({
@@ -70,8 +70,8 @@ export default function EventsSpecialsManagement() {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
-  const [showNewEventForm, setShowNewEventForm] = useState(false);
+  const [_editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [_showNewEventForm, setShowNewEventForm] = useState(false);
 
   // Fetch events and settings
   const fetchData = useCallback(async () => {

@@ -1,38 +1,15 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import MenuPageEditor from '@/components/Admin/MenuPageEditor';
+import MenuPage from '@/app/menu/page';
+import { EditorModeProvider } from '@/contexts/EditorModeContext';
 
 export default function MenuEditorPage() {
-  const router = useRouter();
-
   return (
-    <div className="min-h-screen bg-darkBg text-white p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push('/admin')}
-              className="text-gray-300 hover:text-white"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Admin
-            </Button>
-            <h1 className="text-2xl font-bold text-neonCyan">Menu Page Editor</h1>
-          </div>
-        </div>
-
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Menu Content Editor</h2>
-          <p className="text-gray-400">
-            Menu page editor functionality will be implemented here.
-            This will allow editing of menu layout, categories display, and item presentation.
-          </p>
-        </div>
-      </div>
-    </div>
+    <EditorModeProvider isEditorMode={true}>
+      <MenuPageEditor>
+        <MenuPage />
+      </MenuPageEditor>
+    </EditorModeProvider>
   );
 }
