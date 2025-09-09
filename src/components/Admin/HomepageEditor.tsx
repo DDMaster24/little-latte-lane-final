@@ -688,7 +688,7 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
 
   // Add element hover effects and click handlers
   useEffect(() => {
-    // Longer delay to ensure components are fully rendered
+    // Reduced delay to 500ms for better responsiveness
     const timeoutId = setTimeout(() => {
       const handleMouseEnter = (e: Event) => {
         const target = e.target as HTMLElement;
@@ -733,7 +733,7 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
           element.removeEventListener('click', handleElementClick as EventListener);
         });
       };
-    }, 2000); // Increased delay to 2 seconds to ensure full rendering
+    }, 500); // Reduced delay to 500ms for better responsiveness
 
     return () => {
       clearTimeout(timeoutId);

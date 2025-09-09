@@ -9,8 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Calendar, Settings, Save, RotateCcw, Eye, EyeOff, 
-  Clock, Users, MapPin, Phone
+  Calendar, Settings, Save, RotateCcw, 
+  Clock, Users
 } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 import { getSupabaseClient } from '@/lib/supabase-client';
@@ -91,7 +91,7 @@ export default function BookingsManagementExtended() {
         console.error('Error fetching bookings settings:', error);
       } else if (data && data.length > 0) {
         // Parse settings from database
-        const dbSettings = data.reduce((acc: any, item: any) => {
+        const dbSettings = data.reduce((acc: Record<string, unknown>, item: { setting_key: string; setting_value: unknown }) => {
           acc[item.setting_key] = item.setting_value;
           return acc;
         }, {});

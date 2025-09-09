@@ -34,8 +34,10 @@ export default function BookingsSection() {
           .eq('page_scope', 'homepage');
 
         if (!error && data) {
-          const dbSettings = data.reduce((acc: Record<string, string>, item: any) => {
-            acc[item.setting_key] = item.setting_value;
+          const dbSettings = data.reduce((acc: Record<string, string>, item: { setting_key: string; setting_value: string | null }) => {
+            if (item.setting_value !== null) {
+              acc[item.setting_key] = item.setting_value;
+            }
             return acc;
           }, {});
           

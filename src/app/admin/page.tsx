@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
   Menu, Users, BarChart3, ShoppingBag, Calendar, 
-  Shield, Activity, CheckCircle, CreditCard, QrCode, Palette, Home, Edit, Navigation, Star, Settings
+  Shield, Activity, CheckCircle, CreditCard, QrCode, Palette, Home, Edit, Navigation, Star
 } from 'lucide-react';
 
 // Tab Components
@@ -98,7 +98,7 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <Button
-                      onClick={() => router.push('/admin/editor/homepage')}
+                      onClick={() => router.push('/admin/page-editor/homepage')}
                       className="bg-neonCyan hover:bg-neonCyan/80 text-darkBg font-semibold w-full text-sm"
                     >
                       <Edit className="h-4 w-4 mr-2" />
@@ -122,7 +122,7 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <Button
-                      onClick={() => router.push('/admin/editor/header')}
+                      onClick={() => router.push('/admin/page-editor/header')}
                       className="bg-neonPink hover:bg-neonPink/80 text-darkBg font-semibold w-full text-sm"
                     >
                       <Edit className="h-4 w-4 mr-2" />
@@ -146,7 +146,7 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <Button
-                      onClick={() => router.push('/admin/editor/menu')}
+                      onClick={() => router.push('/admin/page-editor/menu')}
                       className="bg-orange-500 hover:bg-orange-500/80 text-white font-semibold w-full text-sm"
                     >
                       <Edit className="h-4 w-4 mr-2" />
@@ -170,7 +170,7 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <Button
-                      onClick={() => router.push('/admin/editor/bookings')}
+                      onClick={() => router.push('/admin/page-editor/bookings')}
                       className="bg-blue-500 hover:bg-blue-500/80 text-white font-semibold w-full text-sm"
                     >
                       <Edit className="h-4 w-4 mr-2" />
@@ -218,7 +218,7 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <Button
-                      onClick={() => router.push('/admin/editor/footer')}
+                      onClick={() => router.push('/admin/page-editor/footer')}
                       className="bg-teal-500 hover:bg-teal-500/80 text-white font-semibold w-full text-sm"
                     >
                       <Edit className="h-4 w-4 mr-2" />
