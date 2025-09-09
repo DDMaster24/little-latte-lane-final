@@ -31,12 +31,14 @@ export default function BookingsSection() {
           .from('theme_settings')
           .select('setting_key, setting_value')
           .eq('category', 'bookings_section')
-          .eq('page_scope', 'homepage');
+          .like('setting_key', 'homepage-%');
 
         if (!error && data) {
           const dbSettings = data.reduce((acc: Record<string, string>, item: { setting_key: string; setting_value: string | null }) => {
             if (item.setting_value !== null) {
-              acc[item.setting_key] = item.setting_value;
+              // Remove the homepage- prefix to get the actual setting key
+              const cleanKey = item.setting_key.replace('homepage-', '');
+              acc[cleanKey] = item.setting_value;
             }
             return acc;
           }, {});

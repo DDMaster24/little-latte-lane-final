@@ -85,14 +85,16 @@ export default function BookingsManagementExtended() {
         .from('theme_settings')
         .select('*')
         .eq('category', 'bookings_section')
-        .eq('page_scope', 'homepage');
+        .like('setting_key', 'homepage-%');
 
       if (error) {
         console.error('Error fetching bookings settings:', error);
       } else if (data && data.length > 0) {
         // Parse settings from database
         const dbSettings = data.reduce((acc: Record<string, unknown>, item: { setting_key: string; setting_value: unknown }) => {
-          acc[item.setting_key] = item.setting_value;
+          // Remove the homepage- prefix to get the actual setting key
+          const cleanKey = item.setting_key.replace('homepage-', '');
+          acc[cleanKey] = item.setting_value;
           return acc;
         }, {});
         
@@ -140,12 +142,11 @@ export default function BookingsManagementExtended() {
   const saveSettings = async () => {
     setSaving(true);
     try {
-      // Convert settings object to individual theme_settings entries
+      // Convert settings object to individual theme_settings entries with homepage prefix
       const settingsEntries = Object.entries(settings).map(([key, value]) => ({
-        setting_key: key,
+        setting_key: `homepage-${key}`,
         setting_value: String(value),
         category: 'bookings_section',
-        page_scope: 'homepage',
         setting_type: typeof value === 'boolean' ? 'boolean' : 
                      typeof value === 'number' ? 'number' : 'text'
       }));
@@ -158,7 +159,7 @@ export default function BookingsManagementExtended() {
             ...entry,
             updated_at: new Date().toISOString()
           }, {
-            onConflict: 'setting_key,page_scope'
+            onConflict: 'setting_key'
           });
 
         if (error) {

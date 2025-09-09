@@ -9,7 +9,6 @@ export interface ThemeSetting {
   setting_value: string;
   setting_type: 'color' | 'font' | 'number' | 'text' | 'image' | 'json';
   category: 'colors' | 'typography' | 'layout' | 'content' | 'images';
-  page_scope: string;
   description?: string;
 }
 

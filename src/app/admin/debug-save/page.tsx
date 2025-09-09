@@ -43,10 +43,9 @@ export default function DebugSavePage() {
     try {
       const { saveThemeSetting } = await import('@/app/admin/actions');
       const result = await saveThemeSetting({
-        setting_key: 'debug_save_test',
+        setting_key: 'homepage-debug_save_test',
         setting_value: 'Test value ' + new Date().toISOString(),
-        category: 'page_editor',
-        page_scope: 'homepage'
+        category: 'page_editor'
       });
       setSaveTestResult(result);
     } catch (error) {

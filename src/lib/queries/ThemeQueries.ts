@@ -11,10 +11,11 @@ export class ThemeQueries {
   static async getPageThemeSettings(pageScope: string, category?: string) {
     const supabase = getSupabaseClient();
     
+    // Use setting_key prefix pattern instead of page_scope column
     let query = supabase
       .from('theme_settings')
       .select('*')
-      .eq('page_scope', pageScope);
+      .like('setting_key', `${pageScope}-%`);
     
     if (category) {
       query = query.eq('category', category);
@@ -32,11 +33,13 @@ export class ThemeQueries {
   static async getThemeSetting(settingKey: string, pageScope: string) {
     const supabase = getSupabaseClient();
     
+    // Ensure setting key has pageScope prefix
+    const prefixedKey = settingKey.startsWith(`${pageScope}-`) ? settingKey : `${pageScope}-${settingKey}`;
+    
     const { data, error } = await supabase
       .from('theme_settings')
       .select('*')
-      .eq('setting_key', settingKey)
-      .eq('page_scope', pageScope)
+      .eq('setting_key', prefixedKey)
       .single();
     
     if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows returned
@@ -55,6 +58,9 @@ export class ThemeQueries {
     } = {}
   ) {
     const supabase = getSupabaseClient();
+    
+    // Ensure setting key has pageScope prefix
+    const prefixedKey = settingKey.startsWith(`${pageScope}-`) ? settingKey : `${pageScope}-${settingKey}`;
     
     // Check if setting already exists
     const existing = await this.getThemeSetting(settingKey, pageScope);
@@ -75,9 +81,9 @@ export class ThemeQueries {
       if (error) throw error;
       return data;
     } else {
-      // Create new setting
+      // Create new setting with prefixed key
       const newSetting: ThemeSettingInsert = {
-        setting_key: settingKey,
+        setting_key: prefixedKey,
         setting_value: settingValue,
         category: options.category || 'content',
       };
@@ -99,11 +105,13 @@ export class ThemeQueries {
   static async deleteThemeSetting(settingKey: string, pageScope: string) {
     const supabase = getSupabaseClient();
     
+    // Ensure setting key has pageScope prefix
+    const prefixedKey = settingKey.startsWith(`${pageScope}-`) ? settingKey : `${pageScope}-${settingKey}`;
+    
     const { error } = await supabase
       .from('theme_settings')
       .delete()
-      .eq('setting_key', settingKey)
-      .eq('page_scope', pageScope);
+      .eq('setting_key', prefixedKey);
     
     if (error) throw error;
   }
@@ -135,10 +143,11 @@ export class ServerThemeQueries {
   static async getPageThemeSettings(pageScope: string, category?: string) {
     const supabase = await getSupabaseServer();
     
+    // Use setting_key prefix pattern instead of page_scope column
     let query = supabase
       .from('theme_settings')
       .select('*')
-      .eq('page_scope', pageScope);
+      .like('setting_key', `${pageScope}-%`);
     
     if (category) {
       query = query.eq('category', category);
@@ -156,11 +165,13 @@ export class ServerThemeQueries {
   static async getThemeSetting(settingKey: string, pageScope: string) {
     const supabase = await getSupabaseServer();
     
+    // Ensure setting key has pageScope prefix
+    const prefixedKey = settingKey.startsWith(`${pageScope}-`) ? settingKey : `${pageScope}-${settingKey}`;
+    
     const { data, error } = await supabase
       .from('theme_settings')
       .select('*')
-      .eq('setting_key', settingKey)
-      .eq('page_scope', pageScope)
+      .eq('setting_key', prefixedKey)
       .single();
     
     if (error && error.code !== 'PGRST116') throw error;

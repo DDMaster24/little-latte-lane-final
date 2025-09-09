@@ -213,15 +213,14 @@ export async function deleteMenuItem(id: string) {
 }
 
 /**
- * Save theme setting for image changes with proper category and page_scope support
- * @param setting Theme setting data with optional category and page_scope
+ * Save theme setting for image changes with proper category support
+ * @param setting Theme setting data with optional category
  * @returns { success: boolean, data?: any, message?: string }
  */
 export async function saveImageSetting(setting: {
   setting_key: string;
   setting_value: string;
   category?: string;
-  page_scope?: string;
 }) {
   console.log('🔍 DEBUG: saveImageSetting called with:', setting);
   
@@ -229,8 +228,7 @@ export async function saveImageSetting(setting: {
   return saveThemeSetting({
     setting_key: setting.setting_key,
     setting_value: setting.setting_value,
-    category: setting.category || 'page_editor',
-    page_scope: setting.page_scope || 'header'
+    category: setting.category || 'page_editor'
   });
 }
 
@@ -238,8 +236,6 @@ export async function saveThemeSetting(setting: {
   setting_key: string;
   setting_value: string;
   category?: string;
-  page_scope?: string;
-  created_by?: string;
 }) {
   console.log('🔍 DEBUG: saveThemeSetting called with:', setting);
   
@@ -340,10 +336,9 @@ export async function testDatabaseConnection() {
 
     // Test write access with a dummy setting
     const testSetting = {
-      setting_key: 'connection_test_' + Date.now(),
+      setting_key: 'test-connection_test_' + Date.now(),
       setting_value: 'test',
-      category: 'test',
-      page_scope: 'test'
+      category: 'test'
     };
 
     const { data: writeTest, error: writeError } = await supabase

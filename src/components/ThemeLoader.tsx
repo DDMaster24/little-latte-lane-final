@@ -13,12 +13,12 @@ export default function ThemeLoader({ pageName }: ThemeLoaderProps) {
       try {
         const supabase = getSupabaseClient();
         
-        // Load all theme_settings for this page
+        // Load all theme_settings for this page using setting_key prefix pattern
         const { data: settings, error } = await supabase
           .from('theme_settings')
           .select('*')
           .eq('category', 'page_editor')
-          .eq('page_scope', pageName);
+          .like('setting_key', `${pageName}-%`);
 
         if (error) {
           console.error('Error loading theme settings:', error);
@@ -34,7 +34,8 @@ export default function ThemeLoader({ pageName }: ThemeLoaderProps) {
 
         // Apply all saved styles
         settings.forEach(setting => {
-          const elementId = setting.setting_key;
+          // Remove the pageScope prefix to get the actual element ID
+          const elementId = setting.setting_key.replace(`${pageName}-`, '');
           
           // Handle text content
           if (!elementId.includes('_color') && 
