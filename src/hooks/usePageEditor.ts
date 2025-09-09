@@ -62,11 +62,13 @@ export function usePageEditor(pageScope: string, adminUserId?: string): UsePageE
       try {
         setIsLoading(true);
         
+        // Since page_scope column doesn't exist, use setting_key prefix pattern
+        // Format: "pageScope-elementId" (e.g., "homepage-main-heading")
         const { data, error } = await supabase
           .from('theme_settings')
           .select('*')
           .eq('category', 'page_editor')
-          .eq('page_scope', pageScope)
+          .like('setting_key', `${pageScope}-%`)
           .order('updated_at', { ascending: false });
 
         if (error) {
@@ -92,12 +94,17 @@ export function usePageEditor(pageScope: string, adminUserId?: string): UsePageE
     console.log('🔍 DEBUG: usePageEditor savePageSetting called with:', setting);
 
     try {
+      // Ensure setting_key includes pageScope prefix for organization
+      const settingKey = setting.setting_key.startsWith(`${pageScope}-`) 
+        ? setting.setting_key 
+        : `${pageScope}-${setting.setting_key}`;
+
       // Use server action for better error handling and debugging
       const { saveThemeSetting } = await import('@/app/admin/actions');
       const result = await saveThemeSetting({
-        setting_key: setting.setting_key,
+        setting_key: settingKey,
         setting_value: setting.setting_value || '',
-        category: setting.category || ''
+        category: setting.category || 'page_editor'
       });
 
       console.log('🔍 DEBUG: Server action result:', result);
@@ -114,8 +121,8 @@ export function usePageEditor(pageScope: string, adminUserId?: string): UsePageE
       // Update local state
       setPageSettings(prev => {
         const existingIndex = prev.findIndex(s => 
-          s.setting_key === setting.setting_key && 
-          s.category === setting.category
+          s.setting_key === settingKey && 
+          s.category === (setting.category || 'page_editor')
         );
         
         if (existingIndex >= 0) {
@@ -131,23 +138,28 @@ export function usePageEditor(pageScope: string, adminUserId?: string): UsePageE
       console.error('❌ savePageSetting failed:', error);
       throw error;
     }
-  }, [isAdmin]);
+  }, [isAdmin, pageScope]);
 
   // Get element setting
   const getElementSetting = useCallback((elementId: string): ThemeSetting | undefined => {
-    return pageSettings.find(setting => setting.setting_key === elementId);
-  }, [pageSettings]);
+    // Handle both prefixed and non-prefixed element IDs
+    const settingKey = elementId.startsWith(`${pageScope}-`) ? elementId : `${pageScope}-${elementId}`;
+    return pageSettings.find(setting => setting.setting_key === settingKey);
+  }, [pageSettings, pageScope]);
 
   // Update element content
   const updateElementContent = useCallback(async (elementId: string, content: string) => {
     if (!isAdmin || !adminUserId) throw new Error('Admin access required');
 
+    // Ensure proper setting key format with pageScope prefix
+    const settingKey = elementId.startsWith(`${pageScope}-`) ? elementId : `${pageScope}-${elementId}`;
+
     await savePageSetting({
-      setting_key: elementId,
+      setting_key: settingKey,
       setting_value: content,
       category: 'page_editor'
     });
-  }, [savePageSetting, isAdmin, adminUserId]);
+  }, [savePageSetting, isAdmin, adminUserId, pageScope]);
 
   // Delete setting
   const deleteSetting = useCallback(async (settingId: number) => {

@@ -105,25 +105,41 @@ npm run build && npm run lint
 The Docker database approach has been replaced by the official Supabase VS Code extension.
 If you see references to Docker database connections, redirect to `@supabase` commands instead.
 
-## 🚨 MANDATORY: SUPABASE CLI v2.39.2 PROTOCOL - LATEST OFFICIAL METHOD!
+## 🚨 MANDATORY: DIRECT SUPABASE CONNECTION PROTOCOL - NO DOCKER EVER!
 
-### 🎯 CRITICAL RULE: Use Updated Supabase CLI for All Database Operations
-**Updated CLI approach with latest features and bug fixes - NO LEGACY METHODS!**
+### 🎯 CRITICAL RULE: NEVER USE DOCKER COMMANDS FOR DATABASE ACCESS
+**❌ BANNED FOREVER: ANY Docker-based database commands**
+**❌ BANNED FOREVER: `supabase db dump` (requires Docker)**
+**❌ BANNED FOREVER: `supabase db reset` (requires Docker)**
+**❌ BANNED FOREVER: Any command that mentions Docker**
 
-### 🔗 Supabase CLI Database Protocol - CURRENT STANDARD!
-**When working with database:**
-1. **Use Supabase CLI v2.39.2** - Updated with latest features and bug fixes
-2. **Project is properly linked**: `supabase link --project-ref awytuszmunxvthuizyur` ✅ COMPLETED
-3. **Available CLI Commands**:
-   ```bash
-   supabase status                    # Check connection status
-   supabase db dump --schema=public   # Get current schema
-   supabase gen types typescript     # Generate TypeScript types
-   supabase storage ls               # List storage buckets
-   ```
-4. **Environment Variables**: Use `.env.local` for direct database access when needed
-5. **Update TypeScript types** after schema changes: `npm run db:generate-types`
-6. **Live Production Database**: `https://awytuszmunxvthuizyur.supabase.co`
+### 🔗 ONLY ALLOWED DATABASE ACCESS METHOD - DIRECT CONNECTION!
+**MANDATORY: Use ONLY direct PostgreSQL connection from screenshot:**
+
+```bash
+# ✅ ONLY CORRECT METHOD - Direct PostgreSQL connection
+psql "postgresql://postgres:[YOUR-PASSWORD]@db.awytuszmunxvthuizyur.supabase.co:5432/postgres"
+
+# ✅ Alternative with environment variables
+psql $DATABASE_URL
+
+# ✅ For schema inspection use SQL directly:
+psql $DATABASE_URL -c "\d theme_settings"
+psql $DATABASE_URL -c "\d+ theme_settings" 
+```
+
+### 🚨 ABSOLUTE RULES - NO EXCEPTIONS:
+1. **NEVER mention Docker** in any database command
+2. **ALWAYS use direct PostgreSQL connection** shown in screenshot
+3. **Use environment variables** from `.env.local` 
+4. **For schema changes**: Use direct SQL commands via psql
+5. **For TypeScript types**: Use `npm run db:generate-types` ONLY
+
+### 🔗 CORRECT CONNECTION DETAILS:
+- **Direct Connection**: `postgresql://postgres:[PASSWORD]@db.awytuszmunxvthuizyur.supabase.co:5432/postgres`
+- **Environment File**: `.env.local` (contains credentials)
+- **Schema Access**: Via direct psql commands ONLY
+- **Live Database**: `https://awytuszmunxvthuizyur.supabase.co`
 
 ### 🚀 NEW CLI CAPABILITIES (v2.39.2)
 **Enhanced features in latest CLI version:**
