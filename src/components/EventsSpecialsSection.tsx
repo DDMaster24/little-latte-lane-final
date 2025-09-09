@@ -37,6 +37,7 @@ type SectionSettings = {
   show_icons: boolean;
   show_dates: boolean;
   show_buttons: boolean;
+  section_enabled?: boolean;
 };
 
 export default function EventsSpecialsSection() {
@@ -51,7 +52,8 @@ export default function EventsSpecialsSection() {
     layout_style: 'grid',
     show_icons: true,
     show_dates: true,
-    show_buttons: true
+    show_buttons: true,
+    section_enabled: true
   });
   const [loading, setLoading] = useState(true);
   const supabase = getSupabaseClient();
@@ -155,6 +157,11 @@ export default function EventsSpecialsSection() {
         </div>
       </section>
     );
+  }
+
+  // Check if section is disabled by admin
+  if (settings.section_enabled === false) {
+    return null; // Don't render the section at all
   }
 
   const eventsToShow = events.slice(0, settings.max_events_display);

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
   Menu, Users, BarChart3, ShoppingBag, Calendar, 
-  Shield, Activity, CheckCircle, CreditCard, QrCode, Palette, Home, Edit, Navigation
+  Shield, Activity, CheckCircle, CreditCard, QrCode, Palette, Home, Edit, Navigation, Star, Settings
 } from 'lucide-react';
 
 // Tab Components
@@ -17,17 +17,21 @@ import AnalyticsDashboard from '@/components/Admin/AnalyticsDashboard';
 import UserManagement from '@/components/Admin/UserManagement';
 import BookingManagement from '@/components/Admin/BookingManagement';
 import AdminOverview from '@/components/Admin/AdminOverview';
+import EventsSpecialsManagement from '@/components/Admin/EventsSpecialsManagement';
+import BookingsManagementExtended from '@/components/Admin/BookingsManagementExtended';
 import { QRCodeGenerator } from '@/components/QRCodeGenerator';
 
 const tabs = [
   { id: 'overview', label: 'Overview', icon: BarChart3, color: 'neonCyan' },
   { id: 'menu', label: 'Menu Management', icon: Menu, color: 'neonCyan' },
   { id: 'orders', label: 'Order Management', icon: ShoppingBag, color: 'neonPink' },
-  { id: 'bookings', label: 'Bookings', icon: Calendar, color: 'blue-500' },
-  { id: 'users', label: 'User Management', icon: Users, color: 'yellow-500' },
+  { id: 'events', label: 'Events & Specials', icon: Star, color: 'yellow-500' },
+  { id: 'bookings-management', label: 'Bookings Management', icon: Calendar, color: 'blue-500' },
+  { id: 'bookings', label: 'Virtual Golf', icon: Activity, color: 'green-500' },
+  { id: 'users', label: 'User Management', icon: Users, color: 'purple-500' },
   { id: 'analytics', label: 'Analytics', icon: BarChart3, color: 'green-500' },
   { id: 'pageeditor', label: 'Page Editor', icon: Palette, color: 'purple-500' },
-  { id: 'qrcode', label: 'QR Code & App', icon: QrCode, color: 'purple-500' },
+  { id: 'qrcode', label: 'QR Code & App', icon: QrCode, color: 'orange-500' },
 ];
 
 export default function AdminPage() {
@@ -61,6 +65,10 @@ export default function AdminPage() {
         return <MenuManagementThreeTier />;
       case 'orders':
         return <OrderManagement />;
+      case 'events':
+        return <EventsSpecialsManagement />;
+      case 'bookings-management':
+        return <BookingsManagementExtended />;
       case 'bookings':
         return <BookingManagement />;
       case 'users':
