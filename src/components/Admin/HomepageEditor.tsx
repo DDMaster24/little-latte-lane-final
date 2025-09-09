@@ -143,8 +143,7 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
   const [gradientColor2, setGradientColor2] = useState('#FF00FF');
   const [gradientDirection, setGradientDirection] = useState<'to right' | 'to left' | 'to bottom' | 'to top' | '45deg' | '135deg'>('to right');
   
-  // Live preview state - shows changes in real-time without saving
-  const [_livePreviewStyle, setLivePreviewStyle] = useState<Record<string, string>>({});
+  // REMOVED: Live preview state - no auto-apply needed
   
   // Preview/Save state - NO AUTO-SAVE
   const [pendingChanges, setPendingChanges] = useState<Map<string, PendingChange>>(new Map());
@@ -502,7 +501,14 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
   };
 
   const handleTextSave = async () => {
-    if (!selectedElement || !textValue.trim()) return;
+    if (!selectedElement || !textValue.trim()) {
+      toast({
+        title: "❌ Text Error",
+        description: "Please enter text content",
+        variant: "destructive"
+      });
+      return;
+    }
     
     setIsSaving(true);
     try {
@@ -510,10 +516,10 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
       if (element) {
         const originalText = element.textContent || '';
         
-        // DO NOT APPLY IMMEDIATELY - Only stage the change
-        // Apply preview will be handled by Preview button
+        // FIXED: Apply changes to DOM immediately for preview
+        element.textContent = textValue;
         
-        // Add to pending changes WITHOUT applying
+        // Add to pending changes for database saving
         const newPendingChanges = new Map(pendingChanges);
         newPendingChanges.set(selectedElement, {
           type: 'text',
@@ -526,56 +532,93 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
         setEditingText(false);
         
         toast({
-          title: "✏️ Text Change Staged",
-          description: "Use 'Preview' to see changes, then 'Save Changes' to make permanent",
-          duration: 4000,
+          title: "✅ Text Applied",
+          description: "Text preview applied. Click 'Save Changes' to make permanent",
+          duration: 3000,
         });
       }
     } catch (error) {
-      console.error('Error staging text change:', error);
+      console.error('Error applying text change:', error);
       toast({
-        title: "❌ Staging Failed",
-        description: "Could not stage text change",
+        title: "❌ Text Apply Failed",
+        description: "Could not apply text change",
         variant: "destructive"
       });
     }
     setIsSaving(false);
   };
 
-  // Color application function
+  // Color application function - FIXED: No auto-apply, only on Apply button
   const handleColorApply = () => {
-    if (!selectedElement) return;
+    if (!selectedElement) {
+      toast({
+        title: "❌ No Element Selected",
+        description: "Please select an element first",
+        variant: "destructive"
+      });
+      return;
+    }
     
     const element = document.querySelector(`[data-editable="${selectedElement}"]`) as HTMLElement;
-    if (!element) return;
+    if (!element) {
+      toast({
+        title: "❌ Element Not Found",
+        description: "Selected element not found in DOM",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    const property = colorMode === 'text' ? 'color' : 'backgroundColor';
-    const oldValue = element.style[property] || '';
-    
     let newValue: string;
+    let originalValue: string;
     
-    // Check if we're applying a gradient (only for background)
-    if (colorMode === 'background' && (gradientColor1 !== gradientColor2)) {
+    // Determine what property to change and get original value
+    if (colorMode === 'background' && gradientMode && (gradientColor1 !== gradientColor2)) {
+      // Gradient background
       newValue = `linear-gradient(${gradientDirection}, ${gradientColor1}, ${gradientColor2})`;
+      originalValue = element.style.background || element.style.backgroundColor || 
+                     getComputedStyle(element).backgroundColor || '';
+      
+      // Apply gradient to DOM
+      element.style.background = newValue;
+      element.style.backgroundColor = ''; // Clear solid background
+    } else if (colorMode === 'background') {
+      // Solid background color
+      originalValue = element.style.backgroundColor || 
+                     getComputedStyle(element).backgroundColor || '';
+      
+      // Apply background color to DOM
+      element.style.backgroundColor = selectedColor;
+      element.style.background = ''; // Clear gradient
+      newValue = selectedColor;
     } else {
+      // Text color
+      originalValue = element.style.color || 
+                     getComputedStyle(element).color || '';
+      
+      // Apply text color to DOM
+      element.style.color = selectedColor;
       newValue = selectedColor;
     }
 
-    // DO NOT APPLY IMMEDIATELY - Only stage the change
-    // Add to pending changes WITHOUT applying to DOM
+    // Add to pending changes for database saving
+    const changeKey = `${selectedElement}-${colorMode}`;
     const newPendingChanges = new Map(pendingChanges);
-    newPendingChanges.set(`${selectedElement}-${colorMode}`, {
+    newPendingChanges.set(changeKey, {
       type: 'color',
       value: newValue,
-      originalValue: oldValue,
+      originalValue: originalValue,
       elementId: selectedElement
     });
     setPendingChanges(newPendingChanges);
 
+    const colorType = gradientMode && colorMode === 'background' ? 'Gradient' : 
+                     (colorMode === 'text' ? 'Text Color' : 'Background Color');
+
     toast({
-      title: `🎨 ${colorMode === 'background' && (gradientColor1 !== gradientColor2) ? 'Gradient' : (colorMode === 'text' ? 'Text' : 'Background')} Color Change Staged`,
-      description: "Use 'Preview' to see changes, then 'Save Changes' to make permanent",
-      duration: 4000,
+      title: `🎨 ${colorType} Applied`,
+      description: "Color preview applied. Click 'Save Changes' to make permanent",
+      duration: 3000,
     });
   };
 
@@ -622,68 +665,16 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
     });
   };
 
-  // Live Preview Functions - Show changes in real-time without saving
-  const applyLivePreview = (elementId: string, property: string, value: string) => {
-    const element = document.querySelector(`[data-editable="${elementId}"]`) as HTMLElement;
-    if (element) {
-      // Apply the style change immediately for live preview
-      if (property === 'color') {
-        element.style.color = value;
-      } else if (property === 'backgroundColor') {
-        element.style.backgroundColor = value;
-      } else if (property === 'background') {
-        element.style.background = value;
-      }
-      
-      // Store the live preview state
-      setLivePreviewStyle(prev => ({
-        ...prev,
-        [elementId]: value
-      }));
-    }
-  };
-
-  const clearLivePreview = (elementId: string) => {
-    const element = document.querySelector(`[data-editable="${elementId}"]`) as HTMLElement;
-    if (element) {
-      // Reset to original or saved state
-      const pendingChange = pendingChanges.get(elementId);
-      if (pendingChange) {
-        // If there's a pending change, revert to original
-        if (pendingChange.type === 'color') {
-          if (colorMode === 'text') {
-            element.style.color = pendingChange.originalValue;
-          } else {
-            element.style.backgroundColor = pendingChange.originalValue;
-          }
-        }
-      }
-      
-      // Clear from live preview state
-      setLivePreviewStyle(prev => {
-        const newState = { ...prev };
-        delete newState[elementId];
-        return newState;
-      });
-    }
-  };
+  // REMOVED: Live preview functions - no auto-apply needed
+  // Preview will only happen when clicking Preview button
 
   const handleLiveColorChange = (newColor: string) => {
     setSelectedColor(newColor);
-    
-    // Apply live preview if an element is selected
-    if (selectedElement) {
-      const property = colorMode === 'text' ? 'color' : 'backgroundColor';
-      applyLivePreview(selectedElement, property, newColor);
-    }
+    // REMOVED: No automatic live preview - only update state
+    // Live preview will only happen on hover or manual preview
   };
 
-  const handleLiveGradientChange = () => {
-    if (selectedElement && gradientMode) {
-      const gradientValue = `linear-gradient(${gradientDirection}, ${gradientColor1}, ${gradientColor2})`;
-      applyLivePreview(selectedElement, 'background', gradientValue);
-    }
-  };
+  // REMOVED: handleLiveGradientChange - no auto-apply needed
 
   // Save/Preview/Discard functions
   const handleSaveChanges = async () => {
@@ -750,48 +741,91 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
   };
 
   const handleDiscardChanges = () => {
-    // Revert all pending changes
+    if (pendingChanges.size === 0) {
+      toast({
+        title: "🔄 No Changes to Discard",
+        description: "No pending changes found",
+        duration: 2000,
+      });
+      return;
+    }
+
+    // ENHANCED: Properly revert all pending changes with improved logic
+    let revertedCount = 0;
+    
     pendingChanges.forEach((change) => {
       const element = document.querySelector(`[data-editable="${change.elementId}"]`) as HTMLElement;
       if (element) {
-        if (change.type === 'text') {
-          element.textContent = change.originalValue;
-        } else if (change.type === 'color') {
-          // Improved color reversion logic
-          const isBackground = change.elementId.includes('-background');
-          const isText = change.elementId.includes('-text');
-          
-          if (change.originalValue.includes('linear-gradient')) {
-            // Clear gradient background
-            element.style.background = change.originalValue;
-            element.style.backgroundImage = '';
-          } else if (isBackground) {
-            element.style.backgroundColor = change.originalValue;
-          } else if (isText) {
-            element.style.color = change.originalValue;
-          } else {
-            // Fallback - try to detect based on current colorMode or originalValue
-            if (change.originalValue && (change.originalValue.startsWith('#') || change.originalValue.startsWith('rgb'))) {
-              element.style.color = change.originalValue;
-            } else {
-              element.style.backgroundColor = change.originalValue;
+        switch (change.type) {
+          case 'text':
+            element.textContent = change.originalValue;
+            revertedCount++;
+            break;
+            
+          case 'color':
+            // ENHANCED: Better color reversion logic
+            try {
+              // Determine what type of color change this was
+              const isBackgroundChange = change.elementId.includes('-background') || 
+                                        change.value.includes('linear-gradient') ||
+                                        change.value.includes('rgb') ||
+                                        change.value.includes('#') && change.originalValue.includes('rgb');
+              
+              if (change.value.includes('linear-gradient')) {
+                // Gradient reversion
+                element.style.background = change.originalValue;
+                element.style.backgroundColor = '';
+              } else if (isBackgroundChange) {
+                // Background color reversion
+                element.style.backgroundColor = change.originalValue;
+                element.style.background = '';
+              } else {
+                // Text color reversion
+                element.style.color = change.originalValue;
+              }
+              revertedCount++;
+            } catch (error) {
+              console.error('Error reverting color change:', error);
             }
-          }
+            break;
+            
+          case 'image':
+            if (element.tagName === 'IMG') {
+              (element as HTMLImageElement).src = change.originalValue;
+            } else {
+              element.style.backgroundImage = change.originalValue;
+            }
+            revertedCount++;
+            break;
+            
+          default:
+            console.warn('Unknown change type:', change.type);
         }
+      } else {
+        console.warn('Element not found for discard:', change.elementId);
       }
     });
     
+    // Clear all pending changes
     setPendingChanges(new Map());
+    
+    // Reset editor state
+    setEditingText(false);
+    setShowColorPanel(false);
+    setGradientMode(false);
+    setSelectedColor('#ffffff');
+    setGradientColor1('#00FFFF');
+    setGradientColor2('#FF00FF');
+    
     toast({
       title: "🗑️ Changes Discarded",
-      description: "All pending changes have been reverted to original state",
+      description: `Successfully reverted ${revertedCount} changes to original state`,
       duration: 3000,
     });
   };
 
-  // SIMPLIFIED Navigation Blocking - Only block what's necessary
+  // ENHANCED Navigation Blocking - Comprehensive prevention
   useEffect(() => {
-    // Block only link navigation and form submissions - DON'T interfere with element selection
     const blockNavigation = (e: Event) => {
       const target = e.target as HTMLElement;
       
@@ -802,22 +836,43 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
         return;
       }
 
-      // BLOCK ONLY: Actual navigation links and form submissions
+      // ENHANCED: Block navigation attempts more comprehensively
       if (e.type === 'click') {
         const linkElement = target.closest('a');
+        const buttonElement = target.closest('button');
         const formElement = target.closest('form');
         
-        if (linkElement && !target.closest('[data-editable]')) {
+        // Block link navigation (except editor links)
+        if (linkElement && !target.closest('[data-editor-action]')) {
           e.preventDefault();
           e.stopPropagation();
+          e.stopImmediatePropagation();
           toast({
             title: "🚫 Navigation Blocked",
-            description: "Exit editor to navigate",
+            description: "Exit homepage editor to navigate",
             variant: "destructive",
             duration: 1500
           });
+          return false;
         }
         
+        // Block button clicks (except editor buttons and editable elements)
+        if (buttonElement && 
+            !target.closest('[data-editor-action]') && 
+            !target.closest('[data-editable]')) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          toast({
+            title: "🚫 Button Blocked", 
+            description: "Exit editor to use buttons",
+            variant: "destructive",
+            duration: 1500
+          });
+          return false;
+        }
+        
+        // Block form submissions
         if (formElement && !target.closest('[data-editor-form]')) {
           e.preventDefault();
           e.stopPropagation();
@@ -827,63 +882,134 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
             variant: "destructive",
             duration: 1500
           });
+          return false;
         }
+      }
+      
+      // Block form submissions
+      if (e.type === 'submit' && !target.closest('[data-editor-form]')) {
+        e.preventDefault();
+        e.stopPropagation();
+        toast({
+          title: "🚫 Form Submission Blocked", 
+          description: "Exit editor to submit forms",
+          variant: "destructive",
+          duration: 1500
+        });
+        return false;
       }
     };
 
-    // Only block essential navigation events - NOT all events
+    // ENHANCED: Block keyboard navigation shortcuts
+    const blockKeyboardNav = (e: KeyboardEvent) => {
+      // Allow F12 (DevTools), F5/Ctrl+R (Refresh), Ctrl+S (Save)
+      if (e.key === 'F12' || 
+          e.key === 'F5' || 
+          (e.ctrlKey && e.key === 'r') ||
+          (e.ctrlKey && e.key === 's')) {
+        return;
+      }
+      
+      // Block other navigation shortcuts
+      if ((e.ctrlKey && (e.key === 'l' || e.key === 't' || e.key === 'w')) ||
+          (e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) ||
+          e.key === 'Escape') {
+        e.preventDefault();
+        toast({
+          title: "🚫 Keyboard Navigation Blocked",
+          description: "Exit editor to use keyboard shortcuts",
+          variant: "destructive",
+          duration: 1000
+        });
+      }
+    };
+
+    // Attach event listeners with high priority (capture phase)
     document.addEventListener('click', blockNavigation, { capture: true, passive: false });
     document.addEventListener('submit', blockNavigation, { capture: true, passive: false });
+    document.addEventListener('keydown', blockKeyboardNav, { capture: true, passive: false });
+
+    // Also block beforeunload for extra safety
+    const blockUnload = (e: BeforeUnloadEvent) => {
+      if (pendingChanges.size > 0) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+    
+    window.addEventListener('beforeunload', blockUnload);
 
     return () => {
       document.removeEventListener('click', blockNavigation, true);
       document.removeEventListener('submit', blockNavigation, true);
+      document.removeEventListener('keydown', blockKeyboardNav, true);
+      window.removeEventListener('beforeunload', blockUnload);
     };
-  }, [toast]);
+  }, [toast, pendingChanges]);
 
-  // Add element hover effects and click handlers with retry mechanism
+  // ENHANCED element detection with MutationObserver and improved retry mechanism
   useEffect(() => {
     let retryCount = 0;
-    const maxRetries = 5;
-    const retryDelay = 1000; // 1 second between retries
+    const maxRetries = 10; // Increased from 5 to 10
+    const initialDelay = 500; // Shorter initial delay
+    const retryDelay = 1500; // Longer retry delay for component rendering
+    let mutationObserver: MutationObserver | null = null;
+    let isSetupComplete = false;
     
+    const handleMouseEnter = (e: Event) => {
+      const target = e.target as HTMLElement;
+      const editableElement = target.closest('[data-editable]') as HTMLElement;
+      
+      if (editableElement && editableElement.getAttribute('data-editable')) {
+        // Only show orange hover if element is NOT currently selected
+        if (!editableElement.classList.contains('editor-selected')) {
+          editableElement.style.outline = '2px solid #ff8c00'; // ORANGE neon border for hover
+          editableElement.style.outlineOffset = '2px';
+          editableElement.classList.add('editor-hovering');
+        }
+      }
+    };
+
+    const handleMouseLeave = (e: Event) => {
+      const target = e.target as HTMLElement;
+      const editableElement = target.closest('[data-editable]') as HTMLElement;
+      
+      if (editableElement && editableElement.classList.contains('editor-hovering')) {
+        // Only remove hover outline if element is NOT selected
+        if (!editableElement.classList.contains('editor-selected')) {
+          editableElement.style.outline = 'none';
+          editableElement.style.outlineOffset = '';
+        }
+        editableElement.classList.remove('editor-hovering');
+      }
+    };
+
+    const attachListenersToElement = (element: HTMLElement, elementId: string) => {
+      // Avoid duplicate listeners
+      if (element.dataset.homepageEditorAttached === 'true') {
+        return;
+      }
+      
+      element.dataset.homepageEditorAttached = 'true';
+      element.addEventListener('mouseenter', handleMouseEnter);
+      element.addEventListener('mouseleave', handleMouseLeave);
+      element.addEventListener('click', handleElementClick as EventListener);
+      
+      console.log(`✅ Attached listeners to: ${elementId}`);
+    };
+
     const setupEventListeners = () => {
       console.log(`🔍 Setting up homepage element listeners (attempt ${retryCount + 1}/${maxRetries})...`);
       
-      const handleMouseEnter = (e: Event) => {
-        const target = e.target as HTMLElement;
-        const editableElement = target.closest('[data-editable]') as HTMLElement;
-        
-        if (editableElement && editableElement.getAttribute('data-editable')) {
-          // Only show orange hover if element is NOT currently selected
-          if (!editableElement.classList.contains('editor-selected')) {
-            editableElement.style.outline = '2px solid #ff8c00'; // ORANGE neon border for hover
-            editableElement.classList.add('editor-hovering');
-          }
-        }
-      };
-
-      const handleMouseLeave = (e: Event) => {
-        const target = e.target as HTMLElement;
-        const editableElement = target.closest('[data-editable]') as HTMLElement;
-        
-        if (editableElement && editableElement.classList.contains('editor-hovering')) {
-          // Only remove hover outline if element is NOT selected
-          if (!editableElement.classList.contains('editor-selected')) {
-            editableElement.style.outline = 'none';
-          }
-          editableElement.classList.remove('editor-hovering');
-        }
-      };
-
-      // ENHANCED: Try both dynamic detection AND preconfigured elements
+      // ENHANCED: Search for elements with better timing for component rendering
       const foundElements = document.querySelectorAll('[data-editable]');
       console.log('🎯 Found homepage editable elements:', foundElements.length);
       
-      // If dynamic detection fails, try to find elements by preconfigured IDs
+      // Build comprehensive element map
       const elementMap = new Map<string, HTMLElement>();
       
-      // First, add dynamically found elements
+      // Add all dynamically found elements
       foundElements.forEach(el => {
         const id = el.getAttribute('data-editable');
         if (id) {
@@ -891,10 +1017,20 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
         }
       });
       
-      // Then, try to find missing elements from our preconfigured list
+      // ENHANCED: Try to find missing elements from preconfigured list with better selectors
       HOMEPAGE_EDITABLE_ELEMENTS.forEach(elementId => {
         if (!elementMap.has(elementId)) {
-          const element = document.querySelector(`[data-editable="${elementId}"]`) as HTMLElement;
+          // Try multiple selector strategies
+          let element = document.querySelector(`[data-editable="${elementId}"]`) as HTMLElement;
+          
+          // If not found, try with partial matching for dynamic elements
+          if (!element && elementId.includes('category-')) {
+            const elements = document.querySelectorAll(`[data-editable*="${elementId}"]`);
+            if (elements.length > 0) {
+              element = elements[0] as HTMLElement;
+            }
+          }
+          
           if (element) {
             elementMap.set(elementId, element);
             console.log(`🔧 Found missing element: ${elementId}`);
@@ -903,39 +1039,103 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
       });
       
       const editableElements = Array.from(elementMap.values());
-      console.log('🎯 Total homepage elements to attach:', editableElements.length);
-      console.log('🎯 Element list:', Array.from(elementMap.entries()).map(([id, el]) => {
-        const text = el.textContent?.slice(0, 30);
-        return `${id}: "${text}"`;
-      }));
+      const foundElementIds = Array.from(elementMap.keys());
       
-      // If we still don't have enough elements, retry (expecting at least 10+ for homepage)
-      if (editableElements.length < 5 && retryCount < maxRetries) {
+      console.log('🎯 Total homepage elements to attach:', editableElements.length);
+      console.log('🎯 Found element IDs:', foundElementIds);
+      
+      // CHECK: Do we have critical sections? (Categories, Bookings, Events)
+      const hasCategoriesElements = foundElementIds.some(id => id.includes('category-'));
+      const hasBookingsElements = foundElementIds.some(id => id.includes('bookings-'));
+      const hasEventsElements = foundElementIds.some(id => id.includes('events-'));
+      
+      console.log('📊 Section Detection:', {
+        categories: hasCategoriesElements,
+        bookings: hasBookingsElements,
+        events: hasEventsElements,
+        totalElements: editableElements.length
+      });
+      
+      // ENHANCED: More intelligent retry logic
+      const minimumExpectedElements = 15; // Expecting at least 15 elements on homepage
+      const hasCriticalSections = hasCategoriesElements && hasBookingsElements;
+      
+      if ((editableElements.length < minimumExpectedElements || !hasCriticalSections) && retryCount < maxRetries) {
         retryCount++;
-        console.log(`⏳ Only found ${editableElements.length} elements, retrying in ${retryDelay}ms...`);
+        console.log(`⏳ Insufficient elements found (${editableElements.length}/${minimumExpectedElements}), retrying in ${retryDelay}ms...`);
+        console.log(`🔍 Missing critical sections - Categories: ${hasCategoriesElements}, Bookings: ${hasBookingsElements}`);
         setTimeout(setupEventListeners, retryDelay);
         return null;
       }
       
+      // SUCCESS: Attach listeners to all found elements
       editableElements.forEach((element, index) => {
-        const elementId = element.getAttribute('data-editable');
-        console.log(`📎 Attaching listeners to element ${index + 1}:`, elementId);
-        element.addEventListener('mouseenter', handleMouseEnter);
-        element.addEventListener('mouseleave', handleMouseLeave);
-        element.addEventListener('click', handleElementClick as EventListener);
+        const elementId = element.getAttribute('data-editable') || `element-${index}`;
+        attachListenersToElement(element, elementId);
       });
+
+      // ENHANCED: Set up MutationObserver to catch dynamically added elements
+      if (!isSetupComplete) {
+        mutationObserver = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+              if (node.nodeType === Node.ELEMENT_NODE) {
+                const element = node as HTMLElement;
+                
+                // Check if this element or its children have data-editable attributes
+                const editableElements = [
+                  ...(element.hasAttribute('data-editable') ? [element] : []),
+                  ...Array.from(element.querySelectorAll('[data-editable]'))
+                ] as HTMLElement[];
+                
+                editableElements.forEach((editableEl) => {
+                  const elementId = editableEl.getAttribute('data-editable');
+                  if (elementId && editableEl.dataset.homepageEditorAttached !== 'true') {
+                    console.log(`🆕 New editable element detected: ${elementId}`);
+                    attachListenersToElement(editableEl, elementId);
+                  }
+                });
+              }
+            });
+          });
+        });
+        
+        // Start observing
+        mutationObserver.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+        
+        console.log('👁️ MutationObserver started for dynamic elements');
+        isSetupComplete = true;
+      }
+
+      console.log(`✅ Homepage editor setup complete! Attached listeners to ${editableElements.length} elements`);
 
       return () => {
         editableElements.forEach(element => {
           element.removeEventListener('mouseenter', handleMouseEnter);
           element.removeEventListener('mouseleave', handleMouseLeave);
           element.removeEventListener('click', handleElementClick as EventListener);
+          element.removeAttribute('data-homepage-editor-attached');
         });
+        
+        if (mutationObserver) {
+          mutationObserver.disconnect();
+          mutationObserver = null;
+        }
       };
     };
 
-    const cleanup = setupEventListeners();
-    return cleanup || undefined;
+    // Start with initial delay to let components render
+    const timeoutId = setTimeout(setupEventListeners, initialDelay);
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (mutationObserver) {
+        mutationObserver.disconnect();
+      }
+    };
   }, [handleElementClick]);
 
   return (
@@ -1279,7 +1479,7 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
                           color={gradientColor1}
                           onChange={(color) => {
                             setGradientColor1(color);
-                            handleLiveGradientChange();
+                            // REMOVED: No auto-apply - only update state
                           }}
                           style={{ width: '100%', height: '120px' }}
                         />
@@ -1287,7 +1487,7 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
                           value={gradientColor1}
                           onChange={(e) => {
                             setGradientColor1(e.target.value);
-                            handleLiveGradientChange();
+                            // REMOVED: No auto-apply - only update state
                           }}
                           className="bg-gray-100 border-gray-400 text-gray-800 font-mono text-xs h-8 px-2"
                         />
@@ -1300,7 +1500,7 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
                           color={gradientColor2}
                           onChange={(color) => {
                             setGradientColor2(color);
-                            handleLiveGradientChange();
+                            // REMOVED: No auto-apply - only update state
                           }}
                           style={{ width: '100%', height: '120px' }}
                         />
@@ -1308,7 +1508,7 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
                           value={gradientColor2}
                           onChange={(e) => {
                             setGradientColor2(e.target.value);
-                            handleLiveGradientChange();
+                            // REMOVED: No auto-apply - only update state
                           }}
                           className="bg-gray-100 border-gray-400 text-gray-800 font-mono text-xs h-8 px-2"
                         />
@@ -1327,7 +1527,7 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
                         value={gradientDirection}
                         onChange={(e) => {
                           setGradientDirection(e.target.value as typeof gradientDirection);
-                          handleLiveGradientChange();
+                          // REMOVED: No auto-apply - only update state
                         }}
                         className="w-full bg-gray-100 border-gray-400 text-gray-800 text-sm rounded px-3 py-2 h-10"
                       >
@@ -1350,7 +1550,7 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
                             data-editor-action="true"
                             onClick={() => {
                               handleGradientPreset(preset.value);
-                              handleLiveGradientChange();
+                              // REMOVED: No auto-apply - only update state
                             }}
                             className="h-8 rounded border-2 border-gray-400 hover:border-gray-600 transition-colors text-xs text-white overflow-hidden shadow-sm"
                             style={{ background: preset.value }}
@@ -1386,7 +1586,7 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
                         data-editor-action="true"
                         onClick={() => {
                           setGradientMode(false);
-                          clearLivePreview(selectedElement || '');
+                          // No need to clear live preview since we don't auto-apply
                         }}
                         variant="outline"
                         size="sm"
