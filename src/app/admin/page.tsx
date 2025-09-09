@@ -367,28 +367,54 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Tab Navigation - FIXED: Better responsive handling */}
-            <div className="w-full overflow-x-auto scrollbar-hide">
-              <div className="flex space-x-1 bg-gray-800/50 p-1 rounded-xl border border-gray-700/50 min-w-max">
-                {tabs.map((tab) => {
-                  const Icon = tab.icon;
-                  const isActive = activeTab === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`flex items-center gap-2 px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
-                        isActive
-                          ? 'bg-gradient-to-r from-neonCyan/20 to-neonPink/20 text-white border border-neonCyan/30 shadow-lg'
-                          : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
-                      }`}
-                    >
-                      <Icon className={`h-4 w-4 ${isActive ? 'text-neonCyan' : ''}`} />
-                      <span className="hidden sm:inline">{tab.label}</span>
-                      <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
-                    </button>
-                  );
-                })}
+            {/* Tab Navigation - FIXED: Two rows instead of horizontal scrolling */}
+            <div className="w-full">
+              <div className="bg-gray-800/50 p-1 rounded-xl border border-gray-700/50">
+                {/* First Row - 5 tabs */}
+                <div className="flex space-x-1 mb-1">
+                  {tabs.slice(0, 5).map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`flex items-center gap-2 px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-300 whitespace-nowrap flex-1 justify-center ${
+                          isActive
+                            ? 'bg-gradient-to-r from-neonCyan/20 to-neonPink/20 text-white border border-neonCyan/30 shadow-lg'
+                            : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                        }`}
+                      >
+                        <Icon className={`h-4 w-4 ${isActive ? 'text-neonCyan' : ''}`} />
+                        <span className="hidden sm:inline">{tab.label}</span>
+                        <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                {/* Second Row - 5 tabs */}
+                <div className="flex space-x-1">
+                  {tabs.slice(5, 10).map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`flex items-center gap-2 px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-300 whitespace-nowrap flex-1 justify-center ${
+                          isActive
+                            ? 'bg-gradient-to-r from-neonCyan/20 to-neonPink/20 text-white border border-neonCyan/30 shadow-lg'
+                            : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                        }`}
+                      >
+                        <Icon className={`h-4 w-4 ${isActive ? 'text-neonCyan' : ''}`} />
+                        <span className="hidden sm:inline">{tab.label}</span>
+                        <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
