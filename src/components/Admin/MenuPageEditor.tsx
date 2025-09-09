@@ -282,91 +282,116 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
     return () => document.removeEventListener('keydown', handleKeyDown, true);
   }, []);
 
-  // Enhanced element detection for menu page
+  // Enhanced element detection for menu page AND homepage sections
   const attachEventListeners = useCallback(() => {
-    const elements = document.querySelectorAll('[data-editable]');
-    
-    setDebugInfo(`Found ${elements.length} editable elements`);
-    
-    elements.forEach((element, index) => {
-      const htmlElement = element as HTMLElement;
-      const editableId = htmlElement.getAttribute('data-editable') || '';
+    // Wait for all components to mount
+    const checkAndAttach = () => {
+      const elements = document.querySelectorAll('[data-editable]');
       
-      console.log(`[MenuPageEditor] Element ${index + 1}:`, {
-        editableId,
-        tagName: htmlElement.tagName,
-        textContent: htmlElement.textContent?.slice(0, 50),
-        classList: Array.from(htmlElement.classList)
-      });
-
-      // Enhanced hover effect for menu elements
-      const handleMouseEnter = () => {
-        if (isPreviewMode) return;
+      setDebugInfo(`Found ${elements.length} editable elements across all sections`);
+      
+      if (elements.length === 0) {
+        console.log('[MenuPageEditor] No elements found, retrying in 500ms...');
+        setTimeout(checkAndAttach, 500);
+        return;
+      }
+      
+      elements.forEach((element, index) => {
+        const htmlElement = element as HTMLElement;
+        const editableId = htmlElement.getAttribute('data-editable') || '';
         
-        htmlElement.style.outline = '2px solid #ff6b35';
-        htmlElement.style.outlineOffset = '2px';
-        htmlElement.style.backgroundColor = 'rgba(255, 107, 53, 0.1)';
-        htmlElement.style.cursor = 'pointer';
-        htmlElement.style.transition = 'all 0.2s ease';
-      };
-
-      const handleMouseLeave = () => {
-        if (selectedElement !== htmlElement) {
-          htmlElement.style.outline = '';
-          htmlElement.style.outlineOffset = '';
-          htmlElement.style.backgroundColor = '';
-          htmlElement.style.cursor = '';
-        }
-      };
-
-      const handleClick = (e: Event) => {
-        if (isPreviewMode) return;
-        
-        e.preventDefault();
-        e.stopPropagation();
-        
-        console.log(`[MenuPageEditor] Clicked element:`, {
+        console.log(`[MenuPageEditor] Element ${index + 1}:`, {
           editableId,
-          element: htmlElement,
-          textContent: htmlElement.textContent
+          tagName: htmlElement.tagName,
+          textContent: htmlElement.textContent?.slice(0, 50),
+          classList: Array.from(htmlElement.classList)
         });
 
-        // Clear previous selection
-        if (selectedElement && selectedElement !== htmlElement) {
-          selectedElement.style.outline = '';
-          selectedElement.style.backgroundColor = '';
-        }
+        // Enhanced hover effect for all elements
+        const handleMouseEnter = () => {
+          if (isPreviewMode) return;
+          
+          htmlElement.style.outline = '2px solid #ff6b35';
+          htmlElement.style.outlineOffset = '2px';
+          htmlElement.style.backgroundColor = 'rgba(255, 107, 53, 0.1)';
+          htmlElement.style.cursor = 'pointer';
+          htmlElement.style.transition = 'all 0.2s ease';
+        };
 
-        // Select new element
-        setSelectedElement(htmlElement);
-        setEditableId(editableId);
-        setEditingText(htmlElement.textContent || '');
-        setOriginalText(htmlElement.textContent || '');
-        _setTextValue(htmlElement.textContent || ''); // Sync textValue state
-        setIsToolbarVisible(true);
-        setActiveTab('text');
+        const handleMouseLeave = () => {
+          if (selectedElement !== htmlElement) {
+            htmlElement.style.outline = '';
+            htmlElement.style.outlineOffset = '';
+            htmlElement.style.backgroundColor = '';
+            htmlElement.style.cursor = '';
+          }
+        };
 
-        // Visual feedback for selected element
-        htmlElement.style.outline = '3px solid #ff0080';
-        htmlElement.style.backgroundColor = 'rgba(255, 0, 128, 0.15)';
-        htmlElement.style.transition = 'all 0.3s ease';
+        const handleClick = (e: Event) => {
+          if (isPreviewMode) return;
+          
+          e.preventDefault();
+          e.stopPropagation();
+          
+          console.log(`[MenuPageEditor] Clicked element:`, {
+            editableId,
+            element: htmlElement,
+            textContent: htmlElement.textContent
+          });
 
-        // Get current color for enhanced color picker
-        const computedStyle = window.getComputedStyle(htmlElement);
-        setSelectedColor(computedStyle.color || '#00FFFF');
-      };
+          // Clear previous selection
+          if (selectedElement && selectedElement !== htmlElement) {
+            selectedElement.style.outline = '';
+            selectedElement.style.backgroundColor = '';
+          }
 
-      htmlElement.addEventListener('mouseenter', handleMouseEnter);
-      htmlElement.addEventListener('mouseleave', handleMouseLeave);
-      htmlElement.addEventListener('click', handleClick);
-    });
+          // Select new element
+          setSelectedElement(htmlElement);
+          setEditableId(editableId);
+          setEditingText(htmlElement.textContent || '');
+          setOriginalText(htmlElement.textContent || '');
+          _setTextValue(htmlElement.textContent || ''); // Sync textValue state
+          setIsToolbarVisible(true);
+          setActiveTab('text');
+
+          // Store original styles for proper cancel/revert
+          const computedStyle = window.getComputedStyle(htmlElement);
+          setOriginalElementStyles({
+            color: computedStyle.color || '',
+            backgroundColor: computedStyle.backgroundColor || '',
+            background: computedStyle.background || ''
+          });
+
+          // Visual feedback for selected element
+          htmlElement.style.outline = '3px solid #ff0080';
+          htmlElement.style.backgroundColor = 'rgba(255, 0, 128, 0.15)';
+          htmlElement.style.transition = 'all 0.3s ease';
+
+          // Get current color for enhanced color picker
+          setSelectedColor(computedStyle.color || '#00FFFF');
+        };
+
+        htmlElement.addEventListener('mouseenter', handleMouseEnter);
+        htmlElement.addEventListener('mouseleave', handleMouseLeave);
+        htmlElement.addEventListener('click', handleClick);
+      });
+    };
+    
+    checkAndAttach();
   }, [isPreviewMode, selectedElement]);
 
-  // Initialize event listeners
+  // Initialize event listeners with multiple retries
   useEffect(() => {
-    // Delay to ensure DOM is ready
-    const timer = setTimeout(attachEventListeners, 1000);
-    return () => clearTimeout(timer);
+    // Multiple attempts to ensure all components are loaded
+    const timer1 = setTimeout(attachEventListeners, 1000);
+    const timer2 = setTimeout(attachEventListeners, 2000);
+    const timer3 = setTimeout(attachEventListeners, 3000);
+    
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
   }, [attachEventListeners]);
 
   // Handle saving text changes
@@ -430,9 +455,13 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
         console.log(`[MenuPageEditor] Applied ${colorMode} color: ${newValue}`);
       } else {
         console.error('[MenuPageEditor] Failed to save color change:', result.error);
+        // Revert the visual change if save failed
+        selectedElement.style[property] = '';
       }
     } catch (error) {
       console.error('[MenuPageEditor] Error applying color:', error);
+      // Revert the visual change if error occurred
+      selectedElement.style[colorMode === 'text' ? 'color' : 'backgroundColor'] = '';
     } finally {
       setIsSaving(false);
     }
@@ -444,7 +473,31 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
     
     selectedElement.style.background = '';
     selectedElement.style.backgroundImage = '';
+    setGradientColor1('#00FFFF');
+    setGradientColor2('#00FFFF');
     console.log('[MenuPageEditor] Gradient cleared');
+  };
+
+  // Store original styles for proper revert
+  const [originalElementStyles, setOriginalElementStyles] = useState<{color: string, backgroundColor: string, background: string}>({
+    color: '',
+    backgroundColor: '',
+    background: ''
+  });
+
+  // Live preview function (visual only, no save)
+  const applyColorPreview = (color: string, mode: 'text' | 'background') => {
+    if (!selectedElement) return;
+    
+    if (mode === 'text') {
+      selectedElement.style.color = color;
+    } else {
+      if (gradientColor1 !== gradientColor2) {
+        selectedElement.style.background = `linear-gradient(${gradientDirection}, ${gradientColor1}, ${gradientColor2})`;
+      } else {
+        selectedElement.style.backgroundColor = color;
+      }
+    }
   };
 
   // Apply gradient preset
@@ -502,12 +555,17 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
     }
   };
 
-  // Reset selection
+  // Reset selection and revert all changes
   const handleCancel = () => {
     if (selectedElement) {
+      // Revert visual changes
       selectedElement.style.outline = '';
-      selectedElement.style.backgroundColor = '';
+      selectedElement.style.backgroundColor = originalElementStyles.backgroundColor;
+      selectedElement.style.color = originalElementStyles.color;
+      selectedElement.style.background = originalElementStyles.background;
       selectedElement.textContent = originalText;
+      
+      console.log('[MenuPageEditor] Reverted all changes to original state');
     }
     setSelectedElement(null);
     setIsToolbarVisible(false);
@@ -515,6 +573,11 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
     setOriginalText('');
     setEditableId('');
     setShowImageEditor(false);
+    
+    // Reset color values to original
+    setSelectedColor('#00FFFF');
+    setGradientColor1('#00FFFF');
+    setGradientColor2('#00FFFF');
   };
 
   // Get element configuration
@@ -664,13 +727,19 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
                     <h3 className="text-xs font-medium text-gray-300">Color Picker</h3>
                     <HexColorPicker
                       color={selectedColor}
-                      onChange={setSelectedColor}
+                      onChange={(color) => {
+                        setSelectedColor(color);
+                        applyColorPreview(color, colorMode);
+                      }}
                       style={{ width: '100%', height: '100px' }}
                     />
                     <div className="flex items-center space-x-1">
                       <Input
                         value={selectedColor}
-                        onChange={(e) => setSelectedColor(e.target.value)}
+                        onChange={(e) => {
+                          setSelectedColor(e.target.value);
+                          applyColorPreview(e.target.value, colorMode);
+                        }}
                         placeholder="#ffffff"
                         className="flex-1 bg-gray-700 border-gray-600 text-white font-mono text-xs h-6"
                       />
@@ -688,7 +757,10 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
                       {THEME_COLORS.map((color) => (
                         <button
                           key={color}
-                          onClick={() => setSelectedColor(color)}
+                          onClick={() => {
+                            setSelectedColor(color);
+                            applyColorPreview(color, colorMode);
+                          }}
                           className="w-6 h-6 rounded border border-gray-600 hover:border-white transition-colors"
                           style={{ backgroundColor: color }}
                           title={color}
@@ -707,12 +779,18 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
                       <label className="text-xs text-gray-400 mb-1 block">Start</label>
                       <HexColorPicker
                         color={gradientColor1}
-                        onChange={setGradientColor1}
+                        onChange={(color) => {
+                          setGradientColor1(color);
+                          if (colorMode === 'background') applyColorPreview(color, colorMode);
+                        }}
                         style={{ width: '100%', height: '80px' }}
                       />
                       <Input
                         value={gradientColor1}
-                        onChange={(e) => setGradientColor1(e.target.value)}
+                        onChange={(e) => {
+                          setGradientColor1(e.target.value);
+                          if (colorMode === 'background') applyColorPreview(e.target.value, colorMode);
+                        }}
                         className="mt-1 bg-gray-700 border-gray-600 text-white font-mono text-xs h-6"
                       />
                     </div>
@@ -722,12 +800,18 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
                       <label className="text-xs text-gray-400 mb-1 block">End</label>
                       <HexColorPicker
                         color={gradientColor2}
-                        onChange={setGradientColor2}
+                        onChange={(color) => {
+                          setGradientColor2(color);
+                          if (colorMode === 'background') applyColorPreview(color, colorMode);
+                        }}
                         style={{ width: '100%', height: '80px' }}
                       />
                       <Input
                         value={gradientColor2}
-                        onChange={(e) => setGradientColor2(e.target.value)}
+                        onChange={(e) => {
+                          setGradientColor2(e.target.value);
+                          if (colorMode === 'background') applyColorPreview(e.target.value, colorMode);
+                        }}
                         className="mt-1 bg-gray-700 border-gray-600 text-white font-mono text-xs h-6"
                       />
                     </div>
