@@ -52,6 +52,45 @@ const GRADIENT_PRESETS = [
   { name: 'Matrix Green', value: 'linear-gradient(45deg, #16A34A, #00FFFF)' }
 ];
 
+// Preconfigured editable elements - no complex detection needed
+const EDITABLE_ELEMENTS = [
+  // Menu Page Elements
+  'menu-page-title',
+  'menu-title-icon-left', 
+  'menu-title-text',
+  'menu-title-icon-right',
+  'menu-page-subtitle',
+  'category-icon-container',
+  'category-icon',
+  'category-name', 
+  'category-description',
+  'browse-menu-icon-left',
+  'browse-menu-button-text',
+  'browse-menu-icon-right',
+  
+  // Events & Specials Elements
+  'events-section',
+  'events-section-title',
+  'events-section-subtitle', 
+  'events-no-content-message',
+  'events-section-container',
+  'events-section-background',
+  'event-card',
+  'event-title',
+  'event-description',
+  
+  // Homepage Elements  
+  'welcome-title',
+  'cafe-description',
+  'now-open-button',
+  'dine-in-button',
+  
+  // Booking Elements
+  'bookings-title',
+  'bookings-subtitle',
+  'bookings-description'
+];
+
 interface MenuPageEditorProps {
   children: React.ReactNode;
 }
@@ -282,102 +321,95 @@ export default function MenuPageEditor({ children }: MenuPageEditorProps) {
     return () => document.removeEventListener('keydown', handleKeyDown, true);
   }, []);
 
-  // Enhanced element detection for menu page AND homepage sections
+  // Simple and reliable element attachment
   const attachEventListeners = useCallback(() => {
-    // Wait for all components to mount
-    const checkAndAttach = () => {
-      const elements = document.querySelectorAll('[data-editable]');
+    let attachedCount = 0;
+    
+    EDITABLE_ELEMENTS.forEach((elementId, index) => {
+      const element = document.querySelector(`[data-editable="${elementId}"]`) as HTMLElement;
       
-      setDebugInfo(`Found ${elements.length} editable elements across all sections`);
-      
-      if (elements.length === 0) {
-        console.log('[MenuPageEditor] No elements found, retrying in 500ms...');
-        setTimeout(checkAndAttach, 500);
+      if (!element) {
+        console.log(`[MenuPageEditor] Element not found: ${elementId}`);
         return;
       }
       
-      elements.forEach((element, index) => {
-        const htmlElement = element as HTMLElement;
-        const editableId = htmlElement.getAttribute('data-editable') || '';
+      attachedCount++;
+      console.log(`[MenuPageEditor] Attached ${index + 1}: ${elementId}`, {
+        tagName: element.tagName,
+        textContent: element.textContent?.slice(0, 50)
+      });
+
+      // Enhanced hover effect for all elements
+      const handleMouseEnter = () => {
+        if (isPreviewMode) return;
         
-        console.log(`[MenuPageEditor] Element ${index + 1}:`, {
-          editableId,
-          tagName: htmlElement.tagName,
-          textContent: htmlElement.textContent?.slice(0, 50),
-          classList: Array.from(htmlElement.classList)
+        element.style.outline = '2px solid #ff6b35';
+        element.style.outlineOffset = '2px';
+        element.style.backgroundColor = 'rgba(255, 107, 53, 0.1)';
+        element.style.cursor = 'pointer';
+        element.style.transition = 'all 0.2s ease';
+      };
+
+      const handleMouseLeave = () => {
+        if (selectedElement !== element) {
+          element.style.outline = '';
+          element.style.outlineOffset = '';
+          element.style.backgroundColor = '';
+          element.style.cursor = '';
+        }
+      };
+
+      const handleClick = (e: Event) => {
+        if (isPreviewMode) return;
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log(`[MenuPageEditor] Clicked element:`, {
+          editableId: elementId,
+          element: element,
+          textContent: element.textContent
         });
 
-        // Enhanced hover effect for all elements
-        const handleMouseEnter = () => {
-          if (isPreviewMode) return;
-          
-          htmlElement.style.outline = '2px solid #ff6b35';
-          htmlElement.style.outlineOffset = '2px';
-          htmlElement.style.backgroundColor = 'rgba(255, 107, 53, 0.1)';
-          htmlElement.style.cursor = 'pointer';
-          htmlElement.style.transition = 'all 0.2s ease';
-        };
+        // Clear previous selection
+        if (selectedElement && selectedElement !== element) {
+          selectedElement.style.outline = '';
+          selectedElement.style.backgroundColor = '';
+        }
 
-        const handleMouseLeave = () => {
-          if (selectedElement !== htmlElement) {
-            htmlElement.style.outline = '';
-            htmlElement.style.outlineOffset = '';
-            htmlElement.style.backgroundColor = '';
-            htmlElement.style.cursor = '';
-          }
-        };
+        // Select new element
+        setSelectedElement(element);
+        setEditableId(elementId);
+        setEditingText(element.textContent || '');
+        setOriginalText(element.textContent || '');
+        _setTextValue(element.textContent || ''); // Sync textValue state
+        setIsToolbarVisible(true);
+        setActiveTab('text');
 
-        const handleClick = (e: Event) => {
-          if (isPreviewMode) return;
-          
-          e.preventDefault();
-          e.stopPropagation();
-          
-          console.log(`[MenuPageEditor] Clicked element:`, {
-            editableId,
-            element: htmlElement,
-            textContent: htmlElement.textContent
-          });
+        // Store original styles for proper cancel/revert
+        const computedStyle = window.getComputedStyle(element);
+        setOriginalElementStyles({
+          color: computedStyle.color || '',
+          backgroundColor: computedStyle.backgroundColor || '',
+          background: computedStyle.background || ''
+        });
 
-          // Clear previous selection
-          if (selectedElement && selectedElement !== htmlElement) {
-            selectedElement.style.outline = '';
-            selectedElement.style.backgroundColor = '';
-          }
+        // Visual feedback for selected element
+        element.style.outline = '3px solid #ff0080';
+        element.style.backgroundColor = 'rgba(255, 0, 128, 0.15)';
+        element.style.transition = 'all 0.3s ease';
 
-          // Select new element
-          setSelectedElement(htmlElement);
-          setEditableId(editableId);
-          setEditingText(htmlElement.textContent || '');
-          setOriginalText(htmlElement.textContent || '');
-          _setTextValue(htmlElement.textContent || ''); // Sync textValue state
-          setIsToolbarVisible(true);
-          setActiveTab('text');
+        // Get current color for enhanced color picker
+        setSelectedColor(computedStyle.color || '#00FFFF');
+      };
 
-          // Store original styles for proper cancel/revert
-          const computedStyle = window.getComputedStyle(htmlElement);
-          setOriginalElementStyles({
-            color: computedStyle.color || '',
-            backgroundColor: computedStyle.backgroundColor || '',
-            background: computedStyle.background || ''
-          });
-
-          // Visual feedback for selected element
-          htmlElement.style.outline = '3px solid #ff0080';
-          htmlElement.style.backgroundColor = 'rgba(255, 0, 128, 0.15)';
-          htmlElement.style.transition = 'all 0.3s ease';
-
-          // Get current color for enhanced color picker
-          setSelectedColor(computedStyle.color || '#00FFFF');
-        };
-
-        htmlElement.addEventListener('mouseenter', handleMouseEnter);
-        htmlElement.addEventListener('mouseleave', handleMouseLeave);
-        htmlElement.addEventListener('click', handleClick);
-      });
-    };
+      element.addEventListener('mouseenter', handleMouseEnter);
+      element.addEventListener('mouseleave', handleMouseLeave);
+      element.addEventListener('click', handleClick);
+    });
     
-    checkAndAttach();
+    setDebugInfo(`Attached ${attachedCount}/${EDITABLE_ELEMENTS.length} editable elements`);
+    console.log(`[MenuPageEditor] Successfully attached ${attachedCount} elements`);
   }, [isPreviewMode, selectedElement]);
 
   // Initialize event listeners with multiple retries

@@ -21,6 +21,56 @@ import {
   Eye
 } from 'lucide-react';
 
+// HOMEPAGE EDITABLE ELEMENTS - Preconfigured for reliable detection
+const HOMEPAGE_EDITABLE_ELEMENTS = [
+  // Hero/Main Section
+  'main-heading',
+  'hero-subheading',
+  'hero-title',
+  'hero-subtitle',
+  'cta-heading',
+  'cta-description',
+  'badge-now-open',
+  'service-options',
+  
+  // Categories Section
+  'categories-title',
+  'category-1-card',
+  'category-1-icon', 
+  'category-1-title',
+  'category-1-description',
+  'category-2-card',
+  'category-2-icon',
+  'category-2-title', 
+  'category-2-description',
+  'category-3-card',
+  'category-3-icon',
+  'category-3-title',
+  'category-3-description',
+  'category-4-card',
+  'category-4-icon',
+  'category-4-title',
+  'category-4-description',
+  'categories-button',
+  
+  // Events & Specials Section
+  'events-section-title',
+  'events-section-subtitle',
+  'event-title',
+  'event-description', 
+  'events-no-content',
+  'events-admin-hint',
+  
+  // Bookings Section
+  'bookings-title',
+  'bookings-description',
+  'booking-button',
+  'bookings-feature-1',
+  'bookings-feature-2',
+  'bookings-feature-3',
+  'bookings-coming-soon'
+];
+
 // Website theme colors from tailwind.config.js
 const THEME_COLORS = [
   '#FFFFFF', // Pure white
@@ -460,10 +510,10 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
       if (element) {
         const originalText = element.textContent || '';
         
-        // Apply preview
-        element.textContent = textValue;
+        // DO NOT APPLY IMMEDIATELY - Only stage the change
+        // Apply preview will be handled by Preview button
         
-        // Add to pending changes
+        // Add to pending changes WITHOUT applying
         const newPendingChanges = new Map(pendingChanges);
         newPendingChanges.set(selectedElement, {
           type: 'text',
@@ -476,16 +526,16 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
         setEditingText(false);
         
         toast({
-          title: "✏️ Text Preview Applied",
-          description: "Click 'Save Changes' to make it permanent",
-          duration: 3000,
+          title: "✏️ Text Change Staged",
+          description: "Use 'Preview' to see changes, then 'Save Changes' to make permanent",
+          duration: 4000,
         });
       }
     } catch (error) {
-      console.error('Error applying text preview:', error);
+      console.error('Error staging text change:', error);
       toast({
-        title: "❌ Preview Failed",
-        description: "Could not apply text preview",
+        title: "❌ Staging Failed",
+        description: "Could not stage text change",
         variant: "destructive"
       });
     }
@@ -507,13 +557,12 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
     // Check if we're applying a gradient (only for background)
     if (colorMode === 'background' && (gradientColor1 !== gradientColor2)) {
       newValue = `linear-gradient(${gradientDirection}, ${gradientColor1}, ${gradientColor2})`;
-      element.style.background = newValue;
     } else {
       newValue = selectedColor;
-      element.style[property] = newValue;
     }
 
-    // Add to pending changes
+    // DO NOT APPLY IMMEDIATELY - Only stage the change
+    // Add to pending changes WITHOUT applying to DOM
     const newPendingChanges = new Map(pendingChanges);
     newPendingChanges.set(`${selectedElement}-${colorMode}`, {
       type: 'color',
@@ -524,9 +573,9 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
     setPendingChanges(newPendingChanges);
 
     toast({
-      title: `🎨 ${colorMode === 'background' && (gradientColor1 !== gradientColor2) ? 'Gradient' : (colorMode === 'text' ? 'Text' : 'Background')} Color Preview Applied`,
-      description: "Click 'Save Changes' to make it permanent",
-      duration: 3000,
+      title: `🎨 ${colorMode === 'background' && (gradientColor1 !== gradientColor2) ? 'Gradient' : (colorMode === 'text' ? 'Text' : 'Background')} Color Change Staged`,
+      description: "Use 'Preview' to see changes, then 'Save Changes' to make permanent",
+      duration: 4000,
     });
   };
 
@@ -672,10 +721,31 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
   };
 
   const handlePreviewChanges = () => {
+    // Apply all pending changes to the DOM for preview
+    pendingChanges.forEach((change) => {
+      const element = document.querySelector(`[data-editable="${change.elementId}"]`) as HTMLElement;
+      if (element) {
+        if (change.type === 'text') {
+          element.textContent = change.value;
+        } else if (change.type === 'color') {
+          // Extract the color mode from the key (elementId contains -text or -background)
+          const isBackground = change.elementId.includes('-background') || colorMode === 'background';
+          
+          if (change.value.includes('linear-gradient')) {
+            element.style.background = change.value;
+          } else if (isBackground) {
+            element.style.backgroundColor = change.value;
+          } else {
+            element.style.color = change.value;
+          }
+        }
+      }
+    });
+    
     toast({
-      title: "👁️ Preview Mode",
-      description: "You are currently seeing the preview of your changes",
-      duration: 3000,
+      title: "👁️ Preview Applied",
+      description: `Showing preview of ${pendingChanges.size} changes. Use 'Save Changes' to make permanent or 'Discard' to revert.`,
+      duration: 4000,
     });
   };
 
@@ -687,10 +757,25 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
         if (change.type === 'text') {
           element.textContent = change.originalValue;
         } else if (change.type === 'color') {
-          if (change.elementId.includes('text') || colorMode === 'text') {
+          // Improved color reversion logic
+          const isBackground = change.elementId.includes('-background');
+          const isText = change.elementId.includes('-text');
+          
+          if (change.originalValue.includes('linear-gradient')) {
+            // Clear gradient background
+            element.style.background = change.originalValue;
+            element.style.backgroundImage = '';
+          } else if (isBackground) {
+            element.style.backgroundColor = change.originalValue;
+          } else if (isText) {
             element.style.color = change.originalValue;
           } else {
-            element.style.backgroundColor = change.originalValue;
+            // Fallback - try to detect based on current colorMode or originalValue
+            if (change.originalValue && (change.originalValue.startsWith('#') || change.originalValue.startsWith('rgb'))) {
+              element.style.color = change.originalValue;
+            } else {
+              element.style.backgroundColor = change.originalValue;
+            }
           }
         }
       }
@@ -699,7 +784,8 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
     setPendingChanges(new Map());
     toast({
       title: "🗑️ Changes Discarded",
-      description: "All pending changes have been reverted",
+      description: "All pending changes have been reverted to original state",
+      duration: 3000,
     });
   };
 
@@ -790,16 +876,41 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
         }
       };
 
-      const editableElements = document.querySelectorAll('[data-editable]');
-      console.log('🎯 Found homepage editable elements:', editableElements.length);
-      console.log('🎯 Element list:', Array.from(editableElements).map(el => {
-        const elementId = el.getAttribute('data-editable');
+      // ENHANCED: Try both dynamic detection AND preconfigured elements
+      const foundElements = document.querySelectorAll('[data-editable]');
+      console.log('🎯 Found homepage editable elements:', foundElements.length);
+      
+      // If dynamic detection fails, try to find elements by preconfigured IDs
+      const elementMap = new Map<string, HTMLElement>();
+      
+      // First, add dynamically found elements
+      foundElements.forEach(el => {
+        const id = el.getAttribute('data-editable');
+        if (id) {
+          elementMap.set(id, el as HTMLElement);
+        }
+      });
+      
+      // Then, try to find missing elements from our preconfigured list
+      HOMEPAGE_EDITABLE_ELEMENTS.forEach(elementId => {
+        if (!elementMap.has(elementId)) {
+          const element = document.querySelector(`[data-editable="${elementId}"]`) as HTMLElement;
+          if (element) {
+            elementMap.set(elementId, element);
+            console.log(`🔧 Found missing element: ${elementId}`);
+          }
+        }
+      });
+      
+      const editableElements = Array.from(elementMap.values());
+      console.log('🎯 Total homepage elements to attach:', editableElements.length);
+      console.log('🎯 Element list:', Array.from(elementMap.entries()).map(([id, el]) => {
         const text = el.textContent?.slice(0, 30);
-        return `${elementId}: "${text}"`;
+        return `${id}: "${text}"`;
       }));
       
-      // If we don't have enough elements, retry (expecting at least booking elements)
-      if (editableElements.length < 3 && retryCount < maxRetries) {
+      // If we still don't have enough elements, retry (expecting at least 10+ for homepage)
+      if (editableElements.length < 5 && retryCount < maxRetries) {
         retryCount++;
         console.log(`⏳ Only found ${editableElements.length} elements, retrying in ${retryDelay}ms...`);
         setTimeout(setupEventListeners, retryDelay);
@@ -807,7 +918,8 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
       }
       
       editableElements.forEach((element, index) => {
-        console.log(`📎 Attaching listeners to element ${index + 1}:`, element.getAttribute('data-editable'));
+        const elementId = element.getAttribute('data-editable');
+        console.log(`📎 Attaching listeners to element ${index + 1}:`, elementId);
         element.addEventListener('mouseenter', handleMouseEnter);
         element.addEventListener('mouseleave', handleMouseLeave);
         element.addEventListener('click', handleElementClick as EventListener);
