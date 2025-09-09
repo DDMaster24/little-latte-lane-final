@@ -687,7 +687,7 @@ export default function HomepageEditor({ children }: HomepageEditorProps) {
         return savePageSetting({
           setting_key: change.elementId,
           setting_value: change.value,
-          category: change.type
+          category: 'page_editor' // Always use page_editor category for homepage editor
         });
       });
       
