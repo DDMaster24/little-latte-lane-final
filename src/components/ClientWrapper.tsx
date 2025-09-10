@@ -16,8 +16,8 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
   const [isClient, setIsClient] = useState(false);
   const pathname = usePathname();
 
-  // Check if we're in a visual editor page
-  const isVisualEditor = pathname?.startsWith('/admin/visual-editor/') || pathname === '/admin/page-builder' || false;
+  // Check if we're in a page builder page
+  const isPageBuilder = pathname === '/admin/page-builder' || false;
 
   useEffect(() => {
     setIsClient(true);
@@ -74,9 +74,9 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
         </div>
       )}
       
-      {/* Conditional layout: Full-screen for visual editors, normal layout for other pages */}
-      {isVisualEditor ? (
-        // Visual Editor Layout - Full screen, no header/footer
+      {/* Conditional layout: Full-screen for page builder, normal layout for other pages */}
+      {isPageBuilder ? (
+        // Page Builder Layout - Full screen, no header/footer
         <main className="h-screen overflow-hidden">{children}</main>
       ) : (
         // Normal Layout - With header and footer
