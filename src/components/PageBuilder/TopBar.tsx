@@ -8,9 +8,11 @@ import { Save, Eye, Edit, Download } from 'lucide-react';
 interface TopBarProps {
   enabled: boolean;
   setEnabled: (enabled: boolean) => void;
+  pageTitle?: string;
+  pageDescription?: string;
 }
 
-export const TopBar: React.FC<TopBarProps> = ({ enabled, setEnabled }) => {
+export const TopBar: React.FC<TopBarProps> = ({ enabled, setEnabled, pageTitle, pageDescription }) => {
   const { actions, query, canUndo, canRedo } = useEditor((state, query) => ({
     canUndo: query.history.canUndo(),
     canRedo: query.history.canRedo(),
@@ -36,7 +38,14 @@ export const TopBar: React.FC<TopBarProps> = ({ enabled, setEnabled }) => {
   return (
     <div className="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between">
       <div className="flex items-center space-x-4">
-        <h1 className="text-xl font-bold text-white">Little Latte Lane - Page Builder</h1>
+        <div>
+          <h1 className="text-xl font-bold text-white">
+            {pageTitle || 'Little Latte Lane - Page Builder'}
+          </h1>
+          {pageDescription && (
+            <p className="text-sm text-gray-400 mt-1">{pageDescription}</p>
+          )}
+        </div>
         <div className="flex items-center space-x-2">
           <Button
             variant={enabled ? "default" : "outline"}

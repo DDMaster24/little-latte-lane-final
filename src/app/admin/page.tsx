@@ -80,136 +80,175 @@ export default function AdminPage() {
         return (
           <div className="space-y-6">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-white mb-2">Visual Page Builder</h2>
-              <p className="text-gray-400">Professional drag & drop editor for all website pages - powered by Craft.js</p>
+              <h2 className="text-2xl font-bold text-white mb-2">Visual Page Editor</h2>
+              <p className="text-gray-400">Select a page to edit with our professional visual editor. Click any element on the page to customize it.</p>
             </div>
 
-            <div className="grid gap-4 sm:gap-6 grid-cols-1">
-              {/* NEW: Visual Page Builder Card - Main Entry Point */}
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+              {/* Homepage Editor */}
               <Card className="bg-darkBg/50 border-gray-700 hover:border-yellow-500/50 transition-all duration-200 ring-2 ring-yellow-500/20">
                 <CardContent className="p-6">
-                  <div className="flex flex-col lg:flex-row items-start justify-between gap-6">
-                    <div className="flex items-start gap-4 flex-1">
-                      <div className="p-3 bg-yellow-500/10 rounded-lg flex-shrink-0">
-                        <Edit className="h-8 w-8 text-yellow-500" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-xl font-bold text-white flex items-center gap-3 mb-2">
-                          Visual Page Builder
-                          <span className="text-sm bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full">PROFESSIONAL SYSTEM</span>
-                        </h3>
-                        <p className="text-gray-300 mb-3">
-                          Professional visual editor with Canvas-like interface. Edit any page with drag & drop, real-time preview, and live editing.
-                        </p>
-                        <div className="flex flex-wrap items-center gap-4">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                            <span className="text-sm text-gray-400">Real-time WYSIWYG</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                            <span className="text-sm text-gray-400">Drag & Drop</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                            <span className="text-sm text-gray-400">Component Library</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-pink-500 rounded-full"></span>
-                            <span className="text-sm text-gray-400">Word-like Selection</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-cyan-500 rounded-full"></span>
-                            <span className="text-sm text-gray-400">Image Editing</span>
-                          </div>
-                        </div>
-                      </div>
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="p-3 bg-yellow-500/10 rounded-lg flex-shrink-0">
+                      <Layout className="h-8 w-8 text-yellow-500" />
                     </div>
-                    <div className="flex flex-col gap-3 w-full lg:w-auto">
-                      <Button
-                        onClick={() => router.push('/admin/page-builder')}
-                        className="bg-yellow-500 hover:bg-yellow-500/80 text-black font-bold px-6 py-3 text-base"
-                      >
-                        <Edit className="h-5 w-5 mr-2" />
-                        Launch Visual Builder
-                      </Button>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-xl font-bold text-white mb-2">
+                        Homepage
+                        <span className="ml-2 text-sm bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full">LIVE EDIT</span>
+                      </h3>
+                      <p className="text-gray-300 mb-3 text-sm">
+                        Edit carousel panels, categories, events & specials sections with real-time preview
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Carousel</span>
+                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">Categories</span>
+                        <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded">Events</span>
+                        <span className="text-xs bg-pink-500/20 text-pink-400 px-2 py-1 rounded">Bookings</span>
+                      </div>
                     </div>
                   </div>
+                  <Button
+                    onClick={() => router.push('/admin/visual-editor/homepage')}
+                    className="bg-yellow-500 hover:bg-yellow-500/80 text-black font-bold w-full"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Homepage
+                  </Button>
                 </CardContent>
               </Card>
 
-              {/* Feature Highlights */}
-              <div className="bg-gradient-to-r from-neonCyan/5 to-neonPink/5 rounded-xl p-6 border border-gray-700/50">
-                <h3 className="text-lg font-semibold text-white mb-4">✨ Available Components</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                      <Type className="w-4 h-4 text-blue-500" />
+              {/* Menu Page Editor */}
+              <Card className="bg-darkBg/50 border-gray-700 hover:border-orange-500/50 transition-all duration-200">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="p-3 bg-orange-500/10 rounded-lg flex-shrink-0">
+                      <Menu className="h-8 w-8 text-orange-500" />
                     </div>
-                    <div>
-                      <div className="text-white font-medium">Text Editor</div>
-                      <div className="text-xs text-gray-400">Typography, colors, alignment</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-500/10 rounded-lg flex items-center justify-center">
-                      <Box className="w-4 h-4 text-green-500" />
-                    </div>
-                    <div>
-                      <div className="text-white font-medium">Containers</div>
-                      <div className="text-xs text-gray-400">Backgrounds, layouts, spacing</div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-xl font-bold text-white mb-2">Menu Page</h3>
+                      <p className="text-gray-300 mb-3 text-sm">
+                        Edit menu categories, item descriptions, prices and layout
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-1 rounded">Categories</span>
+                        <span className="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded">Items</span>
+                        <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">Prices</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-purple-500/10 rounded-lg flex items-center justify-center">
-                      <Grid3x3 className="w-4 h-4 text-purple-500" />
-                    </div>
-                    <div>
-                      <div className="text-white font-medium">Category Cards</div>
-                      <div className="text-xs text-gray-400">Images, icons, descriptions</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-orange-500/10 rounded-lg flex items-center justify-center">
-                      <Navigation className="w-4 h-4 text-orange-500" />
-                    </div>
-                    <div>
-                      <div className="text-white font-medium">Header & Nav</div>
-                      <div className="text-xs text-gray-400">Logo, menu, navigation</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-pink-500/10 rounded-lg flex items-center justify-center">
-                      <Plus className="w-4 h-4 text-pink-500" />
-                    </div>
-                    <div>
-                      <div className="text-white font-medium">Hero Sections</div>
-                      <div className="text-xs text-gray-400">Landing page headers</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-cyan-500/10 rounded-lg flex items-center justify-center">
-                      <Layout className="w-4 h-4 text-cyan-500" />
-                    </div>
-                    <div>
-                      <div className="text-white font-medium">Templates</div>
-                      <div className="text-xs text-gray-400">Full page layouts</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                  <Button
+                    onClick={() => router.push('/admin/visual-editor/menu')}
+                    className="bg-orange-500 hover:bg-orange-500/80 text-white font-semibold w-full"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Menu Page
+                  </Button>
+                </CardContent>
+              </Card>
 
-              {/* Usage Instructions */}
-              <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-xl p-6 border border-yellow-500/20">
-                <h3 className="text-lg font-semibold text-white mb-4">🚀 How to Use</h3>
+              {/* Bookings Page Editor */}
+              <Card className="bg-darkBg/50 border-gray-700 hover:border-blue-500/50 transition-all duration-200">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="p-3 bg-blue-500/10 rounded-lg flex-shrink-0">
+                      <Calendar className="h-8 w-8 text-blue-500" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-xl font-bold text-white mb-2">Bookings Page</h3>
+                      <p className="text-gray-300 mb-3 text-sm">
+                        Edit booking forms, information sections and golf booking interface
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Forms</span>
+                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">Golf</span>
+                        <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded">Info</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => router.push('/admin/visual-editor/bookings')}
+                    className="bg-blue-500 hover:bg-blue-500/80 text-white font-semibold w-full"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Bookings Page
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Header & Navigation Editor */}
+              <Card className="bg-darkBg/50 border-gray-700 hover:border-neonPink/50 transition-all duration-200">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="p-3 bg-neonPink/10 rounded-lg flex-shrink-0">
+                      <Navigation className="h-8 w-8 text-neonPink" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-xl font-bold text-white mb-2">Header & Navigation</h3>
+                      <p className="text-gray-300 mb-3 text-sm">
+                        Edit site-wide header, logo, navigation menu and footer
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="text-xs bg-neonPink/20 text-neonPink px-2 py-1 rounded">Logo</span>
+                        <span className="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-1 rounded">Menu</span>
+                        <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded">Footer</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => router.push('/admin/visual-editor/header')}
+                    className="bg-neonPink hover:bg-neonPink/80 text-darkBg font-semibold w-full"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Header & Nav
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Advanced Page Builder */}
+              <Card className="bg-darkBg/50 border-gray-700 hover:border-green-500/50 transition-all duration-200">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="p-3 bg-green-500/10 rounded-lg flex-shrink-0">
+                      <Plus className="h-8 w-8 text-green-500" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-xl font-bold text-white mb-2">Advanced Builder</h3>
+                      <p className="text-gray-300 mb-3 text-sm">
+                        Create new pages or sections from scratch with drag & drop components
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">Components</span>
+                        <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Templates</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => router.push('/admin/page-builder')}
+                    className="bg-green-500 hover:bg-green-500/80 text-white font-semibold w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Launch Builder
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Usage Guide */}
+            <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-xl p-6 border border-yellow-500/20 mt-8">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                How to Edit Pages
+              </h3>
+              <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
                     <div className="w-6 h-6 bg-yellow-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                       <span className="text-xs font-bold text-yellow-500">1</span>
                     </div>
                     <div>
-                      <div className="text-white font-medium">Launch the Visual Builder</div>
-                      <div className="text-sm text-gray-400">Click &ldquo;Launch Visual Builder&rdquo; to open the drag & drop editor</div>
+                      <div className="text-white font-medium">Select a Page</div>
+                      <div className="text-sm text-gray-400">Choose which page you want to edit from the cards above</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -218,16 +257,18 @@ export default function AdminPage() {
                     </div>
                     <div>
                       <div className="text-white font-medium">Enable Edit Mode</div>
-                      <div className="text-sm text-gray-400">Click the &ldquo;Enable&rdquo; button to start editing</div>
+                      <div className="text-sm text-gray-400">Click &ldquo;Enable&rdquo; to start editing the live page content</div>
                     </div>
                   </div>
+                </div>
+                <div className="space-y-3">
                   <div className="flex items-start gap-3">
                     <div className="w-6 h-6 bg-yellow-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                       <span className="text-xs font-bold text-yellow-500">3</span>
                     </div>
                     <div>
-                      <div className="text-white font-medium">Drag & Drop Components</div>
-                      <div className="text-sm text-gray-400">Drag components from the left toolbox to build your page</div>
+                      <div className="text-white font-medium">Click Any Element</div>
+                      <div className="text-sm text-gray-400">Click on carousel panels, categories, or any section to edit</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -235,8 +276,8 @@ export default function AdminPage() {
                       <span className="text-xs font-bold text-yellow-500">4</span>
                     </div>
                     <div>
-                      <div className="text-white font-medium">Select & Customize</div>
-                      <div className="text-sm text-gray-400">Click any element to see blue selection ring and edit in the right panel</div>
+                      <div className="text-white font-medium">Customize & Save</div>
+                      <div className="text-sm text-gray-400">Use the settings panel to customize colors, text, images</div>
                     </div>
                   </div>
                 </div>
