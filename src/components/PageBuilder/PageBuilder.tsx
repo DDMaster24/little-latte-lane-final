@@ -6,6 +6,11 @@ import { Toolbox } from './Toolbox';
 import { SettingsPanel } from './SettingsPanel';
 import { TopBar } from './TopBar';
 import { EditableHeroSection } from './EditableHeroSection';
+import { EditableText } from './EditableText';
+import { EditableContainer } from './EditableContainer';
+import { EditableCategoryCard } from './EditableCategoryCard';
+import { EditableHeader } from './EditableHeader';
+import { FullHomepage } from './FullHomepage';
 import { Viewport } from './Viewport';
 
 export const PageBuilder = () => {
@@ -16,6 +21,11 @@ export const PageBuilder = () => {
       <Editor
         resolver={{
           EditableHeroSection,
+          EditableText,
+          EditableContainer,
+          EditableCategoryCard,
+          EditableHeader,
+          FullHomepage,
         }}
         enabled={enabled}
       >
@@ -35,7 +45,7 @@ export const PageBuilder = () => {
             <Viewport>
               <Frame>
                 <Element
-                  is={EditableHeroSection}
+                  is={FullHomepage}
                   canvas
                 />
               </Frame>
