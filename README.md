@@ -1,12 +1,12 @@
 # 🍵 Little Latte Lane
 
-A modern, full-stack restaurant ordering and booking platform built with Next.js 15, React 19, Supabase, and PayFast integration.
+A modern, full-stack restaurant ordering and booking platform built with Next.js 15, React 19, Supabase, and Yoco payment integration.
 
 ## ✨ Features
 
 - 🛒 **Online Ordering System** - Complete menu browsing and order management
 - 📅 **Table & Golf Booking** - Reservation system with real-time availability
-- 💳 **PayFast Integration** - Secure South African payment processing
+- 💳 **Yoco Integration** - Secure South African payment processing
 - 📱 **Progressive Web App** - Mobile-optimized with offline capabilities
 - 👥 **Multi-role Authentication** - Customer, Staff, and Admin dashboards
 - 📊 **Analytics & Reporting** - Real-time business insights
@@ -19,7 +19,7 @@ A modern, full-stack restaurant ordering and booking platform built with Next.js
 - Node.js 18+ 
 - npm or yarn
 - Supabase account
-- PayFast merchant account (for payments)
+- Yoco merchant account (for payments)
 
 ### Installation
 
@@ -123,7 +123,7 @@ little-latte-lane/
 │   │   ├── queries/      # Database query functions
 │   │   ├── env.ts        # Environment validation
 │   │   ├── supabase.ts   # Supabase client
-│   │   └── payfast.ts    # PayFast integration
+│   │   └── yoco.ts        # Yoco payment integration
 │   ├── hooks/            # Custom React hooks
 │   ├── stores/           # Zustand state management
 │   └── types/            # TypeScript definitions
@@ -141,11 +141,10 @@ Copy `.env.example` to `.env.local` and configure:
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
 - `SUPABASE_SERVICE_KEY` - Supabase service role key
 
-### PayFast Configuration
-- `NEXT_PUBLIC_PAYFAST_SANDBOX` - Set to 'true' for testing
-- `PAYFAST_MERCHANT_ID` - Your PayFast merchant ID
-- `PAYFAST_MERCHANT_KEY` - Your PayFast merchant key
-- `PAYFAST_PASSPHRASE` - Your secure passphrase
+### Yoco Configuration
+- `NEXT_PUBLIC_YOCO_PUBLIC_KEY` - Your Yoco public key
+- `YOCO_SECRET_KEY` - Your Yoco secret key
+- `YOCO_WEBHOOK_SECRET` - Your Yoco webhook secret
 
 ## 🔐 Authentication & Authorization
 
@@ -157,7 +156,7 @@ The app uses Supabase Auth with custom profiles:
 
 ## 💳 Payment Integration
 
-PayFast integration supports:
+Yoco integration supports:
 - Secure payment processing
 - Order confirmation
 - Payment status webhooks
@@ -252,7 +251,7 @@ For support, email: support@littlelattlane.com
 ### v1.0.0 (Current)
 - Initial release
 - Complete ordering system
-- PayFast integration
+- Yoco payment integration
 - Booking system
 - Admin dashboard
 

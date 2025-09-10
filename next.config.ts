@@ -16,12 +16,12 @@ const withPWA = require('next-pwa')({
 // Content Security Policy - extracted to reduce bundle size
 const CSP_DIRECTIVES = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === 'development' ? "'unsafe-eval'" : ''} blob: https://*.payfast.co.za https://payfast.co.za https://www.payfast.co.za https://vercel.live https://*.vercel.live https://*.sentry.io`,
-  "script-src-elem 'self' 'unsafe-inline' blob: https://*.payfast.co.za https://payfast.co.za https://www.payfast.co.za https://vercel.live https://*.vercel.live https://*.sentry.io",
+  `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === 'development' ? "'unsafe-eval'" : ''} blob: https://vercel.live https://*.vercel.live https://*.sentry.io`,
+  "script-src-elem 'self' 'unsafe-inline' blob: https://vercel.live https://*.vercel.live https://*.sentry.io",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: blob: https:",
-  "connect-src 'self' wss: https://*.payfast.co.za https://payfast.co.za https://www.payfast.co.za https://awytuszmunxvthuizyur.supabase.co wss://awytuszmunxvthuizyur.supabase.co https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.googletagmanager.com https://overbridgenet.com https://*.sentry.io https://vercel.live https://*.vercel.live",
+  "connect-src 'self' wss: https://awytuszmunxvthuizyur.supabase.co wss://awytuszmunxvthuizyur.supabase.co https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.googletagmanager.com https://overbridgenet.com https://*.sentry.io https://vercel.live https://*.vercel.live",
   "worker-src 'self' blob:",
   "child-src 'self' blob: https://vercel.live https://*.vercel.live",
   "frame-src 'self' blob: https://vercel.live https://*.vercel.live",

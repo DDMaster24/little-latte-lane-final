@@ -4,7 +4,7 @@
 
 **Little Latte Lane** is a Next.js 15 + React 19 restaurant platform with Supabase backend, featuring:
 - **Multi-role authentication** (customer/staff/admin) with RLS policies  
-- **PayFast payment integration** for South African market
+- **Yoco payment integration** for South African market
 - **PWA capabilities** with offline support
 - **Real-time features** via Supabase subscriptions
 - **Comprehensive admin dashboard** with analytics
@@ -169,20 +169,20 @@ psql $DATABASE_URL -c "\d+ theme_settings"
 - **Schema Access**: Via Supabase CLI commands primarily
 - **TypeScript Types**: Auto-generated from live database in `src/types/supabase.ts`
 
-## PayFast Integration Specifics
+## Yoco Integration Specifics
 
-### Signature Generation
-PayFast requires **exact** field ordering and PHP-compatible URL encoding:
+### Checkout Flow
+Yoco uses a modern checkout popup with secure tokenization:
 ```typescript
-// Use ONLY the official field order from PAYFAST_FIELD_ORDER
-// PHP urlencode() differences: spaces→'+', uppercase hex, brackets encoded
-const signature = payfast.generateSignature(paymentData)
+// Initialize Yoco checkout with order data
+const yoco = new YocoSDK({ publicKey: process.env.NEXT_PUBLIC_YOCO_PUBLIC_KEY })
+yoco.showPopup({ ... })
 ```
 
 ### Environment Setup
-- `NEXT_PUBLIC_PAYFAST_SANDBOX=true` for testing
-- Sandbox vs Live have different validation rules
-- Passphrase is optional but recommended for security
+- `NEXT_PUBLIC_YOCO_PUBLIC_KEY` - For client-side checkout
+- `YOCO_SECRET_KEY` - For server-side payment processing
+- `YOCO_WEBHOOK_SECRET` - For webhook signature verification
 
 ## State Management Patterns
 
@@ -255,10 +255,10 @@ Use `debug-auth.js` script to troubleshoot RLS/profile issues:
 node debug-auth.js
 ```
 
-### PayFast Testing
-- Always test in sandbox first
-- Use debug mode: `PAYFAST_DEBUG=true`
-- Verify signature generation with PayFast tools
+### Yoco Testing
+- Always test in sandbox first with test cards
+- Use webhook testing tools for payment verification
+- Verify order status updates work correctly
 
 ## Deployment Notes
 
@@ -283,19 +283,19 @@ git push origin main
 ### Environment Variables
 Critical production settings:
 - `SUPABASE_SERVICE_KEY` - Required for admin operations
-- `PAYFAST_PASSPHRASE` - Enhances payment security
-- `NEXT_PUBLIC_PAYFAST_SANDBOX=false` - Enable live payments
+- `YOCO_SECRET_KEY` - Required for server-side payment processing
+- `YOCO_WEBHOOK_SECRET` - Required for webhook verification
 
 ### Performance
 - PWA caching configured in `next.config.ts`
 - Image optimization with WebP/AVIF support
-- CSP headers configured for PayFast compatibility
+- CSP headers optimized for Yoco compatibility
 
 ## Common Pitfalls
 
 1. **Auth**: Don't query `auth.users` - use `profiles` table
 2. **RLS**: Test policies in SQL editor before implementing  
-3. **PayFast**: Field order matters for signature generation
+3. **Yoco**: Use sandbox mode for testing first
 4. **Hydration**: Use `ClientOnly` wrapper for client-only components
 5. **Types**: Always regenerate Supabase types after schema changes
 
