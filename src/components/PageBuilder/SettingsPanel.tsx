@@ -4,84 +4,81 @@ import React from 'react';
 import { useEditor } from '@craftjs/core';
 
 export const SettingsPanel = () => {
-  console.log('🔍 SettingsPanel Updated - Version 4.0 - Fixed Resolver Access - ', new Date().toISOString());
+  console.log('🔍 SettingsPanel Updated - Version 5.0 - Direct Node Access - ', new Date().toISOString());
   
-  const { selected, selectedNodeId } = useEditor((state, query) => {
-    const currentNodeId = state.events.selected;
-    let selected;
+  const { selectedNodeIds, nodes, resolver } = useEditor((state) => {
+    const currentSelectedIds = state.events.selected;
+    const allNodes = state.nodes;
     
-    if (currentNodeId && typeof currentNodeId === 'string') {
-      const node = state.nodes[currentNodeId];
-      if (node) {
-        // Get the resolver differently - from the query object
-        const resolver = query.getOptions().resolver;
-        console.log('🔍 Resolver found:', resolver ? Object.keys(resolver) : 'No resolver');
-        console.log('🔍 Node data:', node.data);
-        
-        const componentType = node.data.type;
-        let componentName = '';
-        let settingsComponent = null;
-        
-        // Better component name detection
-        if (typeof componentType === 'string') {
-          componentName = componentType;
-        } else if (componentType && typeof componentType === 'function') {
-          componentName = componentType.name || componentType.displayName || 'Component';
-        } else if (componentType && typeof componentType === 'object') {
-          // Handle different object types
-          if ('resolvedName' in componentType) {
-            componentName = (componentType as any).resolvedName;
-          } else if ('name' in componentType) {
-            componentName = (componentType as any).name;
-          } else if ('displayName' in componentType) {
-            componentName = (componentType as any).displayName;
-          }
-        }
-        
-        // Try to find settings component in resolver
-        if (resolver && componentName) {
-          const resolvedComponent = resolver[componentName];
-          if (resolvedComponent && typeof resolvedComponent === 'function') {
-            settingsComponent = (resolvedComponent as any).craft?.related?.settings;
-          }
-        }
-        
-        // If still no settings found, try all components in resolver
-        if (!settingsComponent && resolver) {
-          Object.keys(resolver).forEach(key => {
-            const comp = resolver[key];
-            if (comp && typeof comp === 'function') {
-              const craft = (comp as any).craft;
-              if (craft && craft.related && craft.related.settings) {
-                // Check if this might be our component by comparing some properties
-                if (key.includes('Welcoming') || key.includes('EditableWelcoming')) {
-                  settingsComponent = craft.related.settings;
-                  componentName = key;
-                }
-              }
-            }
-          });
-        }
-        
-        selected = {
-          id: currentNodeId,
-          name: node.data.displayName || node.data.name || componentName || 'Component',
-          settings: settingsComponent,
-          isDeletable: node.data.displayName !== 'Root',
-          hasSettings: !!settingsComponent,
-          componentName: componentName,
-          resolver: resolver,
-          nodeData: node.data,
-          allResolverKeys: resolver ? Object.keys(resolver) : []
-        };
-      }
-    }
+    console.log('🔍 All nodes:', Object.keys(allNodes));
+    console.log('🔍 Selected node IDs:', currentSelectedIds);
     
     return {
-      selected,
-      selectedNodeId: currentNodeId
+      selectedNodeIds: currentSelectedIds,
+      nodes: allNodes,
+      resolver: state.options?.resolver || {}
     };
   });
+
+  // Get the first selected node ID
+  const selectedNodeId = selectedNodeIds ? Array.from(selectedNodeIds)[0] : null;
+  console.log('🔍 Processing node ID:', selectedNodeId);
+
+  // Process the selected node data
+  let selected = null;
+  
+  if (selectedNodeId && nodes[selectedNodeId]) {
+    const node = nodes[selectedNodeId];
+    console.log('🔍 Processing node:', node);
+    
+    const componentType = node.data.type;
+    let componentName = 'Unknown';
+    let settingsComponent = null;
+    
+    // Direct component name detection
+    if (typeof componentType === 'function') {
+      componentName = componentType.name || componentType.displayName || 'Function Component';
+      console.log('🔍 Component function name:', componentName);
+      
+      // Check if this function has craft settings
+      if ((componentType as any).craft?.related?.settings) {
+        settingsComponent = (componentType as any).craft.related.settings;
+        console.log('🔍 Found settings on component function:', settingsComponent);
+      }
+    } else if (typeof componentType === 'string') {
+      componentName = componentType;
+      console.log('🔍 Component string name:', componentName);
+    }
+    
+    // Also try checking resolver
+    if (resolver && Object.keys(resolver).length > 0) {
+      console.log('🔍 Resolver keys:', Object.keys(resolver));
+      
+      Object.keys(resolver).forEach(key => {
+        const comp = resolver[key];
+        console.log('🔍 Checking resolver component:', key, comp);
+        
+        if (comp && (comp as any).craft?.related?.settings) {
+          console.log('🔍 Found settings in resolver for:', key);
+          if (key === componentName || key.includes('Welcoming')) {
+            settingsComponent = (comp as any).craft.related.settings;
+            componentName = key;
+          }
+        }
+      });
+    }
+    
+    selected = {
+      id: selectedNodeId,
+      name: node.data.displayName || node.data.name || componentName,
+      settings: settingsComponent,
+      hasSettings: !!settingsComponent,
+      componentName: componentName,
+      nodeData: node.data,
+      allResolverKeys: resolver ? Object.keys(resolver) : [],
+      rawComponentType: componentType
+    };
+  }
 
   return (
     <div className="p-4">
@@ -115,13 +112,13 @@ export const SettingsPanel = () => {
             )}
             
             {/* Show raw node type for debugging */}
-            {selected?.nodeData ? (
+            {selected?.rawComponentType ? (
               <div className="mt-2">
                 <strong>Raw Node Type:</strong>
                 <div className="text-xs text-green-300 mt-1 font-mono">
-                  {typeof selected.nodeData.type === 'function' 
-                    ? `Function: ${selected.nodeData.type.name}`
-                    : JSON.stringify(selected.nodeData.type, null, 2)
+                  {typeof selected.rawComponentType === 'function' 
+                    ? `Function: ${selected.rawComponentType.name || 'Anonymous'}`
+                    : JSON.stringify(selected.rawComponentType, null, 2)
                   }
                 </div>
               </div>
