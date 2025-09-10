@@ -2,8 +2,9 @@
 
 import React from 'react';
 import { useEditor } from '@craftjs/core';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Save, Eye, Edit, Download } from 'lucide-react';
+import { Save, Eye, Edit, Download, ArrowLeft } from 'lucide-react';
 
 interface TopBarProps {
   enabled: boolean;
@@ -17,6 +18,8 @@ export const TopBar: React.FC<TopBarProps> = ({ enabled, setEnabled, pageTitle, 
     canUndo: query.history.canUndo(),
     canRedo: query.history.canRedo(),
   }));
+  
+  const router = useRouter();
 
   const handleSave = () => {
     const json = query.serialize();
@@ -35,16 +38,31 @@ export const TopBar: React.FC<TopBarProps> = ({ enabled, setEnabled, pageTitle, 
     a.click();
   };
 
+  const handleExit = () => {
+    router.push('/admin');
+  };
+
   return (
     <div className="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between">
+      {/* Left Side - Exit Button */}
       <div className="flex items-center space-x-4">
-        <div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleExit}
+          className="flex items-center space-x-2 text-white border-gray-600 hover:bg-gray-700"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Exit Editor</span>
+        </Button>
+      </div>
+
+      {/* Center - Page Title */}
+      <div className="flex items-center space-x-4">
+        <div className="text-center">
           <h1 className="text-xl font-bold text-white">
-            {pageTitle || 'Little Latte Lane - Page Builder'}
+            {pageTitle || 'Page Editor'}
           </h1>
-          {pageDescription && (
-            <p className="text-sm text-gray-400 mt-1">{pageDescription}</p>
-          )}
         </div>
         <div className="flex items-center space-x-2">
           <Button
@@ -59,6 +77,7 @@ export const TopBar: React.FC<TopBarProps> = ({ enabled, setEnabled, pageTitle, 
         </div>
       </div>
       
+      {/* Right Side - Editor Actions */}
       {enabled && (
         <div className="flex items-center space-x-2">
           <Button

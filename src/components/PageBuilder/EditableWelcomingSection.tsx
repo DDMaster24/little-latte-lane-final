@@ -5,6 +5,7 @@ import { useNode } from '@craftjs/core';
 import { useAuth } from '@/components/AuthProvider';
 import ContentEditable from 'react-contenteditable';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Star, MapPin, Car } from 'lucide-react';
 import DynamicCarousel from '@/components/DynamicCarousel';
 
@@ -61,7 +62,8 @@ export const EditableWelcomingSection: React.FC<EditableWelcomingSectionProps> &
           connect(drag(ref));
         }
       }}
-      className={`bg-gradient-to-br ${backgroundColor} section-padding overflow-hidden ${selected ? 'ring-2 ring-blue-500' : ''}`}
+      data-cy="component-wrapper"
+      className={`bg-gradient-to-br ${backgroundColor} section-padding overflow-hidden ${selected ? 'ring-2 ring-blue-500' : ''} transition-all duration-200`}
     >
       <div className="container-wide animate-fade-in">
         {/* Hero Header - Fully Responsive */}

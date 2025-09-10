@@ -30,8 +30,7 @@ export default function HomepageVisualEditor() {
         <TopBar 
           enabled={enabled} 
           setEnabled={setEnabled}
-          pageTitle="Homepage Editor"
-          pageDescription="Edit carousel panels, categories, events and all homepage content"
+          pageTitle="Homepage"
         />
         
         <div className="flex flex-1 overflow-hidden">

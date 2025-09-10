@@ -33,7 +33,8 @@ export const EditableBookingsSection: React.FC<EditableBookingsSectionProps> & {
           connect(drag(ref));
         }
       }}
-      className={`w-full shadow-neon rounded-xl ${selected ? 'ring-2 ring-blue-500' : ''}`}
+      data-cy="component-wrapper"
+      className={`w-full shadow-neon rounded-xl ${selected ? 'ring-2 ring-blue-500' : ''} transition-all duration-200`}
       style={{ backgroundColor }}
     >
       <div className="text-center py-8 xs:py-12 px-6">
