@@ -18,7 +18,10 @@ export const HomepageEditorSidebar: React.FC<HomepageEditorSidebarProps> = ({
 
   if (!enabled) {
     return (
-      <div className="w-80 bg-gray-800 border-l border-gray-700 p-4">
+      <div 
+        className="w-80 bg-gray-800 border-l border-gray-700 p-4"
+        onClick={(e) => e.stopPropagation()} // 🎯 PREVENT component deselection
+      >
         <div className="text-center text-gray-400">
           <h3 className="text-lg font-semibold mb-2">Preview Mode</h3>
           <p className="text-sm">Turn on editing mode to see controls</p>
@@ -28,7 +31,10 @@ export const HomepageEditorSidebar: React.FC<HomepageEditorSidebarProps> = ({
   }
 
   return (
-    <div className="w-80 bg-gray-800 border-l border-gray-700 overflow-y-auto">
+    <div 
+      className="w-80 bg-gray-800 border-l border-gray-700 overflow-y-auto"
+      onClick={(e) => e.stopPropagation()} // 🎯 PREVENT component deselection
+    >
       {/* Tool-Specific Controls */}
       <div className="p-4 border-b border-gray-700">
         <h3 className="text-lg font-semibold text-white mb-3">
@@ -57,6 +63,8 @@ export const HomepageEditorSidebar: React.FC<HomepageEditorSidebarProps> = ({
               min="12"
               max="72"
               className="w-full"
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => e.stopPropagation()}
             />
           </div>
           
@@ -65,10 +73,16 @@ export const HomepageEditorSidebar: React.FC<HomepageEditorSidebarProps> = ({
               Text Style
             </label>
             <div className="grid grid-cols-2 gap-2">
-              <button className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm text-white">
+              <button 
+                className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm text-white"
+                onClick={(e) => e.stopPropagation()}
+              >
                 Bold
               </button>
-              <button className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm text-white">
+              <button 
+                className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm text-white"
+                onClick={(e) => e.stopPropagation()}
+              >
                 Italic
               </button>
             </div>
@@ -86,6 +100,8 @@ export const HomepageEditorSidebar: React.FC<HomepageEditorSidebarProps> = ({
             <input
               type="color"
               className="w-full h-12 border border-gray-600 rounded"
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => e.stopPropagation()}
             />
           </div>
           
@@ -96,6 +112,8 @@ export const HomepageEditorSidebar: React.FC<HomepageEditorSidebarProps> = ({
             <input
               type="color"
               className="w-full h-12 border border-gray-600 rounded"
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => e.stopPropagation()}
             />
           </div>
           
@@ -109,6 +127,7 @@ export const HomepageEditorSidebar: React.FC<HomepageEditorSidebarProps> = ({
                   key={color}
                   className="w-8 h-8 rounded border border-gray-600"
                   style={{ backgroundColor: color }}
+                  onClick={(e) => e.stopPropagation()}
                 />
               ))}
             </div>
@@ -125,7 +144,10 @@ export const HomepageEditorSidebar: React.FC<HomepageEditorSidebarProps> = ({
             </label>
             <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center">
               <div className="text-gray-400 mb-2">Drag & drop image here</div>
-              <button className="px-4 py-2 bg-neonCyan text-black rounded font-medium">
+              <button 
+                className="px-4 py-2 bg-neonCyan text-black rounded font-medium"
+                onClick={(e) => e.stopPropagation()}
+              >
                 Choose File
               </button>
             </div>
@@ -137,11 +159,21 @@ export const HomepageEditorSidebar: React.FC<HomepageEditorSidebarProps> = ({
             </label>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <input type="checkbox" className="rounded" />
+                <input 
+                  type="checkbox" 
+                  className="rounded"
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => e.stopPropagation()}
+                />
                 <span className="text-sm text-gray-300">Maintain aspect ratio</span>
               </div>
               <div className="flex items-center gap-2">
-                <input type="checkbox" className="rounded" />
+                <input 
+                  type="checkbox" 
+                  className="rounded"
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => e.stopPropagation()}
+                />
                 <span className="text-sm text-gray-300">Add rounded corners</span>
               </div>
             </div>
@@ -159,19 +191,43 @@ export const HomepageEditorSidebar: React.FC<HomepageEditorSidebarProps> = ({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-300">Carousel Section</span>
-                <input type="checkbox" defaultChecked className="rounded" />
+                <input 
+                  type="checkbox" 
+                  defaultChecked 
+                  className="rounded"
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => e.stopPropagation()}
+                />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-300">Events & Specials</span>
-                <input type="checkbox" defaultChecked className="rounded" />
+                <input 
+                  type="checkbox" 
+                  defaultChecked 
+                  className="rounded"
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => e.stopPropagation()}
+                />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-300">Categories Section</span>
-                <input type="checkbox" defaultChecked className="rounded" />
+                <input 
+                  type="checkbox" 
+                  defaultChecked 
+                  className="rounded"
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => e.stopPropagation()}
+                />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-300">Bookings Section</span>
-                <input type="checkbox" defaultChecked className="rounded" />
+                <input 
+                  type="checkbox" 
+                  defaultChecked 
+                  className="rounded"
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => e.stopPropagation()}
+                />
               </div>
             </div>
           </div>

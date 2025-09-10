@@ -38,7 +38,10 @@ export const HomepageEditorToolbar: React.FC<HomepageEditorToolbarProps> = ({
   ];
 
   return (
-    <div className="bg-gray-800/95 backdrop-blur-xl border-b border-gray-700 px-4 py-3 flex items-center justify-between shadow-xl">
+    <div 
+      className="bg-gray-800/95 backdrop-blur-xl border-b border-gray-700 px-4 py-3 flex items-center justify-between shadow-xl"
+      onClick={(e) => e.stopPropagation()} // 🎯 PREVENT component deselection
+    >
       {/* Left Section - Back Button & Title */}
       <div className="flex items-center gap-4">
         <Button
@@ -70,7 +73,10 @@ export const HomepageEditorToolbar: React.FC<HomepageEditorToolbarProps> = ({
           return (
             <Button
               key={tool.id}
-              onClick={() => setSelectedTool(tool.id)}
+              onClick={(e) => {
+                e.stopPropagation(); // 🎯 PREVENT component deselection
+                setSelectedTool(tool.id);
+              }}
               variant={isSelected ? "default" : "ghost"}
               size="sm"
               className={`${
@@ -90,7 +96,10 @@ export const HomepageEditorToolbar: React.FC<HomepageEditorToolbarProps> = ({
       <div className="flex items-center gap-3">
         {/* Editor Toggle */}
         <Button
-          onClick={() => setEnabled(!enabled)}
+          onClick={(e) => {
+            e.stopPropagation(); // 🎯 PREVENT component deselection
+            setEnabled(!enabled);
+          }}
           variant="outline"
           size="sm"
           className={`${

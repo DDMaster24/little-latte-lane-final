@@ -20,7 +20,7 @@ export interface EditableWelcomingSectionProps {
   backgroundColor?: string;
 }
 
-// Simple Editable Text Component that actually works
+// Fixed Editable Text Component - NO Layout Shifting + Better Visual Feedback
 const EditableText: React.FC<{
   value: string;
   onChange: (value: string) => void;
@@ -35,7 +35,8 @@ const EditableText: React.FC<{
     setLocalValue(value);
   }, [value]);
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent Craft.js deselection
     setIsEditing(true);
   };
 
@@ -55,27 +56,35 @@ const EditableText: React.FC<{
     }
   };
 
-  if (isEditing) {
-    return (
-      <input
-        type="text"
-        value={localValue}
-        onChange={(e) => setLocalValue(e.target.value)}
-        onBlur={handleBlur}
-        onKeyDown={handleKeyDown}
-        className={`${className} bg-transparent border-2 border-neonCyan rounded-md px-2 py-1 outline-none focus:ring-2 focus:ring-neonCyan/50`}
-        autoFocus
-        placeholder={placeholder}
-      />
-    );
-  }
-
+  // 🎯 FIXED: Use contentEditable overlay instead of switching elements
   const commonProps = {
+    className: `${className} cursor-pointer hover:ring-2 hover:ring-neonCyan/50 hover:ring-offset-2 hover:ring-offset-gray-900 transition-all duration-200 rounded-md px-2 py-1 relative group min-h-[1.5rem] inline-block`,
     onClick: handleClick,
-    className: `${className} cursor-pointer hover:ring-2 hover:ring-neonCyan/50 hover:ring-offset-2 hover:ring-offset-gray-900 transition-all duration-200 rounded-md px-2 py-1 relative group`,
     children: (
       <>
-        {localValue || placeholder}
+        {/* Display Content */}
+        <span 
+          className={`${isEditing ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
+        >
+          {localValue || placeholder}
+        </span>
+        
+        {/* Editing Input Overlay - NO Layout Shift */}
+        {isEditing && (
+          <input
+            type="text"
+            value={localValue}
+            onChange={(e) => setLocalValue(e.target.value)}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+            className="absolute inset-0 w-full h-full bg-transparent border-2 border-neonCyan rounded-md px-2 py-1 outline-none focus:ring-2 focus:ring-neonCyan/50 text-inherit font-inherit"
+            autoFocus
+            placeholder={placeholder}
+            style={{ fontSize: 'inherit', lineHeight: 'inherit' }}
+          />
+        )}
+        
+        {/* Hover Tooltip */}
         <div className="absolute -top-8 left-0 bg-neonCyan text-black text-xs px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
           Click to edit
         </div>
