@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
   Menu, Users, BarChart3, ShoppingBag, Calendar, 
-  Shield, Activity, CheckCircle, CreditCard, QrCode, Palette, Home, Edit, Navigation, Star
+  Shield, Activity, CheckCircle, CreditCard, QrCode, Palette, Edit, Navigation, Star
 } from 'lucide-react';
 
 // Tab Components
@@ -79,34 +79,74 @@ export default function AdminPage() {
         return (
           <div className="space-y-6">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-white mb-2">Universal Page Editor</h2>
-              <p className="text-gray-400">Edit any page on your website with our advanced visual editor</p>
+              <h2 className="text-2xl font-bold text-white mb-2">Visual Page Builder</h2>
+              <p className="text-gray-400">Professional drag & drop editor for all website pages - powered by Craft.js</p>
             </div>
 
             <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
-              {/* Homepage Card */}
-              <Card className="bg-darkBg/50 border-gray-700 hover:border-neonCyan/50 transition-all duration-200">
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex flex-col">
-                    <div className="flex items-start gap-3 sm:gap-4 mb-4">
-                      <div className="p-2 sm:p-3 bg-neonCyan/10 rounded-lg flex-shrink-0">
-                        <Home className="h-5 w-5 sm:h-6 sm:w-6 text-neonCyan" />
+              {/* NEW: Visual Page Builder Card - Main Entry Point */}
+              <Card className="bg-darkBg/50 border-gray-700 hover:border-yellow-500/50 transition-all duration-200 ring-2 ring-yellow-500/20 col-span-full">
+                <CardContent className="p-6">
+                  <div className="flex flex-col lg:flex-row items-start justify-between gap-6">
+                    <div className="flex items-start gap-4 flex-1">
+                      <div className="p-3 bg-yellow-500/10 rounded-lg flex-shrink-0">
+                        <Edit className="h-8 w-8 text-yellow-500" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="text-base sm:text-lg font-semibold text-white">Homepage</h3>
-                        <p className="text-gray-400 text-xs sm:text-sm">Edit the main landing page content</p>
+                        <h3 className="text-xl font-bold text-white flex items-center gap-3 mb-2">
+                          Visual Page Builder
+                          <span className="text-sm bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full">NEW SYSTEM</span>
+                        </h3>
+                        <p className="text-gray-300 mb-3">
+                          Professional visual editor with Canvas-like interface. Edit any page with drag & drop, real-time preview, and live editing.
+                        </p>
+                        <div className="flex flex-wrap items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                            <span className="text-sm text-gray-400">Real-time WYSIWYG</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                            <span className="text-sm text-gray-400">Drag & Drop</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                            <span className="text-sm text-gray-400">Component Library</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 bg-pink-500 rounded-full"></span>
+                            <span className="text-sm text-gray-400">No Database Tricks</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <Button
-                      onClick={() => router.push('/admin/page-editor/homepage')}
-                      className="bg-neonCyan hover:bg-neonCyan/80 text-darkBg font-semibold w-full text-sm"
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Homepage
-                    </Button>
+                    <div className="flex flex-col gap-3 w-full lg:w-auto">
+                      <Button
+                        onClick={() => router.push('/admin/page-builder')}
+                        className="bg-yellow-500 hover:bg-yellow-500/80 text-black font-bold px-6 py-3 text-base"
+                      >
+                        <Edit className="h-5 w-5 mr-2" />
+                        Launch Visual Builder
+                      </Button>
+                      <Button
+                        onClick={() => router.push('/admin/page-editor/homepage')}
+                        variant="outline"
+                        className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10 px-6 py-2"
+                      >
+                        Edit Homepage
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Legacy Editors - Keep for other pages until migrated */}
+              <div className="col-span-full">
+                <h3 className="text-lg font-semibold text-gray-300 mb-4 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-gray-500 rounded-full"></span>
+                  Legacy Editors (Being Migrated to Visual Builder)
+                </h3>
+              </div>
 
               {/* Header Editor Card */}
               <Card className="bg-darkBg/50 border-gray-700 hover:border-neonPink/50 transition-all duration-200">
