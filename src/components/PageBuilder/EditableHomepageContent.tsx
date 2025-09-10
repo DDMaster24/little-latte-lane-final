@@ -1,22 +1,25 @@
 'use client';
 
 import React from 'react';
-import { EditableWelcomingSection } from './EditableWelcomingSection';
+import EditableWelcomingSection from './EditableWelcomingSection';
 import CategoriesSection from '@/components/CategoriesSection';
 import EventsSpecialsSection from '@/components/EventsSpecialsSection';
 import BookingsSection from '@/components/BookingsSection';
 
 interface EditableHomepageContentProps {
-  selectedTool: 'text' | 'color' | 'image' | 'toggle';
+  selectedTool: 'text' | 'color' | 'background' | 'image';
 }
 
 export const EditableHomepageContent: React.FC<EditableHomepageContentProps> = ({
-  selectedTool: _selectedTool
+  selectedTool
 }) => {
   return (
     <div className="space-y-0">
       {/* Editable Welcoming Section - Fully clickable individual elements */}
-      <EditableWelcomingSection />
+      <EditableWelcomingSection 
+        isEditMode={true}
+        selectedTool={selectedTool}
+      />
       
       {/* Events & Specials Section - Coming soon for individual editing */}
       <EventsSpecialsSection />

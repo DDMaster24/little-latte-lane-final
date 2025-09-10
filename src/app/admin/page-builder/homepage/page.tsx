@@ -5,12 +5,11 @@ import { Editor, Frame, Element } from '@craftjs/core';
 import { EditableHomepageContent } from '@/components/PageBuilder/EditableHomepageContent';
 import { HomepageEditorToolbar } from '@/components/PageBuilder/HomepageEditorToolbar';
 import { HomepageEditorSidebar } from '@/components/PageBuilder/HomepageEditorSidebar';
-import { EditableWelcomingSection } from '@/components/PageBuilder/EditableWelcomingSection';
+import EditableWelcomingSection from '@/components/PageBuilder/EditableWelcomingSection';
 
 // Editor for homepage content only - no navigation/header/footer
 export default function HomepageEditor() {
-  const [enabled, setEnabled] = useState(true); // Start in editing mode
-  const [selectedTool, setSelectedTool] = useState<'text' | 'color' | 'image' | 'toggle'>('text');
+  const [selectedTool, setSelectedTool] = useState<'text' | 'color' | 'background' | 'image'>('text');
 
   return (
     <div className="h-screen bg-gray-900 flex flex-col overflow-hidden">
@@ -19,12 +18,10 @@ export default function HomepageEditor() {
           EditableHomepageContent,
           EditableWelcomingSection,
         }}
-        enabled={enabled}
+        enabled={true} // Always enabled for our new system
       >
         {/* Fixed Toolbar at Top */}
         <HomepageEditorToolbar 
-          enabled={enabled}
-          setEnabled={setEnabled}
           selectedTool={selectedTool}
           setSelectedTool={setSelectedTool}
         />
@@ -44,7 +41,6 @@ export default function HomepageEditor() {
           {/* Right Sidebar - Editing Controls */}
           <HomepageEditorSidebar 
             selectedTool={selectedTool}
-            enabled={enabled}
           />
         </div>
       </Editor>
