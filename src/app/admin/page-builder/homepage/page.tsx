@@ -5,6 +5,7 @@ import { Editor, Frame, Element } from '@craftjs/core';
 import { EditableHomepageContent } from '@/components/PageBuilder/EditableHomepageContent';
 import { HomepageEditorToolbar } from '@/components/PageBuilder/HomepageEditorToolbar';
 import { HomepageEditorSidebar } from '@/components/PageBuilder/HomepageEditorSidebar';
+import { EditableWelcomingSection } from '@/components/PageBuilder/EditableWelcomingSection';
 
 // Editor for homepage content only - no navigation/header/footer
 export default function HomepageEditor() {
@@ -16,6 +17,7 @@ export default function HomepageEditor() {
       <Editor
         resolver={{
           EditableHomepageContent,
+          EditableWelcomingSection,
         }}
         enabled={enabled}
       >

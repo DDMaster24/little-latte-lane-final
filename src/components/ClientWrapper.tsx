@@ -17,7 +17,7 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   // Check if we're in a page builder page
-  const isPageBuilder = pathname === '/admin/page-builder' || false;
+  const isPageBuilder = pathname?.startsWith('/admin/page-builder');
 
   useEffect(() => {
     setIsClient(true);

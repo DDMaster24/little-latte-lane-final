@@ -85,6 +85,39 @@ export default function AdminPage() {
             </div>
 
             <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+              {/* Homepage Editor - Direct Access */}
+              <Card className="bg-darkBg/50 border-gray-700 hover:border-neonCyan/50 transition-all duration-200 ring-2 ring-neonCyan/20">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="p-3 bg-neonCyan/10 rounded-lg flex-shrink-0">
+                      <Edit className="h-8 w-8 text-neonCyan" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-xl font-bold text-white mb-2">
+                        Homepage Editor
+                        <span className="ml-2 text-sm bg-neonCyan/20 text-neonCyan px-2 py-1 rounded-full">DIRECT</span>
+                      </h3>
+                      <p className="text-gray-300 mb-3 text-sm">
+                        Edit homepage content directly. Click headings, text, and sections to modify them instantly. Clean editing environment.
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Welcome Section</span>
+                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">Categories</span>
+                        <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded">Events</span>
+                        <span className="text-xs bg-pink-500/20 text-pink-400 px-2 py-1 rounded">Bookings</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => router.push('/admin/page-builder/homepage')}
+                    className="bg-neonCyan hover:bg-neonCyan/80 text-black font-bold w-full"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Homepage Now
+                  </Button>
+                </CardContent>
+              </Card>
+
               {/* Unified Page Builder */}
               <Card className="bg-darkBg/50 border-gray-700 hover:border-yellow-500/50 transition-all duration-200 ring-2 ring-yellow-500/20">
                 <CardContent className="p-6">
@@ -101,11 +134,10 @@ export default function AdminPage() {
                         Edit all website content with professional drag & drop interface. Click any element to customize text, colors, and layout.
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Homepage</span>
-                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">Categories</span>
-                        <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded">Events</span>
-                        <span className="text-xs bg-pink-500/20 text-pink-400 px-2 py-1 rounded">Headers</span>
-                        <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-1 rounded">Backgrounds</span>
+                        <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">All Pages</span>
+                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">Advanced Tools</span>
+                        <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded">Templates</span>
+                        <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-1 rounded">Export/Import</span>
                       </div>
                     </div>
                   </div>
@@ -113,7 +145,7 @@ export default function AdminPage() {
                     onClick={() => router.push('/admin/page-builder')}
                     className="bg-yellow-500 hover:bg-yellow-500/80 text-black font-bold w-full"
                   >
-                    <Edit className="h-4 w-4 mr-2" />
+                    <Palette className="h-4 w-4 mr-2" />
                     Launch Page Builder
                   </Button>
                 </CardContent>
