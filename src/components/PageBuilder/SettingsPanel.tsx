@@ -4,17 +4,20 @@ import React from 'react';
 import { useEditor } from '@craftjs/core';
 
 export const SettingsPanel = () => {
-  console.log('🔍 SettingsPanel Updated - Version 3.0 - Enhanced Debug Active - ', new Date().toISOString());
+  console.log('🔍 SettingsPanel Updated - Version 4.0 - Fixed Resolver Access - ', new Date().toISOString());
   
-  const { selected, selectedNodeId } = useEditor((state) => {
+  const { selected, selectedNodeId } = useEditor((state, query) => {
     const currentNodeId = state.events.selected;
     let selected;
     
     if (currentNodeId && typeof currentNodeId === 'string') {
       const node = state.nodes[currentNodeId];
       if (node) {
-        // Get the settings component from the resolver's related.settings
-        const resolver = state.options.resolver;
+        // Get the resolver differently - from the query object
+        const resolver = query.getOptions().resolver;
+        console.log('🔍 Resolver found:', resolver ? Object.keys(resolver) : 'No resolver');
+        console.log('🔍 Node data:', node.data);
+        
         const componentType = node.data.type;
         let componentName = '';
         let settingsComponent = null;
