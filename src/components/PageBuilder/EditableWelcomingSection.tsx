@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNode } from '@craftjs/core';
 import { useAuth } from '@/components/AuthProvider';
+import { useHomepageContent } from '@/hooks/useHomepageContent';
 import { Badge } from '@/components/ui/badge';
-import { Star, MapPin, Car } from 'lucide-react';
+import { Star, MapPin, Car, Save, RefreshCw, AlertCircle } from 'lucide-react';
 import DynamicCarousel from '@/components/DynamicCarousel';
 
 export interface EditableWelcomingSectionProps {
@@ -106,21 +107,21 @@ const EditableText: React.FC<{
   }
 };
 
-export const EditableWelcomingSection: React.FC<EditableWelcomingSectionProps> = ({
-  mainHeading = 'Welcome to Little Latte Lane',
-  heroSubheading = 'Café & Deli - Where Great Food Meets Amazing Experiences',
-  nowOpenBadge = 'Now Open',
-  serviceOptionsBadge = 'Dine In • Takeaway • Delivery',
-  ctaHeading = 'Ready to Experience Little Latte Lane?',
-  ctaDescription = 'Join us for exceptional food, premium beverages, and a warm, welcoming atmosphere. Whether you\'re catching up with friends, having a business meeting, or enjoying a quiet moment, we\'re here to make your experience memorable.',
-  qualityFeatureText = 'Exceptional Quality',
-  locationFeatureText = 'Prime Location',
-  parkingFeatureText = 'Easy Parking',
-  backgroundColor = 'from-darkBg via-gray-900 to-darkBg'
-}) => {
+export const EditableWelcomingSection: React.FC<EditableWelcomingSectionProps> = () => {
   const { user, profile } = useAuth();
   const username = profile?.full_name || user?.email?.split('@')[0] || '';
   
+  // 🔥 NEW: Database-powered content management
+  const {
+    content,
+    isLoading,
+    isSaving,
+    error,
+    updateContent,
+    hasUnsavedChanges,
+    lastSaved
+  } = useHomepageContent();
+
   const {
     connectors: { connect },
     selected,
@@ -129,17 +130,49 @@ export const EditableWelcomingSection: React.FC<EditableWelcomingSectionProps> =
     selected: state.events.selected,
   }));
 
-  // Use username if available, otherwise use the editable text
+  // Use database content instead of props
+  const currentContent = {
+    mainHeading: content.mainHeading,
+    heroSubheading: content.heroSubheading,
+    nowOpenBadge: content.nowOpenBadge,
+    serviceOptionsBadge: content.serviceOptionsBadge,
+    ctaHeading: content.ctaHeading,
+    ctaDescription: content.ctaDescription,
+    qualityFeatureText: content.qualityFeatureText,
+    locationFeatureText: content.locationFeatureText,
+    parkingFeatureText: content.parkingFeatureText,
+    backgroundColor: content.backgroundColor
+  };
+
+  // Use username if available, otherwise use the editable text from database
   const displayHeading = username 
     ? `Welcome Back, ${username}!` 
-    : mainHeading;
+    : currentContent.mainHeading;
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <section className="bg-gradient-to-br from-darkBg via-gray-900 to-darkBg section-padding overflow-hidden">
+        <div className="container-wide animate-pulse">
+          <div className="text-center section-padding-sm">
+            <div className="h-12 bg-gray-700 rounded-lg mb-4 max-w-2xl mx-auto"></div>
+            <div className="h-6 bg-gray-700 rounded-lg mb-6 max-w-4xl mx-auto"></div>
+            <div className="flex justify-center gap-3 mb-12">
+              <div className="h-8 w-24 bg-gray-700 rounded"></div>
+              <div className="h-8 w-32 bg-gray-700 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section 
       ref={(ref) => {
         if (ref) connect(ref as HTMLElement);
       }}
-      className={`bg-gradient-to-br ${backgroundColor} section-padding overflow-hidden ${
+      className={`bg-gradient-to-br ${currentContent.backgroundColor} section-padding overflow-hidden ${
         selected ? 'ring-4 ring-orange-500/60' : ''
       } transition-all duration-200 relative`}
     >
@@ -148,19 +181,29 @@ export const EditableWelcomingSection: React.FC<EditableWelcomingSectionProps> =
         <div className="text-center section-padding-sm">
           <EditableText
             value={displayHeading}
-            onChange={(value) => setProp((props: EditableWelcomingSectionProps) => {
-              props.mainHeading = value;
-            })}
+            onChange={(value) => {
+              // Don't save personalized welcome messages
+              if (!username) {
+                updateContent('mainHeading', value);
+              }
+              // Also update Craft.js props for compatibility
+              setProp((props: EditableWelcomingSectionProps) => {
+                props.mainHeading = value;
+              });
+            }}
             tag="h1"
             className="text-fluid-3xl xs:text-fluid-4xl sm:text-fluid-5xl lg:text-fluid-6xl font-bold mb-4 xs:mb-6 bg-neon-gradient bg-clip-text text-transparent"
             placeholder="Enter main heading..."
           />
           
           <EditableText
-            value={heroSubheading}
-            onChange={(value) => setProp((props: EditableWelcomingSectionProps) => {
-              props.heroSubheading = value;
-            })}
+            value={currentContent.heroSubheading}
+            onChange={(value) => {
+              updateContent('heroSubheading', value);
+              setProp((props: EditableWelcomingSectionProps) => {
+                props.heroSubheading = value;
+              });
+            }}
             tag="p"
             className="text-fluid-lg xs:text-fluid-xl sm:text-fluid-2xl text-gray-300 mb-4 xs:mb-6 max-w-4xl mx-auto"
             placeholder="Enter hero description..."
@@ -169,20 +212,26 @@ export const EditableWelcomingSection: React.FC<EditableWelcomingSectionProps> =
           <div className="flex flex-wrap justify-center gap-2 xs:gap-3 mb-8 xs:mb-12">
             <Badge className="bg-neonCyan text-black px-3 xs:px-4 py-2 text-fluid-xs xs:text-fluid-sm font-medium">
               <EditableText
-                value={nowOpenBadge}
-                onChange={(value) => setProp((props: EditableWelcomingSectionProps) => {
-                  props.nowOpenBadge = value;
-                })}
+                value={currentContent.nowOpenBadge}
+                onChange={(value) => {
+                  updateContent('nowOpenBadge', value);
+                  setProp((props: EditableWelcomingSectionProps) => {
+                    props.nowOpenBadge = value;
+                  });
+                }}
                 className="bg-transparent text-inherit"
                 placeholder="Status badge..."
               />
             </Badge>
             <Badge className="bg-neonPink text-black px-3 xs:px-4 py-2 text-fluid-xs xs:text-fluid-sm font-medium">
               <EditableText
-                value={serviceOptionsBadge}
-                onChange={(value) => setProp((props: EditableWelcomingSectionProps) => {
-                  props.serviceOptionsBadge = value;
-                })}
+                value={currentContent.serviceOptionsBadge}
+                onChange={(value) => {
+                  updateContent('serviceOptionsBadge', value);
+                  setProp((props: EditableWelcomingSectionProps) => {
+                    props.serviceOptionsBadge = value;
+                  });
+                }}
                 className="bg-transparent text-inherit"
                 placeholder="Service options..."
               />
@@ -205,20 +254,26 @@ export const EditableWelcomingSection: React.FC<EditableWelcomingSectionProps> =
         {/* Call to Action Section */}
         <div className="text-center">
           <EditableText
-            value={ctaHeading}
-            onChange={(value) => setProp((props: EditableWelcomingSectionProps) => {
-              props.ctaHeading = value;
-            })}
+            value={currentContent.ctaHeading}
+            onChange={(value) => {
+              updateContent('ctaHeading', value);
+              setProp((props: EditableWelcomingSectionProps) => {
+                props.ctaHeading = value;
+              });
+            }}
             tag="h2"
             className="text-3xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-4"
             placeholder="Enter CTA heading..."
           />
           
           <EditableText
-            value={ctaDescription}
-            onChange={(value) => setProp((props: EditableWelcomingSectionProps) => {
-              props.ctaDescription = value;
-            })}
+            value={currentContent.ctaDescription}
+            onChange={(value) => {
+              updateContent('ctaDescription', value);
+              setProp((props: EditableWelcomingSectionProps) => {
+                props.ctaDescription = value;
+              });
+            }}
             tag="p"
             className="text-lg text-gray-300 mb-6 max-w-2xl mx-auto"
             placeholder="Enter CTA description..."
@@ -228,10 +283,13 @@ export const EditableWelcomingSection: React.FC<EditableWelcomingSectionProps> =
             <div className="flex items-center justify-center gap-2 text-neonCyan">
               <Star className="h-5 w-5" />
               <EditableText
-                value={qualityFeatureText}
-                onChange={(value) => setProp((props: EditableWelcomingSectionProps) => {
-                  props.qualityFeatureText = value;
-                })}
+                value={currentContent.qualityFeatureText}
+                onChange={(value) => {
+                  updateContent('qualityFeatureText', value);
+                  setProp((props: EditableWelcomingSectionProps) => {
+                    props.qualityFeatureText = value;
+                  });
+                }}
                 className="text-sm font-medium"
                 placeholder="Feature 1..."
               />
@@ -239,10 +297,13 @@ export const EditableWelcomingSection: React.FC<EditableWelcomingSectionProps> =
             <div className="flex items-center justify-center gap-2 text-neonPink">
               <MapPin className="h-5 w-5" />
               <EditableText
-                value={locationFeatureText}
-                onChange={(value) => setProp((props: EditableWelcomingSectionProps) => {
-                  props.locationFeatureText = value;
-                })}
+                value={currentContent.locationFeatureText}
+                onChange={(value) => {
+                  updateContent('locationFeatureText', value);
+                  setProp((props: EditableWelcomingSectionProps) => {
+                    props.locationFeatureText = value;
+                  });
+                }}
                 className="text-sm font-medium"
                 placeholder="Feature 2..."
               />
@@ -250,10 +311,13 @@ export const EditableWelcomingSection: React.FC<EditableWelcomingSectionProps> =
             <div className="flex items-center justify-center gap-2 text-yellow-400">
               <Car className="h-5 w-5" />
               <EditableText
-                value={parkingFeatureText}
-                onChange={(value) => setProp((props: EditableWelcomingSectionProps) => {
-                  props.parkingFeatureText = value;
-                })}
+                value={currentContent.parkingFeatureText}
+                onChange={(value) => {
+                  updateContent('parkingFeatureText', value);
+                  setProp((props: EditableWelcomingSectionProps) => {
+                    props.parkingFeatureText = value;
+                  });
+                }}
                 className="text-sm font-medium"
                 placeholder="Feature 3..."
               />
@@ -262,9 +326,35 @@ export const EditableWelcomingSection: React.FC<EditableWelcomingSectionProps> =
         </div>
       </div>
       
+      {/* Enhanced Editor Status Display */}
       {selected && (
         <div className="absolute top-4 left-4 bg-orange-500 text-white text-xs px-3 py-2 rounded-md z-10 font-medium">
           🎯 Editing: Welcome Section • Click any text to edit
+          {isSaving && (
+            <div className="flex items-center gap-1 mt-1">
+              <RefreshCw className="h-3 w-3 animate-spin" />
+              <span>Saving...</span>
+            </div>
+          )}
+          {error && (
+            <div className="flex items-center gap-1 mt-1 text-red-200">
+              <AlertCircle className="h-3 w-3" />
+              <span>Save failed</span>
+            </div>
+          )}
+          {!isSaving && !error && lastSaved && (
+            <div className="flex items-center gap-1 mt-1 text-green-200">
+              <Save className="h-3 w-3" />
+              <span>Saved {lastSaved.toLocaleTimeString()}</span>
+            </div>
+          )}
+        </div>
+      )}
+      
+      {/* Unsaved Changes Indicator */}
+      {hasUnsavedChanges && (
+        <div className="absolute top-4 right-4 bg-yellow-500 text-black text-xs px-3 py-2 rounded-md z-10 font-medium">
+          ⚠️ Unsaved Changes
         </div>
       )}
     </section>
@@ -274,22 +364,64 @@ export const EditableWelcomingSection: React.FC<EditableWelcomingSectionProps> =
 // Settings Panel for Welcoming Section
 export const EditableWelcomingSectionSettings = () => {
   const {
-    actions: { setProp },
-    props
-  } = useNode((node) => ({
-    props: node.data.props
-  }));
+    actions: { setProp }
+  } = useNode();
+
+  // Database-powered content hook
+  const {
+    content,
+    isSaving,
+    error,
+    saveContent,
+    resetContent,
+    hasUnsavedChanges,
+    lastSaved
+  } = useHomepageContent();
 
   return (
     <div className="space-y-4 p-4 bg-gray-800 text-white">
       <h3 className="text-lg font-bold">Welcoming Section Settings</h3>
       
+      {/* Database Status */}
+      <div className="bg-gray-900/50 p-3 rounded-md border border-gray-700">
+        <h4 className="text-sm font-medium mb-2 text-neonCyan">Database Status</h4>
+        <div className="space-y-2 text-xs">
+          {isSaving && (
+            <div className="flex items-center gap-2 text-yellow-400">
+              <RefreshCw className="h-3 w-3 animate-spin" />
+              <span>Saving changes...</span>
+            </div>
+          )}
+          {error && (
+            <div className="flex items-center gap-2 text-red-400">
+              <AlertCircle className="h-3 w-3" />
+              <span>Error: {error}</span>
+            </div>
+          )}
+          {lastSaved && !isSaving && !error && (
+            <div className="flex items-center gap-2 text-green-400">
+              <Save className="h-3 w-3" />
+              <span>Last saved: {lastSaved.toLocaleTimeString()}</span>
+            </div>
+          )}
+          {hasUnsavedChanges && (
+            <div className="text-yellow-400">⚠️ Unsaved changes detected</div>
+          )}
+        </div>
+      </div>
+      
       {/* Background Gradient */}
       <div>
         <label className="block text-sm font-medium mb-2">Background Style</label>
         <select
-          value={props.backgroundColor}
-          onChange={(e) => setProp((props: EditableWelcomingSectionProps) => (props.backgroundColor = e.target.value))}
+          value={content.backgroundColor}
+          onChange={(e) => {
+            const value = e.target.value;
+            // Update database
+            saveContent({ backgroundColor: value });
+            // Update Craft.js props for compatibility
+            setProp((props: EditableWelcomingSectionProps) => (props.backgroundColor = value));
+          }}
           className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
         >
           <option value="from-darkBg via-gray-900 to-darkBg">Dark Theme (Default)</option>
@@ -300,8 +432,23 @@ export const EditableWelcomingSectionSettings = () => {
         </select>
       </div>
 
+      {/* Action Buttons */}
+      <div className="space-y-2">
+        <button
+          onClick={() => resetContent()}
+          disabled={isSaving}
+          className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white px-3 py-2 rounded text-sm font-medium transition-colors"
+        >
+          {isSaving ? 'Processing...' : 'Reset to Defaults'}
+        </button>
+      </div>
+
       <div className="text-sm text-gray-400 bg-gray-900/50 p-3 rounded-md">
-        💡 <strong>How to edit:</strong> Click any text element directly to start editing. Press Enter to save, Escape to cancel.
+        💡 <strong>How to edit:</strong> Click any text element directly to start editing. Changes are automatically saved to the database. Press Enter to save, Escape to cancel.
+      </div>
+
+      <div className="text-xs text-gray-500 bg-gray-900/50 p-3 rounded-md">
+        🔗 <strong>Database Integration:</strong> All content is stored in the theme_settings table with homepage scope. Changes persist across page reloads and are shared across all users.
       </div>
     </div>
   );
