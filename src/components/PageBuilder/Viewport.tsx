@@ -36,12 +36,13 @@ export const Viewport: React.FC<ViewportProps> = ({ children }) => {
               transition: all 0.2s ease-in-out;
             }
             
-            /* Selection effect for selected components */
-            [data-cy="component-wrapper"].ring-blue-500 {
+            /* Selection effect for selected components - NO BACKGROUND CHANGE */
+            [data-cy="component-wrapper"].ring-blue-500,
+            [data-cy="component-wrapper"].ring-2 {
               outline: 3px solid #3b82f6 !important;
               outline-offset: 2px;
               box-shadow: 0 0 15px rgba(59, 130, 246, 0.7) !important;
-              background: rgba(59, 130, 246, 0.05) !important;
+              /* Remove background override to keep original colors */
             }
             
             /* Better visual feedback for ContentEditable elements */
