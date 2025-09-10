@@ -234,55 +234,7 @@ export default function AdminPage() {
               </Card>
             </div>
 
-            {/* Usage Guide */}
-            <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-xl p-6 border border-yellow-500/20 mt-8">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-                How to Edit Pages
-              </h3>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 bg-yellow-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-xs font-bold text-yellow-500">1</span>
-                    </div>
-                    <div>
-                      <div className="text-white font-medium">Select a Page</div>
-                      <div className="text-sm text-gray-400">Choose which page you want to edit from the cards above</div>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 bg-yellow-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-xs font-bold text-yellow-500">2</span>
-                    </div>
-                    <div>
-                      <div className="text-white font-medium">Enable Edit Mode</div>
-                      <div className="text-sm text-gray-400">Click &ldquo;Enable&rdquo; to start editing the live page content</div>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 bg-yellow-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-xs font-bold text-yellow-500">3</span>
-                    </div>
-                    <div>
-                      <div className="text-white font-medium">Click Any Element</div>
-                      <div className="text-sm text-gray-400">Click on carousel panels, categories, or any section to edit</div>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 bg-yellow-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-xs font-bold text-yellow-500">4</span>
-                    </div>
-                    <div>
-                      <div className="text-white font-medium">Customize & Save</div>
-                      <div className="text-sm text-gray-400">Use the settings panel to customize colors, text, images</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+
           </div>
         );
       case 'qrcode':

@@ -17,7 +17,7 @@ export const PageBuilder = () => {
   const [enabled, setEnabled] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="h-screen bg-gray-900 flex flex-col">
       <Editor
         resolver={{
           EditableHeroSection,
@@ -32,7 +32,7 @@ export const PageBuilder = () => {
         {/* Top Navigation Bar */}
         <TopBar enabled={enabled} setEnabled={setEnabled} />
         
-        <div className="flex h-screen">
+        <div className="flex flex-1 overflow-hidden">
           {/* Left Sidebar - Component Toolbox */}
           {enabled && (
             <div className="w-80 bg-gray-800 border-r border-gray-700 overflow-y-auto">

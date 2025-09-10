@@ -16,7 +16,7 @@ export default function HomepageVisualEditor() {
   const [enabled, setEnabled] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="h-screen bg-gray-900 flex flex-col">
       <Editor
         resolver={{
           EditableWelcomingSection,
@@ -34,7 +34,7 @@ export default function HomepageVisualEditor() {
           pageDescription="Edit carousel panels, categories, events and all homepage content"
         />
         
-        <div className="flex h-screen">
+        <div className="flex flex-1 overflow-hidden">
           {/* Main Canvas Area - Shows actual homepage content */}
           <div className="flex-1 overflow-y-auto">
             <Viewport>

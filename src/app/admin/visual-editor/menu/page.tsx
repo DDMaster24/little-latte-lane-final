@@ -12,7 +12,7 @@ export default function MenuVisualEditor() {
   const [enabled, setEnabled] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="h-screen bg-gray-900 flex flex-col">
       <Editor
         resolver={{
           EditableText,
@@ -27,7 +27,7 @@ export default function MenuVisualEditor() {
           pageDescription="Edit menu categories, descriptions, and layout"
         />
         
-        <div className="flex h-screen">
+        <div className="flex flex-1 overflow-hidden">
           <div className="flex-1 overflow-y-auto">
             <Viewport>
               <Frame>

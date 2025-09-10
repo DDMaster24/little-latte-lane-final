@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { AuthProvider } from '@/components/AuthProvider';
 import { Toaster } from 'react-hot-toast';
 import Header from '@/components/Header';
@@ -13,6 +14,10 @@ import { initNavigationSafety } from '@/lib/navigationUtils';
 export function ClientWrapper({ children }: { children: ReactNode }) {
   const [isOnline, setIsOnline] = useState(true);
   const [isClient, setIsClient] = useState(false);
+  const pathname = usePathname();
+
+  // Check if we're in a visual editor page
+  const isVisualEditor = pathname?.startsWith('/admin/visual-editor/') || pathname === '/admin/page-builder' || false;
 
   useEffect(() => {
     setIsClient(true);
@@ -69,10 +74,18 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
         </div>
       )}
       
-      {/* Normal layout with header and footer */}
-      <Header />
-      <main className="flex-grow">{children}</main>
-      <FooterSection />
+      {/* Conditional layout: Full-screen for visual editors, normal layout for other pages */}
+      {isVisualEditor ? (
+        // Visual Editor Layout - Full screen, no header/footer
+        <main className="h-screen overflow-hidden">{children}</main>
+      ) : (
+        // Normal Layout - With header and footer
+        <>
+          <Header />
+          <main className="flex-grow">{children}</main>
+          <FooterSection />
+        </>
+      )}
       
       {/* PWA Install Prompt - shows when triggered */}
       <PWAInstallPrompt source="auto" />
