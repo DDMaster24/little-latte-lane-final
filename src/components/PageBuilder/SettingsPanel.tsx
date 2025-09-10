@@ -4,7 +4,7 @@ import React from 'react';
 import { useEditor } from '@craftjs/core';
 
 export const SettingsPanel = () => {
-  console.log('🔍 SettingsPanel Updated - Version 2.0');
+  console.log('🔍 SettingsPanel Updated - Version 3.0 - Enhanced Debug Active - ', new Date().toISOString());
   
   const { selected, selectedNodeId } = useEditor((state) => {
     const currentNodeId = state.events.selected;
@@ -95,17 +95,24 @@ export const SettingsPanel = () => {
             <div><strong>Settings Component:</strong> {selected?.settings?.name || 'None'}</div>
             
             {/* Show available resolver keys */}
-            {selected?.allResolverKeys && (
+            {selected?.allResolverKeys && selected.allResolverKeys.length > 0 ? (
               <div className="mt-2">
                 <strong>Available Components:</strong>
                 <div className="text-xs text-blue-300 mt-1">
                   {selected.allResolverKeys.join(', ')}
                 </div>
               </div>
+            ) : (
+              <div className="mt-2">
+                <strong>Available Components:</strong>
+                <div className="text-xs text-red-300 mt-1">
+                  No resolver or empty resolver found
+                </div>
+              </div>
             )}
             
             {/* Show raw node type for debugging */}
-            {selected?.nodeData && (
+            {selected?.nodeData ? (
               <div className="mt-2">
                 <strong>Raw Node Type:</strong>
                 <div className="text-xs text-green-300 mt-1 font-mono">
@@ -113,6 +120,13 @@ export const SettingsPanel = () => {
                     ? `Function: ${selected.nodeData.type.name}`
                     : JSON.stringify(selected.nodeData.type, null, 2)
                   }
+                </div>
+              </div>
+            ) : (
+              <div className="mt-2">
+                <strong>Raw Node Type:</strong>
+                <div className="text-xs text-red-300 mt-1">
+                  No node data available
                 </div>
               </div>
             )}
