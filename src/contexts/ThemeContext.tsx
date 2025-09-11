@@ -14,8 +14,6 @@ export interface ThemeSetting {
 
 interface ThemeContextType {
   settings: Record<string, string>;
-  isEditorMode: boolean;
-  setEditorMode: (enabled: boolean) => void;
   updateSetting: (key: string, value: string) => Promise<void>;
   getSetting: (key: string, defaultValue?: string) => string;
   applyTheme: () => void;
@@ -38,7 +36,6 @@ interface ThemeProviderProps {
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const [settings, setSettings] = useState<Record<string, string>>({});
-  const [isEditorMode, setIsEditorMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const supabase = getSupabaseClient();
 
@@ -130,15 +127,6 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     root.style.setProperty('--theme-border-radius', getSetting('border_radius', '12') + 'px');
   }, [getSetting]);
 
-  // Check for editor mode in URL
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const editorParam = urlParams.get('editor');
-    if (editorParam === 'true') {
-      setIsEditorMode(true);
-    }
-  }, []);
-
   // Load settings on mount
   useEffect(() => {
     loadSettings();
@@ -151,23 +139,8 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     }
   }, [settings, loading, applyTheme]);
 
-  const setEditorMode = useCallback((enabled: boolean) => {
-    setIsEditorMode(enabled);
-    
-    // Update URL without page reload
-    const url = new URL(window.location.href);
-    if (enabled) {
-      url.searchParams.set('editor', 'true');
-    } else {
-      url.searchParams.delete('editor');
-    }
-    window.history.replaceState({}, '', url.toString());
-  }, []);
-
   const value: ThemeContextType = {
     settings,
-    isEditorMode,
-    setEditorMode,
     updateSetting,
     getSetting,
     applyTheme,

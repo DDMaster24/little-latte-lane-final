@@ -15,9 +15,9 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
   const [isOnline, setIsOnline] = useState(true);
   const [isClient, setIsClient] = useState(false);
   const pathname = usePathname();
-
-  // Check if we're in a page builder page
-  const isPageBuilder = pathname?.startsWith('/admin/page-builder');
+  
+  // Check if we're in craft editor mode
+  const isEditorMode = pathname.includes('/admin/craft-editor');
 
   useEffect(() => {
     setIsClient(true);
@@ -74,18 +74,10 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
         </div>
       )}
       
-      {/* Conditional layout: Full-screen for page builder, normal layout for other pages */}
-      {isPageBuilder ? (
-        // Page Builder Layout - Full screen, no header/footer
-        <main className="h-screen overflow-hidden">{children}</main>
-      ) : (
-        // Normal Layout - With header and footer
-        <>
-          <Header />
-          <main className="flex-grow">{children}</main>
-          <FooterSection />
-        </>
-      )}
+      {/* Conditional Layout - Header/Footer only for non-editor pages */}
+      {!isEditorMode && <Header />}
+      <main className={isEditorMode ? "min-h-screen" : "flex-grow"}>{children}</main>
+      {!isEditorMode && <FooterSection />}
       
       {/* PWA Install Prompt - shows when triggered */}
       <PWAInstallPrompt source="auto" />

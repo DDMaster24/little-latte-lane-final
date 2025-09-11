@@ -7,10 +7,8 @@
 import Link from 'next/link';
 import { ClientOnly } from '@/components/ClientOnly';
 import { CategorySkeleton } from '@/components/LoadingComponents';
-import { useEditorMode } from '@/contexts/EditorModeContext';
 
 export default function CategoriesSection() {
-  const { isEditorMode } = useEditorMode();
   
   // Define the 4 main categories for the homepage with unified neon theme
   const mainCategories = [
@@ -128,12 +126,7 @@ export default function CategoriesSection() {
                 </div>
               );
 
-              // In editor mode, return the card without navigation
-              if (isEditorMode) {
-                return categoryCard;
-              }
-
-              // In normal mode, wrap with Link for navigation
+              // Wrap with Link for navigation
               return (
                 <Link key={category.id} href="/menu" className="block">
                   {categoryCard}
@@ -145,36 +138,14 @@ export default function CategoriesSection() {
 
         {/* Centered View Full Menu Button - Responsive */}
         <div className="text-center px-4 xs:px-6 sm:px-8 pb-8 xs:pb-12 animate-bounce-in" style={{ animationDelay: '0.5s' }}>
-          {isEditorMode ? (
-            // Editor mode: Button without navigation
-            <button
-              className="neon-button text-fluid-base xs:text-fluid-lg px-6 xs:px-8 py-3 xs:py-4 inline-flex items-center gap-2 touch-target"
-              data-editable="categories-button-container"
-              type="button"
-            >
-              <span 
-                className="cursor-pointer"
-                data-editable="categories-button-icon"
-              >
-                🍽️
-              </span>
-              <span 
-                className="cursor-pointer"
-                data-editable="categories-button-text"
-              >
-                View Full Menu
-              </span>
-            </button>
-          ) : (
-            // Normal mode: Button with navigation
-            <Link
-              href="/menu"
-              className="neon-button text-fluid-base xs:text-fluid-lg px-6 xs:px-8 py-3 xs:py-4 inline-flex items-center gap-2 touch-target"
-            >
-              <span>🍽️</span>
-              <span>View Full Menu</span>
-            </Link>
-          )}
+          {/* Navigation button */}
+          <Link
+            href="/menu"
+            className="neon-button text-fluid-base xs:text-fluid-lg px-6 xs:px-8 py-3 xs:py-4 inline-flex items-center gap-2 touch-target"
+          >
+            <span>🍽️</span>
+            <span>View Full Menu</span>
+          </Link>
         </div>
       </section>
     </ClientOnly>

@@ -1,14 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { 
   Menu, Users, BarChart3, ShoppingBag, Calendar, 
-  Shield, Activity, CheckCircle, CreditCard, QrCode, Palette, Edit, Star,
-  Type, Box
+  Shield, Activity, CheckCircle, CreditCard, QrCode, Star, Edit
 } from 'lucide-react';
 
 // Tab Components
@@ -24,6 +21,7 @@ import { QRCodeGenerator } from '@/components/QRCodeGenerator';
 
 const tabs = [
   { id: 'overview', label: 'Overview', icon: BarChart3, color: 'neonCyan' },
+  { id: 'craft-editor', label: 'Page Editor', icon: Edit, color: 'neonPink' },
   { id: 'menu', label: 'Menu Management', icon: Menu, color: 'neonCyan' },
   { id: 'orders', label: 'Order Management', icon: ShoppingBag, color: 'neonPink' },
   { id: 'events', label: 'Events & Specials', icon: Star, color: 'yellow-500' },
@@ -31,13 +29,11 @@ const tabs = [
   { id: 'bookings', label: 'Virtual Golf', icon: Activity, color: 'green-500' },
   { id: 'users', label: 'User Management', icon: Users, color: 'purple-500' },
   { id: 'analytics', label: 'Analytics', icon: BarChart3, color: 'green-500' },
-  { id: 'pageeditor', label: 'Page Editor', icon: Palette, color: 'purple-500' },
   { id: 'qrcode', label: 'QR Code & App', icon: QrCode, color: 'orange-500' },
 ];
 
 export default function AdminPage() {
   const { profile } = useAuth();
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
 
   if (!profile?.is_admin) {
@@ -62,6 +58,66 @@ export default function AdminPage() {
     switch (activeTab) {
       case 'overview':
         return <AdminOverview />;
+      case 'craft-editor':
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Craft.js Page Editor</h2>
+              <p className="text-gray-400 text-sm">Edit your website pages with our visual drag-and-drop editor</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Test Page - First Priority */}
+              <a 
+                href="/admin/craft-editor/test-page"
+                className="bg-gradient-to-br from-green-800/50 to-green-900/50 backdrop-blur-md rounded-xl p-6 border border-green-700/50 hover:border-green-500/50 transition-all group"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-green-500/20 rounded-lg group-hover:bg-green-500/30 transition-colors">
+                    <Edit className="h-5 w-5 text-green-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">🧪 Test Page</h3>
+                </div>
+                <p className="text-gray-300 text-sm">Simple test page with one editable heading - Perfect for testing the Craft.js editor</p>
+                <div className="mt-3 inline-block px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
+                  Step-by-step testing
+                </div>
+              </a>
+
+              <a 
+                href="/admin/craft-editor/homepage"
+                className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-md rounded-xl p-6 border border-gray-700/50 hover:border-neonCyan/50 transition-all group"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-neonCyan/20 rounded-lg group-hover:bg-neonCyan/30 transition-colors">
+                    <Edit className="h-5 w-5 text-neonCyan" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Homepage</h3>
+                </div>
+                <p className="text-gray-400 text-sm">Edit the main landing page content, hero section, and featured categories</p>
+              </a>
+              
+              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-md rounded-xl p-6 border border-gray-700/50 opacity-50">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-gray-600/20 rounded-lg">
+                    <Edit className="h-5 w-5 text-gray-500" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-500">Menu Page</h3>
+                </div>
+                <p className="text-gray-500 text-sm">Coming soon - Edit menu layout and descriptions</p>
+              </div>
+              
+              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-md rounded-xl p-6 border border-gray-700/50 opacity-50">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-gray-600/20 rounded-lg">
+                    <Edit className="h-5 w-5 text-gray-500" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-500">About Page</h3>
+                </div>
+                <p className="text-gray-500 text-sm">Coming soon - Edit about page content and team info</p>
+              </div>
+            </div>
+          </div>
+        );
       case 'menu':
         return <MenuManagementThreeTier />;
       case 'orders':
@@ -76,133 +132,6 @@ export default function AdminPage() {
         return <UserManagement />;
       case 'analytics':
         return <AnalyticsDashboard />;
-      case 'pageeditor':
-        return (
-          <div className="space-y-6">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-white mb-2">Craft.js Page Builder</h2>
-              <p className="text-gray-400">Professional drag & drop page editor with click-to-edit functionality. Edit headings, descriptions, colors, and layout with real-time preview.</p>
-            </div>
-
-            <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-              {/* Homepage Editor - Direct Access */}
-              <Card className="bg-darkBg/50 border-gray-700 hover:border-neonCyan/50 transition-all duration-200 ring-2 ring-neonCyan/20">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="p-3 bg-neonCyan/10 rounded-lg flex-shrink-0">
-                      <Edit className="h-8 w-8 text-neonCyan" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-xl font-bold text-white mb-2">
-                        Homepage Editor
-                        <span className="ml-2 text-sm bg-neonCyan/20 text-neonCyan px-2 py-1 rounded-full">DIRECT</span>
-                      </h3>
-                      <p className="text-gray-300 mb-3 text-sm">
-                        Edit homepage content directly. Click headings, text, and sections to modify them instantly. Clean editing environment.
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Welcome Section</span>
-                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">Categories</span>
-                        <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded">Events</span>
-                        <span className="text-xs bg-pink-500/20 text-pink-400 px-2 py-1 rounded">Bookings</span>
-                      </div>
-                    </div>
-                  </div>
-                  <Button
-                    onClick={() => router.push('/admin/page-builder/homepage')}
-                    className="bg-neonCyan hover:bg-neonCyan/80 text-black font-bold w-full"
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Homepage Now
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Unified Page Builder */}
-              <Card className="bg-darkBg/50 border-gray-700 hover:border-yellow-500/50 transition-all duration-200 ring-2 ring-yellow-500/20">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="p-3 bg-yellow-500/10 rounded-lg flex-shrink-0">
-                      <Palette className="h-8 w-8 text-yellow-500" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-xl font-bold text-white mb-2">
-                        Page Builder
-                        <span className="ml-2 text-sm bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full">CRAFT.JS</span>
-                      </h3>
-                      <p className="text-gray-300 mb-3 text-sm">
-                        Edit all website content with professional drag & drop interface. Click any element to customize text, colors, and layout.
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">All Pages</span>
-                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">Advanced Tools</span>
-                        <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded">Templates</span>
-                        <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-1 rounded">Export/Import</span>
-                      </div>
-                    </div>
-                  </div>
-                  <Button
-                    onClick={() => router.push('/admin/page-builder')}
-                    className="bg-yellow-500 hover:bg-yellow-500/80 text-black font-bold w-full"
-                  >
-                    <Palette className="h-4 w-4 mr-2" />
-                    Launch Page Builder
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Feature Highlights */}
-              <Card className="bg-darkBg/50 border-gray-700 hover:border-neonCyan/50 transition-all duration-200">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="p-3 bg-neonCyan/10 rounded-lg flex-shrink-0">
-                      <Type className="h-8 w-8 text-neonCyan" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-xl font-bold text-white mb-2">Click-to-Edit</h3>
-                      <p className="text-gray-300 mb-3 text-sm">
-                        Simply click any heading, description, or text element to start editing. Changes save automatically.
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        <span className="text-xs bg-neonCyan/20 text-neonCyan px-2 py-1 rounded">Text Editing</span>
-                        <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Auto-Save</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-center text-sm text-gray-400">
-                    ✨ No complex forms needed
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Color & Background Control */}
-              <Card className="bg-darkBg/50 border-gray-700 hover:border-green-500/50 transition-all duration-200">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="p-3 bg-green-500/10 rounded-lg flex-shrink-0">
-                      <Box className="h-8 w-8 text-green-500" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-xl font-bold text-white mb-2">Color Control</h3>
-                      <p className="text-gray-300 mb-3 text-sm">
-                        Change heading colors, background colors, and section visibility with intuitive controls.
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">Colors</span>
-                        <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded">Backgrounds</span>
-                        <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">Toggles</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-center text-sm text-gray-400">
-                    🎨 Professional design tools
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-          </div>
-        );
       case 'qrcode':
         return (
           <div className="space-y-6">
@@ -251,7 +180,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Tab Navigation - FIXED: Two rows instead of horizontal scrolling */}
+            {/* Tab Navigation - UPDATED: Two rows for 10 tabs */}
             <div className="w-full">
               <div className="bg-gray-800/50 p-1 rounded-xl border border-gray-700/50">
                 {/* First Row - 5 tabs */}

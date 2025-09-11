@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { useEditorMode } from '@/contexts/EditorModeContext';
 import { useState, useEffect } from 'react';
 import { getSupabaseClient } from '@/lib/supabase-client';
 
@@ -14,7 +13,6 @@ type BookingsSettings = {
 };
 
 export default function BookingsSection() {
-  const { isEditorMode } = useEditorMode();
   const supabase = getSupabaseClient();
   const [settings, setSettings] = useState<BookingsSettings>({
     section_enabled: true,
@@ -109,31 +107,14 @@ export default function BookingsSection() {
           {settings.section_description}
         </p>
         
-        {/* Conditional rendering for editor vs normal mode */}
-        {isEditorMode ? (
-          // Editor mode: Button without navigation
+        {/* Navigation button */}
+        <Link href="/bookings" aria-label="Book a golf session">
           <Button 
             className="neon-button px-4 xs:px-6 py-3 xs:py-4 text-fluid-base xs:text-fluid-lg hover:shadow-xl touch-target"
-            data-editable="bookings-button"
-            type="button"
           >
-            <span 
-              data-editable="bookings-button-text"
-              className="cursor-pointer"
-            >
-              {settings.button_text}
-            </span>
+            {settings.button_text}
           </Button>
-        ) : (
-          // Normal mode: Button with navigation
-          <Link href="/bookings" aria-label="Book a golf session">
-            <Button 
-              className="neon-button px-4 xs:px-6 py-3 xs:py-4 text-fluid-base xs:text-fluid-lg hover:shadow-xl touch-target"
-            >
-              {settings.button_text}
-            </Button>
-          </Link>
-        )}
+        </Link>
       </div>
     </section>
   );
