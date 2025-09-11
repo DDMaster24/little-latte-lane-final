@@ -21,7 +21,7 @@ import { QRCodeGenerator } from '@/components/QRCodeGenerator';
 
 const tabs = [
   { id: 'overview', label: 'Overview', icon: BarChart3, color: 'neonCyan' },
-  { id: 'craft-editor', label: 'Page Editor', icon: Edit, color: 'neonPink' },
+  { id: 'react-bricks-editor', label: 'Visual Editor', icon: Edit, color: 'neonPink' },
   { id: 'menu', label: 'Menu Management', icon: Menu, color: 'neonCyan' },
   { id: 'orders', label: 'Order Management', icon: ShoppingBag, color: 'neonPink' },
   { id: 'events', label: 'Events & Specials', icon: Star, color: 'yellow-500' },
@@ -58,63 +58,89 @@ export default function AdminPage() {
     switch (activeTab) {
       case 'overview':
         return <AdminOverview />;
-      case 'craft-editor':
+      case 'react-bricks-editor':
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Custom Page Editor</h2>
-              <p className="text-gray-400 text-sm">Edit your website pages with our custom visual editor system</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">React Bricks Visual Editor</h2>
+              <p className="text-gray-400 text-sm">Professional visual page editor with inline editing capabilities</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Test Page - First Priority */}
+              {/* React Bricks Login */}
               <a 
-                href="/admin/craft-editor/test-page"
+                href="/admin/login"
+                className="bg-gradient-to-br from-neonPink/20 to-purple-900/50 backdrop-blur-md rounded-xl p-6 border border-neonPink/50 hover:border-neonPink/70 transition-all group"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-neonPink/20 rounded-lg group-hover:bg-neonPink/30 transition-colors">
+                    <Edit className="h-5 w-5 text-neonPink" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">React Bricks Login</h3>
+                </div>
+                <p className="text-gray-300 text-sm">Login to React Bricks to access the visual editor and content management</p>
+                <div className="mt-3 inline-block px-2 py-1 bg-neonPink/20 text-neonPink text-xs rounded">
+                  Authentication Required
+                </div>
+              </a>
+
+              {/* Test Lab */}
+              <a 
+                href="/bricks-test"
                 className="bg-gradient-to-br from-green-800/50 to-green-900/50 backdrop-blur-md rounded-xl p-6 border border-green-700/50 hover:border-green-500/50 transition-all group"
               >
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-2 bg-green-500/20 rounded-lg group-hover:bg-green-500/30 transition-colors">
                     <Edit className="h-5 w-5 text-green-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white">🧪 Test Page</h3>
+                  <h3 className="text-lg font-semibold text-white">🧪 Test Lab</h3>
                 </div>
-                <p className="text-gray-300 text-sm">Simple test page with one editable heading - Perfect for testing our custom editor system</p>
+                <p className="text-gray-300 text-sm">Learn how React Bricks works with simple test components and step-by-step guides</p>
                 <div className="mt-3 inline-block px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
-                  Step-by-step testing
+                  Learning Environment
                 </div>
               </a>
 
+              {/* Preview */}
               <a 
-                href="/admin/craft-editor/homepage"
-                className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-md rounded-xl p-6 border border-gray-700/50 hover:border-neonCyan/50 transition-all group"
+                href="/admin/preview"
+                className="bg-gradient-to-br from-blue-800/50 to-blue-900/50 backdrop-blur-md rounded-xl p-6 border border-blue-700/50 hover:border-blue-500/50 transition-all group"
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-neonCyan/20 rounded-lg group-hover:bg-neonCyan/30 transition-colors">
-                    <Edit className="h-5 w-5 text-neonCyan" />
+                  <div className="p-2 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition-colors">
+                    <BarChart3 className="h-5 w-5 text-blue-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white">Homepage</h3>
+                  <h3 className="text-lg font-semibold text-white">Preview</h3>
                 </div>
-                <p className="text-gray-400 text-sm">Edit the main landing page content, hero section, and featured categories</p>
+                <p className="text-gray-400 text-sm">Preview your pages as they will appear to visitors</p>
               </a>
               
-              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-md rounded-xl p-6 border border-gray-700/50 opacity-50">
+              {/* Playground */}
+              <a 
+                href="/admin/playground"
+                className="bg-gradient-to-br from-purple-800/50 to-purple-900/50 backdrop-blur-md rounded-xl p-6 border border-purple-700/50 hover:border-purple-500/50 transition-all group"
+              >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-gray-600/20 rounded-lg">
-                    <Edit className="h-5 w-5 text-gray-500" />
+                  <div className="p-2 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-colors">
+                    <Activity className="h-5 w-5 text-purple-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-500">Menu Page</h3>
+                  <h3 className="text-lg font-semibold text-white">Playground</h3>
                 </div>
-                <p className="text-gray-500 text-sm">Coming soon - Edit menu layout and descriptions</p>
-              </div>
+                <p className="text-gray-400 text-sm">Test and preview all your bricks and page types</p>
+              </a>
               
-              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-md rounded-xl p-6 border border-gray-700/50 opacity-50">
+              {/* App Settings */}
+              <a 
+                href="/admin/app-settings"
+                className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-md rounded-xl p-6 border border-gray-700/50 hover:border-gray-500/50 transition-all group"
+              >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-gray-600/20 rounded-lg">
-                    <Edit className="h-5 w-5 text-gray-500" />
+                  <div className="p-2 bg-gray-500/20 rounded-lg group-hover:bg-gray-500/30 transition-colors">
+                    <Activity className="h-5 w-5 text-gray-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-500">About Page</h3>
+                  <h3 className="text-lg font-semibold text-white">App Settings</h3>
                 </div>
-                <p className="text-gray-500 text-sm">Coming soon - Edit about page content and team info</p>
-              </div>
+                <p className="text-gray-400 text-sm">Configure React Bricks app settings and deployment</p>
+              </a>
             </div>
           </div>
         );
