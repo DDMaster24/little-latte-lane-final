@@ -10,6 +10,8 @@ const pageTypes: types.IPageType[] = [
     allowedBlockTypes: [
       'welcoming-section',
       'categories-section',
+      'events-specials-section',
+      'bookings-section',
       'simple-text-brick',
       'color-test-brick', 
       'button-test-brick',
@@ -43,6 +45,8 @@ const pageTypes: types.IPageType[] = [
       'button-test-brick',
       'welcoming-section',
       'categories-section',
+      'events-specials-section',
+      'bookings-section',
     ]
   },
   {
@@ -60,11 +64,23 @@ const pageTypes: types.IPageType[] = [
         id: 'categories-1', 
         type: 'categories-section',
         props: {}
+      },
+      {
+        id: 'events-specials-1',
+        type: 'events-specials-section',
+        props: {}
+      },
+      {
+        id: 'bookings-1',
+        type: 'bookings-section',
+        props: {}
       }
     ],
     allowedBlockTypes: [
       'welcoming-section',
       'categories-section',
+      'events-specials-section',
+      'bookings-section',
       'simple-text-brick',
       'color-test-brick',
       'button-test-brick',
