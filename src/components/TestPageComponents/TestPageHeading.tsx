@@ -116,6 +116,10 @@ export const TestPageHeading = () => {
   // Load initial values from API
   useEffect(() => {
     loadComponentData();
+    
+    // Refresh data every 2 seconds for real-time sync
+    const interval = setInterval(loadComponentData, 2000);
+    return () => clearInterval(interval);
   }, []);
 
   // Listen for external color/fontSize changes from tool panel

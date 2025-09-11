@@ -62,8 +62,8 @@ export default function AdminPage() {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Craft.js Page Editor</h2>
-              <p className="text-gray-400 text-sm">Edit your website pages with our visual drag-and-drop editor</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Custom Page Editor</h2>
+              <p className="text-gray-400 text-sm">Edit your website pages with our custom visual editor system</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Test Page - First Priority */}
@@ -77,7 +77,7 @@ export default function AdminPage() {
                   </div>
                   <h3 className="text-lg font-semibold text-white">🧪 Test Page</h3>
                 </div>
-                <p className="text-gray-300 text-sm">Simple test page with one editable heading - Perfect for testing the Craft.js editor</p>
+                <p className="text-gray-300 text-sm">Simple test page with one editable heading - Perfect for testing our custom editor system</p>
                 <div className="mt-3 inline-block px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
                   Step-by-step testing
                 </div>

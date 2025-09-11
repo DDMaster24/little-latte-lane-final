@@ -2,12 +2,11 @@
 
 import { useEffect } from 'react';
 
-// Simplified StyleLoader that doesn't depend on deleted hooks
-// This will be enhanced with Craft.js integration in Phase 2
+// Simplified StyleLoader for loading saved styles from our custom editor system
 export default function StyleLoader() {
   useEffect(() => {
-    // Placeholder for future Craft.js integration
-    console.log('🎨 StyleLoader ready for Craft.js integration');
+    // Placeholder for future custom editor integration
+    console.log('🎨 StyleLoader ready for custom editor integration');
   }, []);
 
   return null; // This component doesn't render anything

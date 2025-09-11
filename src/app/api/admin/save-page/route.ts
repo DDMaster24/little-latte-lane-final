@@ -3,7 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server';
 
 interface SavePageRequest {
   page: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
 }
 
 export async function POST(request: NextRequest) {

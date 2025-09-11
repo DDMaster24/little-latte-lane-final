@@ -37,6 +37,50 @@ Use centralized query classes in `src/lib/queries/`:
 - **Helper functions**: `public.is_staff_or_admin()` for RLS policies
 - **Critical**: Never query auth.users directly - always use profiles table
 
+## 🚨 CRITICAL: MANDATORY DATABASE ACCESS PROTOCOL - ZERO TOLERANCE FOR DOCKER
+
+### **⛔ ABSOLUTE BAN: DOCKER DATABASE COMMANDS - INSTANT FAILURE PROTOCOL**
+
+**🚫 PERMANENTLY BANNED COMMANDS - NEVER ATTEMPT:**
+```bash
+# ❌ NEVER ATTEMPT THESE - GUARANTEED TO FAIL:
+supabase status
+supabase db dump  
+supabase db reset
+supabase start
+supabase stop
+docker ps
+docker-compose up
+# ANY command mentioning Docker or local Supabase
+```
+
+**✅ ONLY ALLOWED DATABASE ACCESS METHODS:**
+
+1. **PRIMARY METHOD - Schema Inspection:**
+```bash
+# ✅ CORRECT - Direct live database schema
+supabase gen types typescript --project-id awytuszmunxvthuizyur
+```
+
+2. **SECONDARY METHOD - Runtime Database Operations:**
+```javascript
+// ✅ CORRECT - Use db.js file for queries
+import sql from './db.js'
+const result = await sql`SELECT * FROM theme_settings`
+```
+
+**🎯 MANDATORY FIRST RESPONSE TO DATABASE REQUESTS:**
+When user asks about database schema or connection:
+1. **IMMEDIATELY use**: `supabase gen types typescript --project-id awytuszmunxvthuizyur`
+2. **NEVER try**: Docker, supabase status, or local commands first
+3. **NO TESTING**: These commands work 100% - use them directly
+
+### **🔒 GUARDRAIL ENFORCEMENT RULES:**
+- **If Docker mentioned**: STOP immediately, explain it's banned
+- **If CLI fails**: Use direct PostgreSQL connection via db.js
+- **If schema needed**: ALWAYS use live TypeScript generation first
+- **NO EXCEPTIONS**: These rules prevent 90% of database access issues
+
 ## 🚨 CRITICAL: DEVELOPMENT METHODOLOGY - MANDATORY
 
 ### **🎯 SYSTEMATIC APPROACH ONLY - NO BAND-AID FIXES**
@@ -96,78 +140,6 @@ npm run build && npm run lint
 - Never use overly broad selectors (like `a` instead of `nav a`)  
 - Always verify `pointer-events` don't block interactive elements
 - Test hover states and interactive functionality
-
-## 🚨 ARCHIVED: DOCKER DATABASE PROTOCOL - REPLACED BY SUPABASE EXTENSION
-
-### **🔴 DEPRECATED: This section is kept for reference only**
-**USE SUPABASE EXTENSION INSTEAD - See section above**
-
-The Docker database approach has been replaced by the official Supabase VS Code extension.
-If you see references to Docker database connections, redirect to `@supabase` commands instead.
-
-## 🚨 MANDATORY: DIRECT SUPABASE CONNECTION PROTOCOL - NO DOCKER EVER!
-
-### 🎯 CRITICAL RULE: NEVER USE DOCKER COMMANDS FOR DATABASE ACCESS
-**❌ BANNED FOREVER: ANY Docker-based database commands**
-**❌ BANNED FOREVER: `supabase db dump` (requires Docker)**
-**❌ BANNED FOREVER: `supabase db reset` (requires Docker)**
-**❌ BANNED FOREVER: Any command that mentions Docker**
-
-### 🔗 ONLY ALLOWED DATABASE ACCESS METHOD - DIRECT CONNECTION!
-**MANDATORY: Use ONLY direct PostgreSQL connection from screenshot:**
-
-```bash
-# ✅ ONLY CORRECT METHOD - Direct PostgreSQL connection
-psql "postgresql://postgres:[YOUR-PASSWORD]@db.awytuszmunxvthuizyur.supabase.co:5432/postgres"
-
-# ✅ Alternative with environment variables
-psql $DATABASE_URL
-
-# ✅ For schema inspection use SQL directly:
-psql $DATABASE_URL -c "\d theme_settings"
-psql $DATABASE_URL -c "\d+ theme_settings" 
-```
-
-### 🚨 ABSOLUTE RULES - NO EXCEPTIONS:
-1. **NEVER mention Docker** in any database command
-2. **ALWAYS use direct PostgreSQL connection** shown in screenshot
-3. **Use environment variables** from `.env.local` 
-4. **For schema changes**: Use direct SQL commands via psql
-5. **For TypeScript types**: Use `npm run db:generate-types` ONLY
-
-### 🔗 CORRECT CONNECTION DETAILS:
-- **Direct Connection**: `postgresql://postgres:[PASSWORD]@db.awytuszmunxvthuizyur.supabase.co:5432/postgres`
-- **Environment File**: `.env.local` (contains credentials)
-- **Schema Access**: Via direct psql commands ONLY
-- **Live Database**: `https://awytuszmunxvthuizyur.supabase.co`
-
-### 🚀 NEW CLI CAPABILITIES (v2.39.2)
-**Enhanced features in latest CLI version:**
-- Improved storage bucket management
-- Better error handling and debugging
-- Enhanced TypeScript type generation
-- Faster database schema introspection
-- More reliable project linking
-
-### 🔄 DATABASE ACCESS HIERARCHY
-**Use in this priority order:**
-1. **Supabase CLI commands** - Primary method for schema access
-2. **Direct Supabase client calls** - For runtime operations in code
-3. **Environment-based connections** - For testing and validation scripts
-4. **Test scripts** - Create temporary, then delete after use
-
-### 🚫 BANNED APPROACHES:
-- ❌ **NO outdated CLI versions** - Always use latest (v2.39.2+)
-- ❌ **NO static schema files** - Always use live CLI commands
-- ❌ **NO Docker database connections** - Use production CLI access
-- ❌ **NO assumptions about database structure** - Always verify live
-
-### Live Database Connection Details:
-- **Production Supabase**: `https://awytuszmunxvthuizyur.supabase.co`
-- **CLI Version**: v2.39.2 (updated with latest features)
-- **Environment File**: `.env.local` (contains live credentials)
-- **Schema Access**: Via Supabase CLI commands primarily
-- **TypeScript Types**: Auto-generated from live database in `src/types/supabase.ts`
 
 ## Yoco Integration Specifics
 
