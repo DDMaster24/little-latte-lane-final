@@ -4,7 +4,7 @@ export async function GET(request: NextRequest) {
   const results: any = {
     timestamp: new Date().toISOString(),
     environment: {
-      API_KEY: process.env.NEXT_PUBLIC_API_KEY ? 'Present' : 'Missing',
+      API_KEY: process.env.API_KEY ? 'Present' : 'Missing',
       APP_ID: process.env.NEXT_PUBLIC_APP_ID ? 'Present' : 'Missing',
       ENVIRONMENT: process.env.NEXT_PUBLIC_ENVIRONMENT || 'Not set'
     },
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const sessionResponse = await fetch('https://api.reactbricks.com/v2/admin/session?refreshToken=true', {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_KEY}`,
+        'Authorization': `Bearer ${process.env.API_KEY}`,
         'X-App-Id': process.env.NEXT_PUBLIC_APP_ID || '',
         'Content-Type': 'application/json'
       }

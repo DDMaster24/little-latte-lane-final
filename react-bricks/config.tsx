@@ -6,7 +6,7 @@ import NextLink from './NextLink'
 
 const config: types.ReactBricksConfig = {
   appId: process.env.NEXT_PUBLIC_APP_ID || '',
-  apiKey: process.env.NEXT_PUBLIC_API_KEY || '',
+  apiKey: process.env.API_KEY || '',
   environment: process.env.NEXT_PUBLIC_ENVIRONMENT || 'development',
   bricks,
   pageTypes,
