@@ -69,95 +69,46 @@ export default function EditableHomepage({ enableEditing: _enableEditing = false
   }
 
   if (error || !page) {
-    // TEMPORARY FIX: Render static homepage content while React Bricks is down
-    const StaticHomepage = () => (
+    return (
       <main className="min-h-screen animate-fade-in relative">
-        {/* Import and render WelcomingSection directly */}
-        <section className="bg-gradient-to-br from-darkBg via-gray-900 to-darkBg section-padding overflow-hidden">
-          <div className="container-wide animate-fade-in">
-            {/* Hero Header */}
-            <div className="text-center py-4 xs:py-6 sm:py-8">
-              <h1 className="text-4xl md:text-6xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-6">
-                Welcome to Little Latte Lane
-              </h1>
-              
-              <p className="text-fluid-lg xs:text-fluid-xl sm:text-fluid-2xl text-gray-300 mb-3 xs:mb-4 max-w-4xl mx-auto">
-                Café & Deli - Where Great Food Meets Amazing Experiences
-              </p>
-              
-              <div className="flex flex-wrap justify-center gap-2 xs:gap-3 mb-4 xs:mb-6">
-                <span className="bg-neonCyan text-black px-3 xs:px-4 py-2 text-fluid-xs xs:text-fluid-sm font-medium rounded">
-                  Now Open
-                </span>
-                <span className="bg-neonPink text-black px-3 xs:px-4 py-2 text-fluid-xs xs:text-fluid-sm font-medium rounded">
-                  Dine In • Takeaway • Delivery
-                </span>
-              </div>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center max-w-2xl mx-auto p-8">
+            <div className="text-red-400 mb-4 text-2xl">🔍 React Bricks Page Missing</div>
+            <p className="text-gray-300 mb-6">{error || 'No page content found'}</p>
+            
+            <div className="bg-gray-800 p-6 rounded-lg mb-6 text-left">
+              <h3 className="text-white font-bold mb-4">📋 How to Fix This:</h3>
+              <ol className="text-sm text-gray-300 space-y-3">
+                <li><strong>1.</strong> Click <span className="text-neonCyan">Admin Panel</span> in the top navigation</li>
+                <li><strong>2.</strong> Look for the <span className="text-neonCyan">React Bricks Editor</span> link</li>
+                <li><strong>3.</strong> In React Bricks, create a new page with slug: <span className="text-neonCyan">&quot;homepage&quot;</span></li>
+                <li><strong>4.</strong> Add the <span className="text-neonCyan">&quot;Welcoming Section&quot;</span> brick</li>
+                <li><strong>5.</strong> Save and publish the page</li>
+              </ol>
             </div>
-
-            {/* Carousel Section */}
-            <div className="mb-6 w-full">
-              <div className="relative w-full min-h-[400px] flex items-center justify-center overflow-hidden">
-                <div className="w-80 h-96 bg-gradient-to-br from-neonCyan to-blue-600 backdrop-blur-sm border-2 border-neonCyan shadow-2xl rounded-lg">
-                  <div className="p-6 h-full flex flex-col justify-between">
-                    <div>
-                      <h3 className="font-bold text-white text-2xl mb-2 text-center">Welcome Panel</h3>
-                      <p className="text-gray-300 text-sm mb-4 text-center">Experience our amazing carousel system with advanced customization</p>
-                    </div>
-                    <div className="flex-1 flex items-center justify-center">
-                      <div className="text-center text-white">
-                        <div className="text-4xl mb-2">🎠</div>
-                        <p>React Bricks Carousel</p>
-                      </div>
-                    </div>
-                    <div className="mt-4">
-                      <span className="bg-neonCyan text-white w-full justify-center px-4 py-2 rounded text-sm font-medium flex">
-                        Featured
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            
+            <div className="flex gap-4 justify-center">
+              <a 
+                href="/admin/editor" 
+                className="bg-neonCyan text-black px-6 py-3 rounded font-medium hover:bg-neonPink transition-all"
+              >
+                🎨 React Bricks Editor
+              </a>
+              <a 
+                href="/admin" 
+                className="border border-neonCyan text-neonCyan px-6 py-3 rounded font-medium hover:border-neonPink hover:text-neonPink transition-all"
+              >
+                📊 Admin Panel
+              </a>
             </div>
-
-            {/* Call to Action */}
-            <div className="text-center pt-4">
-              <h2 className="text-3xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-3">
-                Ready to Experience Little Latte Lane?
-              </h2>
-              <p className="text-lg text-gray-300 mb-4 max-w-2xl mx-auto">
-                Join us for exceptional food, premium beverages, and a warm, welcoming atmosphere.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <div className="flex items-center justify-center gap-2 text-neonCyan">
-                  <span className="text-sm font-medium">⭐ Exceptional Quality</span>
-                </div>
-                <div className="flex items-center justify-center gap-2 text-neonPink">
-                  <span className="text-sm font-medium">📍 Prime Location</span>
-                </div>
-                <div className="flex items-center justify-center gap-2 text-yellow-400">
-                  <span className="text-sm font-medium">🚗 Easy Parking</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* React Bricks Status Notice */}
-        <div className="fixed bottom-4 right-4 bg-gray-800 border border-neonCyan rounded-lg p-4 max-w-sm">
-          <div className="text-white text-sm">
-            <div className="text-red-400 font-bold mb-2">🔧 Maintenance Mode</div>
-            <p className="text-gray-300">React Bricks authentication issue detected. Showing static content temporarily.</p>
-            <div className="mt-2 text-xs text-gray-500">
-              Error: {error || 'Authentication failed (401)'}
+            
+            <div className="mt-6 text-xs text-gray-500">
+              Check browser console for detailed error information
             </div>
           </div>
         </div>
       </main>
     );
-
-    return <StaticHomepage />;
   }
 
   return (
