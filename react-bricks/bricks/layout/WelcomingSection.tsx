@@ -141,7 +141,7 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
         <div className="mb-16">
           <div className="relative h-[600px] flex items-center justify-center overflow-visible" 
                style={{ 
-                 perspective: '1000px',
+                 perspective: '1200px',
                  transformStyle: 'preserve-3d' 
                }}>
             <Repeater
@@ -164,29 +164,32 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
                 }
 
                 return (
-                  <div className="relative w-full h-full perspective-1000"
+                  <div className="relative w-full h-full flex items-center justify-center"
                        style={{ 
-                         transform: `rotateY(${rotation}deg)`,
                          transformStyle: 'preserve-3d',
-                         transition: 'transform 1s ease-in-out'
+                         transform: `rotateY(${rotation}deg)`,
+                         transition: 'transform 2s ease-in-out'
                        }}>
                     {itemsArray.map((item, index) => {
                       const totalItems = itemsArray.length
                       const angle = (index * 360) / totalItems
-                      const radius = Math.min(280, 180 + totalItems * 25)
+                      const radius = 320 // Fixed radius for better control
                       
-                      // Calculate position on the circle
-                      const x = Math.cos((angle * Math.PI) / 180) * radius
-                      const z = Math.sin((angle * Math.PI) / 180) * radius
+                      // Calculate position using proper 3D math
+                      const x = Math.sin((angle * Math.PI) / 180) * radius
+                      const z = Math.cos((angle * Math.PI) / 180) * radius
                       
                       return (
                         <div
                           key={`panel-${index}`}
-                          className="absolute left-1/2 top-1/2 w-80 carousel-item transition-all duration-1000 ease-in-out hover:scale-110"
+                          className="absolute w-80 h-96"
                           style={{
-                            transform: `translate(-50%, -50%) translate3d(${x}px, 0, ${z}px) rotateY(${angle}deg)`,
+                            transform: `translate3d(${x}px, 0, ${z}px) rotateY(${-angle}deg)`,
                             transformStyle: 'preserve-3d',
-                            backfaceVisibility: 'hidden',
+                            left: '50%',
+                            top: '50%',
+                            marginLeft: '-160px', // Center horizontally (width/2)
+                            marginTop: '-192px',  // Center vertically (height/2)
                           }}
                         >
                           {item}
