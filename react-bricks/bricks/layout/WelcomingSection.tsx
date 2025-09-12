@@ -23,6 +23,9 @@ interface WelcomingSectionProps {
   subheadingColor: string
   badgeColor: string
   ctaHeadingColor: string
+  // Custom color options
+  customMainHeadingColor?: string
+  customMainHeadingGradient?: string
 }
 
 //=============================
@@ -42,7 +45,32 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
   subheadingColor = 'text-gray-300',
   badgeColor = 'bg-neonCyan',
   ctaHeadingColor = 'bg-neon-gradient',
+  customMainHeadingColor,
+  customMainHeadingGradient,
 }) => {
+  // Resolve the actual color/style to use
+  const getMainHeadingStyle = () => {
+    if (mainHeadingColor === 'custom-color' && customMainHeadingColor) {
+      return { color: customMainHeadingColor }
+    }
+    if (mainHeadingColor === 'custom-gradient' && customMainHeadingGradient) {
+      return { 
+        background: customMainHeadingGradient,
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text'
+      }
+    }
+    // Return empty object for CSS classes
+    return {}
+  }
+
+  const getMainHeadingClasses = () => {
+    if (mainHeadingColor === 'custom-color' || mainHeadingColor === 'custom-gradient') {
+      return 'text-4xl md:text-6xl font-bold mb-6' // Base classes without color
+    }
+    return `text-4xl md:text-6xl font-bold ${mainHeadingColor} bg-clip-text text-transparent mb-6`
+  }
 
   return (
     <section className="bg-gradient-to-br from-darkBg via-gray-900 to-darkBg section-padding overflow-hidden">
@@ -53,7 +81,10 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
             propName="mainHeading"
             value={mainHeading}
             renderBlock={(props) => (
-              <h1 className={`text-fluid-3xl xs:text-fluid-4xl sm:text-fluid-5xl lg:text-fluid-6xl font-bold mb-4 xs:mb-6 ${mainHeadingColor} bg-clip-text text-transparent`}>
+              <h1 
+                className={getMainHeadingClasses()}
+                style={getMainHeadingStyle()}
+              >
                 {props.children}
               </h1>
             )}
@@ -184,6 +215,13 @@ WelcomingSection.schema = {
     qualityFeatureText: 'Exceptional Quality',
     locationFeatureText: 'Prime Location',
     parkingFeatureText: 'Easy Parking',
+    // Color defaults
+    mainHeadingColor: 'bg-neon-gradient',
+    subheadingColor: 'text-gray-300',
+    badgeColor: 'bg-neonCyan',
+    ctaHeadingColor: 'bg-neon-gradient',
+    customMainHeadingColor: '#ff0080',
+    customMainHeadingGradient: 'linear-gradient(45deg, #ff0080, #00ffff)',
   }),
 
   // Sidebar controls for editing
@@ -209,8 +247,22 @@ WelcomingSection.schema = {
           { value: 'text-green-400', label: 'Green' },
           { value: 'text-blue-400', label: 'Blue' },
           { value: 'text-red-400', label: 'Red' },
+          { value: 'custom-color', label: '🎨 Custom Color' },
+          { value: 'custom-gradient', label: '🌈 Custom Gradient' },
         ],
       },
+    },
+    {
+      name: 'customMainHeadingColor',
+      label: '🎨 Custom Color (e.g., #ff0080, rgb(255,0,128), hsl(320,100%,50%))',
+      type: types.SideEditPropType.Text,
+      show: (props) => props.mainHeadingColor === 'custom-color',
+    },
+    {
+      name: 'customMainHeadingGradient',
+      label: '🌈 Custom Gradient (e.g., linear-gradient(45deg, #ff0080, #00ffff))',
+      type: types.SideEditPropType.Text,
+      show: (props) => props.mainHeadingColor === 'custom-gradient',
     },
     {
       name: 'heroSubheading', 
