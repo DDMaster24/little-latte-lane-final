@@ -138,9 +138,12 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
                 if (itemsArray.length === 0) {
                   return (
                     <div className="text-center py-12">
-                      <p className="text-gray-400 mb-4">No carousel panels added yet</p>
+                      <p className="text-gray-400 mb-4">🎠 No carousel panels added yet</p>
+                      <p className="text-sm text-gray-500 mb-2">
+                        Look for CAROUSEL PANELS section in the sidebar (scroll down if needed)
+                      </p>
                       <p className="text-sm text-gray-500">
-                        Click the + button in the sidebar to add your first carousel panel
+                        Click the + button to add your first carousel panel
                       </p>
                     </div>
                   )
@@ -427,7 +430,7 @@ WelcomingSection.schema = {
     },
   ],
 
-  // Repeater for carousel panels
+  // Repeater for carousel panels - LOOK FOR THIS IN SIDEBAR!
   repeaterItems: [
     {
       name: 'carouselPanels',
