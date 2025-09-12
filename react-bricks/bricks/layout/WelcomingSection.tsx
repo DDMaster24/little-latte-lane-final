@@ -128,8 +128,8 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
         </div>
 
         {/* Editable Carousel Section */}
-        <div className="mb-16">
-          <div className="relative h-[600px] flex items-center justify-center overflow-visible" 
+        <div className="mb-8">
+          <div className="relative h-[450px] flex items-center justify-center overflow-visible" 
                style={{ 
                  perspective: '1200px',
                  transformStyle: 'preserve-3d' 

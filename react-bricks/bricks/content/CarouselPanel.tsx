@@ -17,8 +17,6 @@ interface CarouselPanelProps {
   showBadge: boolean
   titleSize: string
   descriptionSize: string
-  panelHeight: string
-  contentPadding: string
 }
 
 //=============================
@@ -34,19 +32,19 @@ const CarouselPanel: types.Brick<CarouselPanelProps> = ({
   showBadge = true,
   titleSize = 'text-2xl',
   descriptionSize = 'text-sm',
-  panelHeight = 'h-96',
-  contentPadding = 'p-6',
+  // Fixed values for consistent carousel appearance
+  // panelHeight and contentPadding are now fixed
 }) => {
   return (
     <Card
       className={`
-        w-full ${panelHeight} bg-gradient-to-br ${backgroundGradient} backdrop-blur-sm 
+        w-full h-96 bg-gradient-to-br ${backgroundGradient} backdrop-blur-sm 
         border-2 ${borderColor} shadow-2xl
         overflow-hidden hover:shadow-3xl hover:border-opacity-100
         transition-all duration-300
       `}
     >
-      <CardContent className={`${contentPadding} h-full flex flex-col justify-between`}>
+      <CardContent className="p-6 h-full flex flex-col justify-between">
         <div className="flex-shrink-0">
           <Text
             propName="title"
@@ -150,8 +148,6 @@ CarouselPanel.schema = {
     showBadge: true,
     titleSize: 'text-2xl',
     descriptionSize: 'text-sm',
-    panelHeight: 'h-96',
-    contentPadding: 'p-6',
   }),
 
   // Sidebar controls for editing
@@ -196,35 +192,6 @@ CarouselPanel.schema = {
               { value: 'border-red-400', label: 'Red' },
               { value: 'border-purple-400', label: 'Purple' },
               { value: 'border-transparent', label: 'No Border' },
-            ],
-          },
-        },
-        {
-          name: 'panelHeight',
-          label: 'Panel Height',
-          type: types.SideEditPropType.Select,
-          selectOptions: {
-            display: types.OptionsDisplay.Select,
-            options: [
-              { value: 'h-80', label: 'Small (320px)' },
-              { value: 'h-96', label: 'Medium (384px) - Default' },
-              { value: 'h-[28rem]', label: 'Large (448px)' },
-              { value: 'h-[32rem]', label: 'Extra Large (512px)' },
-              { value: 'h-[36rem]', label: 'Huge (576px)' },
-            ],
-          },
-        },
-        {
-          name: 'contentPadding',
-          label: 'Content Padding',
-          type: types.SideEditPropType.Select,
-          selectOptions: {
-            display: types.OptionsDisplay.Select,
-            options: [
-              { value: 'p-3', label: 'Small Padding' },
-              { value: 'p-4', label: 'Medium Padding' },
-              { value: 'p-6', label: 'Large Padding (Default)' },
-              { value: 'p-8', label: 'Extra Large Padding' },
             ],
           },
         },
