@@ -38,17 +38,6 @@ export default function AdminPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Handle direct editing with auto-login
-  const handleDirectEdit = async (page: string) => {
-    try {
-      // Redirect to our custom direct editor page
-      const directEditorUrl = `/admin/direct-editor?page=${encodeURIComponent(page)}&autoLogin=true`;
-      router.push(directEditorUrl);
-    } catch (error) {
-      console.error('Failed to access editor:', error);
-    }
-  };
-
   if (!profile?.is_admin) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
@@ -79,46 +68,30 @@ export default function AdminPage() {
               <p className="text-gray-400 text-sm">Edit your website content with professional inline editing</p>
             </div>
             
-            {/* Direct Page Editing Links */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Homepage Editor */}
+            {/* Single Edit Pages Button */}
+            <div className="flex justify-center">
               <div 
-                onClick={() => handleDirectEdit('/')}
-                className="bg-gradient-to-br from-neonCyan/20 to-blue-900/50 backdrop-blur-md rounded-xl p-6 border border-neonCyan/50 hover:border-neonCyan/70 transition-all group cursor-pointer"
+                onClick={() => router.push('/admin/editor')}
+                className="bg-gradient-to-br from-neonCyan/20 to-neonPink/20 backdrop-blur-md rounded-xl p-8 border border-neonCyan/50 hover:border-neonCyan/70 transition-all group cursor-pointer max-w-md w-full"
               >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-neonCyan/20 rounded-lg group-hover:bg-neonCyan/30 transition-colors">
-                    <Edit className="h-5 w-5 text-neonCyan" />
+                <div className="text-center">
+                  <div className="p-4 bg-gradient-to-br from-neonCyan/30 to-neonPink/30 rounded-full mx-auto mb-4 w-16 h-16 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Edit className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white">Edit Homepage</h3>
-                </div>
-                <p className="text-gray-300 text-sm">Edit main heading colors, text, badges, and welcome section content</p>
-                <div className="mt-3 inline-block px-2 py-1 bg-neonCyan/20 text-neonCyan text-xs rounded">
-                  Direct Access
-                </div>
-              </div>
-
-              {/* Menu Page Editor */}
-              <div 
-                onClick={() => handleDirectEdit('/menu')}
-                className="bg-gradient-to-br from-neonPink/20 to-purple-900/50 backdrop-blur-md rounded-xl p-6 border border-neonPink/50 hover:border-neonPink/70 transition-all group cursor-pointer"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-neonPink/20 rounded-lg group-hover:bg-neonPink/30 transition-colors">
-                    <Menu className="h-5 w-5 text-neonPink" />
+                  <h3 className="text-2xl font-bold text-white mb-2">Edit Pages</h3>
+                  <p className="text-gray-300 text-sm mb-4">
+                    Access the Visual Editor to edit homepage, menu, and all other pages with live preview
+                  </p>
+                  <div className="inline-block px-4 py-2 bg-gradient-to-r from-neonCyan to-neonPink text-white text-sm font-medium rounded-lg">
+                    Open Visual Editor
                   </div>
-                  <h3 className="text-lg font-semibold text-white">Edit Menu Page</h3>
-                </div>
-                <p className="text-gray-300 text-sm">Update menu categories, item descriptions, and food imagery</p>
-                <div className="mt-3 inline-block px-2 py-1 bg-neonPink/20 text-neonPink text-xs rounded">
-                  Direct Access
                 </div>
               </div>
             </div>
 
             {/* Status Info */}
             <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50">
-              <div className="flex items-center gap-2 text-gray-300 text-sm">
+              <div className="flex items-center justify-center gap-2 text-gray-300 text-sm">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                 <span>React Bricks Visual Editor Ready</span>
                 <span className="text-gray-500">•</span>
