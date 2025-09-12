@@ -1,9 +1,9 @@
 'use client';
 
-import { Text, types } from 'react-bricks'
+import React from 'react';
+import { Text, Repeater, types } from 'react-bricks'
 import { Badge } from '@/components/ui/badge';
 import { Star, MapPin, Car } from 'lucide-react';
-import DynamicCarousel from '@/components/DynamicCarousel';
 
 //=============================
 // Local Types
@@ -127,9 +127,62 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
           </div>
         </div>
 
-        {/* Dynamic Carousel */}
+        {/* Editable Carousel Section */}
         <div className="mb-16">
-          <DynamicCarousel />
+          <div className="relative h-[600px] flex items-center justify-center carousel-3d-container overflow-visible">
+            <Repeater
+              propName="carouselPanels"
+              renderWrapper={(items) => {
+                const itemsArray = React.Children.toArray(items)
+                
+                if (itemsArray.length === 0) {
+                  return (
+                    <div className="text-center py-12">
+                      <p className="text-gray-400 mb-4">No carousel panels added yet</p>
+                      <p className="text-sm text-gray-500">
+                        Click the + button in the sidebar to add your first carousel panel
+                      </p>
+                    </div>
+                  )
+                }
+
+                return (
+                  <>
+                    {itemsArray.map((item, index) => (
+                      <div
+                        key={`panel-${index}`}
+                        className="absolute carousel-3d-card cursor-pointer transition-all duration-1000 ease-in-out"
+                        style={{
+                          transform: index === 0 
+                            ? 'translateX(0) translateZ(100px) rotateY(0deg) scale(1.2)'
+                            : index === 1
+                            ? 'translateX(320px) translateZ(20px) rotateY(-15deg) scale(0.9)'
+                            : 'translateX(-320px) translateZ(20px) rotateY(15deg) scale(0.9)',
+                          opacity: index === 0 ? 1 : 0.8,
+                          zIndex: index === 0 ? 50 : 40,
+                          width: index === 0 ? '400px' : '320px',
+                        }}
+                      >
+                        {item}
+                      </div>
+                    ))}
+                  </>
+                )
+              }}
+            />
+          </div>
+          
+          {/* Custom CSS for 3D effects */}
+          <style jsx>{`
+            .carousel-3d-container {
+              perspective: 1200px;
+              perspective-origin: center center;
+            }
+            .carousel-3d-card {
+              transform-style: preserve-3d;
+              backface-visibility: hidden;
+            }
+          `}</style>
         </div>
 
         {/* Call to Action Section */}
@@ -222,6 +275,23 @@ WelcomingSection.schema = {
     ctaHeadingColor: 'bg-neon-gradient',
     customMainHeadingColor: '#ff0080',
     customMainHeadingGradient: 'linear-gradient(45deg, #ff0080, #00ffff)',
+    // Default carousel panels
+    carouselPanels: [
+      {
+        title: 'Welcome Panel',
+        description: 'Your first carousel panel',
+        backgroundGradient: 'from-neonCyan to-blue-600',
+        borderColor: 'border-neonCyan',
+        badgeText: 'Featured',
+      },
+      {
+        title: 'Second Panel', 
+        description: 'Add more panels as needed',
+        backgroundGradient: 'from-neonPink to-purple-600',
+        borderColor: 'border-neonPink',
+        badgeText: 'Popular',
+      },
+    ],
   }),
 
   // Sidebar controls for editing
@@ -354,6 +424,17 @@ WelcomingSection.schema = {
       name: 'parkingFeatureText',
       label: 'Parking Feature Text',
       type: types.SideEditPropType.Text,
+    },
+  ],
+
+  // Repeater for carousel panels
+  repeaterItems: [
+    {
+      name: 'carouselPanels',
+      itemType: 'carousel-panel',
+      itemLabel: 'Carousel Panel',
+      min: 0,
+      max: 5,
     },
   ],
 };
