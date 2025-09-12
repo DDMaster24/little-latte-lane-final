@@ -63,7 +63,7 @@ const CarouselPanel: types.Brick<CarouselPanelProps> = ({
             placeholder="Panel description"
             renderBlock={(props) => (
               <p
-                className={`${descriptionColor} ${descriptionSize} mb-3 ${textAlignment}`}
+                className={`${descriptionColor} ${descriptionSize} mb-4 ${textAlignment}`}
                 {...props.attributes}
               >
                 {props.children}
@@ -105,7 +105,7 @@ const CarouselPanel: types.Brick<CarouselPanelProps> = ({
         </div>
 
         {showBadge && (
-          <div className="flex-shrink-0 mt-3">
+          <div className="flex-shrink-0 mt-4">
             <Text
               propName="badgeText"
               placeholder="Badge Text"

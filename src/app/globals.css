@@ -257,6 +257,59 @@ body {
   max-width: 100%; /* Prevent any content from exceeding viewport width */
 }
 
+/* NEON SCROLLBAR STYLES - Hide scrollbar while maintaining functionality */
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox */
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* Internet Explorer and Edge */
+body {
+  -ms-overflow-style: none;
+}
+
+/* Alternative: If you want a neon scrollbar instead of hidden, uncomment this section */
+/*
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(26, 26, 26, 0.8);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #00ffff, #ff00ff);
+  border-radius: 4px;
+  box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, #ff00ff, #00ffff);
+  box-shadow: 0 0 10px rgba(255, 0, 255, 0.7);
+}
+*/
+
 /* Perfect neon button style with stable text and glowing background */
 .neon-button {
   @apply border-2 border-neonCyan text-neonCyan rounded-md px-4 py-2;

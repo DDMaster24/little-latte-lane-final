@@ -75,8 +75,8 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
   return (
     <section className="bg-gradient-to-br from-darkBg via-gray-900 to-darkBg section-padding overflow-hidden">
       <div className="container-wide animate-fade-in">
-        {/* Hero Header - Fully Responsive */}
-        <div className="text-center section-padding-sm">
+        {/* Hero Header - Fully Responsive with Optimized Spacing */}
+        <div className="text-center py-4 xs:py-6 sm:py-8">
           <Text
             propName="mainHeading"
             value={mainHeading}
@@ -95,14 +95,14 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
             propName="heroSubheading"
             value={heroSubheading}
             renderBlock={(props) => (
-              <p className={`text-fluid-lg xs:text-fluid-xl sm:text-fluid-2xl ${subheadingColor} mb-4 xs:mb-6 max-w-4xl mx-auto`}>
+              <p className={`text-fluid-lg xs:text-fluid-xl sm:text-fluid-2xl ${subheadingColor} mb-3 xs:mb-4 max-w-4xl mx-auto`}>
                 {props.children}
               </p>
             )}
             placeholder="Café & Deli - Where Great Food Meets Amazing Experiences"
           />
           
-          <div className="flex flex-wrap justify-center gap-2 xs:gap-3 mb-8 xs:mb-12">
+          <div className="flex flex-wrap justify-center gap-2 xs:gap-3 mb-4 xs:mb-6">
             <Text
               propName="nowOpenBadge"
               value={nowOpenBadge}
@@ -127,8 +127,8 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
           </div>
         </div>
 
-        {/* Editable Carousel Section */}
-        <div className="mb-8 w-full">
+        {/* Editable Carousel Section with Optimized Spacing */}
+        <div className="mb-6 w-full">
           <div className="relative w-full min-h-[400px] flex items-center justify-center overflow-hidden" 
                style={{ 
                  perspective: '1200px',
@@ -246,13 +246,13 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
           `}</style>
         </div>
 
-        {/* Call to Action Section */}
-        <div className="text-center">
+        {/* Call to Action Section with Optimized Spacing */}
+        <div className="text-center pt-4">
             <Text
               propName="ctaHeading"
               value={ctaHeading}
               renderBlock={(props) => (
-                <h2 className={`text-3xl font-bold ${ctaHeadingColor} bg-clip-text text-transparent mb-4`}>
+                <h2 className={`text-3xl font-bold ${ctaHeadingColor} bg-clip-text text-transparent mb-3`}>
                   {props.children}
                 </h2>
               )}
@@ -261,7 +261,7 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
             propName="ctaDescription"
             value={ctaDescription}
             renderBlock={(props) => (
-              <p className="text-lg text-gray-300 mb-6 max-w-2xl mx-auto">
+              <p className="text-lg text-gray-300 mb-4 max-w-2xl mx-auto">
                 {props.children}
               </p>
             )}
