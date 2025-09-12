@@ -48,16 +48,6 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
   customMainHeadingColor,
   customMainHeadingGradient,
 }) => {
-  const [rotation, setRotation] = React.useState(0)
-
-  // Auto-rotation effect for carousel
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      setRotation(prev => prev + 30) // Rotate by 30 degrees every 4 seconds
-    }, 4000)
-
-    return () => clearInterval(interval)
-  }, [])
   // Resolve the actual color/style to use
   const getMainHeadingStyle = () => {
     if (mainHeadingColor === 'custom-color' && customMainHeadingColor) {
@@ -139,7 +129,7 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
 
         {/* Editable Carousel Section */}
         <div className="mb-16">
-          <div className="relative h-[600px] flex items-center justify-center overflow-visible" 
+          <div className="relative h-[500px] flex items-center justify-center overflow-hidden" 
                style={{ 
                  perspective: '1200px',
                  transformStyle: 'preserve-3d' 
@@ -164,38 +154,68 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
                 }
 
                 return (
-                  <div className="relative w-full h-full flex items-center justify-center"
-                       style={{ 
-                         transformStyle: 'preserve-3d',
-                         transform: `rotateY(${rotation}deg)`,
-                         transition: 'transform 3s ease-in-out'
-                       }}>
+                  <div className="relative w-full h-full flex items-center justify-center">
                     {itemsArray.map((item, index) => {
                       const totalItems = itemsArray.length
-                      const angle = (index * 360) / totalItems
                       
-                      // Adjust radius based on number of items to prevent overlap
-                      let radius = 280
-                      if (totalItems === 2) radius = 350
-                      if (totalItems === 3) radius = 300
-                      if (totalItems >= 4) radius = 280
+                      // Semi-circle positioning (not full circle)
+                      // Center panel gets index 0, others spread left and right
+                      let translateX = 0
+                      let rotateY = 0
+                      let scale = 1
+                      let zIndex = 50
                       
-                      // Calculate position using proper 3D math
-                      const x = Math.sin((angle * Math.PI) / 180) * radius
-                      const z = Math.cos((angle * Math.PI) / 180) * radius
+                      if (totalItems === 1) {
+                        // Single panel - center
+                        translateX = 0
+                        rotateY = 0
+                        scale = 1.1
+                        zIndex = 50
+                      } else if (totalItems === 2) {
+                        // Two panels - side by side
+                        if (index === 0) {
+                          translateX = -200 // Left panel
+                          rotateY = 15
+                          scale = 0.9
+                          zIndex = 40
+                        } else {
+                          translateX = 200 // Right panel  
+                          rotateY = -15
+                          scale = 0.9
+                          zIndex = 40
+                        }
+                      } else {
+                        // Multiple panels - semi-circle arrangement
+                        const centerIndex = Math.floor(totalItems / 2)
+                        const offset = index - centerIndex
+                        
+                        if (offset === 0) {
+                          // Center panel
+                          translateX = 0
+                          rotateY = 0
+                          scale = 1.1
+                          zIndex = 50
+                        } else {
+                          // Side panels
+                          translateX = offset * 180
+                          rotateY = offset * -20
+                          scale = 0.8 + (0.2 * (1 - Math.abs(offset) / totalItems))
+                          zIndex = 50 - Math.abs(offset) * 10
+                        }
+                      }
                       
                       return (
                         <div
                           key={`panel-${index}`}
-                          className="absolute w-80 h-96"
+                          className="absolute w-80 transition-all duration-1000 ease-in-out"
                           style={{
-                            transform: `translate3d(${x}px, 0, ${z}px) rotateY(${-angle}deg)`,
+                            transform: `translateX(${translateX}px) translateZ(20px) rotateY(${rotateY}deg) scale(${scale})`,
                             transformStyle: 'preserve-3d',
                             left: '50%',
                             top: '50%',
-                            marginLeft: '-160px', // Center horizontally (width/2)
-                            marginTop: '-192px',  // Center vertically (height/2)
-                            zIndex: z > 0 ? 10 : 5, // Items closer to viewer get higher z-index
+                            marginLeft: '-160px',
+                            marginTop: '-192px',
+                            zIndex: zIndex,
                           }}
                         >
                           {item}
