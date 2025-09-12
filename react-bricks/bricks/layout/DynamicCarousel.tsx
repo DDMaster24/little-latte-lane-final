@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Repeater, types } from 'react-bricks/frontend'
+import { Repeater, types } from 'react-bricks'
 
 //=============================
 interface DynamicCarouselProps {
