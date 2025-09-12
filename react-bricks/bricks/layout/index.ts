@@ -6,6 +6,7 @@ import EventsSpecialsSection from './EventsSpecialsSection'
 import BookingsSection from './BookingsSection'
 import HeaderBrick from './HeaderBrick'
 import FooterBrick from './FooterBrick'
+import DynamicCarousel from './DynamicCarousel'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const layout: types.Brick<any>[] = [
@@ -15,6 +16,7 @@ const layout: types.Brick<any>[] = [
   BookingsSection,
   HeaderBrick,
   FooterBrick,
+  DynamicCarousel,
 ]
 
 export default layout
