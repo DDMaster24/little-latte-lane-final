@@ -1,4 +1,4 @@
-import { types } from 'react-bricks/rsc'
+import { types } from 'react-bricks'
 
 // Content Bricks - Rich content and interactive elements
 export { default as RichTextBrick } from './RichTextBrick'

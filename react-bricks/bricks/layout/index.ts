@@ -1,4 +1,4 @@
-import { types } from 'react-bricks/rsc'
+import { types } from 'react-bricks'
 
 import WelcomingSection from './WelcomingSection'
 import CategoriesSection from './CategoriesSection'
