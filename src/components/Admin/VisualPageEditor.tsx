@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { 
-  Type, Image, Palette, Move, Save, Eye, 
+  Type, Image, Palette, Move, Save, 
   Settings, Upload, AlignLeft, AlignCenter, AlignRight,
   Bold, Italic, Underline
 } from 'lucide-react';
@@ -23,7 +23,7 @@ interface ToolbarState {
 
 export default function VisualPageEditor({ children }: { children: React.ReactNode }) {
   const [isEditMode, setIsEditMode] = useState(false);
-  const [selectedElement, setSelectedElement] = useState<EditableElement | null>(null);
+  const [_selectedElement, setSelectedElement] = useState<EditableElement | null>(null);
   const [toolbar, setToolbar] = useState<ToolbarState>({
     visible: false,
     position: { x: 0, y: 0 },
@@ -168,8 +168,10 @@ export default function VisualPageEditor({ children }: { children: React.ReactNo
 
   // Style manipulation utilities
   const toggleStyle = (element: HTMLElement, property: string, value1: string, value2: string) => {
-    const currentValue = element.style[property as any] || window.getComputedStyle(element)[property as any];
-    element.style[property as any] = currentValue === value1 ? value2 : value1;
+    const style = element.style;
+    const computedStyle = window.getComputedStyle(element);
+    const currentValue = style.getPropertyValue(property) || computedStyle.getPropertyValue(property);
+    style.setProperty(property, currentValue === value1 ? value2 : value1);
   };
 
   const openColorPicker = async (element: EditableElement) => {

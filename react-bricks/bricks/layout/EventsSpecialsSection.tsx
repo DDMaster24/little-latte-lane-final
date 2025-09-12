@@ -10,6 +10,9 @@ import { Calendar, Star, Clock, Gift } from 'lucide-react';
 interface EventsSpecialsSectionProps {
   sectionTitle: string
   sectionSubtitle: string
+  sectionTitleColor: string
+  sectionSubtitleColor: string
+  ctaTextColor: string
   event1Title: string
   event1Description: string
   event1Badge: string
@@ -28,6 +31,9 @@ interface EventsSpecialsSectionProps {
 const EventsSpecialsSection: types.Brick<EventsSpecialsSectionProps> = ({
   sectionTitle,
   sectionSubtitle,
+  sectionTitleColor = 'text-3xl md:text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-4',
+  sectionSubtitleColor = 'text-lg text-gray-300 max-w-2xl mx-auto',
+  ctaTextColor = 'text-lg text-gray-300 flex items-center justify-center gap-2',
   event1Title,
   event1Description,
   event1Badge,
@@ -48,7 +54,7 @@ const EventsSpecialsSection: types.Brick<EventsSpecialsSectionProps> = ({
             propName="sectionTitle"
             value={sectionTitle}
             renderBlock={(props) => (
-              <h2 className="text-3xl md:text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-4">
+              <h2 className={sectionTitleColor}>
                 {props.children}
               </h2>
             )}
@@ -59,7 +65,7 @@ const EventsSpecialsSection: types.Brick<EventsSpecialsSectionProps> = ({
             propName="sectionSubtitle"
             value={sectionSubtitle}
             renderBlock={(props) => (
-              <p className="text-lg text-gray-300 max-w-2xl mx-auto">
+              <p className={sectionSubtitleColor}>
                 {props.children}
               </p>
             )}
@@ -193,7 +199,7 @@ const EventsSpecialsSection: types.Brick<EventsSpecialsSectionProps> = ({
             propName="ctaText"
             value={ctaText}
             renderBlock={(props) => (
-              <p className="text-lg text-gray-300 flex items-center justify-center gap-2">
+              <p className={ctaTextColor}>
                 <Clock className="h-5 w-5 text-neonCyan" />
                 {props.children}
               </p>
@@ -219,6 +225,9 @@ EventsSpecialsSection.schema = {
   getDefaultProps: () => ({
     sectionTitle: '🎉 Events & Specials',
     sectionSubtitle: 'Discover our upcoming events and exclusive offers',
+    sectionTitleColor: 'text-3xl md:text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-4',
+    sectionSubtitleColor: 'text-lg text-gray-300 max-w-2xl mx-auto',
+    ctaTextColor: 'text-lg text-gray-300 flex items-center justify-center gap-2',
     event1Title: 'Live Music Nights',
     event1Description: 'Join us every Friday night for live acoustic performances while you enjoy our premium coffee and delicious food.',
     event1Badge: 'Upcoming Event',
@@ -242,6 +251,42 @@ EventsSpecialsSection.schema = {
       name: 'sectionSubtitle',
       label: 'Section Subtitle',
       type: types.SideEditPropType.Textarea,
+    },
+    {
+      name: 'sectionTitleColor',
+      label: 'Section Title Color',
+      type: types.SideEditPropType.Select,
+      selectOptions: {
+        display: types.OptionsDisplay.Select,
+        options: [
+          { value: 'text-3xl md:text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-4', label: 'Neon Gradient (Default)' },
+          { value: 'text-3xl md:text-4xl font-bold text-neonCyan mb-4', label: 'Neon Cyan' },
+          { value: 'text-3xl md:text-4xl font-bold text-neonPink mb-4', label: 'Neon Pink' },
+          { value: 'text-3xl md:text-4xl font-bold text-white mb-4', label: 'White' },
+          { value: 'text-3xl md:text-4xl font-bold text-gray-300 mb-4', label: 'Light Gray' },
+          { value: 'text-3xl md:text-4xl font-bold text-yellow-400 mb-4', label: 'Yellow' },
+          { value: 'text-3xl md:text-4xl font-bold text-blue-400 mb-4', label: 'Blue' },
+          { value: 'text-3xl md:text-4xl font-bold text-green-400 mb-4', label: 'Green' },
+        ],
+      },
+    },
+    {
+      name: 'sectionSubtitleColor',
+      label: 'Section Subtitle Color',
+      type: types.SideEditPropType.Select,
+      selectOptions: {
+        display: types.OptionsDisplay.Select,
+        options: [
+          { value: 'text-lg text-gray-300 max-w-2xl mx-auto', label: 'Gray 300 (Default)' },
+          { value: 'text-lg text-white max-w-2xl mx-auto', label: 'White' },
+          { value: 'text-lg text-neonCyan max-w-2xl mx-auto', label: 'Neon Cyan' },
+          { value: 'text-lg text-neonPink max-w-2xl mx-auto', label: 'Neon Pink' },
+          { value: 'text-lg text-gray-400 max-w-2xl mx-auto', label: 'Gray 400' },
+          { value: 'text-lg text-yellow-300 max-w-2xl mx-auto', label: 'Yellow' },
+          { value: 'text-lg text-blue-300 max-w-2xl mx-auto', label: 'Blue' },
+          { value: 'text-lg text-green-300 max-w-2xl mx-auto', label: 'Green' },
+        ],
+      },
     },
     {
       groupName: 'Event 1',
@@ -307,6 +352,24 @@ EventsSpecialsSection.schema = {
       name: 'ctaText',
       label: 'Call to Action Text',
       type: types.SideEditPropType.Text,
+    },
+    {
+      name: 'ctaTextColor',
+      label: 'CTA Text Color',
+      type: types.SideEditPropType.Select,
+      selectOptions: {
+        display: types.OptionsDisplay.Select,
+        options: [
+          { value: 'text-lg text-gray-300 flex items-center justify-center gap-2', label: 'Gray 300 (Default)' },
+          { value: 'text-lg text-white flex items-center justify-center gap-2', label: 'White' },
+          { value: 'text-lg text-neonCyan flex items-center justify-center gap-2', label: 'Neon Cyan' },
+          { value: 'text-lg text-neonPink flex items-center justify-center gap-2', label: 'Neon Pink' },
+          { value: 'text-lg text-gray-400 flex items-center justify-center gap-2', label: 'Gray 400' },
+          { value: 'text-lg text-yellow-300 flex items-center justify-center gap-2', label: 'Yellow' },
+          { value: 'text-lg text-blue-300 flex items-center justify-center gap-2', label: 'Blue' },
+          { value: 'text-lg text-green-300 flex items-center justify-center gap-2', label: 'Green' },
+        ],
+      },
     },
   ],
 };

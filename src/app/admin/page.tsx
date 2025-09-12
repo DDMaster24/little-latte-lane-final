@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -34,7 +35,19 @@ const tabs = [
 
 export default function AdminPage() {
   const { profile } = useAuth();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
+
+  // Handle direct editing with auto-login
+  const handleDirectEdit = async (page: string) => {
+    try {
+      // Redirect to our custom direct editor page
+      const directEditorUrl = `/admin/direct-editor?page=${encodeURIComponent(page)}&autoLogin=true`;
+      router.push(directEditorUrl);
+    } catch (error) {
+      console.error('Failed to access editor:', error);
+    }
+  };
 
   if (!profile?.is_admin) {
     return (
@@ -62,85 +75,55 @@ export default function AdminPage() {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">React Bricks Visual Editor</h2>
-              <p className="text-gray-400 text-sm">Professional visual page editor with inline editing capabilities</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Visual Content Editor</h2>
+              <p className="text-gray-400 text-sm">Edit your website content with professional inline editing</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* React Bricks Login */}
-              <a 
-                href="/admin/login"
-                className="bg-gradient-to-br from-neonPink/20 to-purple-900/50 backdrop-blur-md rounded-xl p-6 border border-neonPink/50 hover:border-neonPink/70 transition-all group"
+            
+            {/* Direct Page Editing Links */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Homepage Editor */}
+              <div 
+                onClick={() => handleDirectEdit('/')}
+                className="bg-gradient-to-br from-neonCyan/20 to-blue-900/50 backdrop-blur-md rounded-xl p-6 border border-neonCyan/50 hover:border-neonCyan/70 transition-all group cursor-pointer"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-neonCyan/20 rounded-lg group-hover:bg-neonCyan/30 transition-colors">
+                    <Edit className="h-5 w-5 text-neonCyan" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Edit Homepage</h3>
+                </div>
+                <p className="text-gray-300 text-sm">Edit main heading colors, text, badges, and welcome section content</p>
+                <div className="mt-3 inline-block px-2 py-1 bg-neonCyan/20 text-neonCyan text-xs rounded">
+                  Direct Access
+                </div>
+              </div>
+
+              {/* Menu Page Editor */}
+              <div 
+                onClick={() => handleDirectEdit('/menu')}
+                className="bg-gradient-to-br from-neonPink/20 to-purple-900/50 backdrop-blur-md rounded-xl p-6 border border-neonPink/50 hover:border-neonPink/70 transition-all group cursor-pointer"
               >
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-2 bg-neonPink/20 rounded-lg group-hover:bg-neonPink/30 transition-colors">
-                    <Edit className="h-5 w-5 text-neonPink" />
+                    <Menu className="h-5 w-5 text-neonPink" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white">React Bricks Login</h3>
+                  <h3 className="text-lg font-semibold text-white">Edit Menu Page</h3>
                 </div>
-                <p className="text-gray-300 text-sm">Login to React Bricks to access the visual editor and content management</p>
+                <p className="text-gray-300 text-sm">Update menu categories, item descriptions, and food imagery</p>
                 <div className="mt-3 inline-block px-2 py-1 bg-neonPink/20 text-neonPink text-xs rounded">
-                  Authentication Required
+                  Direct Access
                 </div>
-              </a>
+              </div>
+            </div>
 
-              {/* Test Lab */}
-              <a 
-                href="/bricks-test"
-                className="bg-gradient-to-br from-green-800/50 to-green-900/50 backdrop-blur-md rounded-xl p-6 border border-green-700/50 hover:border-green-500/50 transition-all group"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-green-500/20 rounded-lg group-hover:bg-green-500/30 transition-colors">
-                    <Edit className="h-5 w-5 text-green-400" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-white">🧪 Test Lab</h3>
-                </div>
-                <p className="text-gray-300 text-sm">Learn how React Bricks works with simple test components and step-by-step guides</p>
-                <div className="mt-3 inline-block px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
-                  Learning Environment
-                </div>
-              </a>
-
-              {/* Preview */}
-              <a 
-                href="/admin/preview"
-                className="bg-gradient-to-br from-blue-800/50 to-blue-900/50 backdrop-blur-md rounded-xl p-6 border border-blue-700/50 hover:border-blue-500/50 transition-all group"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition-colors">
-                    <BarChart3 className="h-5 w-5 text-blue-400" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-white">Preview</h3>
-                </div>
-                <p className="text-gray-400 text-sm">Preview your pages as they will appear to visitors</p>
-              </a>
-              
-              {/* Playground */}
-              <a 
-                href="/admin/playground"
-                className="bg-gradient-to-br from-purple-800/50 to-purple-900/50 backdrop-blur-md rounded-xl p-6 border border-purple-700/50 hover:border-purple-500/50 transition-all group"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-colors">
-                    <Activity className="h-5 w-5 text-purple-400" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-white">Playground</h3>
-                </div>
-                <p className="text-gray-400 text-sm">Test and preview all your bricks and page types</p>
-              </a>
-              
-              {/* App Settings */}
-              <a 
-                href="/admin/app-settings"
-                className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-md rounded-xl p-6 border border-gray-700/50 hover:border-gray-500/50 transition-all group"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-gray-500/20 rounded-lg group-hover:bg-gray-500/30 transition-colors">
-                    <Activity className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-white">App Settings</h3>
-                </div>
-                <p className="text-gray-400 text-sm">Configure React Bricks app settings and deployment</p>
-              </a>
+            {/* Status Info */}
+            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50">
+              <div className="flex items-center gap-2 text-gray-300 text-sm">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span>React Bricks Visual Editor Ready</span>
+                <span className="text-gray-500">•</span>
+                <span>Auto-login enabled for admin users</span>
+              </div>
             </div>
           </div>
         );

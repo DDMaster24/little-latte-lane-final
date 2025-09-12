@@ -18,6 +18,11 @@ interface WelcomingSectionProps {
   qualityFeatureText: string
   locationFeatureText: string
   parkingFeatureText: string
+  // Color customization props
+  mainHeadingColor: string
+  subheadingColor: string
+  badgeColor: string
+  ctaHeadingColor: string
 }
 
 //=============================
@@ -33,6 +38,10 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
   qualityFeatureText,
   locationFeatureText,
   parkingFeatureText,
+  mainHeadingColor = 'bg-neon-gradient',
+  subheadingColor = 'text-gray-300',
+  badgeColor = 'bg-neonCyan',
+  ctaHeadingColor = 'bg-neon-gradient',
 }) => {
 
   return (
@@ -44,7 +53,7 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
             propName="mainHeading"
             value={mainHeading}
             renderBlock={(props) => (
-              <h1 className="text-fluid-3xl xs:text-fluid-4xl sm:text-fluid-5xl lg:text-fluid-6xl font-bold mb-4 xs:mb-6 bg-neon-gradient bg-clip-text text-transparent">
+              <h1 className={`text-fluid-3xl xs:text-fluid-4xl sm:text-fluid-5xl lg:text-fluid-6xl font-bold mb-4 xs:mb-6 ${mainHeadingColor} bg-clip-text text-transparent`}>
                 {props.children}
               </h1>
             )}
@@ -55,7 +64,7 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
             propName="heroSubheading"
             value={heroSubheading}
             renderBlock={(props) => (
-              <p className="text-fluid-lg xs:text-fluid-xl sm:text-fluid-2xl text-gray-300 mb-4 xs:mb-6 max-w-4xl mx-auto">
+              <p className={`text-fluid-lg xs:text-fluid-xl sm:text-fluid-2xl ${subheadingColor} mb-4 xs:mb-6 max-w-4xl mx-auto`}>
                 {props.children}
               </p>
             )}
@@ -67,7 +76,7 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
               propName="nowOpenBadge"
               value={nowOpenBadge}
               renderBlock={(props) => (
-                <Badge className="bg-neonCyan text-black px-3 xs:px-4 py-2 text-fluid-xs xs:text-fluid-sm font-medium">
+                <Badge className={`${badgeColor} text-black px-3 xs:px-4 py-2 text-fluid-xs xs:text-fluid-sm font-medium`}>
                   {props.children}
                 </Badge>
               )}
@@ -94,18 +103,16 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
 
         {/* Call to Action Section */}
         <div className="text-center">
-          <Text
-            propName="ctaHeading"
-            value={ctaHeading}
-            renderBlock={(props) => (
-              <h2 className="text-3xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-4">
-                {props.children}
-              </h2>
-            )}
-            placeholder="Ready to Experience Little Latte Lane?"
-          />
-          
-          <Text
+            <Text
+              propName="ctaHeading"
+              value={ctaHeading}
+              renderBlock={(props) => (
+                <h2 className={`text-3xl font-bold ${ctaHeadingColor} bg-clip-text text-transparent mb-4`}>
+                  {props.children}
+                </h2>
+              )}
+              placeholder="Ready to Experience Little Latte Lane?"
+            />          <Text
             propName="ctaDescription"
             value={ctaDescription}
             renderBlock={(props) => (
@@ -181,36 +188,106 @@ WelcomingSection.schema = {
 
   // Sidebar controls for editing
   sideEditProps: [
+    // Text Content Controls
     {
       name: 'mainHeading',
-      label: 'Main Heading',
+      label: 'Main Heading Text',
       type: types.SideEditPropType.Text,
+    },
+    {
+      name: 'mainHeadingColor',
+      label: 'Main Heading Color',
+      type: types.SideEditPropType.Select,
+      selectOptions: {
+        display: types.OptionsDisplay.Select,
+        options: [
+          { value: 'bg-neon-gradient', label: 'Neon Gradient (Default)' },
+          { value: 'text-neonCyan', label: 'Neon Cyan' },
+          { value: 'text-neonPink', label: 'Neon Pink' },
+          { value: 'text-white', label: 'White' },
+          { value: 'text-yellow-400', label: 'Yellow' },
+          { value: 'text-green-400', label: 'Green' },
+          { value: 'text-blue-400', label: 'Blue' },
+          { value: 'text-red-400', label: 'Red' },
+        ],
+      },
     },
     {
       name: 'heroSubheading', 
-      label: 'Hero Subheading',
+      label: 'Hero Subheading Text',
       type: types.SideEditPropType.Text,
     },
     {
+      name: 'subheadingColor',
+      label: 'Subheading Color',
+      type: types.SideEditPropType.Select,
+      selectOptions: {
+        display: types.OptionsDisplay.Select,
+        options: [
+          { value: 'text-gray-300', label: 'Gray (Default)' },
+          { value: 'text-white', label: 'White' },
+          { value: 'text-neonCyan', label: 'Neon Cyan' },
+          { value: 'text-neonPink', label: 'Neon Pink' },
+          { value: 'text-yellow-400', label: 'Yellow' },
+          { value: 'text-green-400', label: 'Green' },
+        ],
+      },
+    },
+    // Badge Controls
+    {
       name: 'nowOpenBadge',
-      label: 'Status Badge',
+      label: 'Status Badge Text',
       type: types.SideEditPropType.Text,
+    },
+    {
+      name: 'badgeColor',
+      label: 'Badge Color',
+      type: types.SideEditPropType.Select,
+      selectOptions: {
+        display: types.OptionsDisplay.Select,
+        options: [
+          { value: 'bg-neonCyan', label: 'Neon Cyan (Default)' },
+          { value: 'bg-neonPink', label: 'Neon Pink' },
+          { value: 'bg-yellow-400', label: 'Yellow' },
+          { value: 'bg-green-400', label: 'Green' },
+          { value: 'bg-blue-400', label: 'Blue' },
+          { value: 'bg-red-400', label: 'Red' },
+          { value: 'bg-purple-400', label: 'Purple' },
+        ],
+      },
     },
     {
       name: 'serviceOptionsBadge',
-      label: 'Service Options Badge', 
+      label: 'Service Options Badge Text', 
+      type: types.SideEditPropType.Text,
+    },
+    // CTA Section
+    {
+      name: 'ctaHeading',
+      label: 'CTA Heading Text',
       type: types.SideEditPropType.Text,
     },
     {
-      name: 'ctaHeading',
-      label: 'CTA Heading',
-      type: types.SideEditPropType.Text,
+      name: 'ctaHeadingColor',
+      label: 'CTA Heading Color',
+      type: types.SideEditPropType.Select,
+      selectOptions: {
+        display: types.OptionsDisplay.Select,
+        options: [
+          { value: 'bg-neon-gradient', label: 'Neon Gradient (Default)' },
+          { value: 'text-neonCyan', label: 'Neon Cyan' },
+          { value: 'text-neonPink', label: 'Neon Pink' },
+          { value: 'text-white', label: 'White' },
+          { value: 'text-yellow-400', label: 'Yellow' },
+        ],
+      },
     },
     {
       name: 'ctaDescription',
       label: 'CTA Description',
       type: types.SideEditPropType.Textarea,
     },
+    // Feature Text Controls
     {
       name: 'qualityFeatureText',
       label: 'Quality Feature Text',

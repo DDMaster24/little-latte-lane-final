@@ -30,51 +30,6 @@ const pageTypes: types.IPageType[] = [
       'call-to-action',
       'stats',
       'stat-item',
-      
-      // Test bricks
-      'simple-text-brick',
-      'color-test-brick', 
-      'button-test-brick',
-    ]
-  },
-  {
-    name: 'test-page',
-    pluralName: 'test pages',
-    defaultLocked: false,
-    defaultStatus: types.PageStatus.Published,
-    getDefaultContent: () => [
-      {
-        id: 'simple-text-1',
-        type: 'simple-text-brick',
-        props: {}
-      },
-      {
-        id: 'color-test-1',
-        type: 'color-test-brick',
-        props: {}
-      },
-      {
-        id: 'button-test-1',
-        type: 'button-test-brick',
-        props: {}
-      }
-    ],
-    allowedBlockTypes: [
-      'simple-text-brick',
-      'color-test-brick',
-      'button-test-brick',
-      'welcoming-section',
-      'categories-section',
-      'events-specials-section',
-      'bookings-section',
-      'menu-hero-brick',
-      'menu-category-brick',
-      'menu-item-brick',
-      'rich-text',
-      'image-gallery',
-      'testimonials',
-      'call-to-action',
-      'stats',
     ]
   },
   {
@@ -117,9 +72,6 @@ const pageTypes: types.IPageType[] = [
       'menu-hero-brick',
       'menu-category-brick',
       'menu-item-brick',
-      'simple-text-brick',
-      'color-test-brick',
-      'button-test-brick',
     ]
   },
   {
@@ -163,9 +115,6 @@ const pageTypes: types.IPageType[] = [
       'testimonials',
       'call-to-action',
       'stats',
-      'simple-text-brick',
-      'color-test-brick',
-      'button-test-brick',
     ]
   },
   {

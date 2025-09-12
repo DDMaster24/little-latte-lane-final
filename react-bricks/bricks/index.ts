@@ -2,7 +2,6 @@ import { types } from 'react-bricks'
 
 import layout from './layout'
 import features from './features'
-import test from './test'
 import menu from './menu'
 import content from './content/index'
 
@@ -10,7 +9,6 @@ import content from './content/index'
 const bricks: types.Brick<any>[] = [
   ...layout, 
   ...features, 
-  ...test, 
   ...menu,
   ...content,
 ]
