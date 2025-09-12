@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { PageViewer, fetchPage } from 'react-bricks/frontend';
 import { types } from 'react-bricks';
+import config from '../../react-bricks/config';
 
 interface EditableHomepageProps {
   enableEditing?: boolean;
@@ -27,7 +28,7 @@ export default function EditableHomepage({ enableEditing: _enableEditing = false
         for (const pageName of pageNames) {
           try {
             console.log(`Attempting to fetch page: ${pageName}`);
-            pageData = await fetchPage(pageName, process.env.NEXT_PUBLIC_API_KEY!);
+            pageData = await fetchPage({ slug: pageName, config });
             if (pageData) {
               console.log(`Successfully loaded page: ${pageName}`, pageData);
               break;

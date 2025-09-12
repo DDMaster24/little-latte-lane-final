@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     const appResponse = await fetch(`https://api.reactbricks.com/v2/apps/${process.env.NEXT_PUBLIC_APP_ID}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_KEY}`,
+        'Authorization': `Bearer ${process.env.API_KEY}`,
         'Content-Type': 'application/json'
       }
     })
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
     const pagesResponse = await fetch(`https://api.reactbricks.com/v2/pages?appId=${process.env.NEXT_PUBLIC_APP_ID}&environment=${process.env.NEXT_PUBLIC_ENVIRONMENT}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_KEY}`,
+        'Authorization': `Bearer ${process.env.API_KEY}`,
         'Content-Type': 'application/json'
       }
     })
