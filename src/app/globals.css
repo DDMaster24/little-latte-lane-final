@@ -620,3 +620,29 @@ div[data-testid*="vercel-toolbar"],
   overflow: hidden !important;
   z-index: -1 !important;
 }
+
+/* Hide React Bricks Editor Elements */
+div[class*="react-bricks-made-with"],
+div[class*="react-bricks-credits"],
+.react-bricks-credits,
+.react-bricks-made-with,
+[data-testid*="react-bricks-credits"],
+[data-testid*="made-with-react-bricks"],
+button[class*="pencil"],
+button[class*="edit-button"],
+div[class*="edit-overlay"],
+.rb-editor-toolbar,
+.rb-credits,
+.rb-made-with {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  z-index: -1 !important;
+}

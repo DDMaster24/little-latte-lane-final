@@ -129,7 +129,7 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
 
         {/* Editable Carousel Section */}
         <div className="mb-16">
-          <div className="relative h-[500px] flex items-center justify-center overflow-hidden" 
+          <div className="relative h-[600px] flex items-center justify-center overflow-visible" 
                style={{ 
                  perspective: '1200px',
                  transformStyle: 'preserve-3d' 
@@ -207,7 +207,7 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
                       return (
                         <div
                           key={`panel-${index}`}
-                          className="absolute w-80 transition-all duration-1000 ease-in-out"
+                          className="absolute w-80 h-96 transition-all duration-1000 ease-in-out group"
                           style={{
                             transform: `translateX(${translateX}px) translateZ(20px) rotateY(${rotateY}deg) scale(${scale})`,
                             transformStyle: 'preserve-3d',
@@ -225,6 +225,11 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
                   </div>
                 )
               }}
+              renderItemWrapper={(item) => (
+                <div className="carousel-panel-wrapper">
+                  {item}
+                </div>
+              )}
             />
           </div>
           
