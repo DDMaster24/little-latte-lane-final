@@ -633,7 +633,21 @@ button[class*="edit-button"],
 div[class*="edit-overlay"],
 .rb-editor-toolbar,
 .rb-credits,
-.rb-made-with {
+.rb-made-with,
+/* More comprehensive selectors */
+[class*="made-with"],
+[class*="react-bricks"],
+button[title*="Edit"],
+button[aria-label*="Edit"],
+div[data-cy*="edit"],
+div[data-cy*="brick"],
+[data-rb*="edit"],
+[data-rb*="brick"],
+/* Pencil icon selectors */
+svg[class*="pencil"],
+button[class*="absolute"][class*="bottom-0"],
+button[class*="absolute"][class*="right-0"],
+div[class*="edit-button-container"] {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;

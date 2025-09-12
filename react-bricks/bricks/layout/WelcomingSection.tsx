@@ -128,8 +128,8 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
         </div>
 
         {/* Editable Carousel Section */}
-        <div className="mb-8">
-          <div className="relative h-[450px] flex items-center justify-center overflow-visible" 
+        <div className="mb-8 w-full">
+          <div className="relative w-full min-h-[400px] flex items-center justify-center overflow-hidden" 
                style={{ 
                  perspective: '1200px',
                  transformStyle: 'preserve-3d' 
@@ -154,7 +154,7 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
                 }
 
                 return (
-                  <div className="relative w-full h-full flex items-center justify-center">
+                  <div className="relative w-full min-h-[400px] flex items-center justify-center py-8">
                     {itemsArray.map((item, index) => {
                       const totalItems = itemsArray.length
                       
@@ -163,26 +163,26 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
                       let translateX = 0
                       let rotateY = 0
                       let scale = 1
-                      let zIndex = 50
+                      let zIndex = 5 // Much lower z-index values
                       
                       if (totalItems === 1) {
                         // Single panel - center
                         translateX = 0
                         rotateY = 0
-                        scale = 1.1
-                        zIndex = 50
+                        scale = 1.0
+                        zIndex = 5
                       } else if (totalItems === 2) {
                         // Two panels - side by side
                         if (index === 0) {
                           translateX = -200 // Left panel
                           rotateY = 15
                           scale = 0.9
-                          zIndex = 40
+                          zIndex = 4
                         } else {
                           translateX = 200 // Right panel  
                           rotateY = -15
                           scale = 0.9
-                          zIndex = 40
+                          zIndex = 4
                         }
                       } else {
                         // Multiple panels - semi-circle arrangement
@@ -193,14 +193,14 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
                           // Center panel
                           translateX = 0
                           rotateY = 0
-                          scale = 1.1
-                          zIndex = 50
+                          scale = 1.0
+                          zIndex = 5
                         } else {
                           // Side panels
                           translateX = offset * 180
                           rotateY = offset * -20
                           scale = 0.8 + (0.2 * (1 - Math.abs(offset) / totalItems))
-                          zIndex = 50 - Math.abs(offset) * 10
+                          zIndex = 5 - Math.abs(offset)
                         }
                       }
                       
