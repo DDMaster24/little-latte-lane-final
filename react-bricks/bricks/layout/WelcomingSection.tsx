@@ -53,8 +53,8 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
   // Auto-rotation effect for carousel
   React.useEffect(() => {
     const interval = setInterval(() => {
-      setRotation(prev => prev + 45) // Rotate by 45 degrees every 3 seconds
-    }, 3000)
+      setRotation(prev => prev + 30) // Rotate by 30 degrees every 4 seconds
+    }, 4000)
 
     return () => clearInterval(interval)
   }, [])
@@ -168,12 +168,17 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
                        style={{ 
                          transformStyle: 'preserve-3d',
                          transform: `rotateY(${rotation}deg)`,
-                         transition: 'transform 2s ease-in-out'
+                         transition: 'transform 3s ease-in-out'
                        }}>
                     {itemsArray.map((item, index) => {
                       const totalItems = itemsArray.length
                       const angle = (index * 360) / totalItems
-                      const radius = 320 // Fixed radius for better control
+                      
+                      // Adjust radius based on number of items to prevent overlap
+                      let radius = 280
+                      if (totalItems === 2) radius = 350
+                      if (totalItems === 3) radius = 300
+                      if (totalItems >= 4) radius = 280
                       
                       // Calculate position using proper 3D math
                       const x = Math.sin((angle * Math.PI) / 180) * radius
@@ -190,6 +195,7 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
                             top: '50%',
                             marginLeft: '-160px', // Center horizontally (width/2)
                             marginTop: '-192px',  // Center vertically (height/2)
+                            zIndex: z > 0 ? 10 : 5, // Items closer to viewer get higher z-index
                           }}
                         >
                           {item}
