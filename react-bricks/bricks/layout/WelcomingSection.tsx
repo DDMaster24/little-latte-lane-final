@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Star, MapPin, Car } from 'lucide-react';
 
 //=============================
-// Local Types
+// Local Types - Updated
 //=============================
 interface WelcomingSectionProps {
   mainHeading: string
