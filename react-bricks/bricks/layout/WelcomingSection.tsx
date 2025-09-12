@@ -48,6 +48,16 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
   customMainHeadingColor,
   customMainHeadingGradient,
 }) => {
+  const [rotation, setRotation] = React.useState(0)
+
+  // Auto-rotation effect for carousel
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setRotation(prev => prev + 45) // Rotate by 45 degrees every 3 seconds
+    }, 3000)
+
+    return () => clearInterval(interval)
+  }, [])
   // Resolve the actual color/style to use
   const getMainHeadingStyle = () => {
     if (mainHeadingColor === 'custom-color' && customMainHeadingColor) {
@@ -129,7 +139,11 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
 
         {/* Editable Carousel Section */}
         <div className="mb-16">
-          <div className="relative h-[600px] flex items-center justify-center carousel-3d-container overflow-visible">
+          <div className="relative h-[600px] flex items-center justify-center overflow-visible" 
+               style={{ 
+                 perspective: '1000px',
+                 transformStyle: 'preserve-3d' 
+               }}>
             <Repeater
               propName="carouselPanels"
               renderWrapper={(items) => {
@@ -150,26 +164,36 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
                 }
 
                 return (
-                  <>
-                    {itemsArray.map((item, index) => (
-                      <div
-                        key={`panel-${index}`}
-                        className="absolute carousel-3d-card cursor-pointer transition-all duration-1000 ease-in-out"
-                        style={{
-                          transform: index === 0 
-                            ? 'translateX(0) translateZ(100px) rotateY(0deg) scale(1.2)'
-                            : index === 1
-                            ? 'translateX(320px) translateZ(20px) rotateY(-15deg) scale(0.9)'
-                            : 'translateX(-320px) translateZ(20px) rotateY(15deg) scale(0.9)',
-                          opacity: index === 0 ? 1 : 0.8,
-                          zIndex: index === 0 ? 50 : 40,
-                          width: index === 0 ? '400px' : '320px',
-                        }}
-                      >
-                        {item}
-                      </div>
-                    ))}
-                  </>
+                  <div className="relative w-full h-full perspective-1000"
+                       style={{ 
+                         transform: `rotateY(${rotation}deg)`,
+                         transformStyle: 'preserve-3d',
+                         transition: 'transform 1s ease-in-out'
+                       }}>
+                    {itemsArray.map((item, index) => {
+                      const totalItems = itemsArray.length
+                      const angle = (index * 360) / totalItems
+                      const radius = Math.min(280, 180 + totalItems * 25)
+                      
+                      // Calculate position on the circle
+                      const x = Math.cos((angle * Math.PI) / 180) * radius
+                      const z = Math.sin((angle * Math.PI) / 180) * radius
+                      
+                      return (
+                        <div
+                          key={`panel-${index}`}
+                          className="absolute left-1/2 top-1/2 w-80 carousel-item transition-all duration-1000 ease-in-out hover:scale-110"
+                          style={{
+                            transform: `translate(-50%, -50%) translate3d(${x}px, 0, ${z}px) rotateY(${angle}deg)`,
+                            transformStyle: 'preserve-3d',
+                            backfaceVisibility: 'hidden',
+                          }}
+                        >
+                          {item}
+                        </div>
+                      )
+                    })}
+                  </div>
                 )
               }}
             />
