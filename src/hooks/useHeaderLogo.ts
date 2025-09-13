@@ -19,7 +19,7 @@ export function useHeaderLogo() {
         .from('theme_settings')
         .select('setting_value')
         .eq('setting_key', 'header-logo_image')
-        .eq('category', 'page_editor')
+        .eq('category', 'branding')
         .single();
 
       if (!error && data?.setting_value) {

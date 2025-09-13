@@ -162,25 +162,21 @@ function MenuContent() {
       {/* Header - Matching Homepage Style */}
       <div className="text-center mb-8 sm:mb-12 px-4 sm:px-6">
         <h1 
-          data-editable="menu-page-title"
           className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-neonCyan via-neonBlue to-neonPink bg-clip-text text-transparent mb-4 flex items-center justify-center gap-2 sm:gap-4"
         >
           <span 
-            data-editable="menu-title-icon-left"
             className="text-2xl sm:text-3xl lg:text-4xl"
           >
             🍽️
           </span>
-          <span data-editable="menu-title-text">Our Full Menu</span>
+          <span>Our Full Menu</span>
           <span 
-            data-editable="menu-title-icon-right"
             className="text-2xl sm:text-3xl lg:text-4xl"
           >
             🍽️
           </span>
         </h1>
         <p 
-          data-editable="menu-page-subtitle"
           className="text-gray-300 text-sm sm:text-base lg:text-lg"
         >
           Organized by category for easy browsing
@@ -235,11 +231,9 @@ function MenuContent() {
                             {/* Category Icon Section */}
                             <div className="flex flex-col items-center text-center">
                               <div 
-                                data-editable="category-icon-container"
                                 className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mb-3 sm:mb-4 flex items-center justify-center rounded-xl bg-black/30 backdrop-blur-sm border border-neonCyan/20 group-hover:border-neonPink/40 transition-all duration-300"
                               >
                                 <span 
-                                  data-editable="category-icon"
                                   className="text-2xl sm:text-3xl lg:text-4xl"
                                 >
                                   {getCategoryIcon(category.name)}
@@ -248,7 +242,6 @@ function MenuContent() {
                               
                               {/* Category Name */}
                               <h3 
-                                data-editable="category-name"
                                 className="text-lg sm:text-xl font-bold text-neonCyan group-hover:text-neonPink transition-colors duration-300 mb-2"
                               >
                                 {category.name}
@@ -257,7 +250,6 @@ function MenuContent() {
                               {/* Category Description */}
                               {category.description && (
                                 <p 
-                                  data-editable="category-description"
                                   className="text-gray-300 text-xs sm:text-sm leading-relaxed group-hover:text-gray-200 transition-colors duration-300 line-clamp-3"
                                 >
                                   {category.description}
@@ -293,19 +285,16 @@ function MenuContent() {
         >
           <span className="flex items-center gap-3">
             <span 
-              data-editable="browse-menu-icon-left"
               className="text-2xl"
             >
               🍽️
             </span>
             <span 
-              data-editable="browse-menu-button-text"
               className="browse-menu-text"
             >
               Browse All Menu Items
             </span>
             <span 
-              data-editable="browse-menu-icon-right"
               className="text-2xl"
             >
               🍽️

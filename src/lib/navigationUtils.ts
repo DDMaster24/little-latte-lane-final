@@ -57,7 +57,7 @@ export function checkAndRestoreNavigation(): boolean {
                               (nav && getComputedStyle(nav).display === 'none') ||
                               document.body.classList.contains('editor-active');
     
-    if (isNavigationHidden && !window.location.pathname.includes('/admin/page-editor/')) {
+    if (isNavigationHidden && !window.location.pathname.includes('/admin/')) {
       console.log('🚨 Navigation is hidden but not in editor mode! Restoring...');
       forceRestoreNavigation();
       return true;

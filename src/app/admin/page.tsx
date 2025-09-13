@@ -1,12 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Menu, Users, BarChart3, ShoppingBag, Calendar, 
-  Shield, Activity, CheckCircle, CreditCard, QrCode, Star, Edit
+  Shield, Activity, CheckCircle, CreditCard, QrCode, Star
 } from 'lucide-react';
 
 // Tab Components
@@ -22,7 +21,6 @@ import { QRCodeGenerator } from '@/components/QRCodeGenerator';
 
 const tabs = [
   { id: 'overview', label: 'Overview', icon: BarChart3, color: 'neonCyan' },
-  { id: 'react-bricks-editor', label: 'Visual Editor', icon: Edit, color: 'neonPink' },
   { id: 'menu', label: 'Menu Management', icon: Menu, color: 'neonCyan' },
   { id: 'orders', label: 'Order Management', icon: ShoppingBag, color: 'neonPink' },
   { id: 'events', label: 'Events & Specials', icon: Star, color: 'yellow-500' },
@@ -35,7 +33,6 @@ const tabs = [
 
 export default function AdminPage() {
   const { profile } = useAuth();
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
 
   if (!profile?.is_admin) {
@@ -60,46 +57,6 @@ export default function AdminPage() {
     switch (activeTab) {
       case 'overview':
         return <AdminOverview />;
-      case 'react-bricks-editor':
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Visual Content Editor</h2>
-              <p className="text-gray-400 text-sm">Edit your website content with professional inline editing</p>
-            </div>
-            
-            {/* Single Edit Pages Button */}
-            <div className="flex justify-center">
-              <div 
-                onClick={() => router.push('/admin/editor')}
-                className="bg-gradient-to-br from-neonCyan/20 to-neonPink/20 backdrop-blur-md rounded-xl p-8 border border-neonCyan/50 hover:border-neonCyan/70 transition-all group cursor-pointer max-w-md w-full"
-              >
-                <div className="text-center">
-                  <div className="p-4 bg-gradient-to-br from-neonCyan/30 to-neonPink/30 rounded-full mx-auto mb-4 w-16 h-16 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Edit className="h-8 w-8 text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-2">Edit Pages</h3>
-                  <p className="text-gray-300 text-sm mb-4">
-                    Access the Visual Editor to edit homepage, menu, and all other pages with live preview
-                  </p>
-                  <div className="inline-block px-4 py-2 bg-gradient-to-r from-neonCyan to-neonPink text-white text-sm font-medium rounded-lg">
-                    Open Visual Editor
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Status Info */}
-            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50">
-              <div className="flex items-center justify-center gap-2 text-gray-300 text-sm">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span>React Bricks Visual Editor Ready</span>
-                <span className="text-gray-500">•</span>
-                <span>Auto-login enabled for admin users</span>
-              </div>
-            </div>
-          </div>
-        );
       case 'menu':
         return <MenuManagementThreeTier />;
       case 'orders':
@@ -162,35 +119,11 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Tab Navigation - UPDATED: Two rows for 10 tabs */}
+            {/* Tab Navigation - Single row for 9 tabs */}
             <div className="w-full">
               <div className="bg-gray-800/50 p-1 rounded-xl border border-gray-700/50">
-                {/* First Row - 5 tabs */}
-                <div className="flex space-x-1 mb-1">
-                  {tabs.slice(0, 5).map((tab) => {
-                    const Icon = tab.icon;
-                    const isActive = activeTab === tab.id;
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-300 whitespace-nowrap flex-1 justify-center ${
-                          isActive
-                            ? 'bg-gradient-to-r from-neonCyan/20 to-neonPink/20 text-white border border-neonCyan/30 shadow-lg'
-                            : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
-                        }`}
-                      >
-                        <Icon className={`h-4 w-4 ${isActive ? 'text-neonCyan' : ''}`} />
-                        <span className="hidden sm:inline">{tab.label}</span>
-                        <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-                
-                {/* Second Row - 5 tabs */}
                 <div className="flex space-x-1">
-                  {tabs.slice(5, 10).map((tab) => {
+                  {tabs.map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
                     return (

@@ -228,7 +228,7 @@ export async function saveImageSetting(setting: {
   return saveThemeSetting({
     setting_key: setting.setting_key,
     setting_value: setting.setting_value,
-    category: setting.category || 'page_editor'
+    category: setting.category || 'content'
   });
 }
 
@@ -278,7 +278,7 @@ export async function saveThemeSetting(setting: {
         .insert([{
           setting_key: setting.setting_key,
           setting_value: setting.setting_value,
-          category: setting.category || 'page_editor',
+          category: setting.category || 'content',
           updated_at: new Date().toISOString()
         }])
         .select()
@@ -450,7 +450,7 @@ export async function uploadImage(formData: FormData) {
     if (folder === 'logos' || folder === 'headers' || folder === 'icons') {
       bucket = 'header-assets'; // Dedicated bucket for header images
     } else if (folder === 'uploads') {
-      bucket = 'page-editor'; // Dedicated bucket for page editor uploads
+      bucket = 'content-uploads'; // Dedicated bucket for content uploads
     } else {
       bucket = 'menu-images'; // Default for menu content
     }

@@ -621,36 +621,12 @@ body {
   border-color: #ffff00;
 }
 
-/* CLEAN FOUNDATION - Editor styles moved to EditorLayout component */
-/* This prevents conflicts between global CSS and editor-specific styling */
+/* CLEAN FOUNDATION - No legacy editor styling conflicts */
+/* This ensures clean CSS without any old editor remnants */
 
 @layer utilities {
   /* Keep only essential utility classes, no editor-specific styles */
   /* Essential utilities only */
-  
-  /* Logo Integration and Blending */
-  [data-editable="header-logo"] {
-    /* Remove any background artifacts */
-    background: transparent !important;
-    /* Subtle border radius for better integration */
-    border-radius: 8px;
-    /* Enhance contrast and saturation for better visibility */
-    filter: contrast(1.1) saturate(1.1);
-    /* Ensure smooth rendering */
-    image-rendering: crisp-edges;
-    /* Remove any potential borders or shadows */
-    border: none !important;
-    box-shadow: none !important;
-    outline: none !important;
-    /* Small padding for better visual spacing */
-    padding: 2px;
-  }
-  
-  /* Additional transparency for logo container */
-  [data-editable="header-logo"]:before,
-  [data-editable="header-logo"]:after {
-    display: none !important;
-  }
 }
 
 /* Hide Vercel Toolbar - Force disable */
@@ -661,46 +637,6 @@ div[class*="__vercel_toolbar"],
 div[data-testid*="vercel-toolbar"],
 .vercel-live-feedback,
 [data-vercel-live-feedback] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  position: absolute !important;
-  left: -9999px !important;
-  top: -9999px !important;
-  width: 0 !important;
-  height: 0 !important;
-  overflow: hidden !important;
-  z-index: -1 !important;
-}
-
-/* Hide React Bricks Editor Elements */
-div[class*="react-bricks-made-with"],
-div[class*="react-bricks-credits"],
-.react-bricks-credits,
-.react-bricks-made-with,
-[data-testid*="react-bricks-credits"],
-[data-testid*="made-with-react-bricks"],
-button[class*="pencil"],
-button[class*="edit-button"],
-div[class*="edit-overlay"],
-.rb-editor-toolbar,
-.rb-credits,
-.rb-made-with,
-/* More comprehensive selectors */
-[class*="made-with"],
-[class*="react-bricks"],
-button[title*="Edit"],
-button[aria-label*="Edit"],
-div[data-cy*="edit"],
-div[data-cy*="brick"],
-[data-rb*="edit"],
-[data-rb*="brick"],
-/* Pencil icon selectors */
-svg[class*="pencil"],
-button[class*="absolute"][class*="bottom-0"],
-button[class*="absolute"][class*="right-0"],
-div[class*="edit-button-container"] {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;

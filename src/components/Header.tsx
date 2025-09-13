@@ -72,7 +72,6 @@ export default function Header() {
 
   return (
     <header 
-      data-editable="header-background"
       className="bg-darkBg text-neonText py-2 xs:py-3 shadow-neon relative z-40"
     >
       <div className="container-full flex items-center justify-between">
@@ -96,28 +95,24 @@ export default function Header() {
           <nav className="flex items-center space-x-3 xl:space-x-4">
             <Link 
               href="/" 
-              data-editable="nav-link-home"
               className="neon-button text-sm px-3 py-2"
             >
               Home
             </Link>
             <Link 
               href="/menu" 
-              data-editable="nav-link-menu"
               className="neon-button text-sm px-3 py-2"
             >
               Menu
             </Link>
             <Link 
               href="/bookings" 
-              data-editable="nav-link-bookings"
               className="neon-button text-sm px-3 py-2"
             >
               Bookings
             </Link>
             <Link 
               href="/account" 
-              data-editable="nav-link-account"
               className="neon-button text-sm px-3 py-2"
             >
               My Account
@@ -125,7 +120,6 @@ export default function Header() {
             {user && profile?.is_admin && (
               <Link 
                 href="/admin" 
-                data-editable="nav-link-admin"
                 className="neon-button text-sm px-3 py-2"
               >
                 Admin Panel
@@ -134,7 +128,6 @@ export default function Header() {
             {user && (profile?.is_staff || profile?.is_admin) && (
               <Link 
                 href={profile?.is_staff && !profile?.is_admin ? "/staff/kitchen-view" : "/staff"} 
-                data-editable="nav-link-staff"
                 className="neon-button text-sm px-3 py-2"
               >
                 {profile?.is_staff && !profile?.is_admin ? "🍳 Kitchen" : "Staff Panel"}
@@ -173,7 +166,6 @@ export default function Header() {
               
               <Button 
                 onClick={signOut} 
-                data-editable="auth-logout-button"
                 className="neon-button bg-neonPink text-xs px-3 py-2"
               >
                 <span className="hidden sm:inline">Logout</span>
@@ -184,7 +176,6 @@ export default function Header() {
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
               <DialogTrigger asChild>
                 <Button 
-                  data-editable="auth-login-button"
                   className="neon-button text-xs xs:text-sm px-3 xs:px-4 py-2"
                 >
                   Login
@@ -224,7 +215,6 @@ export default function Header() {
           <div className="container-wide py-4 space-y-1">
             <Link
               href="/"
-              data-editable="mobile-nav-home"
               className="neon-button w-full text-center py-3 xs:py-4 hover:bg-neonCyan/10 rounded-lg transition-all duration-300 touch-target text-fluid-sm flex items-center justify-center gap-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
@@ -232,7 +222,6 @@ export default function Header() {
             </Link>
             <Link
               href="/menu"
-              data-editable="mobile-nav-menu"
               className="neon-button w-full text-center py-3 xs:py-4 hover:bg-neonCyan/10 rounded-lg transition-all duration-300 touch-target text-fluid-sm flex items-center justify-center gap-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
@@ -240,7 +229,6 @@ export default function Header() {
             </Link>
             <Link
               href="/bookings"
-              data-editable="mobile-nav-bookings"
               className="neon-button w-full text-center py-3 xs:py-4 hover:bg-neonCyan/10 rounded-lg transition-all duration-300 touch-target text-fluid-sm flex items-center justify-center gap-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
@@ -248,7 +236,6 @@ export default function Header() {
             </Link>
             <Link
               href="/account"
-              data-editable="mobile-nav-account"
               className="neon-button w-full text-center py-3 xs:py-4 hover:bg-neonCyan/10 rounded-lg transition-all duration-300 touch-target text-fluid-sm flex items-center justify-center gap-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >

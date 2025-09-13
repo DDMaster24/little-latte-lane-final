@@ -145,12 +145,10 @@ export default function EventsSpecialsSection() {
       <section 
         className="container-responsive section-padding-sm shadow-neon rounded-xl animate-fade-in"
         style={{ backgroundColor: settings.section_background_color }}
-        data-editable="events-section"
       >
         <div className="text-center animate-pulse">
           <h2 
             className={`text-fluid-2xl xs:text-fluid-3xl md:text-fluid-4xl font-bold ${settings.title_gradient} bg-clip-text text-transparent mb-4`}
-            data-editable="events-section-title"
           >
             Loading Events & Specials...
           </h2>
@@ -176,13 +174,11 @@ export default function EventsSpecialsSection() {
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
-        data-editable="events-section"
       >
         <div className="text-center py-8 xs:py-12 px-6">
           <h2 
             className={`text-fluid-2xl xs:text-fluid-3xl md:text-fluid-4xl font-bold ${settings.title_gradient} bg-clip-text text-transparent mb-4`}
             style={{ color: settings.title_gradient.includes('gradient') ? undefined : settings.section_text_color }}
-            data-editable="events-section-title"
           >
             {settings.section_title}
           </h2>
@@ -190,7 +186,6 @@ export default function EventsSpecialsSection() {
           <p 
             className="text-lg mb-4 max-w-2xl mx-auto"
             style={{ color: settings.section_text_color }}
-            data-editable="events-section-subtitle"
           >
             {settings.section_subtitle}
           </p>
@@ -198,7 +193,6 @@ export default function EventsSpecialsSection() {
           <p 
             className="text-lg"
             style={{ color: settings.section_text_color }}
-            data-editable="events-no-content-message"
           >
             No current events or specials. Check back soon for exciting updates!
           </p>
@@ -210,7 +204,6 @@ export default function EventsSpecialsSection() {
   return (
     <section 
       className="w-full"
-      data-editable="events-section-container"
     >
       <div 
         className="w-full shadow-neon rounded-xl overflow-hidden animate-fade-in"
@@ -220,13 +213,11 @@ export default function EventsSpecialsSection() {
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
-        data-editable="events-section-background"
       >
         <div className="text-center py-8 xs:py-12 px-6">
           <h2 
             className={`text-fluid-2xl xs:text-fluid-3xl md:text-fluid-4xl font-bold ${settings.title_gradient} bg-clip-text text-transparent mb-4`}
             style={{ color: settings.title_gradient.includes('gradient') ? undefined : settings.section_text_color }}
-            data-editable="events-section-title"
           >
             {settings.section_title}
           </h2>
@@ -234,7 +225,6 @@ export default function EventsSpecialsSection() {
           <p 
             className="text-lg max-w-2xl mx-auto"
             style={{ color: settings.section_text_color }}
-            data-editable="events-section-subtitle"
           >
             {settings.section_subtitle}
           </p>
@@ -256,7 +246,6 @@ export default function EventsSpecialsSection() {
                   backgroundSize: 'cover',
                   backgroundPosition: 'center'
                 }}
-                data-editable="event-card"
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
@@ -283,7 +272,6 @@ export default function EventsSpecialsSection() {
                   <CardTitle
                     className={`text-lg font-bold ${getEventColor(event.event_type)}`}
                     style={{ color: event.text_color || undefined }}
-                    data-editable="event-title"
                   >
                     {event.title}
                   </CardTitle>
@@ -292,7 +280,6 @@ export default function EventsSpecialsSection() {
                   <p 
                     className="text-sm leading-relaxed mb-4"
                     style={{ color: event.text_color || settings.section_text_color }}
-                    data-editable="event-description"
                   >
                     {event.description}
                   </p>

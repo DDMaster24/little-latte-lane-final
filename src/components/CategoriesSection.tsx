@@ -60,13 +60,11 @@ export default function CategoriesSection() {
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
-        data-editable="categories-section-background"
       >
         {/* Centered Header with Fluid Typography */}
         <div className="text-center py-8 xs:py-12 px-6">
           <h2 
             className="text-fluid-2xl xs:text-fluid-3xl md:text-fluid-4xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-4"
-            data-editable="categories-title"
           >
             🍽️ View Our Categories
           </h2>
@@ -80,7 +78,6 @@ export default function CategoriesSection() {
                 <div
                   key={category.id}
                   className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in touch-target"
-                  data-editable={`category-${category.id}-card`}
                   style={{ 
                     animationDelay: `${index * 0.1}s`,
                     background: 'rgba(0, 0, 0, 0.4)',
@@ -94,11 +91,9 @@ export default function CategoriesSection() {
                     {/* Glassmorphic Icon Container - Responsive Sizing */}
                     <div 
                       className="w-full h-20 xs:h-24 sm:h-32 bg-gradient-to-br from-neonCyan/10 to-neonPink/10 backdrop-blur-sm rounded-lg mb-3 xs:mb-4 flex items-center justify-center group-hover:from-neonCyan/20 group-hover:to-neonPink/20 transition-all duration-300 border border-neonCyan/20 cursor-pointer hover:border-neonPink/50"
-                      data-editable={`category-${category.id}-icon-container`}
                     >
                       <span 
                         className="text-2xl xs:text-3xl sm:text-4xl filter drop-shadow-lg cursor-pointer"
-                        data-editable={`category-${category.id}-icon`}
                       >
                         {category.icon}
                       </span>
@@ -107,7 +102,6 @@ export default function CategoriesSection() {
                     {/* Category Title - Fluid Typography */}
                     <h3 
                       className="text-neonCyan font-semibold text-center group-hover:text-neonPink transition-colors duration-300 text-fluid-base xs:text-fluid-lg mb-2 xs:mb-3 cursor-pointer hover:text-neonPink/80"
-                      data-editable={`category-${category.id}-title`}
                     >
                       {category.name}
                     </h3>
@@ -115,7 +109,6 @@ export default function CategoriesSection() {
                     {/* Description - Responsive Text */}
                     <p 
                       className="text-gray-300 text-fluid-xs xs:text-fluid-sm text-center leading-relaxed flex-grow flex items-center justify-center cursor-pointer hover:text-gray-100"
-                      data-editable={`category-${category.id}-description`}
                     >
                       {category.description}
                     </p>

@@ -15,7 +15,6 @@ export default function WelcomingSection() {
         {/* Hero Header - Fully Responsive */}
         <div className="text-center section-padding-sm">
           <h1 
-            data-editable="main-heading"
             className="text-fluid-3xl xs:text-fluid-4xl sm:text-fluid-5xl lg:text-fluid-6xl font-bold mb-4 xs:mb-6 bg-neon-gradient bg-clip-text text-transparent"
           >
             {username
@@ -23,20 +22,17 @@ export default function WelcomingSection() {
               : 'Welcome to Little Latte Lane'}
           </h1>
           <p 
-            data-editable="hero-subheading"
             className="text-fluid-lg xs:text-fluid-xl sm:text-fluid-2xl text-gray-300 mb-4 xs:mb-6 max-w-4xl mx-auto"
           >
             Café & Deli - Where Great Food Meets Amazing Experiences
           </p>
           <div className="flex flex-wrap justify-center gap-2 xs:gap-3 mb-8 xs:mb-12">
             <Badge 
-              data-editable="now-open-badge"
               className="bg-neonCyan text-black px-3 xs:px-4 py-2 text-fluid-xs xs:text-fluid-sm font-medium"
             >
               Now Open
             </Badge>
             <Badge 
-              data-editable="service-options-badge"
               className="bg-neonPink text-black px-3 xs:px-4 py-2 text-fluid-xs xs:text-fluid-sm font-medium"
             >
               Dine In • Takeaway • Delivery
@@ -52,13 +48,11 @@ export default function WelcomingSection() {
         {/* Call to Action Section */}
         <div className="text-center">
           <h2 
-            data-editable="cta-heading"
             className="text-3xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-4"
           >
             Ready to Experience Little Latte Lane?
           </h2>
           <p 
-            data-editable="cta-description"
             className="text-lg text-gray-300 mb-6 max-w-2xl mx-auto"
           >
             Join us for exceptional food, premium beverages, and a warm,
@@ -70,7 +64,6 @@ export default function WelcomingSection() {
             <div className="flex items-center justify-center gap-2 text-neonCyan">
               <Star className="h-5 w-5" />
               <span 
-                data-editable="quality-feature-text"
                 className="text-sm font-medium"
               >
                 Exceptional Quality
@@ -79,7 +72,6 @@ export default function WelcomingSection() {
             <div className="flex items-center justify-center gap-2 text-neonPink">
               <MapPin className="h-5 w-5" />
               <span 
-                data-editable="location-feature-text"
                 className="text-sm font-medium"
               >
                 Prime Location
@@ -88,7 +80,6 @@ export default function WelcomingSection() {
             <div className="flex items-center justify-center gap-2 text-yellow-400">
               <Car className="h-5 w-5" />
               <span 
-                data-editable="parking-feature-text"
                 className="text-sm font-medium"
               >
                 Easy Parking
