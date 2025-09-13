@@ -144,27 +144,23 @@ export default function BookingsPage() {
       {!isLoadingSettings && golfSettings && !golfSettings.enabled && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80">
           <div className="max-w-2xl mx-auto text-center p-8 bg-gray-800/90 backdrop-blur-sm rounded-2xl border border-neonCyan/30 shadow-2xl">
-            <div 
-              data-editable="golf-coming-soon-emoji"
+            <div
               className="text-6xl mb-6"
             >
               🏌️‍♂️
             </div>
-            <h1 
-              data-editable="golf-coming-soon-heading"
+            <h1
               className="text-4xl font-bold mb-6 bg-gradient-to-r from-neonCyan via-neonPink to-neonBlue bg-clip-text text-transparent"
             >
               Virtual Golf Coming Soon!
             </h1>
-            <div 
-              data-editable="golf-coming-soon-message"
+            <div
               className="text-gray-300 text-lg whitespace-pre-line mb-8"
             >
               {golfSettings.comingSoonMessage}
             </div>
             <div className="flex justify-center">
-              <div 
-                data-editable="golf-stay-tuned-badge"
+              <div
                 className="animate-pulse bg-gradient-to-r from-neonPink to-neonCyan px-8 py-4 rounded-full text-black font-semibold"
               >
                 Stay Tuned for Updates!
@@ -180,14 +176,12 @@ export default function BookingsPage() {
           {/* Hero Section */}
           <div className="py-12">
             <div className="max-w-7xl mx-auto px-6 text-center">
-              <h1 
-                data-editable="golf-active-heading"
+              <h1
                 className="text-5xl font-bold mb-4 bg-gradient-to-r from-neonCyan via-neonPink to-neonBlue bg-clip-text text-transparent"
               >
                 Book Virtual Golf
               </h1>
-              <p 
-                data-editable="golf-active-subtitle"
+              <p
                 className="text-xl text-gray-200 mb-8"
               >
                 Experience the future of golf in our state-of-the-art virtual
@@ -201,8 +195,7 @@ export default function BookingsPage() {
               {/* Booking Form */}
               <div className="lg:col-span-2">
                 <div className="bg-gray-800/80 backdrop-blur-lg p-8 rounded-xl shadow-2xl border border-neonCyan/30">
-                  <h2 
-                    data-editable="booking-form-title"
+                  <h2
                     className="text-2xl font-semibold mb-6 text-white"
                   >
                     Reserve Your Tee Time
@@ -211,8 +204,7 @@ export default function BookingsPage() {
                   <div className="space-y-6">
                     {/* Date Picker */}
                     <div>
-                      <label 
-                        data-editable="date-picker-label"
+                      <label
                         className="block font-semibold mb-3 text-gray-200"
                       >
                         Select Date and Time:
@@ -228,8 +220,7 @@ export default function BookingsPage() {
                         minDate={new Date()}
                         placeholderText="Choose your preferred time"
                       />
-                      <p 
-                        data-editable="available-hours-text"
+                      <p
                         className="text-sm text-gray-300 mt-2"
                       >
                         Available hours: 07:00 - 17:00
@@ -238,8 +229,7 @@ export default function BookingsPage() {
 
                     {/* Number of People */}
                     <div>
-                      <label 
-                        data-editable="party-size-label"
+                      <label
                         className="block font-semibold mb-3 text-gray-200"
                       >
                         Number of People:
@@ -252,8 +242,7 @@ export default function BookingsPage() {
                         onChange={(e) => setGolfPeople(Number(e.target.value))}
                         className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan"
                       />
-                      <p 
-                        data-editable="max-players-text"
+                      <p
                         className="text-sm text-gray-300 mt-2"
                       >
                         Maximum 8 players per booking
@@ -269,7 +258,7 @@ export default function BookingsPage() {
                         }
                         className="w-full text-lg py-4 bg-gradient-to-r from-neonPink to-neonCyan hover:from-neonPink/80 hover:to-neonCyan/80 text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <span data-editable="booking-button-text">
+                        <span>
                           {isBooking ? 'Processing...' : 'Reserve Your Tee Time'}
                         </span>
                       </Button>

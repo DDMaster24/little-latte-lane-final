@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { ReactNode } from 'react';
-import { usePathname } from 'next/navigation';
 import { AuthProvider } from '@/components/AuthProvider';
 import { Toaster } from 'react-hot-toast';
 import Header from '@/components/Header';
@@ -14,10 +13,8 @@ import { initNavigationSafety } from '@/lib/navigationUtils';
 export function ClientWrapper({ children }: { children: ReactNode }) {
   const [isOnline, setIsOnline] = useState(true);
   const [isClient, setIsClient] = useState(false);
-  const pathname = usePathname();
   
-  // Check if we're in craft editor mode
-  const isEditorMode = pathname.includes('/admin/craft-editor');
+  // No longer needed - removed page editor mode detection
 
   useEffect(() => {
     setIsClient(true);
@@ -74,10 +71,10 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
         </div>
       )}
       
-      {/* Conditional Layout - Header/Footer only for non-editor pages */}
-      {!isEditorMode && <Header />}
-      <main className={isEditorMode ? "min-h-screen" : "flex-grow"}>{children}</main>
-      {!isEditorMode && <FooterSection />}
+      {/* Standard Layout - Header and Footer always present */}
+      <Header />
+      <main className="flex-grow">{children}</main>
+      <FooterSection />
       
       {/* PWA Install Prompt - shows when triggered */}
       <PWAInstallPrompt source="auto" />

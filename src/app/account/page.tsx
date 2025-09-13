@@ -341,10 +341,10 @@ export default function AccountPage() {
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-2" data-editable="account-page-title">
+          <h1 className="text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-2">
             My Account
           </h1>
-          <p className="text-gray-400" data-editable="account-welcome-message">
+          <p className="text-gray-400">
             Welcome back,{' '}
             {profile?.full_name || user?.email?.split('@')[0] || 'Customer'}!
           </p>

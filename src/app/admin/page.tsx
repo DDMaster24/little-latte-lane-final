@@ -5,7 +5,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Menu, Users, BarChart3, ShoppingBag, Calendar, 
-  Shield, Activity, CheckCircle, CreditCard, QrCode, Star
+  Shield, Activity, CheckCircle, CreditCard, QrCode, Star, Edit3
 } from 'lucide-react';
 
 // Tab Components
@@ -21,6 +21,7 @@ import { QRCodeGenerator } from '@/components/QRCodeGenerator';
 
 const tabs = [
   { id: 'overview', label: 'Overview', icon: BarChart3, color: 'neonCyan' },
+  { id: 'page-editor', label: 'Page Editor', icon: Edit3, color: 'neonPink' },
   { id: 'menu', label: 'Menu Management', icon: Menu, color: 'neonCyan' },
   { id: 'orders', label: 'Order Management', icon: ShoppingBag, color: 'neonPink' },
   { id: 'events', label: 'Events & Specials', icon: Star, color: 'yellow-500' },
@@ -57,6 +58,156 @@ export default function AdminPage() {
     switch (activeTab) {
       case 'overview':
         return <AdminOverview />;
+      case 'page-editor':
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Page Editor</h2>
+              <p className="text-gray-400 text-sm mb-6">Visual content management with drag-and-drop editing</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Main Dashboard */}
+              <Card className="bg-gray-900/50 border-neonCyan/30 backdrop-blur-xl hover:border-neonCyan/50 transition-all duration-300 group cursor-pointer"
+                    onClick={() => window.open('/admin-rb', '_blank')}>
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-neonCyan text-lg flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Editor Dashboard
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-300 text-sm mb-4">Access the main content management dashboard</p>
+                  <button className="w-full bg-gradient-to-r from-neonCyan/20 to-neonCyan/30 border border-neonCyan/50 text-neonCyan px-4 py-2 rounded-lg text-sm font-medium hover:from-neonCyan/30 hover:to-neonCyan/40 transition-all duration-300">
+                    Open Dashboard
+                  </button>
+                </CardContent>
+              </Card>
+
+              {/* Visual Editor */}
+              <Card className="bg-gray-900/50 border-neonPink/30 backdrop-blur-xl hover:border-neonPink/50 transition-all duration-300 group cursor-pointer"
+                    onClick={() => window.open('/admin-rb/editor', '_blank')}>
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-neonPink text-lg flex items-center gap-2">
+                    <Edit3 className="h-5 w-5" />
+                    Visual Editor
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-300 text-sm mb-4">Edit pages with drag-and-drop visual interface</p>
+                  <button className="w-full bg-gradient-to-r from-neonPink/20 to-neonPink/30 border border-neonPink/50 text-neonPink px-4 py-2 rounded-lg text-sm font-medium hover:from-neonPink/30 hover:to-neonPink/40 transition-all duration-300">
+                    Open Editor
+                  </button>
+                </CardContent>
+              </Card>
+
+              {/* Media Library */}
+              <Card className="bg-gray-900/50 border-purple-500/30 backdrop-blur-xl hover:border-purple-500/50 transition-all duration-300 group cursor-pointer"
+                    onClick={() => window.open('/admin-rb/media', '_blank')}>
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-purple-400 text-lg flex items-center gap-2">
+                    <Menu className="h-5 w-5" />
+                    Media Library
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-300 text-sm mb-4">Manage images, videos, and other media assets</p>
+                  <button className="w-full bg-gradient-to-r from-purple-500/20 to-purple-500/30 border border-purple-500/50 text-purple-400 px-4 py-2 rounded-lg text-sm font-medium hover:from-purple-500/30 hover:to-purple-500/40 transition-all duration-300">
+                    Open Library
+                  </button>
+                </CardContent>
+              </Card>
+
+              {/* Playground */}
+              <Card className="bg-gray-900/50 border-yellow-500/30 backdrop-blur-xl hover:border-yellow-500/50 transition-all duration-300 group cursor-pointer"
+                    onClick={() => window.open('/admin-rb/playground', '_blank')}>
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-yellow-400 text-lg flex items-center gap-2">
+                    <Activity className="h-5 w-5" />
+                    Playground
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-300 text-sm mb-4">Test and experiment with content blocks</p>
+                  <button className="w-full bg-gradient-to-r from-yellow-500/20 to-yellow-500/30 border border-yellow-500/50 text-yellow-400 px-4 py-2 rounded-lg text-sm font-medium hover:from-yellow-500/30 hover:to-yellow-500/40 transition-all duration-300">
+                    Open Playground
+                  </button>
+                </CardContent>
+              </Card>
+
+              {/* App Settings */}
+              <Card className="bg-gray-900/50 border-blue-500/30 backdrop-blur-xl hover:border-blue-500/50 transition-all duration-300 group cursor-pointer"
+                    onClick={() => window.open('/admin-rb/app-settings', '_blank')}>
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-blue-400 text-lg flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    App Settings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-300 text-sm mb-4">Configure React Bricks application settings</p>
+                  <button className="w-full bg-gradient-to-r from-blue-500/20 to-blue-500/30 border border-blue-500/50 text-blue-400 px-4 py-2 rounded-lg text-sm font-medium hover:from-blue-500/30 hover:to-blue-500/40 transition-all duration-300">
+                    Open Settings
+                  </button>
+                </CardContent>
+              </Card>
+
+              {/* Quick Info */}
+              <Card className="bg-gray-900/50 border-green-500/30 backdrop-blur-xl">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-green-400 text-lg flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5" />
+                    Available Bricks
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Welcoming Section</span>
+                      <span className="text-green-400">✓</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Categories Section</span>
+                      <span className="text-green-400">✓</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Events & Specials</span>
+                      <span className="text-green-400">✓</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Bookings Section</span>
+                      <span className="text-green-400">✓</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="bg-gray-900/30 border border-gray-700/50 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-white mb-3">Quick Start Guide</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <h4 className="text-neonCyan font-medium mb-2">Creating Pages:</h4>
+                  <ol className="text-gray-300 space-y-1 list-decimal list-inside">
+                    <li>Open Editor Dashboard</li>
+                    <li>Click &quot;New Page&quot;</li>
+                    <li>Select &quot;Homepage&quot; page type</li>
+                    <li>Add your content bricks</li>
+                  </ol>
+                </div>
+                <div>
+                  <h4 className="text-neonPink font-medium mb-2">Visual Editing:</h4>
+                  <ol className="text-gray-300 space-y-1 list-decimal list-inside">
+                    <li>Click on any text to edit</li>
+                    <li>Use sidebar for styling options</li>
+                    <li>Drag to reorder sections</li>
+                    <li>Preview and publish changes</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
       case 'menu':
         return <MenuManagementThreeTier />;
       case 'orders':
