@@ -1,7 +1,7 @@
 'use client'
 
-import { Admin } from 'react-bricks'
+import ReactBricksAdminInterface from './ReactBricksAdminInterface'
 
 export default function AdminRbPage() {
-  return <Admin />
+  return <ReactBricksAdminInterface />
 }

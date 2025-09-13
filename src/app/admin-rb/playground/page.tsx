@@ -1,7 +1,7 @@
 'use client'
 
-import { Playground } from 'react-bricks'
+import ReactBricksPlaygroundInterface from '../ReactBricksPlaygroundInterface'
 
 export default function PlaygroundPage() {
-  return <Playground />
+  return <ReactBricksPlaygroundInterface />
 }
