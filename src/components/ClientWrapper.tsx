@@ -8,7 +8,6 @@ import Header from '@/components/Header';
 import FooterSection from '@/components/FooterSection';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import StaffRedirect from '@/components/StaffRedirect';
-import { initNavigationSafety } from '@/lib/navigationUtils';
 
 export function ClientWrapper({ children }: { children: ReactNode }) {
   const [isOnline, setIsOnline] = useState(true);
@@ -18,10 +17,6 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setIsClient(true);
-
-    // Initialize navigation safety mechanism
-    console.log('🔧 Initializing navigation safety system...');
-    initNavigationSafety();
 
     // Service Worker registration - simplified
     if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {

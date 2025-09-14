@@ -119,7 +119,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Tab Navigation - Single row for 9 tabs */}
+            {/* Tab Navigation */}
             <div className="w-full">
               <div className="bg-gray-800/50 p-1 rounded-xl border border-gray-700/50">
                 <div className="flex space-x-1">

@@ -137,6 +137,7 @@ export default function RootLayout({
         />
       </head>
       <body
+        id="app-root"
         className={`${inter.className} bg-gradient-to-br from-gray-900 to-black text-white min-h-screen flex flex-col`}
         suppressHydrationWarning
       >
