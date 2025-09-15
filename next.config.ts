@@ -157,7 +157,6 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: CSP_DIRECTIVES,
           },
-          // Allow iframes for same origin (needed for visual editor)
           {
             key: 'X-Frame-Options',
             value: 'SAMEORIGIN',
