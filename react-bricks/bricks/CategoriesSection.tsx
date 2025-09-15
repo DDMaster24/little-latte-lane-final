@@ -10,7 +10,6 @@ interface CategoryCardProps {
   categoryDescription: types.TextValue
   categoryIcon: types.TextValue
   categoryLink: string
-  cardBackground: 'dark' | 'darker' | 'gradient'
   hoverEffect: 'scale' | 'glow' | 'both'
   iconSize: 'sm' | 'md' | 'lg'
 }
@@ -20,19 +19,9 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
   categoryDescription,
   categoryIcon,
   categoryLink = '/menu',
-  cardBackground = 'dark',
   hoverEffect = 'both',
   iconSize = 'md'
 }) => {
-  const getCardBgClass = () => {
-    switch (cardBackground) {
-      case 'dark': return 'bg-black/20'
-      case 'darker': return 'bg-black/40'
-      case 'gradient': return 'bg-gradient-to-br from-black/20 to-black/40'
-      default: return 'bg-black/20'
-    }
-  }
-
   const getHoverClass = () => {
     switch (hoverEffect) {
       case 'scale': return 'hover:scale-105'
@@ -54,8 +43,9 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
   return (
     <Link href={categoryLink} className="block">
       <div
-        className={`group relative ${getCardBgClass()} backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 rounded-xl shadow-lg transition-all duration-300 ${getHoverClass()} animate-fade-in touch-target`}
+        className={`group relative backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 rounded-xl shadow-lg transition-all duration-300 ${getHoverClass()} animate-fade-in touch-target`}
         style={{ 
+          background: 'rgba(0, 0, 0, 0.4)',
           backdropFilter: 'blur(10px)',
           boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)',
           minHeight: '200px'
@@ -125,7 +115,6 @@ CategoryCard.schema = {
     categoryDescription: 'Description of this category',
     categoryIcon: '🍽️',
     categoryLink: '/menu',
-    cardBackground: 'dark',
     hoverEffect: 'both',
     iconSize: 'md'
   }),
@@ -139,19 +128,6 @@ CategoryCard.schema = {
           name: 'categoryLink',
           label: 'Link URL',
           type: types.SideEditPropType.Text,
-        },
-        {
-          name: 'cardBackground',
-          label: 'Card Background',
-          type: types.SideEditPropType.Select,
-          selectOptions: {
-            display: types.OptionsDisplay.Select,
-            options: [
-              { value: 'dark', label: 'Dark' },
-              { value: 'darker', label: 'Darker' },
-              { value: 'gradient', label: 'Gradient' },
-            ],
-          },
         },
         {
           name: 'hoverEffect',
@@ -353,7 +329,6 @@ CategoriesSection.schema = {
           categoryDescription: 'Premium coffee, lattes, cold drinks & smoothies',
           categoryIcon: '☕',
           categoryLink: '/menu',
-          cardBackground: 'dark',
           hoverEffect: 'both',
           iconSize: 'md'
         }
@@ -365,7 +340,6 @@ CategoriesSection.schema = {
           categoryDescription: 'Fresh pizzas, hearty meals & grilled toasties',
           categoryIcon: '🍕',
           categoryLink: '/menu',
-          cardBackground: 'dark',
           hoverEffect: 'both',
           iconSize: 'md'
         }
@@ -377,7 +351,6 @@ CategoriesSection.schema = {
           categoryDescription: 'All-day breakfast, scones & perfect accompaniments',
           categoryIcon: '🥐',
           categoryLink: '/menu',
-          cardBackground: 'dark',
           hoverEffect: 'both',
           iconSize: 'md'
         }
@@ -389,7 +362,6 @@ CategoriesSection.schema = {
           categoryDescription: 'Specialty items & unique offerings',
           categoryIcon: '🧀',
           categoryLink: '/menu',
-          cardBackground: 'dark',
           hoverEffect: 'both',
           iconSize: 'md'
         }

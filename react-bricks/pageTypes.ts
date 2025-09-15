@@ -13,6 +13,7 @@ const pageTypes: types.IPageType[] = [
       'categories-section', 
       'events-specials-section',
       'bookings-section',
+      'dynamic-carousel',
       
       // Menu components
       'menu-hero',

@@ -1,6 +1,9 @@
 import React from 'react'
 import { Text, Repeater, types } from 'react-bricks/rsc'
 import { Badge } from '@/components/ui/badge'
+import { useAuth } from '@/components/AuthProvider'
+import { Star, MapPin, Car } from 'lucide-react'
+import DynamicCarousel from '@/components/DynamicCarousel'
 
 //========================================
 // Nested Component: Feature Item
@@ -21,18 +24,21 @@ const FeatureItem: types.Brick<FeatureItemProps> = ({ icon, text, color }) => {
     }
   }
 
+  const getIconComponent = () => {
+    const iconText = typeof icon === 'string' ? icon : icon?.toString() || '⭐'
+    
+    // Map text to Lucide icons for the original features
+    if (iconText.includes('Star') || iconText === '⭐') return <Star className="h-5 w-5" />
+    if (iconText.includes('MapPin') || iconText === '📍') return <MapPin className="h-5 w-5" />
+    if (iconText.includes('Car') || iconText === '🚗') return <Car className="h-5 w-5" />
+    
+    // Fallback to text icon
+    return <span className="text-lg">{iconText}</span>
+  }
+
   return (
     <div className={`flex items-center justify-center gap-2 ${getColorClass()}`}>
-      <Text
-        propName="icon"
-        value={icon}
-        renderBlock={(props) => (
-          <span className="text-sm">
-            {props.children}
-          </span>
-        )}
-        placeholder="⭐"
-      />
+      {getIconComponent()}
       <Text
         propName="text"
         value={text}
@@ -55,8 +61,13 @@ FeatureItem.schema = {
     text: 'Exceptional Quality',
     color: 'cyan'
   }),
-  hideFromAddMenu: true, // Official docs pattern for nested bricks
+  hideFromAddMenu: true,
   sideEditProps: [
+    {
+      name: 'icon',
+      label: 'Icon',
+      type: types.SideEditPropType.Text,
+    },
     {
       name: 'color',
       label: 'Color',
@@ -85,7 +96,7 @@ const BadgeItem: types.Brick<BadgeItemProps> = ({ text, bgColor }) => {
   const getBgColorClass = () => {
     switch (bgColor) {
       case 'cyan': return 'bg-neonCyan text-black'
-      case 'pink': return 'bg-neonPink text-white'
+      case 'pink': return 'bg-neonPink text-black'
       case 'yellow': return 'bg-yellow-400 text-black'
       default: return 'bg-neonCyan text-black'
     }
@@ -112,7 +123,7 @@ BadgeItem.schema = {
     text: 'Now Open',
     bgColor: 'cyan'
   }),
-  hideFromAddMenu: true, // Official docs pattern for nested bricks
+  hideFromAddMenu: true,
   sideEditProps: [
     {
       name: 'bgColor',
@@ -140,16 +151,15 @@ interface WelcomingSectionProps {
   ctaDescription: types.TextValue
   badges: types.RepeaterItems
   features: types.RepeaterItems
+  showCarousel: boolean
+  showAuthGreeting: boolean
   backgroundColor: 'dark' | 'darker' | 'gradient'
   titleSize: 'normal' | 'large' | 'xl'
   backgroundImage?: types.IImageSource
   padding: 'sm' | 'md' | 'lg'
-  titleColor: { color: string }
   subtitleColor: { color: string }
   showBadges: boolean
-  badgeStyle: 'outlined' | 'filled' | 'gradient'
   showFeatures: boolean
-  ctaStyle: 'buttons' | 'minimal' | 'cards'
 }
 
 const WelcomingSection: types.Brick<WelcomingSectionProps> = ({ 
@@ -159,16 +169,19 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
   ctaDescription,
   badges,
   features,
-  backgroundColor = 'dark',
-  titleSize = 'normal',
+  showCarousel = true,
+  showAuthGreeting = true,
+  backgroundColor = 'gradient',
+  titleSize = 'large',
   backgroundImage,
   padding = 'md',
-  titleColor = { color: '#ffffff' },
   subtitleColor = { color: '#d1d5db' },
   showBadges = true,
   showFeatures = true,
-  ctaStyle = 'buttons',
 }) => {
+  const { user, profile } = useAuth();
+  const username = profile?.full_name || user?.email?.split('@')[0] || '';
+
   // Background classes based on selection
   const getBgClass = () => {
     switch (backgroundColor) {
@@ -183,19 +196,19 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
   const getTitleSizeClass = () => {
     switch (titleSize) {
       case 'normal': return 'text-fluid-3xl xs:text-fluid-4xl lg:text-fluid-5xl'
-      case 'large': return 'text-fluid-4xl xs:text-fluid-5xl lg:text-fluid-6xl'
-      case 'xl': return 'text-fluid-5xl xs:text-fluid-6xl lg:text-fluid-7xl'
-      default: return 'text-fluid-3xl xs:text-fluid-4xl lg:text-fluid-5xl'
+      case 'large': return 'text-fluid-3xl xs:text-fluid-4xl sm:text-fluid-5xl lg:text-fluid-6xl'
+      case 'xl': return 'text-fluid-4xl xs:text-fluid-5xl sm:text-fluid-6xl lg:text-fluid-7xl'
+      default: return 'text-fluid-3xl xs:text-fluid-4xl sm:text-fluid-5xl lg:text-fluid-6xl'
     }
   }
 
   // Padding classes
   const getPaddingClass = () => {
     switch (padding) {
-      case 'sm': return 'py-8 xs:py-12 lg:py-16'
-      case 'md': return 'py-12 xs:py-16 lg:py-24'
+      case 'sm': return 'section-padding-sm'
+      case 'md': return 'section-padding'
       case 'lg': return 'py-16 xs:py-24 lg:py-32'
-      default: return 'py-12 xs:py-16 lg:py-24'
+      default: return 'section-padding'
     }
   }
 
@@ -212,6 +225,14 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
     return {}
   }
 
+  // Get dynamic title with auth greeting
+  const getDisplayTitle = () => {
+    if (showAuthGreeting && username) {
+      return `Welcome Back, ${username}!`
+    }
+    return typeof title === 'string' ? title : 'Welcome to Little Latte Lane'
+  }
+
   return (
     <section 
       className={`${getBgClass()} ${getPaddingClass()} overflow-hidden`}
@@ -225,10 +246,9 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
             value={title}
             renderBlock={(props) => (
               <h1 
-                className={`${getTitleSizeClass()} font-bold mb-4 xs:mb-6`}
-                style={{ color: titleColor.color }}
+                className={`${getTitleSizeClass()} font-bold mb-4 xs:mb-6 bg-neon-gradient bg-clip-text text-transparent`}
               >
-                {props.children}
+                {showAuthGreeting && username ? getDisplayTitle() : props.children}
               </h1>
             )}
             placeholder="Welcome to Little Latte Lane"
@@ -239,7 +259,7 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
             value={subtitle}
             renderBlock={(props) => (
               <p 
-                className="text-fluid-lg xs:text-fluid-xl sm:text-fluid-2xl mb-6 xs:mb-8 max-w-4xl mx-auto"
+                className="text-fluid-lg xs:text-fluid-xl sm:text-fluid-2xl mb-4 xs:mb-6 max-w-4xl mx-auto"
                 style={{ color: subtitleColor.color }}
               >
                 {props.children}
@@ -264,15 +284,21 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
           )}
         </div>
 
-        {/* CTA Section - Enhanced with style options */}
-        <div className="text-center section-padding-sm">
+        {/* Dynamic Carousel - Original Feature */}
+        {showCarousel && (
+          <div className="mb-16">
+            <DynamicCarousel />
+          </div>
+        )}
+
+        {/* Call to Action Section - Original Design */}
+        <div className="text-center">
           <Text
             propName="ctaTitle"
             value={ctaTitle}
             renderBlock={(props) => (
               <h2 
-                className="text-fluid-xl xs:text-fluid-2xl sm:text-fluid-3xl font-bold mb-4 xs:mb-6"
-                style={{ color: titleColor.color }}
+                className="text-3xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-4"
               >
                 {props.children}
               </h2>
@@ -285,43 +311,29 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
             value={ctaDescription}
             renderBlock={(props) => (
               <p 
-                className="text-fluid-base xs:text-fluid-lg text-center mb-8 xs:mb-12 max-w-3xl mx-auto leading-relaxed"
-                style={{ color: subtitleColor.color }}
+                className="text-lg text-gray-300 mb-6 max-w-2xl mx-auto"
               >
                 {props.children}
               </p>
             )}
-            placeholder="Join us for exceptional food, premium beverages, and a warm, welcoming atmosphere."
+            placeholder="Join us for exceptional food, premium beverages, and a warm, welcoming atmosphere. Whether you're catching up with friends, having a business meeting, or enjoying a quiet moment, we're here to make your experience memorable."
           />
 
-          {/* CTA Buttons - Style-based rendering */}
-          {ctaStyle === 'buttons' && (
-            <div className="flex flex-col xs:flex-row justify-center gap-3 xs:gap-4 mb-8 xs:mb-12">
-              <button className="inline-flex items-center justify-center gap-2 bg-neonCyan text-black px-6 xs:px-8 py-3 xs:py-4 rounded-lg font-semibold text-fluid-sm xs:text-fluid-base hover:bg-cyan-400 transition-all duration-300 group">
-                <span>Order Now</span>
-                <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
-              </button>
-              <button className="inline-flex items-center justify-center gap-2 border-2 border-neonPink text-neonPink px-6 xs:px-8 py-3 xs:py-4 rounded-lg font-semibold text-fluid-sm xs:text-fluid-base hover:bg-neonPink hover:text-white transition-all duration-300">
-                <span>View Menu</span>
-              </button>
+          {/* Features Section - Original Design */}
+          {showFeatures && (
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <Repeater
+                propName="features"
+                items={features}
+                renderWrapper={(items) => (
+                  <div className="flex flex-col sm:flex-row justify-center gap-4">
+                    {items}
+                  </div>
+                )}
+              />
             </div>
           )}
         </div>
-
-        {/* Features Section - Conditional */}
-        {showFeatures && (
-          <div className="text-center section-padding-sm">
-            <Repeater
-              propName="features"
-              items={features}
-              renderWrapper={(items) => (
-                <div className="flex flex-wrap justify-center gap-4 xs:gap-6 lg:gap-8">
-                  {items}
-                </div>
-              )}
-            />
-          </div>
-        )}
       </div>
     </section>
   )
@@ -341,15 +353,14 @@ WelcomingSection.schema = {
     subtitle: 'Café & Deli - Where Great Food Meets Amazing Experiences',
     ctaTitle: 'Ready to Experience Little Latte Lane?',
     ctaDescription: 'Join us for exceptional food, premium beverages, and a warm, welcoming atmosphere. Whether you\'re catching up with friends, having a business meeting, or enjoying a quiet moment, we\'re here to make your experience memorable.',
+    showCarousel: true,
+    showAuthGreeting: true,
     backgroundColor: 'gradient',
-    titleSize: 'normal',
+    titleSize: 'large',
     padding: 'md',
-    titleColor: { color: '#ffffff' },
     subtitleColor: { color: '#d1d5db' },
     showBadges: true,
-    badgeStyle: 'filled',
     showFeatures: true,
-    ctaStyle: 'buttons',
     badges: [
       {
         type: 'badge-item',
@@ -412,11 +423,37 @@ WelcomingSection.schema = {
     }
   ],
 
-  // PROFESSIONAL SIDEBAR CONTROLS - Based on Official Documentation
+  // PROFESSIONAL SIDEBAR CONTROLS
   sideEditProps: [
     {
-      groupName: 'Background & Layout',
+      groupName: 'Original Features',
       defaultOpen: true,
+      props: [
+        {
+          name: 'showCarousel',
+          label: 'Show 3D Carousel',
+          type: types.SideEditPropType.Boolean,
+        },
+        {
+          name: 'showAuthGreeting',
+          label: 'Show Personal Greeting',
+          type: types.SideEditPropType.Boolean,
+        },
+        {
+          name: 'showBadges',
+          label: 'Show Badges',
+          type: types.SideEditPropType.Boolean,
+        },
+        {
+          name: 'showFeatures',
+          label: 'Show Features',
+          type: types.SideEditPropType.Boolean,
+        },
+      ],
+    },
+    {
+      groupName: 'Background & Layout',
+      defaultOpen: false,
       props: [
         {
           name: 'backgroundColor',
@@ -456,23 +493,9 @@ WelcomingSection.schema = {
       ],
     },
     {
-      groupName: 'Typography & Colors',
+      groupName: 'Typography',
       defaultOpen: false,
       props: [
-        {
-          name: 'titleColor',
-          label: 'Title Color',
-          type: types.SideEditPropType.Select,
-          selectOptions: {
-            display: types.OptionsDisplay.Color,
-            options: [
-              { value: { color: '#ffffff' }, label: 'White' },
-              { value: { color: '#00ffff' }, label: 'Neon Cyan' },
-              { value: { color: '#ff00ff' }, label: 'Neon Pink' },
-              { value: { color: '#ffff00' }, label: 'Yellow' },
-            ],
-          },
-        },
         {
           name: 'titleSize',
           label: 'Title Size',
@@ -496,49 +519,6 @@ WelcomingSection.schema = {
               { value: { color: '#d1d5db' }, label: 'Light Gray' },
               { value: { color: '#ffffff' }, label: 'White' },
               { value: { color: '#00ffff' }, label: 'Neon Cyan' },
-            ],
-          },
-        },
-      ],
-    },
-    {
-      groupName: 'Content Settings',
-      defaultOpen: false,
-      props: [
-        {
-          name: 'showBadges',
-          label: 'Show Badges',
-          type: types.SideEditPropType.Boolean,
-        },
-        {
-          name: 'badgeStyle',
-          label: 'Badge Style',
-          type: types.SideEditPropType.Select,
-          selectOptions: {
-            display: types.OptionsDisplay.Select,
-            options: [
-              { value: 'outlined', label: 'Outlined' },
-              { value: 'filled', label: 'Filled' },
-              { value: 'gradient', label: 'Gradient' },
-            ],
-          },
-          show: (props) => props.showBadges,
-        },
-        {
-          name: 'showFeatures',
-          label: 'Show Features',
-          type: types.SideEditPropType.Boolean,
-        },
-        {
-          name: 'ctaStyle',
-          label: 'Call-to-Action Style',
-          type: types.SideEditPropType.Select,
-          selectOptions: {
-            display: types.OptionsDisplay.Radio,
-            options: [
-              { value: 'buttons', label: 'Buttons' },
-              { value: 'minimal', label: 'Minimal' },
-              { value: 'cards', label: 'Cards' },
             ],
           },
         },
