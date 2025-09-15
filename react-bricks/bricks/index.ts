@@ -1,5 +1,6 @@
 import { types } from 'react-bricks/rsc'
 import HeroBrick from './HeroBrick'
+import WelcomingSection, { FeatureItem, BadgeItem } from './WelcomingSection'
 
 // Little Latte Lane Custom Bricks Theme
 const bricks: types.Theme[] = [
@@ -9,8 +10,16 @@ const bricks: types.Theme[] = [
       {
         categoryName: 'Homepage Sections',
         bricks: [
-          HeroBrick,
-          // We'll add more sections here: WelcomeBrick, CategoriesBrick, etc.
+          WelcomingSection, // New main section with nested components
+          HeroBrick,        // Keep the simple hero for comparison
+          // We'll add more sections here: CategoriesBrick, EventsBrick, etc.
+        ],
+      },
+      {
+        categoryName: 'Content Components',
+        bricks: [
+          FeatureItem,      // Nested inside WelcomingSection
+          BadgeItem,        // Nested inside WelcomingSection
         ],
       },
     ],
