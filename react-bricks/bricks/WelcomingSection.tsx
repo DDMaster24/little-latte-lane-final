@@ -8,16 +8,26 @@ import { Badge } from '@/components/ui/badge'
 interface FeatureItemProps {
   icon: types.TextValue
   text: types.TextValue
+  color: 'cyan' | 'pink' | 'yellow'
 }
 
-const FeatureItem: types.Brick<FeatureItemProps> = ({ icon, text }) => {
+const FeatureItem: types.Brick<FeatureItemProps> = ({ icon, text, color }) => {
+  const getColorClass = () => {
+    switch (color) {
+      case 'cyan': return 'text-neonCyan'
+      case 'pink': return 'text-neonPink'
+      case 'yellow': return 'text-yellow-400'
+      default: return 'text-neonCyan'
+    }
+  }
+
   return (
-    <div className="flex items-center justify-center gap-2">
+    <div className={`flex items-center justify-center gap-2 ${getColorClass()}`}>
       <Text
         propName="icon"
         value={icon}
         renderBlock={(props) => (
-          <span className="text-neonCyan text-sm">
+          <span className="text-sm">
             {props.children}
           </span>
         )}
@@ -27,7 +37,7 @@ const FeatureItem: types.Brick<FeatureItemProps> = ({ icon, text }) => {
         propName="text"
         value={text}
         renderBlock={(props) => (
-          <span className="text-sm font-medium text-gray-300">
+          <span className="text-sm font-medium">
             {props.children}
           </span>
         )}
@@ -42,13 +52,29 @@ FeatureItem.schema = {
   label: 'Feature Item',
   getDefaultProps: () => ({
     icon: '⭐',
-    text: 'Exceptional Quality'
+    text: 'Exceptional Quality',
+    color: 'cyan'
   }),
-  hideFromAddMenu: true,
+  hideFromAddMenu: true, // Official docs pattern for nested bricks
+  sideEditProps: [
+    {
+      name: 'color',
+      label: 'Feature Color',
+      type: types.SideEditPropType.Select,
+      selectOptions: {
+        display: types.OptionsDisplay.Color,
+        options: [
+          { value: 'cyan', label: 'Cyan', color: '#06D6A0' },
+          { value: 'pink', label: 'Pink', color: '#EF476F' },
+          { value: 'yellow', label: 'Yellow', color: '#FFD166' },
+        ],
+      },
+    },
+  ],
 }
 
 //========================================
-// Nested Component: Badge Item
+// Nested Component: Badge Item  
 //========================================
 interface BadgeItemProps {
   text: types.TextValue
@@ -84,18 +110,18 @@ BadgeItem.schema = {
     text: 'Now Open',
     bgColor: 'cyan'
   }),
-  hideFromAddMenu: true,
+  hideFromAddMenu: true, // Official docs pattern for nested bricks
   sideEditProps: [
     {
       name: 'bgColor',
       label: 'Badge Color',
       type: types.SideEditPropType.Select,
       selectOptions: {
-        display: types.OptionsDisplay.Radio,
+        display: types.OptionsDisplay.Color,
         options: [
-          { value: 'cyan', label: 'Cyan' },
-          { value: 'pink', label: 'Pink' },
-          { value: 'yellow', label: 'Yellow' },
+          { value: 'cyan', label: 'Cyan', color: '#06D6A0' },
+          { value: 'pink', label: 'Pink', color: '#EF476F' },
+          { value: 'yellow', label: 'Yellow', color: '#FFD166' },
         ],
       },
     },
@@ -112,6 +138,8 @@ interface WelcomingSectionProps {
   ctaDescription: types.TextValue
   badges: types.RepeaterItems
   features: types.RepeaterItems
+  backgroundColor: 'dark' | 'darker' | 'gradient'
+  titleSize: 'normal' | 'large' | 'xl'
 }
 
 const WelcomingSection: types.Brick<WelcomingSectionProps> = ({ 
@@ -120,10 +148,32 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
   ctaTitle,
   ctaDescription,
   badges,
-  features
+  features,
+  backgroundColor,
+  titleSize
 }) => {
+  // Background classes based on selection
+  const getBgClass = () => {
+    switch (backgroundColor) {
+      case 'dark': return 'bg-darkBg'
+      case 'darker': return 'bg-gray-900'
+      case 'gradient': return 'bg-gradient-to-br from-darkBg via-gray-900 to-darkBg'
+      default: return 'bg-gradient-to-br from-darkBg via-gray-900 to-darkBg'
+    }
+  }
+
+  // Title size classes
+  const getTitleSizeClass = () => {
+    switch (titleSize) {
+      case 'normal': return 'text-fluid-2xl xs:text-fluid-3xl sm:text-fluid-4xl lg:text-fluid-5xl'
+      case 'large': return 'text-fluid-3xl xs:text-fluid-4xl sm:text-fluid-5xl lg:text-fluid-6xl'
+      case 'xl': return 'text-fluid-4xl xs:text-fluid-5xl sm:text-fluid-6xl lg:text-fluid-7xl'
+      default: return 'text-fluid-3xl xs:text-fluid-4xl sm:text-fluid-5xl lg:text-fluid-6xl'
+    }
+  }
+
   return (
-    <section className="bg-gradient-to-br from-darkBg via-gray-900 to-darkBg section-padding overflow-hidden">
+    <section className={`${getBgClass()} section-padding overflow-hidden`}>
       <div className="container-wide animate-fade-in">
         {/* Hero Header - Fully Responsive */}
         <div className="text-center section-padding-sm">
@@ -132,7 +182,7 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
             value={title}
             renderBlock={(props) => (
               <h1 
-                className="text-fluid-3xl xs:text-fluid-4xl sm:text-fluid-5xl lg:text-fluid-6xl font-bold mb-4 xs:mb-6 bg-neon-gradient bg-clip-text text-transparent"
+                className={`${getTitleSizeClass()} font-bold mb-4 xs:mb-6 bg-neon-gradient bg-clip-text text-transparent`}
               >
                 {props.children}
               </h1>
@@ -153,9 +203,17 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
             placeholder="Café & Deli - Where Great Food Meets Amazing Experiences"
           />
           
-          {/* Editable Badges using Repeater */}
-          <div className="flex flex-wrap justify-center gap-2 xs:gap-3 mb-8 xs:mb-12">
-            <Repeater propName="badges" items={badges} />
+          {/* FIXED: Proper Repeater with renderWrapper */}
+          <div className="mb-8 xs:mb-12">
+            <Repeater 
+              propName="badges" 
+              items={badges}
+              renderWrapper={(items) => (
+                <div className="flex flex-wrap justify-center gap-2 xs:gap-3">
+                  {items}
+                </div>
+              )}
+            />
           </div>
         </div>
 
@@ -191,10 +249,16 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
             ]}
           />
           
-          {/* Features using Repeater */}
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Repeater propName="features" items={features} />
-          </div>
+          {/* FIXED: Proper Repeater with renderWrapper */}
+          <Repeater 
+            propName="features" 
+            items={features}
+            renderWrapper={(items) => (
+              <div className="flex flex-col sm:flex-row justify-center gap-4">
+                {items}
+              </div>
+            )}
+          />
         </div>
       </div>
     </section>
@@ -202,7 +266,7 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
 }
 
 //========================================
-// Brick Schema
+// Brick Schema with Advanced Controls
 //========================================
 WelcomingSection.schema = {
   name: 'welcoming-section',
@@ -215,6 +279,8 @@ WelcomingSection.schema = {
     subtitle: 'Café & Deli - Where Great Food Meets Amazing Experiences',
     ctaTitle: 'Ready to Experience Little Latte Lane?',
     ctaDescription: 'Join us for exceptional food, premium beverages, and a warm, welcoming atmosphere. Whether you\'re catching up with friends, having a business meeting, or enjoying a quiet moment, we\'re here to make your experience memorable.',
+    backgroundColor: 'gradient',
+    titleSize: 'large',
     badges: [
       {
         type: 'badge-item',
@@ -236,27 +302,30 @@ WelcomingSection.schema = {
         type: 'feature-item',
         props: {
           icon: '⭐',
-          text: 'Exceptional Quality'
+          text: 'Exceptional Quality',
+          color: 'cyan'
         }
       },
       {
         type: 'feature-item',
         props: {
           icon: '📍',
-          text: 'Prime Location'
+          text: 'Prime Location',
+          color: 'pink'
         }
       },
       {
         type: 'feature-item',
         props: {
           icon: '🚗',
-          text: 'Easy Parking'
+          text: 'Easy Parking',
+          color: 'yellow'
         }
       }
     ]
   }),
 
-  // Repeater settings
+  // OFFICIAL DOCS PATTERN: Repeater settings
   repeaterItems: [
     {
       name: 'badges',
@@ -274,8 +343,41 @@ WelcomingSection.schema = {
     }
   ],
 
-  // Sidebar controls
-  sideEditProps: [],
+  // ADVANCED: Collapsible sidebar groups (from docs)
+  sideEditProps: [
+    {
+      groupName: 'Design Settings',
+      defaultOpen: true,
+      props: [
+        {
+          name: 'backgroundColor',
+          label: 'Background Style',
+          type: types.SideEditPropType.Select,
+          selectOptions: {
+            display: types.OptionsDisplay.Radio,
+            options: [
+              { value: 'dark', label: 'Dark' },
+              { value: 'darker', label: 'Darker' },
+              { value: 'gradient', label: 'Gradient' },
+            ],
+          },
+        },
+        {
+          name: 'titleSize',
+          label: 'Title Size',
+          type: types.SideEditPropType.Select,
+          selectOptions: {
+            display: types.OptionsDisplay.Select,
+            options: [
+              { value: 'normal', label: 'Normal' },
+              { value: 'large', label: 'Large' },
+              { value: 'xl', label: 'Extra Large' },
+            ],
+          },
+        },
+      ],
+    },
+  ],
 }
 
 export default WelcomingSection
