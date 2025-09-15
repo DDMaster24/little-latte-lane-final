@@ -28,7 +28,7 @@ export function EditorNavigation({ className = '' }: EditorNavigationProps) {
   };
 
   return (
-    <div className={`fixed top-4 left-4 z-50 flex gap-2 ${className}`}>
+    <div className={`fixed top-6 left-6 z-50 flex gap-2 ${className}`}>
       {/* Back to Admin Dashboard */}
       <button
         onClick={handleBackToAdmin}

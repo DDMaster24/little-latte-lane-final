@@ -79,8 +79,6 @@ export default function AdminPage() {
                   <p className="text-gray-300 text-sm mb-4">Access the content management system to edit your website pages</p>
                   <a
                     href="/admin/cms"
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="inline-flex items-center justify-center w-full px-4 py-2 bg-neonPink/20 border border-neonPink/30 text-neonPink rounded-lg hover:bg-neonPink/30 transition-all duration-200 font-medium"
                   >
                     Login to CMS →
@@ -100,8 +98,6 @@ export default function AdminPage() {
                   <p className="text-gray-300 text-sm mb-4">Edit homepage content, text, images and layout visually</p>
                   <a
                     href="/admin/editor"
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="inline-flex items-center justify-center w-full px-4 py-2 bg-neonCyan/20 border border-neonCyan/30 text-neonCyan rounded-lg hover:bg-neonCyan/30 transition-all duration-200 font-medium"
                   >
                     Open Editor →
@@ -121,74 +117,12 @@ export default function AdminPage() {
                   <p className="text-gray-300 text-sm mb-4">Manage images, videos and other media files for your website</p>
                   <a
                     href="/admin/media"
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="inline-flex items-center justify-center w-full px-4 py-2 bg-purple-500/20 border border-purple-500/30 text-purple-400 rounded-lg hover:bg-purple-500/30 transition-all duration-200 font-medium"
                   >
                     Media Library →
                   </a>
                 </CardContent>
               </Card>
-            </div>
-
-            {/* Quick Access Section */}
-            <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 border border-gray-700/50 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Star className="h-5 w-5 text-yellow-500" />
-                Quick Actions
-              </h3>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <a
-                  href="/admin/cms"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-3 bg-neonPink/10 border border-neonPink/20 rounded-lg hover:bg-neonPink/20 transition-all duration-200 text-sm"
-                >
-                  <Shield className="h-4 w-4 text-neonPink" />
-                  <span className="text-gray-300">Login to CMS</span>
-                </a>
-                <a
-                  href="/admin/editor"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-3 bg-neonCyan/10 border border-neonCyan/20 rounded-lg hover:bg-neonCyan/20 transition-all duration-200 text-sm"
-                >
-                  <CheckCircle className="h-4 w-4 text-neonCyan" />
-                  <span className="text-gray-300">Edit Homepage</span>
-                </a>
-                <a
-                  href="/admin/media"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-3 bg-purple-500/10 border border-purple-500/20 rounded-lg hover:bg-purple-500/20 transition-all duration-200 text-sm"
-                >
-                  <Activity className="h-4 w-4 text-purple-400" />
-                  <span className="text-gray-300">Manage Media</span>
-                </a>
-                <a
-                  href="/admin/app-settings"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg hover:bg-yellow-500/20 transition-all duration-200 text-sm"
-                >
-                  <BarChart3 className="h-4 w-4 text-yellow-500" />
-                  <span className="text-gray-300">CMS Settings</span>
-                </a>
-              </div>
-            </div>
-
-            {/* Instructions */}
-            <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4">
-              <h4 className="text-blue-400 font-medium mb-2 flex items-center gap-2">
-                <Activity className="h-4 w-4" />
-                Getting Started
-              </h4>
-              <ol className="text-gray-300 text-sm space-y-1 list-decimal list-inside">
-                <li>Click &quot;Login to CMS&quot; to authenticate with React Bricks</li>
-                <li>Once logged in, use &quot;Page Editor&quot; to edit your homepage content</li>
-                <li>Use &quot;Media Library&quot; to upload and manage images</li>
-                <li>Changes are saved automatically and reflected on your live website</li>
-              </ol>
             </div>
           </div>
         );
@@ -257,7 +191,7 @@ export default function AdminPage() {
             {/* Tab Navigation */}
             <div className="w-full">
               <div className="bg-gray-800/50 p-1 rounded-xl border border-gray-700/50">
-                <div className="flex space-x-1">
+                <div className="flex flex-wrap gap-1">
                   {tabs.map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
@@ -265,7 +199,7 @@ export default function AdminPage() {
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-300 whitespace-nowrap flex-1 justify-center ${
+                        className={`flex items-center gap-2 px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-300 whitespace-nowrap ${
                           isActive
                             ? 'bg-gradient-to-r from-neonCyan/20 to-neonPink/20 text-white border border-neonCyan/30 shadow-lg'
                             : 'text-gray-400 hover:text-white hover:bg-gray-700/50'

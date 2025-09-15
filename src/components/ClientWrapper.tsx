@@ -78,7 +78,7 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
       {/* Editor Navigation - Only show in editor mode */}
       {isEditorMode && <EditorNavigation />}
       
-      <main className={isEditorMode ? 'min-h-screen' : 'flex-grow'}>
+      <main className={isEditorMode ? 'min-h-screen pt-20' : 'flex-grow'}>
         {children}
       </main>
       
