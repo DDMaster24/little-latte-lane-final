@@ -14,13 +14,23 @@ export default async function Home() {
   let reactBricksPage = null
   
   try {
+    // First try to find a page with slug 'test' (since you created a "Test" page)
     reactBricksPage = await fetchPage({
-      slug: 'homepage',  // We'll create a page with slug 'homepage' in React Bricks
+      slug: 'test',
       language: 'en',
       config,
     })
+    
+    if (!reactBricksPage) {
+      // Fallback to homepage slug
+      reactBricksPage = await fetchPage({
+        slug: 'homepage',
+        language: 'en',
+        config,
+      })
+    }
   } catch (_error) {
-    console.log('No React Bricks homepage found, using static content')
+    console.log('No React Bricks page found, using static content')
   }
 
   // If React Bricks page exists, use it; otherwise, use static components

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, RichText, Image, types } from 'react-bricks/rsc'
+import { Text, RichText, types } from 'react-bricks/rsc'
 import { Badge } from '@/components/ui/badge'
 import { Star, MapPin, Car } from 'lucide-react'
 
@@ -11,7 +11,6 @@ export interface HeroBrickProps {
   subtitle: types.TextValue
   ctaTitle: types.TextValue
   ctaDescription: types.TextValue
-  heroImage: types.IImageSource
   badgeText1: types.TextValue
   badgeText2: types.TextValue
   featureText1: types.TextValue
@@ -27,7 +26,6 @@ const HeroBrick: types.Brick<HeroBrickProps> = ({
   subtitle,
   ctaTitle,
   ctaDescription,
-  heroImage,
   badgeText1,
   badgeText2,
   featureText1,
@@ -84,23 +82,6 @@ const HeroBrick: types.Brick<HeroBrickProps> = ({
               />
             </Badge>
           </div>
-        </div>
-
-        {/* Hero Image Area */}
-        <div className="mb-16">
-          <Image
-            propName="heroImage"
-            source={heroImage}
-            alt="Little Latte Lane Experience"
-            maxWidth={1200}
-            aspectRatio={16/9}
-            imageClassName="w-full h-auto rounded-lg shadow-2xl"
-            renderWrapper={(props) => (
-              <div className="relative">
-                {props.children}
-              </div>
-            )}
-          />
         </div>
 
         {/* Call to Action Section */}

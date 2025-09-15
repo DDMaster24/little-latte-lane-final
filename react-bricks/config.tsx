@@ -34,7 +34,7 @@ const config: types.ReactBricksConfig = {
   enableUnsplash: true,
   unsplashApiKey: '',
   enablePreviewImage: true,
-  enableDefaultEmbedBrick: true,
+  enableDefaultEmbedBrick: false,
   allowAccentsInSlugs: true,
 }
 
