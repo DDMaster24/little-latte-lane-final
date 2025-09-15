@@ -2,18 +2,24 @@
 
 import { useEffect, useState } from 'react';
 import { ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { AuthProvider } from '@/components/AuthProvider';
 import { Toaster } from 'react-hot-toast';
 import Header from '@/components/Header';
 import FooterSection from '@/components/FooterSection';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import StaffRedirect from '@/components/StaffRedirect';
+import EditorNavigation from '@/components/EditorNavigation';
 
 export function ClientWrapper({ children }: { children: ReactNode }) {
   const [isOnline, setIsOnline] = useState(true);
   const [isClient, setIsClient] = useState(false);
+  const pathname = usePathname();
   
-  // No longer needed - removed page editor mode detection
+  // Check if we're in React Bricks editor mode
+  const isEditorMode = pathname?.startsWith('/admin/editor') || 
+                       pathname?.startsWith('/admin/playground') ||
+                       pathname?.includes('/preview');
 
   useEffect(() => {
     setIsClient(true);
@@ -66,10 +72,17 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
         </div>
       )}
       
-      {/* Standard Layout - Header and Footer always present */}
-      <Header />
-      <main className="flex-grow">{children}</main>
-      <FooterSection />
+      {/* Conditional Layout - Hide Header/Footer in editor mode for more space */}
+      {!isEditorMode && <Header />}
+      
+      {/* Editor Navigation - Only show in editor mode */}
+      {isEditorMode && <EditorNavigation />}
+      
+      <main className={isEditorMode ? 'min-h-screen' : 'flex-grow'}>
+        {children}
+      </main>
+      
+      {!isEditorMode && <FooterSection />}
       
       {/* PWA Install Prompt - shows when triggered */}
       <PWAInstallPrompt source="auto" />

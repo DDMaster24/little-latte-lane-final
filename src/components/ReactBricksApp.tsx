@@ -30,7 +30,8 @@ export function ReactBricksApp({ children, lang: _lang = 'en' }: ReactBricksAppP
   const reactBricksConfig = {
     ...config,
     navigate: (path: string) => {
-      router.push(path)
+      // Enhanced navigation - use Next.js router for better UX
+      router.push(path);
     },
     renderLocalLink: NextLink,
     isDarkColorMode: colorMode === 'dark',
@@ -38,6 +39,9 @@ export function ReactBricksApp({ children, lang: _lang = 'en' }: ReactBricksAppP
     contentClassName: `antialiased font-sans ${colorMode} ${
       colorMode === 'dark' ? 'dark bg-gray-900' : 'light bg-white'
     }`,
+    // Enhanced editor experience
+    enablePreview: true,
+    enableAutoSave: true,
   }
 
   return <ReactBricks {...reactBricksConfig}>{children}</ReactBricks>

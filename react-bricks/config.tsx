@@ -15,7 +15,12 @@ const config: types.ReactBricksConfig = {
   loginUI: {},
   contentClassName: '',
   renderLocalLink: NextLink,
-  navigate: (_path: string) => {},
+  navigate: (path: string) => {
+    // Navigate in same tab instead of opening new tab
+    if (typeof window !== 'undefined') {
+      window.location.href = path;
+    }
+  },
   loginPath: '/admin/cms',
   editorPath: '/admin/editor',
   mediaLibraryPath: '/admin/media',
