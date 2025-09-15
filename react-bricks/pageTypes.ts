@@ -9,6 +9,14 @@ const pageTypes: types.IPageType[] = [
     getDefaultContent: () => [],
   },
   {
+    name: 'homepage',
+    pluralName: 'homepages',
+    defaultLocked: false,
+    defaultStatus: types.PageStatus.Published,
+    getDefaultContent: () => [],
+    allowedBlockTypes: ['hero-brick'], // Only allow our custom bricks for homepage
+  },
+  {
     name: 'blog',
     pluralName: 'Blog',
     defaultLocked: false,

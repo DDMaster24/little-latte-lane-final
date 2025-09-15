@@ -1,7 +1,7 @@
 import { types } from 'react-bricks/rsc'
 
-import bricks from './bricks'
-import pageTypes from './pageTypes'
+import bricks from './bricks/index'
+import pageTypes from './pageTypes.js'
 import NextLink from './NextLink'
 
 const config: types.ReactBricksConfig = {
