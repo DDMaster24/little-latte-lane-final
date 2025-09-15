@@ -1,0 +1,237 @@
+/* React Bricks styles for admin interface */
+
+/* Base styles for React Bricks admin */
+.react-bricks-admin {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Admin panel styling */
+.rb-admin-wrapper {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+/* Override default styles for dark mode compatibility */
+.rb-editor {
+  background: white;
+  color: #1a202c;
+}
+
+/* Button overrides to match Little Latte Lane theme */
+.rb-button-primary {
+  background-color: #00ffff !important;
+  border-color: #00ffff !important;
+  color: #000 !important;
+}
+
+.rb-button-primary:hover {
+  background-color: #00e6e6 !important;
+  border-color: #00e6e6 !important;
+}
+
+/* Text input overrides */
+.rb-input {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  background: white;
+  color: #1a202c;
+}
+
+.rb-input:focus {
+  border-color: #00ffff;
+  box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.1);
+  outline: none;
+}
+
+/* Modal overrides */
+.rb-modal {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Sidebar styling */
+.rb-sidebar {
+  background: #2d3748;
+  color: white;
+}
+
+.rb-sidebar-item:hover {
+  background: #4a5568;
+}
+
+/* Toolbar styling */
+.rb-toolbar {
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* Block styling in editor */
+.rb-block-selected {
+  box-shadow: 0 0 0 2px #00ffff !important;
+}
+
+.rb-block-hover {
+  box-shadow: 0 0 0 1px #00ffff !important;
+}
+
+/* Typography overrides for content */
+.rb-content h1,
+.rb-content h2,
+.rb-content h3,
+.rb-content h4,
+.rb-content h5,
+.rb-content h6 {
+  color: #1a202c;
+  font-weight: 600;
+}
+
+.rb-content p {
+  color: #4a5568;
+  line-height: 1.6;
+}
+
+/* Custom scrollbar for admin panels */
+.rb-scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.rb-scrollable::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.rb-scrollable::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+.rb-scrollable::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* Media library styling */
+.rb-media-grid {
+  gap: 16px;
+}
+
+.rb-media-item {
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+}
+
+.rb-media-item:hover {
+  transform: scale(1.02);
+}
+
+/* Form styling */
+.rb-form-group {
+  margin-bottom: 16px;
+}
+
+.rb-form-label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: #374151;
+}
+
+/* Loading states */
+.rb-loading {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e2e8f0;
+  border-radius: 50%;
+  border-top-color: #00ffff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .rb-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .rb-sidebar.open {
+    transform: translateX(0);
+  }
+}
+
+/* Error states */
+.rb-error {
+  color: #e53e3e;
+  background: #fed7d7;
+  border: 1px solid #feb2b2;
+  border-radius: 6px;
+  padding: 12px;
+  margin: 8px 0;
+}
+
+/* Success states */
+.rb-success {
+  color: #38a169;
+  background: #c6f6d5;
+  border: 1px solid #9ae6b4;
+  border-radius: 6px;
+  padding: 12px;
+  margin: 8px 0;
+}
+
+/* Page editor specific styles */
+.rb-page-editor {
+  min-height: calc(100vh - 60px);
+}
+
+/* Property panel styling */
+.rb-properties-panel {
+  background: white;
+  border-left: 1px solid #e2e8f0;
+  width: 300px;
+  padding: 16px;
+}
+
+/* Block type picker */
+.rb-block-picker {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.rb-block-type {
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.rb-block-type:hover {
+  background: #f7fafc;
+}
+
+.rb-block-type.selected {
+  background: #e6fffa;
+  border: 1px solid #00ffff;
+}
+
+/* Drag and drop styles */
+.rb-dragging {
+  opacity: 0.5;
+}
+
+.rb-drop-zone {
+  border: 2px dashed #00ffff;
+  border-radius: 6px;
+  padding: 16px;
+  text-align: center;
+  color: #718096;
+  background: rgba(0, 255, 255, 0.05);
+}

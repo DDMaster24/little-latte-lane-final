@@ -16,12 +16,12 @@ const withPWA = require('next-pwa')({
 // Content Security Policy - extracted to reduce bundle size
 const CSP_DIRECTIVES = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === 'development' ? "'unsafe-eval'" : ''} blob: https://vercel.live https://*.vercel.live https://*.sentry.io`,
-  "script-src-elem 'self' 'unsafe-inline' blob: https://vercel.live https://*.vercel.live https://*.sentry.io",
+  `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === 'development' ? "'unsafe-eval'" : ''} blob: https://vercel.live https://*.vercel.live https://*.sentry.io https://api.reactbricks.com`,
+  "script-src-elem 'self' 'unsafe-inline' blob: https://vercel.live https://*.vercel.live https://*.sentry.io https://api.reactbricks.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: blob: https:",
-  "connect-src 'self' wss: https://awytuszmunxvthuizyur.supabase.co wss://awytuszmunxvthuizyur.supabase.co https://registry.npmjs.org https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.googletagmanager.com https://overbridgenet.com https://*.sentry.io https://vercel.live https://*.vercel.live",
+  "connect-src 'self' wss: https://awytuszmunxvthuizyur.supabase.co wss://awytuszmunxvthuizyur.supabase.co https://registry.npmjs.org https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.googletagmanager.com https://overbridgenet.com https://*.sentry.io https://vercel.live https://*.vercel.live https://api.reactbricks.com https://*.reactbricks.com",
   "worker-src 'self' blob:",
   "child-src 'self' blob: https://vercel.live https://*.vercel.live",
   "frame-src 'self' blob: https://vercel.live https://*.vercel.live",
@@ -31,7 +31,7 @@ const CSP_DIRECTIVES = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false, // ESSENTIAL: React Bricks requires this to be false
   // Disable Vercel toolbar
   env: {
     VERCEL_TOOLBAR: 'false',
@@ -112,6 +112,43 @@ const nextConfig = {
         : false,
   },
   async headers() {
+    // Disable CSP in development mode for React Bricks compatibility (like working version)
+    if (process.env.NODE_ENV === 'development') {
+      return [
+        // Cache static assets
+        {
+          source: '/_next/static/:path*',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'public, max-age=31536000, immutable',
+            },
+          ],
+        },
+        // Cache images
+        {
+          source: '/images/:path*',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'public, max-age=86400, s-maxage=86400',
+            },
+          ],
+        },
+        // Cache API responses for a short time
+        {
+          source: '/api/:path*',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value:
+                'public, max-age=300, s-maxage=300, stale-while-revalidate=86400',
+            },
+          ],
+        },
+      ];
+    }
+
     return [
       {
         source: '/(.*)',
