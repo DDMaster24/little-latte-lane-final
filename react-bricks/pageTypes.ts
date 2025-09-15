@@ -10,7 +10,7 @@ const pageTypes: types.IPageType[] = [
   },
   {
     name: 'homepage',
-    pluralName: 'homepages',
+    pluralName: 'Homepage',
     defaultLocked: false,
     defaultStatus: types.PageStatus.Published,
     getDefaultContent: () => [],
@@ -20,6 +20,61 @@ const pageTypes: types.IPageType[] = [
       'hero-brick',           // Keep for backwards compatibility
       // 'events-specials-section',  // Coming next
       // 'bookings-section',         // Coming next
+    ],
+  },
+  {
+    name: 'ordering',
+    pluralName: 'Ordering Page',
+    defaultLocked: false,
+    defaultStatus: types.PageStatus.Published,
+    getDefaultContent: () => [],
+    allowedBlockTypes: [
+      'cart-section',         // Cart system with customizable cards
+      'welcoming-section',    // Can reuse welcoming section
+      'categories-section',   // Can reuse categories section
+    ],
+  },
+  {
+    name: 'menu',
+    pluralName: 'Menu Page',
+    defaultLocked: false,
+    defaultStatus: types.PageStatus.Published,
+    getDefaultContent: () => [],
+    allowedBlockTypes: [
+      'menu-section',         // Menu page skeleton
+      'categories-section',   // Can reuse categories section
+      'cart-section',         // Cart integration
+    ],
+  },
+  {
+    name: 'card-system',
+    pluralName: 'Card System',
+    defaultLocked: false,
+    defaultStatus: types.PageStatus.Published,
+    getDefaultContent: () => [],
+    allowedBlockTypes: [
+      'cart-section',         // Main card system
+      'categories-section',   // Card-based categories
+    ],
+  },
+  {
+    name: 'header',
+    pluralName: 'Header',
+    defaultLocked: false,
+    defaultStatus: types.PageStatus.Published,
+    getDefaultContent: () => [],
+    allowedBlockTypes: [
+      'header-section',       // Header skeleton
+    ],
+  },
+  {
+    name: 'footer',
+    pluralName: 'Footer',
+    defaultLocked: false,
+    defaultStatus: types.PageStatus.Published,
+    getDefaultContent: () => [],
+    allowedBlockTypes: [
+      'footer-section',       // Footer skeleton
     ],
   },
   {

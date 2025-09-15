@@ -43,8 +43,6 @@ CartSection.schema = {
   name: 'cart-section',
   label: 'Cart Section',
   category: 'content',
-  // Hide from add menu for now since it's just a skeleton
-  hideFromAddMenu: true,
   
   // Basic sidebar controls placeholder
   sideEditProps: [],

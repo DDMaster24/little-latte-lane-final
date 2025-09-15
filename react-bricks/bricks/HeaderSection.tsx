@@ -27,8 +27,6 @@ HeaderSection.schema = {
   name: 'header-section',
   label: 'Header Section',
   category: 'layout',
-  // Hide from add menu for now since it's just a skeleton
-  hideFromAddMenu: true,
   
   // Basic sidebar controls placeholder
   sideEditProps: [],

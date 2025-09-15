@@ -27,8 +27,6 @@ MenuSection.schema = {
   name: 'menu-section',
   label: 'Menu Section',
   category: 'content',
-  // Hide from add menu for now since it's just a skeleton
-  hideFromAddMenu: true,
   
   // Basic sidebar controls placeholder
   sideEditProps: [],
