@@ -1,96 +1,119 @@
 import React from 'react'
-import { Text, Image, Repeater, types } from 'react-bricks/rsc'
+import { Text, Repeater, types } from 'react-bricks/rsc'
+import Link from 'next/link'
 
 //========================================
 // Nested Component: Category Card
 //========================================
 interface CategoryCardProps {
-  image: types.IImageSource
-  title: types.TextValue
-  description: types.TextValue
-  cardBackground: 'dark' | 'light' | 'gradient'
-  titleColor: { color: string }
-  descriptionColor: { color: string }
-  showOverlay: boolean
-  hoverEffect: 'scale' | 'glow' | 'lift'
+  categoryName: types.TextValue
+  categoryDescription: types.TextValue
+  categoryIcon: types.TextValue
+  categoryLink: string
+  cardBackground: 'dark' | 'darker' | 'gradient'
+  hoverEffect: 'scale' | 'glow' | 'both'
+  iconSize: 'sm' | 'md' | 'lg'
 }
 
 const CategoryCard: types.Brick<CategoryCardProps> = ({ 
-  image,
-  title,
-  description,
+  categoryName,
+  categoryDescription,
+  categoryIcon,
+  categoryLink = '/menu',
   cardBackground = 'dark',
-  titleColor = { color: '#ffffff' },
-  descriptionColor = { color: '#d1d5db' },
-  showOverlay = true,
-  hoverEffect = 'scale'
+  hoverEffect = 'both',
+  iconSize = 'md'
 }) => {
-  // Background classes
   const getCardBgClass = () => {
     switch (cardBackground) {
-      case 'dark': return 'bg-gray-800'
-      case 'light': return 'bg-gray-700'
-      case 'gradient': return 'bg-gradient-to-br from-gray-800 to-gray-900'
-      default: return 'bg-gray-800'
+      case 'dark': return 'bg-black/20'
+      case 'darker': return 'bg-black/40'
+      case 'gradient': return 'bg-gradient-to-br from-black/20 to-black/40'
+      default: return 'bg-black/20'
     }
   }
 
-  // Hover effect classes
   const getHoverClass = () => {
     switch (hoverEffect) {
       case 'scale': return 'hover:scale-105'
-      case 'glow': return 'hover:shadow-lg hover:shadow-neonCyan/20'
-      case 'lift': return 'hover:-translate-y-2'
-      default: return 'hover:scale-105'
+      case 'glow': return 'hover:shadow-neon'
+      case 'both': return 'hover:scale-105 hover:shadow-neon'
+      default: return 'hover:scale-105 hover:shadow-neon'
+    }
+  }
+
+  const getIconSizeClass = () => {
+    switch (iconSize) {
+      case 'sm': return 'text-2xl xs:text-3xl'
+      case 'md': return 'text-2xl xs:text-3xl sm:text-4xl'
+      case 'lg': return 'text-3xl xs:text-4xl sm:text-5xl'
+      default: return 'text-2xl xs:text-3xl sm:text-4xl'
     }
   }
 
   return (
-    <div className={`${getCardBgClass()} rounded-xl overflow-hidden ${getHoverClass()} transition-all duration-300 group`}>
-      {/* Image Section */}
-      <div className="relative overflow-hidden">
-        <Image
-          propName="image"
-          source={image}
-          alt="Category image"
-          imageClassName="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
-        />
-        {showOverlay && (
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        )}
-      </div>
-
-      {/* Content Section */}
-      <div className="p-6">
-        <Text
-          propName="title"
-          value={title}
-          renderBlock={(props) => (
-            <h3 
-              className="text-xl font-bold mb-2"
-              style={{ color: titleColor.color }}
-            >
-              {props.children}
-            </h3>
-          )}
-          placeholder="Category Title"
-        />
+    <Link href={categoryLink} className="block">
+      <div
+        className={`group relative ${getCardBgClass()} backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 rounded-xl shadow-lg transition-all duration-300 ${getHoverClass()} animate-fade-in touch-target`}
+        style={{ 
+          backdropFilter: 'blur(10px)',
+          boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)',
+          minHeight: '200px'
+        }}
+      >
+        {/* Content Container with Responsive Padding */}
+        <div className="p-4 xs:p-6 h-full flex flex-col">
+          {/* Glassmorphic Icon Container - Responsive Sizing */}
+          <div 
+            className="w-full h-20 xs:h-24 sm:h-32 bg-gradient-to-br from-neonCyan/10 to-neonPink/10 backdrop-blur-sm rounded-lg mb-3 xs:mb-4 flex items-center justify-center group-hover:from-neonCyan/20 group-hover:to-neonPink/20 transition-all duration-300 border border-neonCyan/20 cursor-pointer hover:border-neonPink/50"
+          >
+            <Text
+              propName="categoryIcon"
+              value={categoryIcon}
+              renderBlock={(props) => (
+                <span 
+                  className={`${getIconSizeClass()} filter drop-shadow-lg cursor-pointer`}
+                >
+                  {props.children}
+                </span>
+              )}
+              placeholder="🍽️"
+            />
+          </div>
+          
+          {/* Category Title - Fluid Typography */}
+          <Text
+            propName="categoryName"
+            value={categoryName}
+            renderBlock={(props) => (
+              <h3 
+                className="text-neonCyan font-semibold text-center group-hover:text-neonPink transition-colors duration-300 text-fluid-base xs:text-fluid-lg mb-2 xs:mb-3 cursor-pointer hover:text-neonPink/80"
+              >
+                {props.children}
+              </h3>
+            )}
+            placeholder="Category Name"
+          />
+          
+          {/* Description - Responsive Text */}
+          <Text
+            propName="categoryDescription"
+            value={categoryDescription}
+            renderBlock={(props) => (
+              <p 
+                className="text-gray-300 text-fluid-xs xs:text-fluid-sm text-center leading-relaxed flex-grow flex items-center justify-center cursor-pointer hover:text-gray-100"
+              >
+                {props.children}
+              </p>
+            )}
+            placeholder="Category description"
+          />
+        </div>
         
-        <Text
-          propName="description"
-          value={description}
-          renderBlock={(props) => (
-            <p 
-              className="text-sm leading-relaxed"
-              style={{ color: descriptionColor.color }}
-            >
-              {props.children}
-            </p>
-          )}
-          placeholder="Category description..."
-        />
+        {/* Hover Effect Overlay */}
+        <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-neonCyan/5 to-neonPink/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
       </div>
-    </div>
+    </Link>
   )
 }
 
@@ -98,37 +121,37 @@ CategoryCard.schema = {
   name: 'category-card',
   label: 'Category Card',
   getDefaultProps: () => ({
-    title: 'Fresh Sandwiches',
-    description: 'Artisan breads with premium fillings and fresh ingredients',
+    categoryName: 'Category Name',
+    categoryDescription: 'Description of this category',
+    categoryIcon: '🍽️',
+    categoryLink: '/menu',
     cardBackground: 'dark',
-    titleColor: { color: '#ffffff' },
-    descriptionColor: { color: '#d1d5db' },
-    showOverlay: true,
-    hoverEffect: 'scale'
+    hoverEffect: 'both',
+    iconSize: 'md'
   }),
-  hideFromAddMenu: true, // Nested component
+  hideFromAddMenu: true,
   sideEditProps: [
     {
-      groupName: 'Card Design',
+      groupName: 'Card Settings',
       defaultOpen: true,
       props: [
+        {
+          name: 'categoryLink',
+          label: 'Link URL',
+          type: types.SideEditPropType.Text,
+        },
         {
           name: 'cardBackground',
           label: 'Card Background',
           type: types.SideEditPropType.Select,
           selectOptions: {
-            display: types.OptionsDisplay.Radio,
+            display: types.OptionsDisplay.Select,
             options: [
               { value: 'dark', label: 'Dark' },
-              { value: 'light', label: 'Light' },
+              { value: 'darker', label: 'Darker' },
               { value: 'gradient', label: 'Gradient' },
             ],
           },
-        },
-        {
-          name: 'showOverlay',
-          label: 'Show Image Overlay',
-          type: types.SideEditPropType.Boolean,
         },
         {
           name: 'hoverEffect',
@@ -137,42 +160,22 @@ CategoryCard.schema = {
           selectOptions: {
             display: types.OptionsDisplay.Select,
             options: [
-              { value: 'scale', label: 'Scale' },
-              { value: 'glow', label: 'Glow' },
-              { value: 'lift', label: 'Lift' },
-            ],
-          },
-        },
-      ],
-    },
-    {
-      groupName: 'Text Colors',
-      defaultOpen: false,
-      props: [
-        {
-          name: 'titleColor',
-          label: 'Title Color',
-          type: types.SideEditPropType.Select,
-          selectOptions: {
-            display: types.OptionsDisplay.Color,
-            options: [
-              { value: { color: '#ffffff' }, label: 'White' },
-              { value: { color: '#00ffff' }, label: 'Neon Cyan' },
-              { value: { color: '#ff00ff' }, label: 'Neon Pink' },
-              { value: { color: '#ffff00' }, label: 'Yellow' },
+              { value: 'scale', label: 'Scale Only' },
+              { value: 'glow', label: 'Glow Only' },
+              { value: 'both', label: 'Scale + Glow' },
             ],
           },
         },
         {
-          name: 'descriptionColor',
-          label: 'Description Color',
+          name: 'iconSize',
+          label: 'Icon Size',
           type: types.SideEditPropType.Select,
           selectOptions: {
-            display: types.OptionsDisplay.Color,
+            display: types.OptionsDisplay.Select,
             options: [
-              { value: { color: '#d1d5db' }, label: 'Light Gray' },
-              { value: { color: '#ffffff' }, label: 'White' },
-              { value: { color: '#9ca3af' }, label: 'Medium Gray' },
+              { value: 'sm', label: 'Small' },
+              { value: 'md', label: 'Medium' },
+              { value: 'lg', label: 'Large' },
             ],
           },
         },
@@ -185,108 +188,109 @@ CategoryCard.schema = {
 // Main Component: Categories Section
 //========================================
 interface CategoriesSectionProps {
-  title: types.TextValue
-  subtitle: types.TextValue
+  sectionTitle: types.TextValue
+  sectionSubtitle?: types.TextValue
   categories: types.RepeaterItems
-  backgroundColor: 'dark' | 'darker' | 'gradient'
+  backgroundColor: string
   titleColor: { color: string }
   subtitleColor: { color: string }
-  columns: '2' | '3' | '4'
-  spacing: 'sm' | 'md' | 'lg'
-  showTitle: boolean
+  gridLayout: '2x2' | '3x1' | '4x1' | 'auto'
+  showViewAllButton: boolean
+  viewAllButtonText: types.TextValue
+  viewAllButtonLink: string
   sectionPadding: 'sm' | 'md' | 'lg'
+  backgroundImage?: types.IImageSource
 }
 
-const CategoriesSection: types.Brick<CategoriesSectionProps> = ({ 
-  title,
-  subtitle,
+const CategoriesSection: types.Brick<CategoriesSectionProps> = ({
+  sectionTitle,
+  sectionSubtitle,
   categories,
-  backgroundColor = 'dark',
+  backgroundColor = '#0f0f0f',
   titleColor = { color: '#ffffff' },
   subtitleColor = { color: '#d1d5db' },
-  columns = '3',
-  spacing = 'md',
-  showTitle = true,
-  sectionPadding = 'md'
+  gridLayout = 'auto',
+  showViewAllButton = true,
+  viewAllButtonText,
+  viewAllButtonLink = '/menu',
+  sectionPadding = 'md',
+  backgroundImage
 }) => {
-  // Background classes
-  const getBgClass = () => {
-    switch (backgroundColor) {
-      case 'dark': return 'bg-darkBg'
-      case 'darker': return 'bg-gray-900'
-      case 'gradient': return 'bg-gradient-to-br from-gray-900 via-darkBg to-gray-900'
-      default: return 'bg-darkBg'
+  const getGridClass = () => {
+    switch (gridLayout) {
+      case '2x2': return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2'
+      case '3x1': return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+      case '4x1': return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+      case 'auto': return 'grid-responsive-4'
+      default: return 'grid-responsive-4'
     }
   }
 
-  // Column classes
-  const getColumnClass = () => {
-    switch (columns) {
-      case '2': return 'grid-cols-1 md:grid-cols-2'
-      case '3': return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-      case '4': return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
-      default: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-    }
-  }
-
-  // Spacing classes
-  const getSpacingClass = () => {
-    switch (spacing) {
-      case 'sm': return 'gap-4'
-      case 'md': return 'gap-6'
-      case 'lg': return 'gap-8'
-      default: return 'gap-6'
-    }
-  }
-
-  // Padding classes
   const getPaddingClass = () => {
     switch (sectionPadding) {
-      case 'sm': return 'py-12'
-      case 'md': return 'py-16'
-      case 'lg': return 'py-24'
-      default: return 'py-16'
+      case 'sm': return 'py-8 xs:py-12'
+      case 'md': return 'py-8 xs:py-12'
+      case 'lg': return 'py-12 xs:py-16'
+      default: return 'py-8 xs:py-12'
     }
+  }
+
+  const getBackgroundStyle = () => {
+    const baseStyle = { backgroundColor }
+    
+    if (backgroundImage) {
+      return {
+        ...baseStyle,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url(${backgroundImage.src})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }
+    }
+    
+    return baseStyle
   }
 
   return (
-    <section className={`${getBgClass()} ${getPaddingClass()}`}>
-      <div className="container-wide">
-        {/* Section Header */}
-        {showTitle && (
-          <div className="text-center mb-12">
-            <Text
-              propName="title"
-              value={title}
-              renderBlock={(props) => (
-                <h2 
-                  className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4"
-                  style={{ color: titleColor.color }}
-                >
-                  {props.children}
-                </h2>
-              )}
-              placeholder="Our Categories"
-            />
-            
-            <Text
-              propName="subtitle"
-              value={subtitle}
-              renderBlock={(props) => (
-                <p 
-                  className="text-lg max-w-2xl mx-auto"
-                  style={{ color: subtitleColor.color }}
-                >
-                  {props.children}
-                </p>
-              )}
-              placeholder="Discover our range of fresh, quality offerings"
-            />
-          </div>
+    <section 
+      className="w-full shadow-neon rounded-xl animate-fade-in"
+      style={getBackgroundStyle()}
+    >
+      {/* Centered Header with Fluid Typography */}
+      <div className={`text-center ${getPaddingClass()} px-6`}>
+        <Text
+          propName="sectionTitle"
+          value={sectionTitle}
+          renderBlock={(props) => (
+            <h2 
+              className="text-fluid-2xl xs:text-fluid-3xl md:text-fluid-4xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-4"
+              style={{ color: titleColor.color }}
+            >
+              {props.children}
+            </h2>
+          )}
+          placeholder="🍽️ View Our Categories"
+        />
+        
+        {sectionSubtitle && (
+          <Text
+            propName="sectionSubtitle"
+            value={sectionSubtitle}
+            renderBlock={(props) => (
+              <p 
+                className="text-lg max-w-2xl mx-auto"
+                style={{ color: subtitleColor.color }}
+              >
+                {props.children}
+              </p>
+            )}
+            placeholder="Explore our delicious offerings"
+          />
         )}
+      </div>
 
-        {/* Categories Grid */}
-        <div className={`grid ${getColumnClass()} ${getSpacingClass()}`}>
+      {/* Responsive Category Grid - Mobile First Design */}
+      <div className="px-4 xs:px-6 sm:px-8 pb-8 xs:pb-12">
+        <div className={`${getGridClass()} max-w-7xl mx-auto gap-4 md:gap-6`}>
           <Repeater
             propName="categories"
             items={categories}
@@ -298,122 +302,141 @@ const CategoriesSection: types.Brick<CategoriesSectionProps> = ({
           />
         </div>
       </div>
+
+      {/* Centered View Full Menu Button - Responsive */}
+      {showViewAllButton && (
+        <div className="text-center px-4 xs:px-6 sm:px-8 pb-8 xs:pb-12 animate-bounce-in" style={{ animationDelay: '0.5s' }}>
+          <Link
+            href={viewAllButtonLink}
+            className="neon-button text-fluid-base xs:text-fluid-lg px-6 xs:px-8 py-3 xs:py-4 inline-flex items-center gap-2 touch-target"
+          >
+            <span>🍽️</span>
+            <Text
+              propName="viewAllButtonText"
+              value={viewAllButtonText}
+              renderBlock={(props) => (
+                <span>{props.children}</span>
+              )}
+              placeholder="View Full Menu"
+            />
+          </Link>
+        </div>
+      )}
     </section>
   )
 }
 
 //========================================
-// Brick Schema with Professional Controls
+// Brick Schema with Professional Sidebar Controls
 //========================================
 CategoriesSection.schema = {
   name: 'categories-section',
   label: 'Categories Section',
   category: 'Little Latte Lane',
   
-  // Defaults
   getDefaultProps: () => ({
-    title: 'Our Categories',
-    subtitle: 'Discover our range of fresh, quality offerings crafted with care',
-    backgroundColor: 'dark',
+    sectionTitle: '🍽️ View Our Categories',
+    sectionSubtitle: '',
+    backgroundColor: '#0f0f0f',
     titleColor: { color: '#ffffff' },
     subtitleColor: { color: '#d1d5db' },
-    columns: '3',
-    spacing: 'md',
-    showTitle: true,
+    gridLayout: 'auto',
+    showViewAllButton: true,
+    viewAllButtonText: 'View Full Menu',
+    viewAllButtonLink: '/menu',
     sectionPadding: 'md',
     categories: [
       {
         type: 'category-card',
         props: {
-          title: 'Fresh Sandwiches',
-          description: 'Artisan breads with premium fillings and fresh ingredients',
+          categoryName: 'Drinks',
+          categoryDescription: 'Premium coffee, lattes, cold drinks & smoothies',
+          categoryIcon: '☕',
+          categoryLink: '/menu',
           cardBackground: 'dark',
-          titleColor: { color: '#ffffff' },
-          descriptionColor: { color: '#d1d5db' },
-          showOverlay: true,
-          hoverEffect: 'scale'
+          hoverEffect: 'both',
+          iconSize: 'md'
         }
       },
       {
         type: 'category-card',
         props: {
-          title: 'Premium Coffee',
-          description: 'Expertly roasted beans and specialty beverages',
+          categoryName: 'Main Food',
+          categoryDescription: 'Fresh pizzas, hearty meals & grilled toasties',
+          categoryIcon: '🍕',
+          categoryLink: '/menu',
           cardBackground: 'dark',
-          titleColor: { color: '#ffffff' },
-          descriptionColor: { color: '#d1d5db' },
-          showOverlay: true,
-          hoverEffect: 'scale'
+          hoverEffect: 'both',
+          iconSize: 'md'
         }
       },
       {
         type: 'category-card',
         props: {
-          title: 'Sweet Treats',
-          description: 'Freshly baked pastries and delightful desserts',
+          categoryName: 'Sides & Breakfast',
+          categoryDescription: 'All-day breakfast, scones & perfect accompaniments',
+          categoryIcon: '🥐',
+          categoryLink: '/menu',
           cardBackground: 'dark',
-          titleColor: { color: '#ffffff' },
-          descriptionColor: { color: '#d1d5db' },
-          showOverlay: true,
-          hoverEffect: 'scale'
+          hoverEffect: 'both',
+          iconSize: 'md'
+        }
+      },
+      {
+        type: 'category-card',
+        props: {
+          categoryName: 'Extras',
+          categoryDescription: 'Specialty items & unique offerings',
+          categoryIcon: '🧀',
+          categoryLink: '/menu',
+          cardBackground: 'dark',
+          hoverEffect: 'both',
+          iconSize: 'md'
         }
       }
     ]
   }),
 
-  // Repeater settings
   repeaterItems: [
     {
       name: 'categories',
       itemType: 'category-card',
       itemLabel: 'Category',
       min: 1,
-      max: 8
+      max: 12
     }
   ],
 
-  // Professional sidebar controls
   sideEditProps: [
     {
-      groupName: 'Layout & Design',
+      groupName: 'Background & Layout',
       defaultOpen: true,
       props: [
         {
           name: 'backgroundColor',
-          label: 'Background Style',
-          type: types.SideEditPropType.Select,
-          selectOptions: {
-            display: types.OptionsDisplay.Radio,
-            options: [
-              { value: 'dark', label: 'Dark' },
-              { value: 'darker', label: 'Darker' },
-              { value: 'gradient', label: 'Gradient' },
-            ],
+          label: 'Background Color',
+          type: types.SideEditPropType.Text,
+        },
+        {
+          name: 'backgroundImage',
+          label: 'Background Image',
+          type: types.SideEditPropType.Image,
+          imageOptions: {
+            maxWidth: 2000,
+            quality: 85,
           },
         },
         {
-          name: 'columns',
-          label: 'Columns',
-          type: types.SideEditPropType.Select,
-          selectOptions: {
-            display: types.OptionsDisplay.Radio,
-            options: [
-              { value: '2', label: '2 Columns' },
-              { value: '3', label: '3 Columns' },
-              { value: '4', label: '4 Columns' },
-            ],
-          },
-        },
-        {
-          name: 'spacing',
-          label: 'Card Spacing',
+          name: 'gridLayout',
+          label: 'Grid Layout',
           type: types.SideEditPropType.Select,
           selectOptions: {
             display: types.OptionsDisplay.Select,
             options: [
-              { value: 'sm', label: 'Small' },
-              { value: 'md', label: 'Medium' },
-              { value: 'lg', label: 'Large' },
+              { value: 'auto', label: 'Auto (Responsive)' },
+              { value: '2x2', label: '2x2 Grid' },
+              { value: '3x1', label: '3 Columns' },
+              { value: '4x1', label: '4 Columns' },
             ],
           },
         },
@@ -433,14 +456,9 @@ CategoriesSection.schema = {
       ],
     },
     {
-      groupName: 'Content Settings',
+      groupName: 'Typography & Colors',
       defaultOpen: false,
       props: [
-        {
-          name: 'showTitle',
-          label: 'Show Section Title',
-          type: types.SideEditPropType.Boolean,
-        },
         {
           name: 'titleColor',
           label: 'Title Color',
@@ -454,7 +472,6 @@ CategoriesSection.schema = {
               { value: { color: '#ffff00' }, label: 'Yellow' },
             ],
           },
-          show: (props) => props.showTitle,
         },
         {
           name: 'subtitleColor',
@@ -465,10 +482,26 @@ CategoriesSection.schema = {
             options: [
               { value: { color: '#d1d5db' }, label: 'Light Gray' },
               { value: { color: '#ffffff' }, label: 'White' },
-              { value: { color: '#9ca3af' }, label: 'Medium Gray' },
+              { value: { color: '#00ffff' }, label: 'Neon Cyan' },
             ],
           },
-          show: (props) => props.showTitle,
+        },
+      ],
+    },
+    {
+      groupName: 'Button Settings',
+      defaultOpen: false,
+      props: [
+        {
+          name: 'showViewAllButton',
+          label: 'Show View All Button',
+          type: types.SideEditPropType.Boolean,
+        },
+        {
+          name: 'viewAllButtonLink',
+          label: 'Button Link',
+          type: types.SideEditPropType.Text,
+          show: (props) => props.showViewAllButton,
         },
       ],
     },
