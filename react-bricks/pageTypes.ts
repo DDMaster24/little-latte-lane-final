@@ -14,7 +14,13 @@ const pageTypes: types.IPageType[] = [
     defaultLocked: false,
     defaultStatus: types.PageStatus.Published,
     getDefaultContent: () => [],
-    allowedBlockTypes: ['hero-brick'], // Only allow our custom bricks for homepage
+    allowedBlockTypes: [
+      'welcoming-section',     // Our professional welcoming section
+      'categories-section',    // Our professional categories section
+      'hero-brick',           // Keep for backwards compatibility
+      // 'events-specials-section',  // Coming next
+      // 'bookings-section',         // Coming next
+    ],
   },
   {
     name: 'blog',

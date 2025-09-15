@@ -14,20 +14,23 @@ export default async function Home() {
   let reactBricksPage = null
   
   try {
-    // First try to find a page with slug 'test' (since you created a "Test" page)
-    reactBricksPage = await fetchPage({
-      slug: 'test',
-      language: 'en',
-      config,
-    })
+    // Try multiple possible homepage slugs
+    const possibleSlugs = ['homepage', 'home', 'index', '']
     
-    if (!reactBricksPage) {
-      // Fallback to homepage slug
-      reactBricksPage = await fetchPage({
-        slug: 'homepage',
-        language: 'en',
-        config,
-      })
+    for (const slug of possibleSlugs) {
+      try {
+        reactBricksPage = await fetchPage({
+          slug: slug,
+          language: 'en',
+          config,
+        })
+        if (reactBricksPage) {
+          console.log(`Found React Bricks page with slug: "${slug}"`)
+          break
+        }
+      } catch (_error) {
+        console.log(`No page found for slug: "${slug}"`)
+      }
     }
   } catch (_error) {
     console.log('No React Bricks page found, using static content')
