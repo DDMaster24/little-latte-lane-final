@@ -1,6 +1,6 @@
 import { types } from 'react-bricks/frontend'
 import HeroBrick from './HeroBrick'
-import WelcomingSection, { FeatureItem, BadgeItem, AdvancedHeading } from './WelcomingSection'
+import WelcomingSection, { FeatureItem, BadgeItem, AdvancedHeading, AdvancedSubheading, AdvancedDescription } from './WelcomingSection'
 import CategoriesSection, { CategoryCard } from './CategoriesSection'
 import EventsSpecialsSection, { EventSpecialCard } from './EventsSpecialsSection'
 import BookingsSection from './BookingsSection'
@@ -54,6 +54,8 @@ const bricks: types.Theme[] = [
         categoryName: 'Content Components',
         bricks: [
           AdvancedHeading,        // Individual selectable heading with advanced color controls
+          AdvancedSubheading,     // Individual selectable subheading with advanced color controls  
+          AdvancedDescription,    // Individual selectable description with advanced color controls
           FeatureItem,            // Nested inside WelcomingSection
           BadgeItem,              // Nested inside WelcomingSection
           CategoryCard,           // Nested inside CategoriesSection

@@ -6,6 +6,257 @@ import { Star, MapPin, Car } from 'lucide-react'
 import DynamicCarousel from '@/components/DynamicCarousel'
 import { createAdvancedColorProp, TEXT_PALETTE, NEON_PALETTE, BACKGROUND_PALETTE } from '../components/colorPickerUtils'
 
+// Color value interface for consistency
+interface ColorValue {
+  color: string
+  className?: string
+  [key: string]: unknown
+}
+
+//========================================
+// Nested Component: Advanced Subheading
+//========================================
+
+interface AdvancedSubheadingProps {
+  text: string
+  textColor: ColorValue
+  fontSize: 'lg' | 'xl' | '2xl' | '3xl'
+  backgroundColor?: ColorValue
+}
+
+const AdvancedSubheading: types.Brick<AdvancedSubheadingProps> = ({ 
+  text, 
+  textColor, 
+  fontSize = 'xl',
+  backgroundColor 
+}) => {
+  // Font size classes
+  const getFontSizeClass = () => {
+    switch (fontSize) {
+      case 'lg': return 'text-fluid-lg xs:text-fluid-xl'
+      case 'xl': return 'text-fluid-lg xs:text-fluid-xl sm:text-fluid-2xl'  
+      case '2xl': return 'text-fluid-xl xs:text-fluid-2xl sm:text-fluid-3xl'
+      case '3xl': return 'text-fluid-2xl xs:text-fluid-3xl sm:text-fluid-4xl'
+      default: return 'text-fluid-lg xs:text-fluid-xl sm:text-fluid-2xl'
+    }
+  }
+
+  // Style object for text color and background
+  const getTextStyle = () => {
+    const style: React.CSSProperties = {
+      color: textColor.color || '#d1d5db'
+    }
+    
+    if (backgroundColor?.color) {
+      style.backgroundColor = backgroundColor.color
+      style.padding = '0.5rem 1rem'
+      style.borderRadius = '0.5rem'
+      style.display = 'inline-block'
+    }
+    
+    return style
+  }
+
+  return (
+    <p 
+      className={`${getFontSizeClass()} mb-4 xs:mb-6 max-w-4xl mx-auto text-center`}
+      style={getTextStyle()}
+    >
+      <Text
+        propName="text"
+        value={text}
+        placeholder="Where Great Food Meets Amazing Experiences"
+        multiline={false}
+      />
+    </p>
+  )
+}
+
+AdvancedSubheading.schema = {
+  name: 'advanced-subheading',
+  label: 'Advanced Subheading',
+  category: 'content',
+  hideFromAddMenu: true,
+  tags: [],
+  playgroundLinkLabel: 'View source code on Github',
+  playgroundLinkUrl: 'https://github.com/DDMaster24/little-latte-lane',
+  
+  getDefaultProps: () => ({
+    text: 'Where Great Food Meets Amazing Experiences',
+    textColor: { color: '#d1d5db' },
+    fontSize: 'xl'
+  }),
+
+  sideEditProps: [
+    {
+      name: 'styling',
+      label: 'Styling',
+      type: types.SideEditPropType.Select,
+      selectOptions: {
+        display: types.OptionsDisplay.Select,
+        options: [
+          { label: 'Typography', value: 'typography' },
+        ],
+      },
+    },
+  ],
+
+  repeaterItems: [
+    {
+      name: 'typography',
+      itemType: 'typography',
+      itemLabel: 'Typography',
+      min: 1,
+      max: 1
+    },
+  ],
+}
+
+//========================================
+// Nested Component: Advanced Description
+//========================================
+
+interface AdvancedDescriptionProps {
+  text: string
+  textColor: ColorValue
+  fontSize: 'sm' | 'base' | 'lg' | 'xl'
+  backgroundColor?: ColorValue
+  alignment: 'left' | 'center' | 'right'
+}
+
+const AdvancedDescription: types.Brick<AdvancedDescriptionProps> = ({ 
+  text, 
+  textColor, 
+  fontSize = 'base',
+  backgroundColor,
+  alignment = 'center'
+}) => {
+  // Font size classes
+  const getFontSizeClass = () => {
+    switch (fontSize) {
+      case 'sm': return 'text-sm xs:text-base'
+      case 'base': return 'text-base xs:text-lg'
+      case 'lg': return 'text-lg xs:text-xl'
+      case 'xl': return 'text-xl xs:text-2xl'
+      default: return 'text-base xs:text-lg'
+    }
+  }
+
+  // Alignment classes
+  const getAlignmentClass = () => {
+    switch (alignment) {
+      case 'left': return 'text-left'
+      case 'center': return 'text-center'
+      case 'right': return 'text-right'
+      default: return 'text-center'
+    }
+  }
+
+  // Style object for text color and background
+  const getTextStyle = () => {
+    const style: React.CSSProperties = {
+      color: textColor.color || '#d1d5db'
+    }
+    
+    if (backgroundColor?.color) {
+      style.backgroundColor = backgroundColor.color
+      style.padding = '0.75rem 1.5rem'
+      style.borderRadius = '0.5rem'
+      style.display = 'inline-block'
+    }
+    
+    return style
+  }
+
+  return (
+    <div className={`${getAlignmentClass()} mb-4 xs:mb-6 max-w-3xl mx-auto`}>
+      <div
+        className={`${getFontSizeClass()}`}
+        style={getTextStyle()}
+      >
+        <Text
+          propName="text"
+          value={text}
+          placeholder="Enter your description text here..."
+          multiline={true}
+        />
+      </div>
+    </div>
+  )
+}
+
+AdvancedDescription.schema = {
+  name: 'advanced-description',
+  label: 'Advanced Description',
+  category: 'content',
+  hideFromAddMenu: true,
+  tags: [],
+  playgroundLinkLabel: 'View source code on Github',
+  playgroundLinkUrl: 'https://github.com/DDMaster24/little-latte-lane',
+  
+  getDefaultProps: () => ({
+    text: 'Experience the perfect blend of exceptional cuisine and warm atmosphere at our family-owned establishment.',
+    textColor: { color: '#d1d5db' },
+    fontSize: 'base',
+    alignment: 'center'
+  }),
+
+  sideEditProps: [
+    {
+      name: 'text-styling',
+      label: 'Text Styling',
+      type: types.SideEditPropType.Select,
+      selectOptions: {
+        display: types.OptionsDisplay.Select,
+        options: [
+          { label: 'Typography & Colors', value: 'typography' },
+        ],
+      },
+    },
+    {
+      name: 'fontSize',
+      label: 'Font Size',
+      type: types.SideEditPropType.Select,
+      selectOptions: {
+        display: types.OptionsDisplay.Radio,
+        options: [
+          { label: 'Small', value: 'sm' },
+          { label: 'Base', value: 'base' },
+          { label: 'Large', value: 'lg' },
+          { label: 'Extra Large', value: 'xl' },
+        ],
+      },
+    },
+    {
+      name: 'alignment',
+      label: 'Text Alignment',
+      type: types.SideEditPropType.Select,
+      selectOptions: {
+        display: types.OptionsDisplay.Radio,
+        options: [
+          { label: 'Left', value: 'left' },
+          { label: 'Center', value: 'center' },
+          { label: 'Right', value: 'right' },
+        ],
+      },
+    },
+    createAdvancedColorProp(
+      'textColor',
+      'Text Color',
+      {
+        presetColors: TEXT_PALETTE
+      }
+    ),
+    createAdvancedColorProp(
+      'backgroundColor',
+      'Background Color (Optional)',
+      {
+        presetColors: BACKGROUND_PALETTE
+      }
+    ),
+  ],
+}
+
 //========================================
 // Nested Component: Advanced Heading
 //========================================
@@ -47,18 +298,6 @@ const AdvancedHeading: types.Brick<AdvancedHeadingProps> = ({
       case 'xl': return 'text-fluid-4xl xs:text-fluid-5xl sm:text-fluid-6xl lg:text-fluid-7xl'
       case 'xxl': return 'text-fluid-5xl xs:text-fluid-6xl sm:text-fluid-7xl lg:text-fluid-8xl'
       default: return 'text-fluid-3xl xs:text-fluid-4xl sm:text-fluid-5xl lg:text-fluid-6xl'
-    }
-  }
-
-  // Gradient direction classes
-  const getGradientDirection = () => {
-    switch (gradientDirection) {
-      case 'horizontal': return 'bg-gradient-to-r'
-      case 'vertical': return 'bg-gradient-to-b'
-      case 'diagonal-1': return 'bg-gradient-to-br'
-      case 'diagonal-2': return 'bg-gradient-to-bl'
-      case 'radial': return 'bg-radial-gradient'
-      default: return 'bg-gradient-to-r'
     }
   }
 
@@ -262,19 +501,13 @@ AdvancedHeading.schema = {
 interface FeatureItemProps {
   icon: types.TextValue
   text: types.TextValue
-  color: 'cyan' | 'pink' | 'yellow'
+  textColor: ColorValue
+  iconColor: ColorValue
+  backgroundColor?: ColorValue
 }
 
-const FeatureItem: types.Brick<FeatureItemProps> = ({ icon, text, color }) => {
-  const getColorClass = () => {
-    switch (color) {
-      case 'cyan': return 'text-neonCyan'
-      case 'pink': return 'text-neonPink'
-      case 'yellow': return 'text-yellow-400'
-      default: return 'text-neonCyan'
-    }
-  }
-
+const FeatureItem: types.Brick<FeatureItemProps> = ({ icon, text, textColor, iconColor, backgroundColor }) => {
+  
   const getIconComponent = () => {
     const iconText = typeof icon === 'string' ? icon : icon?.toString() || '⭐'
     
@@ -287,14 +520,35 @@ const FeatureItem: types.Brick<FeatureItemProps> = ({ icon, text, color }) => {
     return <span className="text-lg">{iconText}</span>
   }
 
+  // Style object for the container
+  const getContainerStyle = () => {
+    const style: React.CSSProperties = {}
+    
+    if (backgroundColor?.color) {
+      style.backgroundColor = backgroundColor.color
+      style.padding = '0.5rem 1rem'
+      style.borderRadius = '0.5rem'
+    }
+    
+    return style
+  }
+
   return (
-    <div className={`flex items-center justify-center gap-2 ${getColorClass()}`}>
-      {getIconComponent()}
+    <div 
+      className="flex items-center justify-center gap-2"
+      style={getContainerStyle()}
+    >
+      <div style={{ color: iconColor.color || '#00ffff' }}>
+        {getIconComponent()}
+      </div>
       <Text
         propName="text"
         value={text}
         renderBlock={(props) => (
-          <span className="text-sm font-medium">
+          <span 
+            className="text-sm font-medium"
+            style={{ color: textColor.color || '#ffffff' }}
+          >
             {props.children}
           </span>
         )}
@@ -310,7 +564,8 @@ FeatureItem.schema = {
   getDefaultProps: () => ({
     icon: '⭐',
     text: 'Exceptional Quality',
-    color: 'cyan'
+    textColor: { color: '#ffffff' },
+    iconColor: { color: '#00ffff' }
   }),
   hideFromAddMenu: true,
   sideEditProps: [
@@ -320,10 +575,24 @@ FeatureItem.schema = {
       type: types.SideEditPropType.Text,
     },
     createAdvancedColorProp(
-      'color',
-      'Color',
+      'textColor',
+      'Text Color',
+      {
+        presetColors: TEXT_PALETTE
+      }
+    ),
+    createAdvancedColorProp(
+      'iconColor',
+      'Icon Color',
       {
         presetColors: NEON_PALETTE
+      }
+    ),
+    createAdvancedColorProp(
+      'backgroundColor',
+      'Background Color (Optional)',
+      {
+        presetColors: BACKGROUND_PALETTE
       }
     ),
   ],
@@ -334,21 +603,32 @@ FeatureItem.schema = {
 //========================================
 interface BadgeItemProps {
   text: types.TextValue
-  bgColor: 'cyan' | 'pink' | 'yellow'
+  textColor: ColorValue
+  backgroundColor: ColorValue
+  borderColor?: ColorValue
 }
 
-const BadgeItem: types.Brick<BadgeItemProps> = ({ text, bgColor }) => {
-  const getBgColorClass = () => {
-    switch (bgColor) {
-      case 'cyan': return 'bg-neonCyan text-black'
-      case 'pink': return 'bg-neonPink text-black'
-      case 'yellow': return 'bg-yellow-400 text-black'
-      default: return 'bg-neonCyan text-black'
+const BadgeItem: types.Brick<BadgeItemProps> = ({ text, textColor, backgroundColor, borderColor }) => {
+  
+  // Style object for the badge
+  const getBadgeStyle = () => {
+    const style: React.CSSProperties = {
+      backgroundColor: backgroundColor.color || '#00ffff',
+      color: textColor.color || '#000000'
     }
+    
+    if (borderColor?.color) {
+      style.border = `2px solid ${borderColor.color}`
+    }
+    
+    return style
   }
 
   return (
-    <Badge className={`${getBgColorClass()} px-3 xs:px-4 py-2 text-fluid-xs xs:text-fluid-sm font-medium`}>
+    <Badge 
+      className="px-3 xs:px-4 py-2 text-fluid-xs xs:text-fluid-sm font-medium border-0"
+      style={getBadgeStyle()}
+    >
       <Text
         propName="text"
         value={text}
@@ -366,13 +646,28 @@ BadgeItem.schema = {
   label: 'Badge Item',
   getDefaultProps: () => ({
     text: 'Now Open',
-    bgColor: 'cyan'
+    textColor: { color: '#000000' },
+    backgroundColor: { color: '#00ffff' }
   }),
   hideFromAddMenu: true,
   sideEditProps: [
     createAdvancedColorProp(
-      'bgColor',
-      'Badge Color',
+      'backgroundColor',
+      'Background Color',
+      {
+        presetColors: NEON_PALETTE
+      }
+    ),
+    createAdvancedColorProp(
+      'textColor',
+      'Text Color',
+      {
+        presetColors: TEXT_PALETTE
+      }
+    ),
+    createAdvancedColorProp(
+      'borderColor',
+      'Border Color (Optional)',
       {
         presetColors: NEON_PALETTE
       }
@@ -385,7 +680,8 @@ BadgeItem.schema = {
 //========================================
 interface WelcomingSectionProps {
   mainHeading: types.RepeaterItems
-  subtitle: types.TextValue
+  subtitle: types.RepeaterItems
+  description: types.RepeaterItems
   ctaTitle: types.TextValue
   ctaDescription: types.TextValue
   badges: types.RepeaterItems
@@ -394,7 +690,7 @@ interface WelcomingSectionProps {
   backgroundColor: 'dark' | 'darker' | 'gradient'
   backgroundImage?: types.IImageSource
   padding: 'sm' | 'md' | 'lg'
-  subtitleColor: { color: string }
+  _subtitleColor?: { color: string }
   showBadges: boolean
   showFeatures: boolean
 }
@@ -402,6 +698,7 @@ interface WelcomingSectionProps {
 const WelcomingSection: types.Brick<WelcomingSectionProps> = ({ 
   mainHeading,
   subtitle,
+  description,
   ctaTitle,
   ctaDescription,
   badges,
@@ -410,7 +707,7 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
   backgroundColor = 'gradient',
   backgroundImage,
   padding = 'md',
-  subtitleColor = { color: '#d1d5db' },
+  _subtitleColor = { color: '#d1d5db' },
   showBadges = true,
   showFeatures = true,
 }) => {
@@ -466,18 +763,26 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
             )}
           />
           
-          <Text
+          {/* Advanced Subtitle Repeater for Individual Selection */}
+          <Repeater
             propName="subtitle"
-            value={subtitle}
-            renderBlock={(props) => (
-              <p 
-                className="text-fluid-lg xs:text-fluid-xl sm:text-fluid-2xl mb-4 xs:mb-6 max-w-4xl mx-auto"
-                style={{ color: subtitleColor.color }}
-              >
-                {props.children}
-              </p>
+            items={subtitle}
+            renderWrapper={(items) => (
+              <div className="mb-4 xs:mb-6">
+                {items}
+              </div>
             )}
-            placeholder="Café & Deli - Where Great Food Meets Amazing Experiences"
+          />
+
+          {/* Advanced Description Repeater for Individual Selection */}
+          <Repeater
+            propName="description"
+            items={description}
+            renderWrapper={(items) => (
+              <div className="mb-6 xs:mb-8">
+                {items}
+              </div>
+            )}
           />
 
           {/* Conditional Badges */}
@@ -579,7 +884,27 @@ WelcomingSection.schema = {
         }
       }
     ],
-    subtitle: 'Café & Deli - Where Great Food Meets Amazing Experiences',
+    subtitle: [
+      {
+        type: 'advanced-subheading',
+        props: {
+          text: 'Café & Deli - Where Great Food Meets Amazing Experiences',
+          textColor: { color: '#d1d5db' },
+          fontSize: 'xl'
+        }
+      }
+    ],
+    description: [
+      {
+        type: 'advanced-description',
+        props: {
+          text: 'Experience the perfect blend of exceptional cuisine and warm atmosphere at our family-owned establishment.',
+          textColor: { color: '#d1d5db' },
+          fontSize: 'base',
+          alignment: 'center'
+        }
+      }
+    ],
     ctaTitle: 'Ready to Experience Little Latte Lane?',
     ctaDescription: 'Join us for exceptional food, premium beverages, and a warm, welcoming atmosphere. Whether you\'re catching up with friends, having a business meeting, or enjoying a quiet moment, we\'re here to make your experience memorable.',
     showCarousel: true,
@@ -639,6 +964,20 @@ WelcomingSection.schema = {
       itemType: 'advanced-heading',
       itemLabel: 'Main Heading',
       min: 1,
+      max: 1
+    },
+    {
+      name: 'subtitle',
+      itemType: 'advanced-subheading',
+      itemLabel: 'Subtitle',
+      min: 0,
+      max: 1
+    },
+    {
+      name: 'description',
+      itemType: 'advanced-description',
+      itemLabel: 'Description',
+      min: 0,
       max: 1
     },
     {
@@ -756,4 +1095,4 @@ WelcomingSection.schema = {
 }
 
 export default WelcomingSection
-export { FeatureItem, BadgeItem, AdvancedHeading }
+export { FeatureItem, BadgeItem, AdvancedHeading, AdvancedSubheading, AdvancedDescription }
