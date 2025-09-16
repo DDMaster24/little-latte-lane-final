@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/components/AuthProvider'
 import { Star, MapPin, Car } from 'lucide-react'
 import DynamicCarousel from '@/components/DynamicCarousel'
+import { createAdvancedColorProp, TEXT_PALETTE, NEON_PALETTE } from '../components/colorPickerUtils'
 
 //========================================
 // Nested Component: Feature Item
@@ -68,19 +69,13 @@ FeatureItem.schema = {
       label: 'Icon',
       type: types.SideEditPropType.Text,
     },
-    {
-      name: 'color',
-      label: 'Color',
-      type: types.SideEditPropType.Select,
-      selectOptions: {
-        display: types.OptionsDisplay.Color,
-        options: [
-          { value: 'cyan', label: 'Cyan' },
-          { value: 'pink', label: 'Pink' },
-          { value: 'yellow', label: 'Yellow' },
-        ],
-      },
-    },
+    createAdvancedColorProp(
+      'color',
+      'Color',
+      {
+        presetColors: NEON_PALETTE
+      }
+    ),
   ],
 }
 
@@ -125,19 +120,13 @@ BadgeItem.schema = {
   }),
   hideFromAddMenu: true,
   sideEditProps: [
-    {
-      name: 'bgColor',
-      label: 'Badge Color',
-      type: types.SideEditPropType.Select,
-      selectOptions: {
-        display: types.OptionsDisplay.Color,
-        options: [
-          { value: 'cyan', label: 'Cyan' },
-          { value: 'pink', label: 'Pink' },
-          { value: 'yellow', label: 'Yellow' },
-        ],
-      },
-    },
+    createAdvancedColorProp(
+      'bgColor',
+      'Badge Color',
+      {
+        presetColors: NEON_PALETTE
+      }
+    ),
   ],
 }
 
@@ -509,19 +498,13 @@ WelcomingSection.schema = {
             ],
           },
         },
-        {
-          name: 'subtitleColor',
-          label: 'Subtitle Color',
-          type: types.SideEditPropType.Select,
-          selectOptions: {
-            display: types.OptionsDisplay.Color,
-            options: [
-              { value: { color: '#d1d5db' }, label: 'Light Gray' },
-              { value: { color: '#ffffff' }, label: 'White' },
-              { value: { color: '#00ffff' }, label: 'Neon Cyan' },
-            ],
-          },
-        },
+        createAdvancedColorProp(
+          'subtitleColor',
+          'Subtitle Color',
+          {
+            presetColors: TEXT_PALETTE
+          }
+        ),
       ],
     },
   ],
