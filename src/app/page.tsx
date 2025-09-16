@@ -45,7 +45,7 @@ async function getData(): Promise<{
     
     // Try different slug variations that might work
     let page = null
-    const slugsToTry = ['homepage', 'home', 'index', '']
+    const slugsToTry = ['', 'homepage', 'home', 'index']
     
     for (const slug of slugsToTry) {
       try {
