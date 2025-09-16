@@ -7,8 +7,8 @@ import BookingsSection from './BookingsSection'
 import DynamicCarousel, { CarouselPanel } from './DynamicCarousel'
 import MenuHero from './MenuHero'
 import MenuDisplay, { MenuCategoryCard, MenuSection } from './MenuDisplay'
-import HeaderSection from './HeaderSection'
-import FooterSection from './FooterSection'
+import HeaderSection, { NavLink } from './HeaderSection'
+import FooterSection, { FooterLink, FooterColumn } from './FooterSection'
 import MenuSectionSkeleton from './MenuSection'
 import CartSection from './CartSection'
 
@@ -20,8 +20,8 @@ const bricks: types.Theme[] = [
       {
         categoryName: 'Homepage Sections',
         bricks: [
-          WelcomingSection,        // ✅ Enhanced main section with advanced controls
-          CategoriesSection,       // ✅ Professional categories with exact styling
+          WelcomingSection,        // ✅ Enhanced main section with advanced color picker controls
+          CategoriesSection,       // ✅ Professional categories with React Bricks integration
           EventsSpecialsSection,   // ✅ Database-driven events with real-time updates
           BookingsSection,         // ✅ Customizable CTA section with glass effects
           DynamicCarousel,         // ✅ 3D animated carousel with editable panels
@@ -39,8 +39,8 @@ const bricks: types.Theme[] = [
       {
         categoryName: 'Layout Components',
         bricks: [
-          HeaderSection,          // Header skeleton
-          FooterSection,          // Footer skeleton
+          HeaderSection,          // ✅ Enhanced with editable navigation and multiple layouts
+          FooterSection,          // ✅ Comprehensive footer with editable columns and links
         ],
       },
       {
@@ -59,6 +59,9 @@ const bricks: types.Theme[] = [
           CarouselPanel,          // Nested inside DynamicCarousel
           MenuCategoryCard,       // Nested inside MenuDisplay
           MenuSection,            // Nested inside MenuDisplay
+          NavLink,                // Nested inside HeaderSection
+          FooterLink,             // Nested inside FooterSection
+          FooterColumn,           // Nested inside FooterSection
         ],
       },
     ],

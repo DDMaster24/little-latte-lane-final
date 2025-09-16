@@ -1,6 +1,7 @@
 import React from 'react'
 import { Text, Repeater, types } from 'react-bricks/rsc'
 import Link from 'next/link'
+import { createAdvancedColorProp, TEXT_PALETTE, BACKGROUND_PALETTE } from '../components/colorPickerUtils'
 
 //========================================
 // Nested Component: Category Card
@@ -384,11 +385,13 @@ CategoriesSection.schema = {
       groupName: 'Background & Layout',
       defaultOpen: true,
       props: [
-        {
-          name: 'backgroundColor',
-          label: 'Background Color',
-          type: types.SideEditPropType.Text,
-        },
+        createAdvancedColorProp(
+          'backgroundColor',
+          'Background Color',
+          {
+            presetColors: BACKGROUND_PALETTE
+          }
+        ),
         {
           name: 'backgroundImage',
           label: 'Background Image',
@@ -431,33 +434,20 @@ CategoriesSection.schema = {
       groupName: 'Typography & Colors',
       defaultOpen: false,
       props: [
-        {
-          name: 'titleColor',
-          label: 'Title Color',
-          type: types.SideEditPropType.Select,
-          selectOptions: {
-            display: types.OptionsDisplay.Color,
-            options: [
-              { value: { color: '#ffffff' }, label: 'White' },
-              { value: { color: '#00ffff' }, label: 'Neon Cyan' },
-              { value: { color: '#ff00ff' }, label: 'Neon Pink' },
-              { value: { color: '#ffff00' }, label: 'Yellow' },
-            ],
-          },
-        },
-        {
-          name: 'subtitleColor',
-          label: 'Subtitle Color',
-          type: types.SideEditPropType.Select,
-          selectOptions: {
-            display: types.OptionsDisplay.Color,
-            options: [
-              { value: { color: '#d1d5db' }, label: 'Light Gray' },
-              { value: { color: '#ffffff' }, label: 'White' },
-              { value: { color: '#00ffff' }, label: 'Neon Cyan' },
-            ],
-          },
-        },
+        createAdvancedColorProp(
+          'titleColor',
+          'Title Color',
+          {
+            presetColors: TEXT_PALETTE
+          }
+        ),
+        createAdvancedColorProp(
+          'subtitleColor',
+          'Subtitle Color',
+          {
+            presetColors: TEXT_PALETTE
+          }
+        ),
       ],
     },
     {
