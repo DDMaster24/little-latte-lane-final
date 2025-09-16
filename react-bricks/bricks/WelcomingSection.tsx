@@ -55,7 +55,7 @@ const FeatureItem: types.Brick<FeatureItemProps> = ({ icon, text, color }) => {
 }
 
 FeatureItem.schema = {
-  name: 'feature-item',
+  name: 'FeatureItem',
   label: 'Feature Item',
   getDefaultProps: () => ({
     icon: '⭐',
@@ -112,7 +112,7 @@ const BadgeItem: types.Brick<BadgeItemProps> = ({ text, bgColor }) => {
 }
 
 BadgeItem.schema = {
-  name: 'badge-item',
+  name: 'BadgeItem',
   label: 'Badge Item',
   getDefaultProps: () => ({
     text: 'Now Open',
@@ -332,7 +332,7 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
 // Brick Schema with Professional Sidebar Controls
 //========================================
 WelcomingSection.schema = {
-  name: 'welcoming-section',
+  name: 'WelcomingSection',
   label: 'Welcoming Section',
   category: 'Little Latte Lane',
   

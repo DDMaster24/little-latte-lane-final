@@ -20,7 +20,7 @@ const pageTypes: types.IPageType[] = [
       }
     ],
     allowedBlockTypes: [
-      // Use the exact brick names from our bricks configuration
+      // NEW PascalCase brick names (for new content)
       'WelcomingSection',
       'CategoriesSection', 
       'EventsSpecialsSection',
@@ -28,6 +28,19 @@ const pageTypes: types.IPageType[] = [
       'DynamicCarousel',
       'MenuSection',
       'FooterSection',
+      'FeatureItem',
+      'BadgeItem',
+      
+      // OLD kebab-case brick names (for existing content compatibility)
+      'welcoming-section',
+      'categories-section', 
+      'events-specials-section',
+      'bookings-section',
+      'dynamic-carousel',
+      'menu-section',
+      'footer-section',
+      'feature-item',
+      'badge-item',
       
       // Additional allowed bricks
       'hero-brick',
