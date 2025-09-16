@@ -77,8 +77,21 @@ export default async function TestNewPage() {
                 <h2 className="text-green-400 font-semibold mb-2">✅ SUCCESS!</h2>
                 <p className="text-green-200">
                   React Bricks page found and rendered successfully! 
-                  This page has {cleanedPage.content?.length || 0} content blocks.
+                  Raw content blocks: {page?.content?.length || 0}, Cleaned content blocks: {cleanedPage.content?.length || 0}
                 </p>
+              </div>
+
+              {/* DEBUG INFO */}
+              <div className="bg-blue-900 border border-blue-500 p-4 rounded-lg mb-6">
+                <h3 className="text-blue-400 font-semibold mb-2">🔍 Debug Info</h3>
+                <div className="text-sm space-y-1">
+                  <div>Raw page content length: {page?.content?.length || 0}</div>
+                  <div>Cleaned page content length: {cleanedPage.content?.length || 0}</div>
+                  <div>First block type (raw): {page?.content?.[0]?.type || 'none'}</div>
+                  <div>First block type (cleaned): {cleanedPage.content?.[0]?.type || 'none'}</div>
+                  <div>Available bricks: {Object.keys(flatBricks).length}</div>
+                  <div>Hero brick available: {flatBricks['hero-brick'] ? 'YES' : 'NO'}</div>
+                </div>
               </div>
 
               {/* RENDER THE ACTUAL REACT BRICKS CONTENT */}
