@@ -1,6 +1,6 @@
 import { types } from 'react-bricks/frontend'
 import HeroBrick from './HeroBrick'
-import WelcomingSection, { FeatureItem, BadgeItem } from './WelcomingSection'
+import WelcomingSection, { FeatureItem, BadgeItem, AdvancedHeading } from './WelcomingSection'
 import CategoriesSection, { CategoryCard } from './CategoriesSection'
 import EventsSpecialsSection, { EventSpecialCard } from './EventsSpecialsSection'
 import BookingsSection from './BookingsSection'
@@ -13,6 +13,7 @@ import MenuSectionSkeleton from './MenuSection'
 import CartSection from './CartSection'
 
 // Little Latte Lane Custom Bricks Theme
+
 const bricks: types.Theme[] = [
   {
     themeName: 'Little Latte Lane',
@@ -52,6 +53,7 @@ const bricks: types.Theme[] = [
       {
         categoryName: 'Content Components',
         bricks: [
+          AdvancedHeading,        // Individual selectable heading with advanced color controls
           FeatureItem,            // Nested inside WelcomingSection
           BadgeItem,              // Nested inside WelcomingSection
           CategoryCard,           // Nested inside CategoriesSection

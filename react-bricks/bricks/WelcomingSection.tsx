@@ -4,7 +4,257 @@ import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/components/AuthProvider'
 import { Star, MapPin, Car } from 'lucide-react'
 import DynamicCarousel from '@/components/DynamicCarousel'
-import { createAdvancedColorProp, TEXT_PALETTE, NEON_PALETTE } from '../components/colorPickerUtils'
+import { createAdvancedColorProp, TEXT_PALETTE, NEON_PALETTE, BACKGROUND_PALETTE } from '../components/colorPickerUtils'
+
+//========================================
+// Nested Component: Advanced Heading
+//========================================
+interface AdvancedHeadingProps {
+  text: types.TextValue
+  fontSize: 'normal' | 'large' | 'xl' | 'xxl'
+  textColor: { color: string }
+  useGradient: boolean
+  gradientColor1: { color: string }
+  gradientColor2: { color: string }
+  gradientColor3: { color: string }
+  gradientDirection: 'horizontal' | 'vertical' | 'diagonal-1' | 'diagonal-2' | 'radial'
+  backgroundColor: { color: string }
+  padding: 'none' | 'sm' | 'md' | 'lg'
+  showAuthGreeting: boolean
+}
+
+const AdvancedHeading: types.Brick<AdvancedHeadingProps> = ({ 
+  text,
+  fontSize = 'large',
+  textColor = { color: '#ffffff' },
+  useGradient = true,
+  gradientColor1 = { color: '#00ffff' },
+  gradientColor2 = { color: '#ff00ff' },
+  gradientColor3 = { color: '#ffff00' },
+  gradientDirection = 'horizontal',
+  backgroundColor = { color: 'transparent' },
+  padding = 'md',
+  showAuthGreeting = true
+}) => {
+  const { user, profile } = useAuth();
+  const username = profile?.full_name || user?.email?.split('@')[0] || '';
+
+  // Font size classes with responsive scaling
+  const getFontSizeClass = () => {
+    switch (fontSize) {
+      case 'normal': return 'text-fluid-2xl xs:text-fluid-3xl lg:text-fluid-4xl'
+      case 'large': return 'text-fluid-3xl xs:text-fluid-4xl sm:text-fluid-5xl lg:text-fluid-6xl'
+      case 'xl': return 'text-fluid-4xl xs:text-fluid-5xl sm:text-fluid-6xl lg:text-fluid-7xl'
+      case 'xxl': return 'text-fluid-5xl xs:text-fluid-6xl sm:text-fluid-7xl lg:text-fluid-8xl'
+      default: return 'text-fluid-3xl xs:text-fluid-4xl sm:text-fluid-5xl lg:text-fluid-6xl'
+    }
+  }
+
+  // Gradient direction classes
+  const getGradientDirection = () => {
+    switch (gradientDirection) {
+      case 'horizontal': return 'bg-gradient-to-r'
+      case 'vertical': return 'bg-gradient-to-b'
+      case 'diagonal-1': return 'bg-gradient-to-br'
+      case 'diagonal-2': return 'bg-gradient-to-bl'
+      case 'radial': return 'bg-radial-gradient'
+      default: return 'bg-gradient-to-r'
+    }
+  }
+
+  // Padding classes
+  const getPaddingClass = () => {
+    switch (padding) {
+      case 'none': return ''
+      case 'sm': return 'p-2 xs:p-3'
+      case 'md': return 'p-4 xs:p-6'
+      case 'lg': return 'p-6 xs:p-8 lg:p-10'
+      default: return 'p-4 xs:p-6'
+    }
+  }
+
+  // Create gradient style
+  const getTextStyle = () => {
+    if (useGradient) {
+      const direction = gradientDirection === 'horizontal' ? 'to right' : 
+                       gradientDirection === 'vertical' ? 'to bottom' :
+                       gradientDirection === 'diagonal-1' ? 'to bottom right' :
+                       gradientDirection === 'diagonal-2' ? 'to bottom left' :
+                       'circle'
+      
+      const gradientType = gradientDirection === 'radial' ? 'radial-gradient' : 'linear-gradient'
+      
+      return {
+        background: `${gradientType}(${direction}, ${gradientColor1.color}, ${gradientColor2.color}, ${gradientColor3.color})`,
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text'
+      }
+    }
+    return { color: textColor.color }
+  }
+
+  // Get display text with auth greeting
+  const getDisplayText = () => {
+    if (showAuthGreeting && username) {
+      return `Welcome Back, ${username}!`
+    }
+    return typeof text === 'string' ? text : 'Welcome to Little Latte Lane'
+  }
+
+  return (
+    <div 
+      className={`${getPaddingClass()} rounded-lg`}
+      style={{ backgroundColor: backgroundColor.color !== 'transparent' ? backgroundColor.color : undefined }}
+    >
+      <Text
+        propName="text"
+        value={text}
+        renderBlock={(props) => (
+          <h1 
+            className={`${getFontSizeClass()} font-bold text-center mb-4 xs:mb-6`}
+            style={getTextStyle()}
+          >
+            {showAuthGreeting && username ? getDisplayText() : props.children}
+          </h1>
+        )}
+        placeholder="Welcome to Little Latte Lane"
+      />
+    </div>
+  )
+}
+
+AdvancedHeading.schema = {
+  name: 'advanced-heading',
+  label: 'Advanced Heading',
+  getDefaultProps: () => ({
+    text: 'Welcome to Little Latte Lane',
+    fontSize: 'large',
+    textColor: { color: '#ffffff' },
+    useGradient: true,
+    gradientColor1: { color: '#00ffff' },
+    gradientColor2: { color: '#ff00ff' },
+    gradientColor3: { color: '#ffff00' },
+    gradientDirection: 'horizontal',
+    backgroundColor: { color: 'transparent' },
+    padding: 'md',
+    showAuthGreeting: true
+  }),
+  hideFromAddMenu: true,
+  sideEditProps: [
+    {
+      groupName: 'Content & Display',
+      defaultOpen: true,
+      props: [
+        {
+          name: 'showAuthGreeting',
+          label: 'Show Personal Greeting',
+          type: types.SideEditPropType.Boolean,
+        },
+        {
+          name: 'fontSize',
+          label: 'Font Size',
+          type: types.SideEditPropType.Select,
+          selectOptions: {
+            display: types.OptionsDisplay.Radio,
+            options: [
+              { value: 'normal', label: 'Normal' },
+              { value: 'large', label: 'Large' },
+              { value: 'xl', label: 'Extra Large' },
+              { value: 'xxl', label: 'XXL' },
+            ],
+          },
+        },
+        {
+          name: 'padding',
+          label: 'Padding',
+          type: types.SideEditPropType.Select,
+          selectOptions: {
+            display: types.OptionsDisplay.Select,
+            options: [
+              { value: 'none', label: 'None' },
+              { value: 'sm', label: 'Small' },
+              { value: 'md', label: 'Medium' },
+              { value: 'lg', label: 'Large' },
+            ],
+          },
+        },
+      ],
+    },
+    {
+      groupName: 'Text Color & Gradient',
+      defaultOpen: true,
+      props: [
+        {
+          name: 'useGradient',
+          label: 'Use Gradient Text',
+          type: types.SideEditPropType.Boolean,
+        },
+        createAdvancedColorProp(
+          'textColor',
+          'Text Color',
+          {
+            presetColors: TEXT_PALETTE
+          }
+        ),
+        createAdvancedColorProp(
+          'gradientColor1',
+          'Gradient Color 1',
+          {
+            presetColors: NEON_PALETTE
+          }
+        ),
+        createAdvancedColorProp(
+          'gradientColor2',
+          'Gradient Color 2',
+          {
+            presetColors: NEON_PALETTE
+          }
+        ),
+        createAdvancedColorProp(
+          'gradientColor3',
+          'Gradient Color 3',
+          {
+            presetColors: NEON_PALETTE
+          }
+        ),
+        {
+          name: 'gradientDirection',
+          label: 'Gradient Direction',
+          type: types.SideEditPropType.Select,
+          selectOptions: {
+            display: types.OptionsDisplay.Select,
+            options: [
+              { value: 'horizontal', label: 'Horizontal →' },
+              { value: 'vertical', label: 'Vertical ↓' },
+              { value: 'diagonal-1', label: 'Diagonal ↘' },
+              { value: 'diagonal-2', label: 'Diagonal ↙' },
+              { value: 'radial', label: 'Radial ○' },
+            ],
+          },
+        },
+      ],
+    },
+    {
+      groupName: 'Background',
+      defaultOpen: false,
+      props: [
+        createAdvancedColorProp(
+          'backgroundColor',
+          'Background Color',
+          {
+            includeTransparency: true,
+            presetColors: [
+              { color: 'transparent', className: 'bg-transparent' },
+              ...BACKGROUND_PALETTE,
+              ...NEON_PALETTE.map(c => ({ ...c, className: c.className?.replace('text-', 'bg-') || '' }))
+            ]
+          }
+        ),
+      ],
+    },
+  ],
+}
 
 //========================================
 // Nested Component: Feature Item
@@ -55,7 +305,7 @@ const FeatureItem: types.Brick<FeatureItemProps> = ({ icon, text, color }) => {
 }
 
 FeatureItem.schema = {
-  name: 'FeatureItem',
+  name: 'feature-item',
   label: 'Feature Item',
   getDefaultProps: () => ({
     icon: '⭐',
@@ -112,7 +362,7 @@ const BadgeItem: types.Brick<BadgeItemProps> = ({ text, bgColor }) => {
 }
 
 BadgeItem.schema = {
-  name: 'BadgeItem',
+  name: 'badge-item',
   label: 'Badge Item',
   getDefaultProps: () => ({
     text: 'Now Open',
@@ -134,16 +384,14 @@ BadgeItem.schema = {
 // Main Component: Welcoming Section
 //========================================
 interface WelcomingSectionProps {
-  title: types.TextValue
+  mainHeading: types.RepeaterItems
   subtitle: types.TextValue
   ctaTitle: types.TextValue
   ctaDescription: types.TextValue
   badges: types.RepeaterItems
   features: types.RepeaterItems
   showCarousel: boolean
-  showAuthGreeting: boolean
   backgroundColor: 'dark' | 'darker' | 'gradient'
-  titleSize: 'normal' | 'large' | 'xl'
   backgroundImage?: types.IImageSource
   padding: 'sm' | 'md' | 'lg'
   subtitleColor: { color: string }
@@ -152,25 +400,20 @@ interface WelcomingSectionProps {
 }
 
 const WelcomingSection: types.Brick<WelcomingSectionProps> = ({ 
-  title,
+  mainHeading,
   subtitle,
   ctaTitle,
   ctaDescription,
   badges,
   features,
   showCarousel = true,
-  showAuthGreeting = true,
   backgroundColor = 'gradient',
-  titleSize = 'large',
   backgroundImage,
   padding = 'md',
   subtitleColor = { color: '#d1d5db' },
   showBadges = true,
   showFeatures = true,
 }) => {
-  const { user, profile } = useAuth();
-  const username = profile?.full_name || user?.email?.split('@')[0] || '';
-
   // Background classes based on selection
   const getBgClass = () => {
     switch (backgroundColor) {
@@ -178,16 +421,6 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
       case 'darker': return 'bg-gray-900'
       case 'gradient': return 'bg-gradient-to-br from-darkBg via-gray-900 to-darkBg'
       default: return 'bg-gradient-to-br from-darkBg via-gray-900 to-darkBg'
-    }
-  }
-
-  // Title size classes
-  const getTitleSizeClass = () => {
-    switch (titleSize) {
-      case 'normal': return 'text-fluid-3xl xs:text-fluid-4xl lg:text-fluid-5xl'
-      case 'large': return 'text-fluid-3xl xs:text-fluid-4xl sm:text-fluid-5xl lg:text-fluid-6xl'
-      case 'xl': return 'text-fluid-4xl xs:text-fluid-5xl sm:text-fluid-6xl lg:text-fluid-7xl'
-      default: return 'text-fluid-3xl xs:text-fluid-4xl sm:text-fluid-5xl lg:text-fluid-6xl'
     }
   }
 
@@ -214,33 +447,23 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
     return {}
   }
 
-  // Get dynamic title with auth greeting
-  const getDisplayTitle = () => {
-    if (showAuthGreeting && username) {
-      return `Welcome Back, ${username}!`
-    }
-    return typeof title === 'string' ? title : 'Welcome to Little Latte Lane'
-  }
-
   return (
     <section 
       className={`${getBgClass()} ${getPaddingClass()} overflow-hidden`}
       style={getBackgroundStyle()}
     >
       <div className="container-wide animate-fade-in">
-        {/* Hero Header - Fully Responsive */}
+        {/* Advanced Heading Section - Individually Selectable */}
         <div className="text-center section-padding-sm">
-          <Text
-            propName="title"
-            value={title}
-            renderBlock={(props) => (
-              <h1 
-                className={`${getTitleSizeClass()} font-bold mb-4 xs:mb-6 bg-neon-gradient bg-clip-text text-transparent`}
-              >
-                {showAuthGreeting && username ? getDisplayTitle() : props.children}
-              </h1>
+          {/* Advanced Heading Repeater for Individual Selection */}
+          <Repeater
+            propName="mainHeading"
+            items={mainHeading}
+            renderWrapper={(items) => (
+              <div className="mb-4 xs:mb-6">
+                {items}
+              </div>
             )}
-            placeholder="Welcome to Little Latte Lane"
           />
           
           <Text
@@ -338,14 +561,29 @@ WelcomingSection.schema = {
   
   // Defaults
   getDefaultProps: () => ({
-    title: 'Welcome to Little Latte Lane',
+    mainHeading: [
+      {
+        type: 'advanced-heading',
+        props: {
+          text: 'Welcome to Little Latte Lane',
+          fontSize: 'large',
+          textColor: { color: '#ffffff' },
+          useGradient: true,
+          gradientColor1: { color: '#00ffff' },
+          gradientColor2: { color: '#ff00ff' },
+          gradientColor3: { color: '#ffff00' },
+          gradientDirection: 'horizontal',
+          backgroundColor: { color: 'transparent' },
+          padding: 'md',
+          showAuthGreeting: true
+        }
+      }
+    ],
     subtitle: 'Café & Deli - Where Great Food Meets Amazing Experiences',
     ctaTitle: 'Ready to Experience Little Latte Lane?',
     ctaDescription: 'Join us for exceptional food, premium beverages, and a warm, welcoming atmosphere. Whether you\'re catching up with friends, having a business meeting, or enjoying a quiet moment, we\'re here to make your experience memorable.',
     showCarousel: true,
-    showAuthGreeting: true,
     backgroundColor: 'gradient',
-    titleSize: 'large',
     padding: 'md',
     subtitleColor: { color: '#d1d5db' },
     showBadges: true,
@@ -396,6 +634,13 @@ WelcomingSection.schema = {
 
   // Repeater settings
   repeaterItems: [
+    {
+      name: 'mainHeading',
+      itemType: 'advanced-heading',
+      itemLabel: 'Main Heading',
+      min: 1,
+      max: 1
+    },
     {
       name: 'badges',
       itemType: 'badge-item',
@@ -511,4 +756,4 @@ WelcomingSection.schema = {
 }
 
 export default WelcomingSection
-export { FeatureItem, BadgeItem }
+export { FeatureItem, BadgeItem, AdvancedHeading }

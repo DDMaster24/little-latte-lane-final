@@ -94,7 +94,7 @@ interface AdvancedColorPickerProps {
   onChange: (value: ColorValue) => void
   _isValid?: boolean
   label?: string
-  includeTransparency?: boolean
+  _includeTransparency?: boolean
   presetColors?: ColorValue[]
 }
 
@@ -103,28 +103,31 @@ const AdvancedColorPicker: React.FC<AdvancedColorPickerProps> = ({
   onChange,
   _isValid = true,
   label = 'Color',
-  includeTransparency = true,
+  _includeTransparency = false, // Simplified - no transparency by default
   presetColors = []
 }) => {
   // Parse initial color
   const initialRgba = hexToRgba(value.color)
   const initialHsva = rgbaToHsva(initialRgba.r, initialRgba.g, initialRgba.b, initialRgba.a)
 
-  const [hsva, setHsva] = useState(initialHsva)
+  // Start with full saturation for cleaner colors
+  const [hsva, setHsva] = useState({ ...initialHsva, s: 1 })
   const [showPicker, setShowPicker] = useState(false)
-  const [inputValue, setInputValue] = useState(value.color)
+  const [hexInput, setHexInput] = useState(value.color)
 
   // Update color when value prop changes
   useEffect(() => {
     const rgba = hexToRgba(value.color)
     const newHsva = rgbaToHsva(rgba.r, rgba.g, rgba.b, rgba.a)
-    setHsva(newHsva)
-    setInputValue(value.color)
+    setHsva({ ...newHsva, s: 1 }) // Keep saturation at 100%
+    setHexInput(value.color)
   }, [value.color])
 
   const updateColor = useCallback((newHsva: typeof hsva) => {
-    const rgba = hslaToRgba(newHsva.h, newHsva.s, newHsva.v, newHsva.a)
-    const hex = rgbaToHex(rgba.r, rgba.g, rgba.b, newHsva.a < 1 ? newHsva.a : undefined)
+    // Force saturation to 100% for vivid colors
+    const adjustedHsva = { ...newHsva, s: 1, a: 1 }
+    const rgba = hslaToRgba(adjustedHsva.h, adjustedHsva.s, adjustedHsva.v, adjustedHsva.a)
+    const hex = rgbaToHex(rgba.r, rgba.g, rgba.b)
     
     onChange({
       ...value,
@@ -139,13 +142,6 @@ const AdvancedColorPicker: React.FC<AdvancedColorPickerProps> = ({
     updateColor(newHsva)
   }
 
-  const handleSaturationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const s = parseInt(e.target.value) / 100
-    const newHsva = { ...hsva, s }
-    setHsva(newHsva)
-    updateColor(newHsva)
-  }
-
   const handleBrightnessChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = parseInt(e.target.value) / 100
     const newHsva = { ...hsva, v }
@@ -153,22 +149,15 @@ const AdvancedColorPicker: React.FC<AdvancedColorPickerProps> = ({
     updateColor(newHsva)
   }
 
-  const handleAlphaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const a = parseInt(e.target.value) / 100
-    const newHsva = { ...hsva, a }
-    setHsva(newHsva)
-    updateColor(newHsva)
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleHexInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
-    setInputValue(newValue)
+    setHexInput(newValue)
     
     // Validate and update color if it's a valid hex
-    if (/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$/.test(newValue)) {
+    if (/^#([A-Fa-f0-9]{6})$/.test(newValue)) {
       const rgba = hexToRgba(newValue)
       const newHsva = rgbaToHsva(rgba.r, rgba.g, rgba.b, rgba.a)
-      setHsva(newHsva)
+      setHsva({ ...newHsva, s: 1 }) // Keep saturation at 100%
       onChange({
         ...value,
         color: newValue
@@ -176,8 +165,8 @@ const AdvancedColorPicker: React.FC<AdvancedColorPickerProps> = ({
     }
   }
 
-  const currentRgba = hslaToRgba(hsva.h, hsva.s, hsva.v, hsva.a)
-  const currentHex = rgbaToHex(currentRgba.r, currentRgba.g, currentRgba.b, hsva.a < 1 ? hsva.a : undefined)
+  const currentRgba = hslaToRgba(hsva.h, hsva.s, hsva.v, 1)
+  const currentHex = rgbaToHex(currentRgba.r, currentRgba.g, currentRgba.b)
 
   return (
     <div className="space-y-3">
@@ -186,41 +175,62 @@ const AdvancedColorPicker: React.FC<AdvancedColorPickerProps> = ({
         {label}
       </label>
 
-      {/* Current Color Preview & Toggle */}
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => setShowPicker(!showPicker)}
-          className="relative w-10 h-10 rounded-lg border-2 border-gray-600 hover:border-gray-500 transition-colors overflow-hidden"
-          style={{ backgroundColor: currentHex }}
-        >
-          {hsva.a < 1 && (
-            <div className="absolute inset-0 bg-checkerboard opacity-50"></div>
-          )}
-          <div 
-            className="absolute inset-0"
-            style={{ backgroundColor: rgbaToHex(currentRgba.r, currentRgba.g, currentRgba.b) }}
-          ></div>
-        </button>
-        
-        <div className="flex-1">
+      {/* Clean Layout - Color Button + Label */}
+      <div className="space-y-3">
+        {/* Color Selection Header */}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setShowPicker(!showPicker)}
+            className="relative w-12 h-12 rounded-lg border-2 border-gray-600 hover:border-gray-500 transition-colors overflow-hidden shadow-lg"
+            style={{ backgroundColor: currentHex }}
+          >
+            <div 
+              className="absolute inset-0"
+              style={{ backgroundColor: currentHex }}
+            ></div>
+          </button>
+          
+          <div className="flex-1">
+            <p className="text-sm text-gray-400 mb-1">Select Your Color</p>
+            <p className="text-xs font-mono text-gray-300">{currentHex}</p>
+          </div>
+        </div>
+
+        {/* Hex Input Field */}
+        <div>
+          <label className="block text-xs font-medium text-gray-400 mb-2">
+            Hex Color Code
+          </label>
           <input
             type="text"
-            value={inputValue}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white text-sm focus:border-blue-500 focus:outline-none"
+            value={hexInput}
+            onChange={handleHexInputChange}
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white text-sm font-mono focus:border-blue-500 focus:outline-none"
             placeholder="#ffffff"
           />
         </div>
+
+        {/* RGB Display */}
+        <div>
+          <label className="block text-xs font-medium text-gray-400 mb-2">
+            RGB Values
+          </label>
+          <div className="px-3 py-2 bg-gray-900 border border-gray-700 rounded-md">
+            <span className="text-sm font-mono text-gray-300">
+              rgb({currentRgba.r}, {currentRgba.g}, {currentRgba.b})
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* Color Picker Panel */}
+      {/* Simplified Color Picker Panel */}
       {showPicker && (
         <div className="p-4 bg-gray-800 border border-gray-600 rounded-lg space-y-4">
           {/* Hue Slider */}
           <div>
             <label className="block text-xs font-medium text-gray-400 mb-2">
-              Hue: {Math.round(hsva.h)}°
+              Color Hue: {Math.round(hsva.h)}°
             </label>
             <input
               type="range"
@@ -228,27 +238,9 @@ const AdvancedColorPicker: React.FC<AdvancedColorPickerProps> = ({
               max="360"
               value={hsva.h}
               onChange={handleHueChange}
-              className="w-full h-3 rounded-lg appearance-none cursor-pointer"
+              className="w-full h-4 rounded-lg appearance-none cursor-pointer"
               style={{
                 background: 'linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)'
-              }}
-            />
-          </div>
-
-          {/* Saturation Slider */}
-          <div>
-            <label className="block text-xs font-medium text-gray-400 mb-2">
-              Saturation: {Math.round(hsva.s * 100)}%
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={hsva.s * 100}
-              onChange={handleSaturationChange}
-              className="w-full h-3 rounded-lg appearance-none cursor-pointer"
-              style={{
-                background: `linear-gradient(to right, hsl(${hsva.h}, 0%, ${hsva.v * 100}%), hsl(${hsva.h}, 100%, ${hsva.v * 100}%))`
               }}
             />
           </div>
@@ -264,47 +256,11 @@ const AdvancedColorPicker: React.FC<AdvancedColorPickerProps> = ({
               max="100"
               value={hsva.v * 100}
               onChange={handleBrightnessChange}
-              className="w-full h-3 rounded-lg appearance-none cursor-pointer"
+              className="w-full h-4 rounded-lg appearance-none cursor-pointer"
               style={{
-                background: `linear-gradient(to right, hsl(${hsva.h}, ${hsva.s * 100}%, 0%), hsl(${hsva.h}, ${hsva.s * 100}%, 100%))`
+                background: `linear-gradient(to right, #000000, hsl(${hsva.h}, 100%, 50%))`
               }}
             />
-          </div>
-
-          {/* Alpha Slider */}
-          {includeTransparency && (
-            <div>
-              <label className="block text-xs font-medium text-gray-400 mb-2">
-                Opacity: {Math.round(hsva.a * 100)}%
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={hsva.a * 100}
-                onChange={handleAlphaChange}
-                className="w-full h-3 rounded-lg appearance-none cursor-pointer bg-checkerboard"
-                style={{
-                  background: `linear-gradient(to right, transparent, ${rgbaToHex(currentRgba.r, currentRgba.g, currentRgba.b)})`
-                }}
-              />
-            </div>
-          )}
-
-          {/* Color Info */}
-          <div className="pt-3 border-t border-gray-700">
-            <div className="grid grid-cols-2 gap-4 text-xs">
-              <div>
-                <span className="text-gray-400">HEX:</span>
-                <span className="ml-2 font-mono text-white">{currentHex}</span>
-              </div>
-              <div>
-                <span className="text-gray-400">RGB:</span>
-                <span className="ml-2 font-mono text-white">
-                  {currentRgba.r}, {currentRgba.g}, {currentRgba.b}
-                </span>
-              </div>
-            </div>
           </div>
 
           {/* Preset Colors */}
@@ -321,9 +277,9 @@ const AdvancedColorPicker: React.FC<AdvancedColorPickerProps> = ({
                     onClick={() => {
                       const rgba = hexToRgba(preset.color)
                       const newHsva = rgbaToHsva(rgba.r, rgba.g, rgba.b, rgba.a)
-                      setHsva(newHsva)
+                      setHsva({ ...newHsva, s: 1 }) // Keep saturation at 100%
                       onChange(preset)
-                      setInputValue(preset.color)
+                      setHexInput(preset.color)
                     }}
                     className="w-8 h-8 rounded border-2 border-gray-600 hover:border-gray-500 transition-colors"
                     style={{ backgroundColor: preset.color }}
