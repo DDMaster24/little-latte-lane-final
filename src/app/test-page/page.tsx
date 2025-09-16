@@ -99,15 +99,40 @@ export default async function TestPage() {
             {cleanedPage ? (
               <div className="border border-neonCyan p-4 rounded">
                 <div className="text-sm text-gray-400 mb-4">
-                  ✅ React Bricks content loaded successfully!
+                  ✅ React Bricks content loaded successfully! Rendering {cleanedPage.content?.length || 0} blocks:
                 </div>
-                <PageViewer page={cleanedPage} main />
+                
+                {/* ACTUAL REACT BRICKS CONTENT RENDERING */}
+                <div className="bg-white text-black p-4 rounded mb-4">
+                  <h3 className="text-lg font-bold text-gray-800 mb-2">Live React Bricks Content:</h3>
+                  <PageViewer page={cleanedPage} main />
+                </div>
+                
+                {/* Show ClickToEdit for editing capabilities */}
                 <ClickToEdit
                   pageId={cleanedPage.id}
                   language={cleanedPage.language}
                   editorPath={config.editorPath || '/admin/editor'}
                   clickToEditSide={config.clickToEditSide}
                 />
+                
+                {/* Debug info about the content */}
+                <details className="mt-4">
+                  <summary className="cursor-pointer text-neonCyan">
+                    🔍 Content Debug Info (click to expand)
+                  </summary>
+                  <div className="mt-2 text-xs bg-gray-900 p-3 rounded">
+                    <p className="text-yellow-400 mb-2">Content Blocks ({cleanedPage.content?.length || 0}):</p>
+                    {cleanedPage.content?.map((block, index) => (
+                      <div key={block.id} className="mb-2 border-l border-gray-600 pl-2">
+                        <div className="text-green-400">Block {index + 1}:</div>
+                        <div className="text-gray-300">Type: {block.type}</div>
+                        <div className="text-gray-300">ID: {block.id}</div>
+                        <div className="text-gray-400">Props: {Object.keys(block.props || {}).length} properties</div>
+                      </div>
+                    ))}
+                  </div>
+                </details>
               </div>
             ) : page ? (
               <div className="border border-yellow-500 p-4 rounded">
