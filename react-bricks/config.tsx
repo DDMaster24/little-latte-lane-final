@@ -6,12 +6,12 @@ import NextLink from './NextLink'
 
 const config: types.ReactBricksConfig = {
   appId: process.env.NEXT_PUBLIC_APP_ID || '',
-  apiKey: process.env.API_KEY || '',
-  environment: process.env.NEXT_PUBLIC_ENVIRONMENT,
+  apiKey: process.env.NEXT_PUBLIC_API_KEY || '',
+  environment: process.env.NEXT_PUBLIC_ENVIRONMENT || 'main',
   bricks,
   pageTypes,
   customFields: [],
-  logo: '/logo.svg',
+  logo: '/images/logo.svg',
   loginUI: {},
   contentClassName: '',
   renderLocalLink: NextLink,
