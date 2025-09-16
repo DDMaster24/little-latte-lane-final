@@ -121,14 +121,16 @@ export default async function Home() {
         })) || []
       })
       
-      // Temporarily skip cleanPage to isolate the error
-      console.log('Skipping cleanPage for debugging - using raw page')
-      pageOk = page
-      
-      // TODO: Re-enable this after debugging
-      // console.log('Attempting to clean page...')
-      // pageOk = cleanPage(page, config.pageTypes || [], flatBricks)
-      // console.log('Page cleaned successfully')
+      // Try to cleanPage, but fall back to raw page if it fails
+      console.log('Attempting to clean page...')
+      try {
+        pageOk = cleanPage(page, config.pageTypes || [], flatBricks)
+        console.log('Page cleaned successfully')
+      } catch (cleanPageError) {
+        console.warn('CleanPage failed, using raw page:', cleanPageError)
+        // Use raw page if cleanPage fails
+        pageOk = page
+      }
     } catch (cleanError) {
       console.error('Error during cleanPage:', cleanError)
       // Treat cleanPage error as an API error
