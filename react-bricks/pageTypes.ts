@@ -6,29 +6,33 @@ const pageTypes: types.IPageType[] = [
     pluralName: 'pages',
     defaultLocked: false,
     defaultStatus: types.PageStatus.Published,
-    getDefaultContent: () => [],
+    getDefaultContent: () => [
+      // Provide default content so pages aren't empty
+      {
+        id: 'default-welcome',
+        type: 'WelcomingSection',
+        props: {
+          title: 'Welcome to Little Latte Lane',
+          subtitle: 'Café & Deli - Where Great Food Meets Amazing Experiences',
+          ctaText: 'Explore Menu',
+          ctaLink: '/menu'
+        }
+      }
+    ],
     allowedBlockTypes: [
-      // Homepage components
-      'welcoming-section',
-      'categories-section', 
-      'events-specials-section',
-      'bookings-section',
-      'dynamic-carousel',
+      // Use the exact brick names from our bricks configuration
+      'WelcomingSection',
+      'CategoriesSection', 
+      'EventsSpecialsSection',
+      'BookingsSection',
+      'DynamicCarousel',
+      'MenuSection',
+      'FooterSection',
       
-      // Menu components
-      'menu-hero',
-      'menu-display',
-      
-      // Layout components
-      'header-section',
-      'footer-section',
-      
-      // Legacy components (for backwards compatibility)
+      // Additional allowed bricks
       'hero-brick',
-      'menu-section',
+      'menu-display',
       'cart-section',
-      
-      // Blog components
       'title',
       'paragraph',
       'big-image',
