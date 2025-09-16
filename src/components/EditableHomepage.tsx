@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { PageViewer, fetchPage } from 'react-bricks/frontend';
-import { types } from 'react-bricks';
+import { PageViewer, fetchPage, ReactBricks, types } from 'react-bricks/frontend';
+import config from '../../react-bricks/config';
 
 interface EditableHomepageProps {
   enableEditing?: boolean;
@@ -13,20 +13,29 @@ export default function EditableHomepage({ enableEditing: _enableEditing = false
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // React Bricks configuration for this component
+  const reactBricksConfig = {
+    ...config,
+    navigate: (path: string) => {
+      if (typeof window !== 'undefined') {
+        window.location.href = path;
+      }
+    },
+  };
+
   useEffect(() => {
     const loadPage = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Debug API key
-        const apiKey = process.env.NEXT_PUBLIC_API_KEY;
+        // Debug API key from config
         console.log('=== REACT BRICKS DEBUG ===');
-        console.log('API Key available:', !!apiKey);
-        console.log('API Key length:', apiKey?.length || 0);
-        console.log('API Key starts with:', apiKey?.substring(0, 8) + '...');
+        console.log('Config API Key available:', !!config.apiKey);
+        console.log('Config API Key length:', config.apiKey?.length || 0);
+        console.log('Config API Key starts with:', config.apiKey?.substring(0, 8) + '...');
 
-        if (!apiKey) {
+        if (!config.apiKey) {
           setError('React Bricks API key is missing');
           return;
         }
@@ -38,9 +47,15 @@ export default function EditableHomepage({ enableEditing: _enableEditing = false
         for (const slug of slugsToTry) {
           try {
             console.log(`Trying to fetch React Bricks page with slug: "${slug}"`);
-            pageData = await fetchPage(slug, apiKey);
+            // Correct fetchPage usage for frontend package
+            pageData = await fetchPage({
+              slug,
+              language: '',
+              config
+            });
             if (pageData) {
               console.log(`✅ Successfully fetched page with slug: "${slug}"`);
+              console.log('Page data:', pageData);
               break;
             }
           } catch (err) {
@@ -94,9 +109,11 @@ export default function EditableHomepage({ enableEditing: _enableEditing = false
   }
 
   return (
-    <main className="min-h-screen animate-fade-in relative">
-      {/* Render the React Bricks page content */}
-      <PageViewer page={page} />
-    </main>
+    <ReactBricks {...reactBricksConfig}>
+      <main className="min-h-screen animate-fade-in relative">
+        {/* Render the React Bricks page content */}
+        <PageViewer page={page} />
+      </main>
+    </ReactBricks>
   );
 }
