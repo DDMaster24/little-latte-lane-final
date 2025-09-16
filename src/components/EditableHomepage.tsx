@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { PageViewer, ReactBricks, fetchPage, types } from 'react-bricks/frontend'
+import { PageViewer, ReactBricks, types } from 'react-bricks/frontend'
 import { useRouter } from 'next/navigation'
 
 import ErrorNoPage from '@/components/ErrorNoPage'
@@ -32,9 +32,14 @@ export default function EditableHomepage({ enableEditing: _enableEditing = false
         setLoading(true)
         setError(null)
 
-        // Fetch the homepage - use empty string or 'home' slug
-        const pageData = await fetchPage('', process.env.NEXT_PUBLIC_API_KEY!)
+        // Fetch the homepage via our API route to avoid CORS issues
+        const response = await fetch('/api/react-bricks/pages/home-page')
         
+        if (!response.ok) {
+          throw new Error(`Failed to fetch homepage: ${response.statusText}`)
+        }
+        
+        const pageData = await response.json()
         setPage(pageData)
       } catch (err) {
         console.error('Error fetching homepage:', err)
