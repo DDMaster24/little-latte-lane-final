@@ -6,73 +6,65 @@ import ErrorBoundary from '@/components/ErrorBoundary'
 import config from '../../react-bricks/config'
 import bricks from '../../react-bricks/bricks'
 
-// Import fallback components for when React Bricks is unavailable
-import WelcomingSection from '@/components/WelcomingSection'
-import CategoriesSection from '@/components/CategoriesSection'
-import EventsSpecialsSection from '@/components/EventsSpecialsSection'
-import BookingsSection from '@/components/BookingsSection'
-import FooterSection from '@/components/FooterSection'
-
 async function getData(): Promise<{
   page: types.Page | null
-  useFallback: boolean
+  errorNoKeys: boolean
+  errorPage: boolean
+  errorDetails?: string
 }> {
-  // If no API key is configured, use fallback content
-  if (!config.apiKey || !process.env.API_KEY) {
-    console.log('React Bricks API key not configured, using fallback content')
+  console.log('React Bricks config debug:', {
+    apiKey: config.apiKey ? '***configured***' : 'NOT SET',
+    appId: config.appId ? '***configured***' : 'NOT SET', 
+    environment: config.environment || 'NOT SET'
+  })
+
+  if (!config.apiKey) {
+    console.error('React Bricks API key is missing from config')
     return {
       page: null,
-      useFallback: true,
+      errorNoKeys: true,
+      errorPage: false,
     }
   }
 
   try {
+    console.log('Attempting to fetch page from React Bricks...')
     const page = await fetchPage({
       slug: 'home',
       config,
-      fetchOptions: { cache: 'no-store' },
+      fetchOptions: { 
+        // Remove cache: 'no-store' to allow static rendering
+        // cache: 'no-store' 
+      },
     })
 
-    if (page) {
-      return {
-        page,
-        useFallback: false,
-      }
-    } else {
-      // No page found, use fallback
-      console.log('No homepage found in React Bricks, using fallback content')
-      return {
-        page: null,
-        useFallback: true,
-      }
+    console.log('React Bricks fetchPage result:', page ? 'Page found' : 'No page found')
+    return {
+      page,
+      errorNoKeys: false,
+      errorPage: false,
     }
   } catch (error) {
-    console.error('React Bricks error, using fallback content:', error)
+    console.error('React Bricks API Error Details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : '',
+      config: {
+        apiUrl: 'https://api.reactbricks.com',
+        appId: config.appId ? '***configured***' : 'NOT SET',
+        apiKey: config.apiKey ? '***configured***' : 'NOT SET'
+      }
+    })
     return {
       page: null,
-      useFallback: true,
+      errorNoKeys: false,
+      errorPage: true,
+      errorDetails: error instanceof Error ? error.message : 'Unknown error',
     }
   }
 }
 
 export default async function Home() {
-  const { page, useFallback } = await getData()
-
-  // If using fallback, show static components
-  if (useFallback) {
-    return (
-      <main className="min-h-screen animate-fade-in">
-        <PWAInstallPrompt source="auto" />
-        <ErrorBoundary>
-          <WelcomingSection />
-          <CategoriesSection />
-          <EventsSpecialsSection />
-          <BookingsSection />
-          <FooterSection />
-        </ErrorBoundary>
-      </main>
-    )
-  }
+  const { page, errorNoKeys, errorPage, errorDetails } = await getData()
 
   // Clean the received content - removes unknown or not allowed bricks
   const flatBricks: Record<string, types.Brick> = {}
@@ -84,37 +76,103 @@ export default async function Home() {
     }
   }
   
-  const pageOk = page ? cleanPage(page, config.pageTypes || [], flatBricks) : null
+  console.log('Debug info:', {
+    pageExists: !!page,
+    pageTypesCount: config.pageTypes?.length || 0,
+    flatBricksCount: Object.keys(flatBricks).length,
+    errorNoKeys,
+    errorPage
+  })
 
-  if (!pageOk) {
-    // Fallback if page cleaning failed
-    return (
-      <main className="min-h-screen animate-fade-in">
-        <PWAInstallPrompt source="auto" />
-        <ErrorBoundary>
-          <WelcomingSection />
-          <CategoriesSection />
-          <EventsSpecialsSection />
-          <BookingsSection />
-          <FooterSection />
-        </ErrorBoundary>
-      </main>
-    )
+  let pageOk = null
+  if (page) {
+    try {
+      console.log('Attempting to clean page...')
+      pageOk = cleanPage(page, config.pageTypes || [], flatBricks)
+      console.log('Page cleaned successfully')
+    } catch (cleanError) {
+      console.error('Error during cleanPage:', cleanError)
+      // Treat cleanPage error as an API error
+      return (
+        <main className="min-h-screen animate-fade-in">
+          <PWAInstallPrompt source="auto" />
+          <ErrorBoundary>
+            <div className="container mx-auto py-16 text-center">
+              <h1 className="text-2xl font-bold text-red-500 mb-4">Page Processing Error</h1>
+              <p className="text-gray-600 mb-4">Error while processing React Bricks page content.</p>
+              <div className="bg-gray-800 text-left p-4 rounded-lg text-sm font-mono text-gray-300">
+                <p className="text-red-400 mb-2">Clean Page Error:</p>
+                <p>{cleanError instanceof Error ? cleanError.message : 'Unknown error'}</p>
+              </div>
+            </div>
+          </ErrorBoundary>
+        </main>
+      )
+    }
   }
 
   return (
     <main className="min-h-screen animate-fade-in">
       <PWAInstallPrompt source="auto" />
+      
       <ErrorBoundary>
-        <PageViewer page={pageOk} main />
+        {pageOk && !errorPage && !errorNoKeys && (
+          <>
+            <PageViewer page={pageOk} main />
+            <ClickToEdit
+              pageId={pageOk.id}
+              language={pageOk.language}
+              editorPath={config.editorPath || '/admin/editor'}
+              clickToEditSide={config.clickToEditSide}
+            />
+          </>
+        )}
+        
+        {errorNoKeys && (
+          <div className="container mx-auto py-16 text-center">
+            <h1 className="text-2xl font-bold text-red-500 mb-4">Configuration Error</h1>
+            <p className="text-gray-600 mb-4">React Bricks API key is missing. Please check your environment configuration.</p>
+            <div className="bg-gray-800 text-left p-4 rounded-lg text-sm font-mono">
+              <p>Expected environment variables:</p>
+              <p>- API_KEY</p>
+              <p>- NEXT_PUBLIC_APP_ID</p>
+              <p>- NEXT_PUBLIC_ENVIRONMENT</p>
+            </div>
+          </div>
+        )}
+        
+        {errorPage && (
+          <div className="container mx-auto py-16 text-center">
+            <h1 className="text-2xl font-bold text-red-500 mb-4">React Bricks API Error</h1>
+            <p className="text-gray-600 mb-4">The homepage content could not be loaded from React Bricks CMS.</p>
+            {errorDetails && (
+              <div className="bg-gray-800 text-left p-4 rounded-lg text-sm font-mono text-gray-300">
+                <p className="text-red-400 mb-2">Error Details:</p>
+                <p>{errorDetails}</p>
+              </div>
+            )}
+            <div className="mt-6 bg-blue-800 text-left p-4 rounded-lg text-sm">
+              <p className="text-blue-200 mb-2">Debug Steps:</p>
+              <p className="text-blue-100">1. Check browser console for detailed logs</p>
+              <p className="text-blue-100">2. Verify environment variables in Vercel dashboard</p>
+              <p className="text-blue-100">3. Test API connectivity to api.reactbricks.com</p>
+            </div>
+          </div>
+        )}
+        
+        {!pageOk && !errorPage && !errorNoKeys && (
+          <div className="container mx-auto py-16 text-center">
+            <h1 className="text-2xl font-bold text-yellow-500 mb-4">No Homepage Content</h1>
+            <p className="text-gray-600 mb-4">No homepage was found in React Bricks CMS.</p>
+            <div className="bg-gray-800 text-left p-4 rounded-lg text-sm">
+              <p className="text-yellow-200 mb-2">Possible Solutions:</p>
+              <p className="text-gray-300">1. Create a homepage in React Bricks CMS</p>
+              <p className="text-gray-300">2. Check the page slug is &apos;home&apos;</p>
+              <p className="text-gray-300">3. Verify page is published</p>
+            </div>
+          </div>
+        )}
       </ErrorBoundary>
-      {/* Click to Edit - Only show when React Bricks is working */}
-      <ClickToEdit
-        pageId={pageOk.id}
-        language={pageOk.language}
-        editorPath={config.editorPath || '/admin/editor'}
-        clickToEditSide={config.clickToEditSide}
-      />
     </main>
   )
 }
