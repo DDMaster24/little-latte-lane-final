@@ -42,9 +42,13 @@ export default async function TestNewPage() {
       for (const category of theme.categories) {
         for (const brick of category.bricks) {
           flatBricks[brick.name] = brick
+          console.log(`Adding brick: ${brick.name}`) // Debug log
         }
       }
     }
+    
+    console.log('All available brick names:', Object.keys(flatBricks))
+    console.log('Looking for hero-brick:', flatBricks['hero-brick'] ? 'FOUND' : 'NOT FOUND')
 
     let cleanedPage = null
     if (page) {
