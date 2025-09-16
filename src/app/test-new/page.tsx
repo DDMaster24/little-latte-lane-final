@@ -26,7 +26,14 @@ export default async function TestNewPage() {
       console.log('Page ID:', page.id)
       console.log('Page slug:', page.slug)
       console.log('Page name:', page.name)
+      console.log('Page language:', page.language)
+      console.log('Page status:', page.status)
       console.log('Content blocks:', page.content?.length || 0)
+      console.log('Raw page content:', JSON.stringify(page.content, null, 2))
+      console.log('Page meta:', JSON.stringify(page.meta, null, 2))
+      console.log('Full page object keys:', Object.keys(page))
+    } else {
+      console.log('❌ NO PAGE FOUND - This means slug mismatch or page not published')
     }
 
     // Prepare bricks for cleaning
