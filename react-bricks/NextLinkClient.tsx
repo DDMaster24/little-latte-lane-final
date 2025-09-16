@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { types } from 'react-bricks/rsc'
+import { types } from 'react-bricks/frontend'
 
 const NextLinkClient: types.RenderLocalLink = ({
   href,

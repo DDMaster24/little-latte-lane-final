@@ -1,5 +1,5 @@
 import React from 'react';
-import { types } from 'react-bricks/rsc';
+import { types } from 'react-bricks/frontend';
 
 //========================================
 // CartSection Brick

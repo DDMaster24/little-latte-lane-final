@@ -1,4 +1,4 @@
-import { types } from 'react-bricks/rsc'
+import { types } from 'react-bricks/frontend'
 import AdvancedColorPicker from './AdvancedColorPicker'
 
 // Predefined color palettes for different contexts

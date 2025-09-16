@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, Repeater, types } from 'react-bricks/rsc'
+import { Text, Repeater, types } from 'react-bricks/frontend'
 import { createAdvancedColorProp, TEXT_PALETTE, BACKGROUND_PALETTE } from '../components/colorPickerUtils'
 
 //========================================

@@ -1,4 +1,4 @@
-import { types } from 'react-bricks/rsc'
+import { types } from 'react-bricks/frontend'
 
 import bricks from './bricks/index'
 import pageTypes from './pageTypes'

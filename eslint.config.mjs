@@ -24,6 +24,7 @@ const eslintConfig = [
       '.next/**',
       'node_modules/**',
       'src/types/supabase.ts',
+      'scripts/**',
     ],
     rules: {
       // Remove unused imports

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Text, Repeater, types, Image } from 'react-bricks/rsc'
+import { Text, Repeater, types, Image } from 'react-bricks/frontend'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 

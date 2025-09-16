@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, types } from 'react-bricks/rsc'
+import { Text, types } from 'react-bricks/frontend'
 import Link from 'next/link'
 
 //========================================

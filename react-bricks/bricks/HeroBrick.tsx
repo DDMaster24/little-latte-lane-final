@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, RichText, Image, types } from 'react-bricks/rsc'
+import { Text, RichText, Image, types } from 'react-bricks/frontend'
 import { Badge } from '@/components/ui/badge'
 import { Star, MapPin, Car } from 'lucide-react'
 

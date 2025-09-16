@@ -1,4 +1,4 @@
-import { types } from 'react-bricks/rsc'
+import { types } from 'react-bricks/frontend'
 import HeroBrick from './HeroBrick'
 import WelcomingSection, { FeatureItem, BadgeItem } from './WelcomingSection'
 import CategoriesSection, { CategoryCard } from './CategoriesSection'

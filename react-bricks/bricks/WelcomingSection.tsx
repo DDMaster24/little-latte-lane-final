@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, Repeater, types } from 'react-bricks/rsc'
+import { Text, Repeater, types } from 'react-bricks/frontend'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/components/AuthProvider'
 import { Star, MapPin, Car } from 'lucide-react'
