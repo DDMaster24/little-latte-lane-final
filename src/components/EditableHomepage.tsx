@@ -19,6 +19,18 @@ export default function EditableHomepage({ enableEditing: _enableEditing = false
         setLoading(true);
         setError(null);
 
+        // Debug API key
+        const apiKey = process.env.NEXT_PUBLIC_API_KEY;
+        console.log('=== REACT BRICKS DEBUG ===');
+        console.log('API Key available:', !!apiKey);
+        console.log('API Key length:', apiKey?.length || 0);
+        console.log('API Key starts with:', apiKey?.substring(0, 8) + '...');
+
+        if (!apiKey) {
+          setError('React Bricks API key is missing');
+          return;
+        }
+
         // Fetch the homepage from React Bricks - try multiple possible slugs
         const slugsToTry = ['homepage', 'home-page', ''];
         let pageData = null;
@@ -26,7 +38,7 @@ export default function EditableHomepage({ enableEditing: _enableEditing = false
         for (const slug of slugsToTry) {
           try {
             console.log(`Trying to fetch React Bricks page with slug: "${slug}"`);
-            pageData = await fetchPage(slug, process.env.NEXT_PUBLIC_API_KEY!);
+            pageData = await fetchPage(slug, apiKey);
             if (pageData) {
               console.log(`✅ Successfully fetched page with slug: "${slug}"`);
               break;
