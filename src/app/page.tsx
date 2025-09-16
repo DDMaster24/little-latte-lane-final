@@ -29,16 +29,39 @@ async function getData(): Promise<{
 
   try {
     console.log('Attempting to fetch page from React Bricks...')
-    const page = await fetchPage({
-      slug: 'home',
-      config,
-      fetchOptions: { 
-        // Remove cache: 'no-store' to allow static rendering
-        // cache: 'no-store' 
-      },
-    })
+    
+    // Try different slug variations that might work
+    let page = null
+    const slugsToTry = ['home', 'homepage', 'index', '']
+    
+    for (const slug of slugsToTry) {
+      try {
+        console.log(`Trying slug: "${slug}"`)
+        page = await fetchPage({
+          slug,
+          config,
+          fetchOptions: {
+            // Use revalidate to make it work with static rendering
+            next: { revalidate: 60 }
+          },
+        })
+        if (page) {
+          console.log(`Success with slug: "${slug}"`)
+          break
+        }
+      } catch (slugError) {
+        console.log(`Failed with slug "${slug}":`, slugError instanceof Error ? slugError.message : 'Unknown error')
+        continue
+      }
+    }
 
-    console.log('React Bricks fetchPage result:', page ? 'Page found' : 'No page found')
+    console.log('React Bricks fetchPage result:', {
+      pageFound: !!page,
+      pageId: page?.id,
+      pageSlug: page?.slug,
+      contentLength: page?.content?.length || 0
+    })
+    
     return {
       page,
       errorNoKeys: false,
@@ -87,9 +110,25 @@ export default async function Home() {
   let pageOk = null
   if (page) {
     try {
-      console.log('Attempting to clean page...')
-      pageOk = cleanPage(page, config.pageTypes || [], flatBricks)
-      console.log('Page cleaned successfully')
+      console.log('Page content preview:', {
+        id: page.id,
+        slug: page.slug,
+        name: page.name,
+        contentBlocksCount: page.content?.length || 0,
+        contentPreview: page.content?.slice(0, 2).map(block => ({ 
+          id: block.id, 
+          type: block.type 
+        })) || []
+      })
+      
+      // Temporarily skip cleanPage to isolate the error
+      console.log('Skipping cleanPage for debugging - using raw page')
+      pageOk = page
+      
+      // TODO: Re-enable this after debugging
+      // console.log('Attempting to clean page...')
+      // pageOk = cleanPage(page, config.pageTypes || [], flatBricks)
+      // console.log('Page cleaned successfully')
     } catch (cleanError) {
       console.error('Error during cleanPage:', cleanError)
       // Treat cleanPage error as an API error
