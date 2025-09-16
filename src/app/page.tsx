@@ -30,9 +30,22 @@ async function getData(): Promise<{
   try {
     console.log('Attempting to fetch page from React Bricks...')
     
+    // First, let's try to get a list of available pages for debugging
+    try {
+      console.log('Checking what pages are available in React Bricks...')
+      // This is just for debugging - try to fetch with a non-existent slug to see the error
+      await fetchPage({
+        slug: 'debug-list-pages-12345',
+        config,
+        fetchOptions: { next: { revalidate: 60 } }
+      })
+    } catch (debugError) {
+      console.log('Debug error (expected):', debugError instanceof Error ? debugError.message : 'Unknown error')
+    }
+    
     // Try different slug variations that might work
     let page = null
-    const slugsToTry = ['home', 'homepage', 'index', '']
+    const slugsToTry = ['homepage', 'home', 'index', '']
     
     for (const slug of slugsToTry) {
       try {
@@ -59,7 +72,9 @@ async function getData(): Promise<{
       pageFound: !!page,
       pageId: page?.id,
       pageSlug: page?.slug,
-      contentLength: page?.content?.length || 0
+      pageName: page?.name,
+      contentLength: page?.content?.length || 0,
+      allSlugsAttempted: slugsToTry
     })
     
     return {
