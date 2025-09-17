@@ -4,9 +4,17 @@ import React, { useState, useEffect } from 'react'
 import { Text, Repeater, types, Image } from 'react-bricks/frontend'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { createAdvancedColorProp, NEON_PALETTE, TEXT_PALETTE, BACKGROUND_PALETTE } from '../components/colorPickerUtils'
+
+// Color value interface for consistency
+interface ColorValue {
+  color: string
+  className?: string
+  [key: string]: unknown
+}
 
 //========================================
-// Nested Component: Carousel Panel
+// Advanced Component: Carousel Panel
 //========================================
 interface CarouselPanelProps {
   panelTitle: types.TextValue
@@ -14,13 +22,22 @@ interface CarouselPanelProps {
   panelIcon?: types.TextValue
   panelImage?: types.IImageSource
   panelBadge?: types.TextValue
-  backgroundColor: 'dark' | 'gradient-cyan' | 'gradient-pink' | 'gradient-purple'
-  borderColor: 'cyan' | 'pink' | 'purple' | 'yellow'
-  badgeColor: 'green' | 'blue' | 'pink' | 'yellow'
+  
+  // Advanced Color Controls
+  backgroundColor: ColorValue
+  borderColor: ColorValue
+  titleColor: ColorValue
+  descriptionColor: ColorValue
+  iconColor: ColorValue
+  badgeBackgroundColor: ColorValue
+  badgeTextColor: ColorValue
+  
+  // Display Options
   showIcon: boolean
   showImage: boolean
   showBadge: boolean
   customContent?: types.TextValue
+  contentColor: ColorValue
 }
 
 const CarouselPanel: types.Brick<CarouselPanelProps> = ({
@@ -29,46 +46,54 @@ const CarouselPanel: types.Brick<CarouselPanelProps> = ({
   panelIcon,
   panelImage,
   panelBadge,
-  backgroundColor = 'dark',
-  borderColor = 'cyan',
-  badgeColor = 'green',
+  backgroundColor = { color: '#1f2937' },
+  borderColor = { color: '#00ffff' },
+  titleColor = { color: '#ffffff' },
+  descriptionColor = { color: '#d1d5db' },
+  iconColor = { color: '#00ffff' },
+  badgeBackgroundColor = { color: '#10b981' },
+  badgeTextColor = { color: '#ffffff' },
   showIcon = true,
   showImage = false,
   showBadge = false,
-  customContent
+  customContent,
+  contentColor = { color: '#e5e7eb' }
 }) => {
-  const getBackgroundClass = () => {
-    switch (backgroundColor) {
-      case 'dark': return 'from-gray-900 to-black'
-      case 'gradient-cyan': return 'from-gray-900 via-blue-900/30 to-black'
-      case 'gradient-pink': return 'from-gray-900 via-pink-900/30 to-black'
-      case 'gradient-purple': return 'from-gray-900 via-purple-900/30 to-black'
-      default: return 'from-gray-900 to-black'
-    }
+  const backgroundStyle = {
+    backgroundColor: backgroundColor.color !== 'transparent' ? backgroundColor.color : undefined
   }
-
-  const getBorderClass = () => {
-    switch (borderColor) {
-      case 'cyan': return 'border-neonCyan/50'
-      case 'pink': return 'border-neonPink/50'
-      case 'purple': return 'border-purple-400/50'
-      case 'yellow': return 'border-neonYellow/50'
-      default: return 'border-neonCyan/50'
-    }
+  
+  const borderStyle = {
+    borderColor: borderColor.color || '#00ffff'
   }
-
-  const getBadgeClass = () => {
-    switch (badgeColor) {
-      case 'green': return 'bg-green-500/20 border-green-400 text-green-400'
-      case 'blue': return 'bg-blue-500/20 border-blue-400 text-blue-400'
-      case 'pink': return 'bg-pink-500/20 border-pink-400 text-pink-400'
-      case 'yellow': return 'bg-yellow-500/20 border-yellow-400 text-yellow-400'
-      default: return 'bg-green-500/20 border-green-400 text-green-400'
-    }
+  
+  const titleStyle = {
+    color: titleColor.color || '#ffffff'
+  }
+  
+  const descriptionStyle = {
+    color: descriptionColor.color || '#d1d5db'
+  }
+  
+  const iconStyle = {
+    color: iconColor.color || '#00ffff'
+  }
+  
+  const badgeStyle = {
+    backgroundColor: badgeBackgroundColor.color || '#10b981',
+    color: badgeTextColor.color || '#ffffff',
+    borderColor: badgeBackgroundColor.color || '#10b981'
+  }
+  
+  const contentStyle = {
+    color: contentColor.color || '#e5e7eb'
   }
 
   return (
-    <Card className={`w-full h-full bg-gradient-to-br ${getBackgroundClass()} backdrop-blur-sm border-2 ${getBorderClass()} shadow-2xl overflow-hidden hover:shadow-3xl hover:border-opacity-100 transition-all duration-300`}>
+    <Card 
+      className="w-full h-full backdrop-blur-sm border-2 shadow-2xl overflow-hidden hover:shadow-3xl hover:border-opacity-100 transition-all duration-300"
+      style={{...backgroundStyle, ...borderStyle}}
+    >
       <CardContent className="p-4 h-full flex flex-col justify-between">
         {/* Header Section */}
         <div className="flex-shrink-0">
@@ -76,7 +101,7 @@ const CarouselPanel: types.Brick<CarouselPanelProps> = ({
             propName="panelTitle"
             value={panelTitle}
             renderBlock={(props) => (
-              <h3 className="font-bold text-white mb-2 text-lg">
+              <h3 className="font-bold mb-2 text-lg" style={titleStyle}>
                 {props.children}
               </h3>
             )}
@@ -87,7 +112,7 @@ const CarouselPanel: types.Brick<CarouselPanelProps> = ({
             propName="panelDescription"
             value={panelDescription}
             renderBlock={(props) => (
-              <p className="text-gray-300 mb-3 text-sm">
+              <p className="mb-3 text-sm" style={descriptionStyle}>
                 {props.children}
               </p>
             )}
@@ -104,7 +129,7 @@ const CarouselPanel: types.Brick<CarouselPanelProps> = ({
                 propName="panelIcon"
                 value={panelIcon || '🎯'}
                 renderBlock={(props) => (
-                  <span className="text-4xl filter drop-shadow-lg text-neonCyan">
+                  <span className="text-4xl filter drop-shadow-lg" style={iconStyle}>
                     {props.children}
                   </span>
                 )}
@@ -134,7 +159,7 @@ const CarouselPanel: types.Brick<CarouselPanelProps> = ({
                 propName="customContent"
                 value={customContent || ''}
                 renderBlock={(props) => (
-                  <div className="text-sm text-gray-200">
+                  <div className="text-sm" style={contentStyle}>
                     {props.children}
                   </div>
                 )}
@@ -151,7 +176,10 @@ const CarouselPanel: types.Brick<CarouselPanelProps> = ({
               propName="panelBadge"
               value={panelBadge || 'NEW'}
               renderBlock={(props) => (
-                <Badge className={`${getBadgeClass()} border text-white w-full justify-center`}>
+                <Badge 
+                  className="border w-full justify-center" 
+                  style={badgeStyle}
+                >
                   {props.children}
                 </Badge>
               )}
@@ -172,9 +200,14 @@ CarouselPanel.schema = {
     panelDescription: 'Panel description goes here',
     panelIcon: '🎯',
     panelBadge: 'NEW',
-    backgroundColor: 'dark',
-    borderColor: 'cyan',
-    badgeColor: 'green',
+    backgroundColor: { color: '#1f2937' },
+    borderColor: { color: '#00ffff' },
+    titleColor: { color: '#ffffff' },
+    descriptionColor: { color: '#d1d5db' },
+    iconColor: { color: '#00ffff' },
+    badgeBackgroundColor: { color: '#10b981' },
+    badgeTextColor: { color: '#ffffff' },
+    contentColor: { color: '#e5e7eb' },
     showIcon: true,
     showImage: false,
     showBadge: false,
@@ -183,37 +216,29 @@ CarouselPanel.schema = {
   hideFromAddMenu: true,
   sideEditProps: [
     {
-      groupName: 'Panel Design',
+      groupName: 'Panel Background',
       defaultOpen: true,
       props: [
-        {
-          name: 'backgroundColor',
-          label: 'Background Style',
-          type: types.SideEditPropType.Select,
-          selectOptions: {
-            display: types.OptionsDisplay.Select,
-            options: [
-              { value: 'dark', label: 'Dark' },
-              { value: 'gradient-cyan', label: 'Cyan Gradient' },
-              { value: 'gradient-pink', label: 'Pink Gradient' },
-              { value: 'gradient-purple', label: 'Purple Gradient' },
-            ],
-          },
-        },
-        {
-          name: 'borderColor',
-          label: 'Border Color',
-          type: types.SideEditPropType.Select,
-          selectOptions: {
-            display: types.OptionsDisplay.Select,
-            options: [
-              { value: 'cyan', label: 'Neon Cyan' },
-              { value: 'pink', label: 'Neon Pink' },
-              { value: 'purple', label: 'Purple' },
-              { value: 'yellow', label: 'Yellow' },
-            ],
-          },
-        },
+        createAdvancedColorProp('backgroundColor', 'Panel Background', { presetColors: BACKGROUND_PALETTE }),
+        createAdvancedColorProp('borderColor', 'Border Color', { presetColors: NEON_PALETTE }),
+      ],
+    },
+    {
+      groupName: 'Text Colors',
+      defaultOpen: false,
+      props: [
+        createAdvancedColorProp('titleColor', 'Title Color', { presetColors: TEXT_PALETTE }),
+        createAdvancedColorProp('descriptionColor', 'Description Color', { presetColors: TEXT_PALETTE }),
+        createAdvancedColorProp('contentColor', 'Custom Content Color', { presetColors: TEXT_PALETTE }),
+      ],
+    },
+    {
+      groupName: 'Icon & Badge',
+      defaultOpen: false,
+      props: [
+        createAdvancedColorProp('iconColor', 'Icon Color', { presetColors: NEON_PALETTE }),
+        createAdvancedColorProp('badgeBackgroundColor', 'Badge Background', { presetColors: NEON_PALETTE }),
+        createAdvancedColorProp('badgeTextColor', 'Badge Text Color', { presetColors: TEXT_PALETTE }),
       ],
     },
     {
@@ -234,21 +259,6 @@ CarouselPanel.schema = {
           name: 'showBadge',
           label: 'Show Badge',
           type: types.SideEditPropType.Boolean,
-        },
-        {
-          name: 'badgeColor',
-          label: 'Badge Color',
-          type: types.SideEditPropType.Select,
-          selectOptions: {
-            display: types.OptionsDisplay.Select,
-            options: [
-              { value: 'green', label: 'Green' },
-              { value: 'blue', label: 'Blue' },
-              { value: 'pink', label: 'Pink' },
-              { value: 'yellow', label: 'Yellow' },
-            ],
-          },
-          show: (props) => props.showBadge,
         },
       ],
     },
@@ -400,9 +410,14 @@ DynamicCarousel.schema = {
           panelTitle: 'Opening Hours',
           panelDescription: 'Visit us during these times',
           panelIcon: '🕐',
-          backgroundColor: 'gradient-cyan',
-          borderColor: 'cyan',
-          badgeColor: 'green',
+          backgroundColor: { color: '#1f2937' },
+          borderColor: { color: '#00ffff' },
+          titleColor: { color: '#ffffff' },
+          descriptionColor: { color: '#d1d5db' },
+          iconColor: { color: '#00ffff' },
+          badgeBackgroundColor: { color: '#10b981' },
+          badgeTextColor: { color: '#ffffff' },
+          contentColor: { color: '#e5e7eb' },
           showIcon: true,
           showImage: false,
           showBadge: false,
@@ -415,9 +430,14 @@ DynamicCarousel.schema = {
           panelTitle: 'Featured Menu',
           panelDescription: 'Try our signature items',
           panelIcon: '🍕',
-          backgroundColor: 'gradient-pink',
-          borderColor: 'pink',
-          badgeColor: 'pink',
+          backgroundColor: { color: '#4c1d95' },
+          borderColor: { color: '#ff00ff' },
+          titleColor: { color: '#ffffff' },
+          descriptionColor: { color: '#d1d5db' },
+          iconColor: { color: '#ff00ff' },
+          badgeBackgroundColor: { color: '#ec4899' },
+          badgeTextColor: { color: '#ffffff' },
+          contentColor: { color: '#e5e7eb' },
           showIcon: true,
           showImage: false,
           showBadge: true,
@@ -431,9 +451,14 @@ DynamicCarousel.schema = {
           panelTitle: 'Contact Info',
           panelDescription: 'Get in touch with us',
           panelIcon: '📞',
-          backgroundColor: 'gradient-purple',
-          borderColor: 'purple',
-          badgeColor: 'blue',
+          backgroundColor: { color: '#581c87' },
+          borderColor: { color: '#8b5cf6' },
+          titleColor: { color: '#ffffff' },
+          descriptionColor: { color: '#d1d5db' },
+          iconColor: { color: '#8b5cf6' },
+          badgeBackgroundColor: { color: '#3b82f6' },
+          badgeTextColor: { color: '#ffffff' },
+          contentColor: { color: '#e5e7eb' },
           showIcon: true,
           showImage: false,
           showBadge: false,
@@ -503,21 +528,14 @@ DynamicCarousel.schema = {
           label: 'Background Color',
           type: types.SideEditPropType.Text,
         },
-        {
-          name: 'titleColor',
-          label: 'Title Color',
-          type: types.SideEditPropType.Select,
-          selectOptions: {
-            display: types.OptionsDisplay.Color,
-            options: [
-              { value: { color: '#ffffff' }, label: 'White' },
-              { value: { color: '#00ffff' }, label: 'Neon Cyan' },
-              { value: { color: '#ff00ff' }, label: 'Neon Pink' },
-              { value: { color: '#ffff00' }, label: 'Yellow' },
-            ],
-          },
-          show: (props) => props.showTitle,
-        },
+        createAdvancedColorProp(
+          'titleColor',
+          'Title Color',
+          { 
+            presetColors: TEXT_PALETTE,
+            show: (props: Record<string, unknown>) => props.showTitle as boolean
+          }
+        ),
       ],
     },
   ],
