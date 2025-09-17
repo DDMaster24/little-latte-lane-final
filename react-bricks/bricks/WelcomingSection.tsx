@@ -44,7 +44,7 @@ const AdvancedSubheading: types.Brick<AdvancedSubheadingProps> = ({
   // Style object for text color and background
   const getTextStyle = () => {
     const style: React.CSSProperties = {
-      color: textColor.color || '#d1d5db'
+      color: textColor?.color || '#d1d5db'
     }
     
     if (backgroundColor?.color) {
@@ -155,7 +155,7 @@ const AdvancedDescription: types.Brick<AdvancedDescriptionProps> = ({
   // Style object for text color and background
   const getTextStyle = () => {
     const style: React.CSSProperties = {
-      color: textColor.color || '#d1d5db'
+      color: textColor?.color || '#d1d5db'
     }
     
     if (backgroundColor?.color) {
@@ -324,13 +324,13 @@ const AdvancedHeading: types.Brick<AdvancedHeadingProps> = ({
       const gradientType = gradientDirection === 'radial' ? 'radial-gradient' : 'linear-gradient'
       
       return {
-        background: `${gradientType}(${direction}, ${gradientColor1.color}, ${gradientColor2.color}, ${gradientColor3.color})`,
+        background: `${gradientType}(${direction}, ${gradientColor1?.color || '#00ffff'}, ${gradientColor2?.color || '#ff00ff'}, ${gradientColor3?.color || '#ffff00'})`,
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         backgroundClip: 'text'
       }
     }
-    return { color: textColor.color }
+    return { color: textColor?.color || '#ffffff' }
   }
 
   // Get display text with auth greeting
@@ -538,7 +538,7 @@ const FeatureItem: types.Brick<FeatureItemProps> = ({ icon, text, textColor, ico
       className="flex items-center justify-center gap-2"
       style={getContainerStyle()}
     >
-      <div style={{ color: iconColor.color || '#00ffff' }}>
+      <div style={{ color: iconColor?.color || '#00ffff' }}>
         {getIconComponent()}
       </div>
       <Text
@@ -547,7 +547,7 @@ const FeatureItem: types.Brick<FeatureItemProps> = ({ icon, text, textColor, ico
         renderBlock={(props) => (
           <span 
             className="text-sm font-medium"
-            style={{ color: textColor.color || '#ffffff' }}
+            style={{ color: textColor?.color || '#ffffff' }}
           >
             {props.children}
           </span>
@@ -613,8 +613,8 @@ const BadgeItem: types.Brick<BadgeItemProps> = ({ text, textColor, backgroundCol
   // Style object for the badge
   const getBadgeStyle = () => {
     const style: React.CSSProperties = {
-      backgroundColor: backgroundColor.color || '#00ffff',
-      color: textColor.color || '#000000'
+      backgroundColor: backgroundColor?.color || '#00ffff',
+      color: textColor?.color || '#000000'
     }
     
     if (borderColor?.color) {

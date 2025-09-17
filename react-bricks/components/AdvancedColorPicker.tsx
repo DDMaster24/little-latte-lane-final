@@ -107,21 +107,21 @@ const AdvancedColorPicker: React.FC<AdvancedColorPickerProps> = ({
   presetColors = []
 }) => {
   // Parse initial color
-  const initialRgba = hexToRgba(value.color)
+  const initialRgba = hexToRgba(value?.color || '#ffffff')
   const initialHsva = rgbaToHsva(initialRgba.r, initialRgba.g, initialRgba.b, initialRgba.a)
 
   // Start with full saturation for cleaner colors
   const [hsva, setHsva] = useState({ ...initialHsva, s: 1 })
   const [showPicker, setShowPicker] = useState(false)
-  const [hexInput, setHexInput] = useState(value.color)
+  const [hexInput, setHexInput] = useState(value?.color || '#ffffff')
 
   // Update color when value prop changes
   useEffect(() => {
-    const rgba = hexToRgba(value.color)
+    const rgba = hexToRgba(value?.color || '#ffffff')
     const newHsva = rgbaToHsva(rgba.r, rgba.g, rgba.b, rgba.a)
     setHsva({ ...newHsva, s: 1 }) // Keep saturation at 100%
-    setHexInput(value.color)
-  }, [value.color])
+    setHexInput(value?.color || '#ffffff')
+  }, [value?.color])
 
   const updateColor = useCallback((newHsva: typeof hsva) => {
     // Force saturation to 100% for vivid colors
@@ -275,15 +275,15 @@ const AdvancedColorPicker: React.FC<AdvancedColorPickerProps> = ({
                     key={index}
                     type="button"
                     onClick={() => {
-                      const rgba = hexToRgba(preset.color)
+                      const rgba = hexToRgba(preset?.color || '#ffffff')
                       const newHsva = rgbaToHsva(rgba.r, rgba.g, rgba.b, rgba.a)
                       setHsva({ ...newHsva, s: 1 }) // Keep saturation at 100%
                       onChange(preset)
-                      setHexInput(preset.color)
+                      setHexInput(preset?.color || '#ffffff')
                     }}
                     className="w-8 h-8 rounded border-2 border-gray-600 hover:border-gray-500 transition-colors"
-                    style={{ backgroundColor: preset.color }}
-                    title={preset.color}
+                    style={{ backgroundColor: preset?.color || '#ffffff' }}
+                    title={preset?.color || '#ffffff'}
                   />
                 ))}
               </div>
