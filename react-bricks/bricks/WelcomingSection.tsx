@@ -481,8 +481,8 @@ MarketingPanel.schema = {
 // Main Component: WelcomingSection
 //========================================
 interface WelcomingSectionProps {
-  mainTitle: types.TextValue
-  mainSubtitle: types.TextValue
+  mainHeading: types.RepeaterItems
+  subtitle: types.RepeaterItems
   ctaTitle: types.TextValue
   ctaDescription: types.TextValue
   badges: types.RepeaterItems
@@ -497,8 +497,8 @@ interface WelcomingSectionProps {
 }
 
 const WelcomingSection: types.Brick<WelcomingSectionProps> = ({ 
-  mainTitle,
-  mainSubtitle,
+  mainHeading,
+  subtitle,
   ctaTitle,
   ctaDescription,
   badges,
@@ -556,27 +556,17 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
         {/* Main Hero Section */}
         <div className="space-y-6 mb-16">
           {/* Main Title */}
-          <Text
-            propName="mainTitle"
-            value={mainTitle}
-            placeholder="Welcome to Little Latte Lane"
-            renderBlock={({ children }) => (
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-neon-gradient bg-clip-text text-transparent">
-                {children}
-              </h1>
-            )}
+          <Repeater
+            propName="mainHeading"
+            items={mainHeading}
+            renderWrapper={(items) => <div className="space-y-4">{items}</div>}
           />
           
           {/* Subtitle */}
-          <Text
-            propName="mainSubtitle"
-            value={mainSubtitle}
-            placeholder="Café & Deli - Where Great Food Meets Amazing Experiences"
-            renderBlock={({ children }) => (
-              <p className="text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto">
-                {children}
-              </p>
-            )}
+          <Repeater
+            propName="subtitle"
+            items={subtitle}
+            renderWrapper={(items) => <div className="space-y-3">{items}</div>}
           />
         </div>
 
@@ -774,8 +764,22 @@ WelcomingSection.schema = {
     showBadges: true,
     showFeatures: true,
     showMarketingPanels: true,
-    mainTitle: [{ type: 'paragraph', children: [{ text: 'Welcome to Little Latte Lane' }] }],
-    mainSubtitle: [{ type: 'paragraph', children: [{ text: 'Café & Deli - Where Great Food Meets Amazing Experiences' }] }],
+    mainHeading: [
+      {
+        text: 'Welcome to Little Latte Lane',
+        textColor: { color: '#00ffff' },
+        alignment: 'center',
+        size: '3xl'
+      }
+    ],
+    subtitle: [
+      {
+        text: 'Café & Deli - Where Great Food Meets Amazing Experiences',
+        textColor: { color: '#d1d5db' },
+        alignment: 'center',
+        size: 'xl'
+      }
+    ],
     ctaTitle: 'Ready to Experience Little Latte Lane?',
     ctaDescription: 'Join us for exceptional food, premium beverages, and a warm, welcoming atmosphere. Whether you\'re catching up with friends, having a business meeting, or enjoying a quiet moment, we\'re here to make your experience memorable.',
     badges: [
