@@ -59,34 +59,42 @@ const CarouselPanel: types.Brick<CarouselPanelProps> = ({
   customContent,
   contentColor = { color: '#e5e7eb' }
 }) => {
+  // Helper function to safely get color value
+  const getColorValue = (colorObj: ColorValue | string | undefined, fallback: string) => {
+    if (typeof colorObj === 'string') {
+      return colorObj // Legacy string format
+    }
+    return colorObj?.color || fallback
+  }
+
   const backgroundStyle = {
-    backgroundColor: backgroundColor.color !== 'transparent' ? backgroundColor.color : undefined
+    backgroundColor: getColorValue(backgroundColor, '#1f2937') !== 'transparent' ? getColorValue(backgroundColor, '#1f2937') : undefined
   }
   
   const borderStyle = {
-    borderColor: borderColor.color || '#00ffff'
+    borderColor: getColorValue(borderColor, '#00ffff')
   }
   
   const titleStyle = {
-    color: titleColor.color || '#ffffff'
+    color: getColorValue(titleColor, '#ffffff')
   }
   
   const descriptionStyle = {
-    color: descriptionColor.color || '#d1d5db'
+    color: getColorValue(descriptionColor, '#d1d5db')
   }
   
   const iconStyle = {
-    color: iconColor.color || '#00ffff'
+    color: getColorValue(iconColor, '#00ffff')
   }
   
   const badgeStyle = {
-    backgroundColor: badgeBackgroundColor.color || '#10b981',
-    color: badgeTextColor.color || '#ffffff',
-    borderColor: badgeBackgroundColor.color || '#10b981'
+    backgroundColor: getColorValue(badgeBackgroundColor, '#10b981'),
+    color: getColorValue(badgeTextColor, '#ffffff'),
+    borderColor: getColorValue(badgeBackgroundColor, '#10b981')
   }
   
   const contentStyle = {
-    color: contentColor.color || '#e5e7eb'
+    color: getColorValue(contentColor, '#e5e7eb')
   }
 
   return (
@@ -293,6 +301,14 @@ const DynamicCarousel: types.Brick<DynamicCarouselProps> = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0)
 
+  // Helper function to safely get color value
+  const getColorValue = (colorObj: { color: string } | string | undefined, fallback: string) => {
+    if (typeof colorObj === 'string') {
+      return colorObj // Legacy string format
+    }
+    return colorObj?.color || fallback
+  }
+
   const getHeightClass = () => {
     switch (carouselHeight) {
       case 'compact': return 'h-[400px]'
@@ -333,7 +349,7 @@ const DynamicCarousel: types.Brick<DynamicCarouselProps> = ({
             renderBlock={(props) => (
               <h2 
                 className="text-fluid-2xl xs:text-fluid-3xl md:text-fluid-4xl font-bold bg-neon-gradient bg-clip-text text-transparent"
-                style={{ color: titleColor.color }}
+                style={{ color: getColorValue(titleColor, '#ffffff') }}
               >
                 {props.children}
               </h2>
