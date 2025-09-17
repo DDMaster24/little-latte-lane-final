@@ -1,5 +1,5 @@
 import { types } from 'react-bricks/frontend'
-import AdvancedColorPicker from './AdvancedColorPicker'
+import SimpleColorPicker from './SimpleColorPicker'
 
 // Predefined color palettes for different contexts
 export const NEON_PALETTE = [
@@ -39,15 +39,35 @@ export const createAdvancedColorProp = (
   options: {
     includeTransparency?: boolean
     presetColors?: Array<{ color: string; className?: string }>
+    supportGradient?: boolean
     show?: (props: Record<string, unknown>) => boolean
   } = {}
 ): types.ISideEditProp => ({
   name,
   label,
   type: types.SideEditPropType.Custom,
-  component: AdvancedColorPicker,
+  component: SimpleColorPicker,
   show: options.show
 })
+
+// NEW: Helper function specifically for gradient-capable color props (Phase 4)
+// Temporarily disabled for Phase 1 - will be implemented in Phase 4
+/*
+export const createGradientColorProp = (
+  name: string,
+  label: string,
+  options: {
+    presetColors?: Array<{ color: string; className?: string }>
+    show?: (props: Record<string, unknown>) => boolean
+  } = {}
+): types.ISideEditProp => ({
+  name,
+  label,
+  type: types.SideEditPropType.Custom,
+  component: SimpleColorPicker, // Will be enhanced in Phase 4
+  show: options.show
+})
+*/
 
 // Utility function to create grouped color controls
 export const createColorGroup = (
@@ -115,4 +135,4 @@ export const BACKGROUND_COLOR_GROUP = createColorGroup(
   ]
 )
 
-export default AdvancedColorPicker
+export default SimpleColorPicker
