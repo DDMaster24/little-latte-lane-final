@@ -1,10 +1,9 @@
 import { types } from 'react-bricks/frontend'
 import HeroBrick from './HeroBrick'
-import WelcomingSection, { FeatureItem, BadgeItem, AdvancedHeading, AdvancedSubheading, AdvancedDescription } from './WelcomingSection'
+import WelcomingSection, { FeatureItem, BadgeItem, MarketingPanel } from './WelcomingSection'
 import CategoriesSection, { CategoryCard } from './CategoriesSection'
 import EventsSpecialsSection, { EventSpecialCard } from './EventsSpecialsSection'
 import BookingsSection from './BookingsSection'
-import DynamicCarousel, { CarouselPanel } from './DynamicCarousel'
 import MenuHero from './MenuHero'
 import MenuDisplay, { MenuCategoryCard, MenuSection } from './MenuDisplay'
 import HeaderSection, { NavLink } from './HeaderSection'
@@ -25,7 +24,6 @@ const bricks: types.Theme[] = [
           CategoriesSection,       // ✅ Professional categories with React Bricks integration
           EventsSpecialsSection,   // ✅ Database-driven events with real-time updates
           BookingsSection,         // ✅ Customizable CTA section with glass effects
-          DynamicCarousel,         // ✅ 3D animated carousel with editable panels
           HeroBrick,              // Keep for comparison/backup
         ],
       },
@@ -53,14 +51,13 @@ const bricks: types.Theme[] = [
       {
         categoryName: 'Content Components',
         bricks: [
-          AdvancedHeading,        // Individual selectable heading with advanced color controls
-          AdvancedSubheading,     // Individual selectable subheading with advanced color controls  
-          AdvancedDescription,    // Individual selectable description with advanced color controls
+          // Advanced individual text components (nested use only)
+          // AdvancedHeading, AdvancedSubheading, AdvancedDescription,
           FeatureItem,            // Nested inside WelcomingSection
           BadgeItem,              // Nested inside WelcomingSection
+          MarketingPanel,         // Nested inside WelcomingSection
           CategoryCard,           // Nested inside CategoriesSection
           EventSpecialCard,       // Nested inside EventsSpecialsSection
-          CarouselPanel,          // Nested inside DynamicCarousel
           MenuCategoryCard,       // Nested inside MenuDisplay
           MenuSection,            // Nested inside MenuDisplay
           NavLink,                // Nested inside HeaderSection
