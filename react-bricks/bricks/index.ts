@@ -1,5 +1,4 @@
 import { types } from 'react-bricks/frontend'
-import HeroBrick from './HeroBrick'
 import WelcomingSection, { FeatureItem, BadgeItem, MarketingPanel } from './WelcomingSection'
 import CategoriesSection, { CategoryCard } from './CategoriesSection'
 import EventsSpecialsSection, { EventSpecialCard } from './EventsSpecialsSection'
@@ -24,7 +23,6 @@ const bricks: types.Theme[] = [
           CategoriesSection,       // ✅ Professional categories with React Bricks integration
           EventsSpecialsSection,   // ✅ Database-driven events with real-time updates
           BookingsSection,         // ✅ Customizable CTA section with glass effects
-          HeroBrick,              // Keep for comparison/backup
         ],
       },
       {

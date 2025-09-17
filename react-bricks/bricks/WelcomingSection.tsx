@@ -481,8 +481,8 @@ MarketingPanel.schema = {
 // Main Component: WelcomingSection
 //========================================
 interface WelcomingSectionProps {
-  mainHeading: types.RepeaterItems
-  subtitle: types.RepeaterItems
+  mainTitle: types.TextValue
+  mainSubtitle: types.TextValue
   ctaTitle: types.TextValue
   ctaDescription: types.TextValue
   badges: types.RepeaterItems
@@ -494,11 +494,13 @@ interface WelcomingSectionProps {
   showBadges: boolean
   showFeatures: boolean
   showMarketingPanels: boolean
+  titleColor?: ColorValue | null
+  subtitleColor?: ColorValue | null
 }
 
 const WelcomingSection: types.Brick<WelcomingSectionProps> = ({ 
-  mainHeading,
-  subtitle,
+  mainTitle,
+  mainSubtitle,
   ctaTitle,
   ctaDescription,
   badges,
@@ -509,7 +511,9 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
   padding = 'md',
   showBadges = true,
   showFeatures = true,
-  showMarketingPanels = true
+  showMarketingPanels = true,
+  titleColor,
+  subtitleColor
 }) => {
   // Padding classes
   const getPaddingClass = () => {
@@ -556,17 +560,38 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
         {/* Main Hero Section */}
         <div className="space-y-6 mb-16">
           {/* Main Title */}
-          <Repeater
-            propName="mainHeading"
-            items={mainHeading}
-            renderWrapper={(items) => <div className="space-y-4">{items}</div>}
+          <Text
+            propName="mainTitle"
+            value={mainTitle}
+            placeholder="Welcome to Little Latte Lane"
+            renderBlock={({ children }) => (
+              <h1 
+                className="text-4xl md:text-5xl lg:text-6xl font-bold text-center"
+                style={{ 
+                  color: titleColor?.color || '#00ffff',
+                  background: titleColor?.color ? 'none' : 'linear-gradient(135deg, #00ffff 0%, #ff00ff 100%)',
+                  WebkitBackgroundClip: titleColor?.color ? 'initial' : 'text',
+                  WebkitTextFillColor: titleColor?.color ? titleColor.color : 'transparent'
+                }}
+              >
+                {children}
+              </h1>
+            )}
           />
           
           {/* Subtitle */}
-          <Repeater
-            propName="subtitle"
-            items={subtitle}
-            renderWrapper={(items) => <div className="space-y-3">{items}</div>}
+          <Text
+            propName="mainSubtitle"
+            value={mainSubtitle}
+            placeholder="Café & Deli - Where Great Food Meets Amazing Experiences"
+            renderBlock={({ children }) => (
+              <p 
+                className="text-xl md:text-2xl text-center max-w-4xl mx-auto"
+                style={{ color: subtitleColor?.color || '#d1d5db' }}
+              >
+                {children}
+              </p>
+            )}
           />
         </div>
 
@@ -690,6 +715,41 @@ WelcomingSection.schema = {
       ]
     },
     {
+      groupName: 'Typography',
+      props: [
+        {
+          name: 'titleColor',
+          label: 'Title Color',
+          type: types.SideEditPropType.Select,
+          selectOptions: {
+            display: types.OptionsDisplay.Color,
+            options: [
+              { value: { color: '#00ffff', className: '' }, label: 'Neon Cyan' },
+              { value: { color: '#ff00ff', className: '' }, label: 'Neon Pink' },
+              { value: { color: '#ffffff', className: '' }, label: 'White' },
+              { value: { color: '#ffff00', className: '' }, label: 'Neon Yellow' },
+              { value: { color: '#00ff00', className: '' }, label: 'Neon Green' }
+            ]
+          }
+        },
+        {
+          name: 'subtitleColor',
+          label: 'Subtitle Color',
+          type: types.SideEditPropType.Select,
+          selectOptions: {
+            display: types.OptionsDisplay.Color,
+            options: [
+              { value: { color: '#d1d5db', className: '' }, label: 'Light Gray' },
+              { value: { color: '#ffffff', className: '' }, label: 'White' },
+              { value: { color: '#00ffff', className: '' }, label: 'Neon Cyan' },
+              { value: { color: '#ff00ff', className: '' }, label: 'Neon Pink' },
+              { value: { color: '#9ca3af', className: '' }, label: 'Gray' }
+            ]
+          }
+        }
+      ]
+    },
+    {
       groupName: 'Sections',
       props: [
         {
@@ -711,52 +771,6 @@ WelcomingSection.schema = {
     }
   ],
 
-  // Repeater props
-  repeaterItems: [
-    {
-      name: 'mainHeading',
-      itemType: 'advanced-heading',
-      itemLabel: 'Heading',
-      min: 0,
-      max: 5
-    },
-    {
-      name: 'subtitle',
-      itemType: 'advanced-subheading', 
-      itemLabel: 'Subtitle',
-      min: 0,
-      max: 3
-    },
-    {
-      name: 'description',
-      itemType: 'advanced-description',
-      itemLabel: 'Description',
-      min: 0,
-      max: 3
-    },
-    {
-      name: 'badges',
-      itemType: 'badge-item',
-      itemLabel: 'Badge',
-      min: 0,
-      max: 6
-    },
-    {
-      name: 'features',
-      itemType: 'feature-item',
-      itemLabel: 'Feature',
-      min: 0,
-      max: 6
-    },
-    {
-      name: 'marketingPanels',
-      itemType: 'marketing-panel',
-      itemLabel: 'Marketing Panel',
-      min: 0,
-      max: 3
-    }
-  ],
-
   // Default props
   getDefaultProps: () => ({
     backgroundColor: 'gradient',
@@ -764,22 +778,10 @@ WelcomingSection.schema = {
     showBadges: true,
     showFeatures: true,
     showMarketingPanels: true,
-    mainHeading: [
-      {
-        text: 'Welcome to Little Latte Lane',
-        textColor: { color: '#00ffff' },
-        alignment: 'center',
-        size: '3xl'
-      }
-    ],
-    subtitle: [
-      {
-        text: 'Café & Deli - Where Great Food Meets Amazing Experiences',
-        textColor: { color: '#d1d5db' },
-        alignment: 'center',
-        size: 'xl'
-      }
-    ],
+    mainTitle: 'Welcome to Little Latte Lane',
+    mainSubtitle: 'Café & Deli - Where Great Food Meets Amazing Experiences',
+    titleColor: { color: '#00ffff', className: '' },
+    subtitleColor: { color: '#d1d5db', className: '' },
     ctaTitle: 'Ready to Experience Little Latte Lane?',
     ctaDescription: 'Join us for exceptional food, premium beverages, and a warm, welcoming atmosphere. Whether you\'re catching up with friends, having a business meeting, or enjoying a quiet moment, we\'re here to make your experience memorable.',
     badges: [
