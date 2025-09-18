@@ -1,5 +1,5 @@
 import { types } from 'react-bricks/frontend'
-import WelcomingSection from './WelcomingSection'
+import WelcomingSection, { WelcomeInfoCard } from './WelcomingSection'
 import CategoriesSection, { CategoryCard } from './CategoriesSection'
 import EventsSpecialsSection, { EventSpecialCard } from './EventsSpecialsSection'
 import BookingsSection from './BookingsSection'
@@ -51,6 +51,7 @@ const bricks: types.Theme[] = [
         bricks: [
           // Advanced individual text components (nested use only)
           // AdvancedHeading, AdvancedSubheading, AdvancedDescription,
+          WelcomeInfoCard,        // Nested inside WelcomingSection
           CategoryCard,           // Nested inside CategoriesSection
           EventSpecialCard,       // Nested inside EventsSpecialsSection
           MenuCategoryCard,       // Nested inside MenuDisplay
