@@ -785,7 +785,7 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
 
   return (
     <section 
-      className={`bg-gradient-to-br from-darkBg via-gray-900 to-darkBg ${getPaddingClass()} overflow-hidden`}
+      className={`bg-gradient-to-br from-darkBg via-gray-900 to-darkBg ${getPaddingClass()} overflow-hidden mb-8`}
       style={getBackgroundStyle()}
     >
       <div className="container-wide animate-fade-in">

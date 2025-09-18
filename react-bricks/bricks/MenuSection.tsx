@@ -650,7 +650,7 @@ const MenuSection: types.Brick<MenuSectionProps> = ({
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full mb-8">
       <div 
         className={`${getSectionStyleClass()} ${getBorderStyleClass()} ${getPaddingClass()}`}
         style={{

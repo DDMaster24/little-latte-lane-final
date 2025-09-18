@@ -244,7 +244,7 @@ const FooterSection: types.Brick<FooterSectionProps> = ({
 
   return (
     <footer 
-      className={`w-full ${getBorderClass()}`}
+      className={`w-full ${getBorderClass()} mt-8`}
       style={{ 
         backgroundColor,
         color: textColor.color

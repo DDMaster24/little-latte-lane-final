@@ -717,7 +717,7 @@ const EventsSpecialsSection: types.Brick<EventsSpecialsSectionProps> = ({
 
   return (
     <section 
-      className="w-full shadow-neon rounded-xl animate-fade-in"
+      className="w-full shadow-neon rounded-xl animate-fade-in mb-8"
       style={getBackgroundStyle()}
     >
       {/* Section Header */}

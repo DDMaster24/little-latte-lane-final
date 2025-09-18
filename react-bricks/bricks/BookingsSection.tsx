@@ -268,7 +268,14 @@ const BookingsSection: types.Brick<BookingsSectionProps> = ({
   }
 
   const getContainerClass = () => {
-    const containerClasses = ['px-4 xs:px-6 sm:px-8', getMaxWidthClass(), 'mx-auto']
+    const containerClasses = ['px-4 xs:px-6 sm:px-8']
+    
+    // For full width, remove max width constraints
+    if (customMaxWidth === 'full') {
+      containerClasses.push('w-full')
+    } else {
+      containerClasses.push(getMaxWidthClass(), 'mx-auto')
+    }
     
     if (enableGlassEffect) {
       containerClasses.push(
@@ -293,7 +300,7 @@ const BookingsSection: types.Brick<BookingsSectionProps> = ({
 
   return (
     <section 
-      className={`${getSectionClass()} ${getPaddingClass()}`}
+      className={`${getSectionClass()} ${getPaddingClass()} mb-8`}
       style={getSectionStyle()}
     >
       <div className={getContainerClass()}>
@@ -311,7 +318,7 @@ const BookingsSection: types.Brick<BookingsSectionProps> = ({
                   {props.children}
                 </span>
               )}
-              placeholder="NEW!"
+              placeholder="COMING SOON"
             />
           </div>
         )}
@@ -330,7 +337,7 @@ const BookingsSection: types.Brick<BookingsSectionProps> = ({
                   {props.children}
                 </span>
               )}
-              placeholder="📅"
+              placeholder="⛳"
             />
           </div>
         )}
@@ -350,7 +357,7 @@ const BookingsSection: types.Brick<BookingsSectionProps> = ({
                   {props.children}
                 </h2>
               )}
-              placeholder="🏓 Ready to Play?"
+              placeholder="Have You Ever Played Golf Virtually?"
             />
           )}
 
@@ -367,7 +374,7 @@ const BookingsSection: types.Brick<BookingsSectionProps> = ({
                   {props.children}
                 </p>
               )}
-              placeholder="Book your virtual golf experience today and enjoy great food while you play!"
+              placeholder="Keep your eyes open because virtual golf is coming soon to Little Latte Lane!"
             />
           )}
 
@@ -380,14 +387,13 @@ const BookingsSection: types.Brick<BookingsSectionProps> = ({
                 className={`${getButtonClass()} text-fluid-base xs:text-fluid-lg px-6 xs:px-8 py-3 xs:py-4 inline-flex items-center gap-2 touch-target rounded-xl transition-all duration-300 hover:scale-105 ${buttonAlignment === 'full-width' ? 'w-full justify-center' : ''}`}
                 style={{ color: buttonStyle === 'outline' ? getColorAccent() : undefined }}
               >
-                <span>🏓</span>
                 <Text
                   propName="ctaButtonText"
                   value={ctaButtonText}
                   renderBlock={(props) => (
                     <span>{props.children}</span>
                   )}
-                  placeholder="Book Now"
+                  placeholder="Learn More"
                 />
               </Link>
             )}
@@ -446,25 +452,25 @@ BookingsSection.schema = {
   
   getDefaultProps: () => ({
     // Content
-    sectionTitle: '🏓 Ready to Play?',
-    sectionDescription: 'Book your virtual golf experience today and enjoy great food while you play!',
-    ctaButtonText: 'Book Now',
+    sectionTitle: 'Have You Ever Played Golf Virtually?',
+    sectionDescription: 'Keep your eyes open because virtual golf is coming soon to Little Latte Lane! Experience the excitement of playing world-class golf courses while enjoying our delicious food and drinks.',
+    ctaButtonText: 'Learn More',
     ctaButtonLink: '/bookings',
-    sectionIcon: '📅',
-    sectionBadge: '',
+    sectionIcon: '⛳',
+    sectionBadge: 'COMING SOON',
 
     // Content Display
     showTitle: true,
     showDescription: true,
     showIcon: true,
-    showBadge: false,
+    showBadge: true,
     showPrimaryButton: true,
     showSecondaryButton: false,
-    showDecorativeElements: true,
+    showDecorativeElements: false,
 
     // Layout & Positioning
     textAlignment: 'center',
-    contentLayout: 'standard',
+    contentLayout: 'hero',
     iconPosition: 'top',
     buttonAlignment: 'center',
 
@@ -489,14 +495,14 @@ BookingsSection.schema = {
     borderWidth: 'thin',
 
     // Advanced Settings
-    sectionPadding: 'md',
+    sectionPadding: 'lg',
     contentSpacing: 'normal',
     animationStyle: 'fade',
-    customMaxWidth: 'lg',
+    customMaxWidth: 'full',
 
     // Image Effects
-    imageOpacity: 0.3,
-    imageBlur: 'none'
+    imageOpacity: 0.4,
+    imageBlur: 'sm'
   }),
 
   sideEditProps: [

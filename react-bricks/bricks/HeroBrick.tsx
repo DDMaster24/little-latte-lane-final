@@ -63,7 +63,7 @@ const HeroBrick: types.Brick<HeroBrickProps> = ({
   }
 
   return (
-    <section className="bg-gradient-to-br from-darkBg via-gray-900 to-darkBg section-padding overflow-hidden">
+    <section className="bg-gradient-to-br from-darkBg via-gray-900 to-darkBg section-padding overflow-hidden mb-8">
       <div className="container-wide animate-fade-in">
         <div className="flex flex-col items-center">
           {/* Hero Header */}
