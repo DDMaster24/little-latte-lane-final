@@ -25,7 +25,7 @@ interface CategoryCardProps {
   // Layout & Positioning
   contentAlignment: 'left' | 'center' | 'right'
   titlePosition: 'top' | 'middle' | 'bottom'
-  imagePosition: 'background' | 'top' | 'side' | 'overlay'
+  imagePosition: 'background' | 'top' | 'side' | 'overlay' | 'content'
 
   // Card Style
   cardStyle: 'glass' | 'solid' | 'gradient' | 'minimal'
@@ -69,7 +69,7 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
   // Positioning
   contentAlignment = 'center',
   titlePosition = 'top',
-  imagePosition = 'background',
+  imagePosition = 'content',
   
   // Basic Styling
   cardStyle = 'glass',
@@ -300,6 +300,24 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
           )}
         </div>
 
+        {/* Content Image (positioned within card content) */}
+        {showImage && categoryImage && imagePosition === 'content' && (
+          <div className="mb-4">
+            <Image
+              propName="categoryImage"
+              source={categoryImage}
+              alt="Category content image"
+              imageStyle={{
+                width: '100%',
+                height: '80px',
+                objectFit: 'cover',
+                borderRadius: '6px',
+                ...getImageStyle()
+              }}
+            />
+          </div>
+        )}
+
         {/* Content Area - Flexible positioning */}
         <div className={`flex-grow flex flex-col ${titlePosition === 'middle' ? 'justify-center' : titlePosition === 'bottom' ? 'justify-end' : 'justify-start'}`}>
           
@@ -381,7 +399,7 @@ CategoryCard.schema = {
     // Layout & Positioning
     contentAlignment: 'center',
     titlePosition: 'top',
-    imagePosition: 'background',
+    imagePosition: 'content',
     
     // Card Style
     cardStyle: 'glass',
@@ -533,6 +551,7 @@ CategoryCard.schema = {
               { value: 'top', label: 'Top' },
               { value: 'side', label: 'Side' },
               { value: 'overlay', label: 'Overlay' },
+              { value: 'content', label: 'Within Content' },
             ],
           },
           show: (props) => props.showImage,

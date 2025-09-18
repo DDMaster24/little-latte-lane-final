@@ -20,32 +20,37 @@ const pageTypes: types.IPageType[] = [
       }
     ],
     allowedBlockTypes: [
-      // NEW PascalCase brick names (for new content)
+      // Homepage Components
       'WelcomingSection',
       'CategoriesSection', 
       'EventsSpecialsSection',
       'BookingsSection',
-      'DynamicCarousel',
-      'MenuSection',
-      'FooterSection',
-      'FeatureItem',
-      'BadgeItem',
       
-      // OLD kebab-case brick names (for existing content compatibility)
+      // Menu Components
+      'menu-hero',
+      'menu-section',
+      'MenuHero',
+      'MenuSection',
+      'MenuDisplay',
+      
+      // Layout Components
+      'FooterSection',
+      'HeaderSection',
+      
+      // Legacy Components (for existing content compatibility)
       'welcoming-section',
       'categories-section', 
       'events-specials-section',
       'bookings-section',
       'dynamic-carousel',
-      'menu-section',
+      'menu-display',
+      'cart-section',
       'footer-section',
       'feature-item',
       'badge-item',
       
-      // Additional allowed bricks
+      // Basic Content Components
       'hero-brick',
-      'menu-display',
-      'cart-section',
       'title',
       'paragraph',
       'big-image',

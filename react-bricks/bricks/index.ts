@@ -5,9 +5,9 @@ import EventsSpecialsSection, { EventSpecialCard } from './EventsSpecialsSection
 import BookingsSection from './BookingsSection'
 import MenuHero from './MenuHero'
 import MenuDisplay, { MenuCategoryCard, MenuSection } from './MenuDisplay'
+import MenuSectionNew, { MenuCategoryCard as MenuCategoryCardNew } from './MenuSection'
 import HeaderSection, { NavLink } from './HeaderSection'
 import FooterSection, { FooterLink, FooterColumn } from './FooterSection'
-import MenuSectionSkeleton from './MenuSection'
 import CartSection from './CartSection'
 
 // Little Latte Lane Custom Bricks Theme
@@ -30,7 +30,7 @@ const bricks: types.Theme[] = [
         bricks: [
           MenuHero,               // ✅ Professional menu hero with multiple styles
           MenuDisplay,            // ✅ Full menu display with sections and categories
-          MenuSectionSkeleton,    // Keep existing menu section skeleton
+          MenuSectionNew,         // ✅ New professional menu section with category cards
         ],
       },
       {
@@ -56,6 +56,7 @@ const bricks: types.Theme[] = [
           EventSpecialCard,       // Nested inside EventsSpecialsSection
           MenuCategoryCard,       // Nested inside MenuDisplay
           MenuSection,            // Nested inside MenuDisplay
+          MenuCategoryCardNew,    // Nested inside MenuSectionNew
           NavLink,                // Nested inside HeaderSection
           FooterLink,             // Nested inside FooterSection
           FooterColumn,           // Nested inside FooterSection

@@ -38,6 +38,7 @@ interface WelcomeInfoCardProps {
   cardStyle: 'glass' | 'solid' | 'gradient' | 'minimal'
   cardColor: 'neon' | 'pink' | 'cyan' | 'yellow'
   cardBackground: { color: string }
+  cardBackgroundImage?: types.IImageSource
   titleColor: { color: string }
   descriptionColor: { color: string }
   borderColor: { color: string }
@@ -84,6 +85,7 @@ const WelcomeInfoCard: types.Brick<WelcomeInfoCardProps> = ({
   cardStyle = 'glass',
   cardColor = 'neon',
   cardBackground = { color: 'transparent' },
+  cardBackgroundImage,
   titleColor = { color: '#ffffff' },
   descriptionColor = { color: '#d1d5db' },
   borderColor = { color: '#00ffff' },
@@ -159,6 +161,19 @@ const WelcomeInfoCard: types.Brick<WelcomeInfoCardProps> = ({
     // Custom background color
     if (cardBackground?.color && cardBackground.color !== 'transparent') {
       style.backgroundColor = cardBackground.color
+    }
+    
+    // Background image support (like EventsSpecialsSection)
+    if (cardBackgroundImage) {
+      if (cardBackground?.color && cardBackground.color !== 'transparent') {
+        // Layer background image with color overlay
+        style.backgroundImage = `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${cardBackgroundImage.src})`
+      } else {
+        style.backgroundImage = `url(${cardBackgroundImage.src})`
+      }
+      style.backgroundSize = 'cover'
+      style.backgroundPosition = 'center'
+      style.backgroundRepeat = 'no-repeat'
     }
     
     // Border styling
@@ -527,6 +542,11 @@ WelcomeInfoCard.schema = {
           }
         },
         createAdvancedColorProp('cardBackground', 'Card Background', { presetColors: BACKGROUND_PALETTE }),
+        {
+          name: 'cardBackgroundImage',
+          label: 'Card Background Image',
+          type: types.SideEditPropType.Image,
+        },
         createAdvancedColorProp('borderColor', 'Border Color', { presetColors: TEXT_PALETTE })
       ]
     },
@@ -701,13 +721,16 @@ interface WelcomingSectionProps {
   infoPanels: types.RepeaterItems
   
   // Styling Controls
-  backgroundColor: string
+  backgroundColor: string | { color: string }
   titleColor: { color: string }
   subtitleColor: { color: string }
   showBadges: boolean
   showCarousel: boolean
   showCTA: boolean
   showFeatures: boolean
+  
+  // Background Image Support (like EventsSpecialsSection)
+  backgroundImage?: types.IImageSource
   
   // Layout Controls
   sectionPadding: 'sm' | 'md' | 'lg'
@@ -731,6 +754,7 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
   showCarousel = true,
   showCTA = true,
   showFeatures = true,
+  backgroundImage,
   sectionPadding = 'md'
 }) => {
   const getPaddingClass = () => {
@@ -742,10 +766,27 @@ const WelcomingSection: types.Brick<WelcomingSectionProps> = ({
     }
   }
 
+  const getBackgroundStyle = () => {
+    // Handle both string and object color values (like EventsSpecialsSection)
+    const bgColor = typeof backgroundColor === 'string' ? backgroundColor : backgroundColor?.color || '#0f0f0f'
+    const baseStyle = { backgroundColor: bgColor }
+    
+    if (backgroundImage) {
+      return {
+        ...baseStyle,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url(${backgroundImage.src})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }
+    }
+    
+    return baseStyle
+  }
+
   return (
     <section 
       className={`bg-gradient-to-br from-darkBg via-gray-900 to-darkBg ${getPaddingClass()} overflow-hidden`}
-      style={{ backgroundColor }}
+      style={getBackgroundStyle()}
     >
       <div className="container-wide animate-fade-in">
         {/* Hero Header - Fully Responsive */}
@@ -1013,6 +1054,11 @@ WelcomingSection.schema = {
           'Background Color',
           { presetColors: BACKGROUND_PALETTE }
         ),
+        {
+          name: 'backgroundImage',
+          label: 'Background Image',
+          type: types.SideEditPropType.Image,
+        },
         createAdvancedColorProp(
           'titleColor',
           'Title Color',
