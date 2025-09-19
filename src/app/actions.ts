@@ -988,6 +988,7 @@ export async function createOrderServerAction(orderData: {
   }[];
   total: number;
   deliveryType: string;
+  deliveryAddress?: string;
   specialInstructions?: string;
 }) {
   try {
@@ -1017,6 +1018,7 @@ export async function createOrderServerAction(orderData: {
         status: 'draft',
         payment_status: 'awaiting_payment',
         delivery_method: orderData.deliveryType,
+        delivery_address: orderData.deliveryAddress || null,
         special_instructions: orderData.specialInstructions || null,
         created_at: new Date().toISOString(),
       })

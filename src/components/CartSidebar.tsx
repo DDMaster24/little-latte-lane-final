@@ -196,6 +196,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         items: checkoutItems,
         total,
         deliveryType,
+        deliveryAddress: deliveryType === 'delivery' ? address : undefined,
         specialInstructions: specialInstructions.trim() || undefined,
       });
 

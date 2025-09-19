@@ -39,6 +39,7 @@ interface Order {
   updated_at: string | null;
   order_number: string | null;
   delivery_method?: string | null;
+  delivery_address?: string;
   special_instructions: string | null;
   order_items: {
     id: string;
@@ -119,7 +120,12 @@ export default function KitchenView() {
       }
       
       setPreviousOrderCount(currentOrderCount);
-      setOrders(result.data);
+      // Map data to convert null to undefined for delivery_address
+      const mappedOrders = result.data.map(order => ({
+        ...order,
+        delivery_address: order.delivery_address || undefined
+      }));
+      setOrders(mappedOrders);
       setLastUpdate(new Date());
     } catch (error) {
       console.error('💥 Kitchen View: Unexpected error:', error);
@@ -623,6 +629,14 @@ export default function KitchenView() {
                       }`}>
                         {order.delivery_method === 'delivery' ? '🚚 Delivery' : '📦 Pickup'}
                       </Badge>
+                      
+                      {/* Display delivery address for delivery orders */}
+                      {order.delivery_method === 'delivery' && order.delivery_address && (
+                        <div className="mt-2 p-2 bg-blue-600/10 border border-blue-600/30 rounded text-xs">
+                          <div className="text-blue-300 font-medium">📍 Delivery Address:</div>
+                          <div className="text-gray-200 mt-1">{order.delivery_address}</div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
