@@ -27,11 +27,11 @@ const pageTypes: types.IPageType[] = [
       'BookingsSection',
       
       // Menu Components
-      'menu-hero',
-      'menu-section',
       'MenuHero',
-      'MenuSection',
-      'MenuDisplay',
+      'menu-drinks-section',
+      'menu-main-food-section', 
+      'menu-breakfast-sides-section',
+      'menu-extras-specialties-section',
       
       // Layout Components
       'FooterSection',

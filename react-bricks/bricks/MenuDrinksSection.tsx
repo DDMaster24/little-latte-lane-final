@@ -1,0 +1,339 @@
+import React from 'react'
+import { Text, Repeater, types } from 'react-bricks/frontend'
+import { createAdvancedColorProp } from '../components/colorPickerUtils'
+
+//========================================
+// Menu Drinks Section Component
+// Exact replica of "Drinks & Beverages" section from current menu page
+//========================================
+
+interface MenuDrinksSectionProps {
+  // Section Header Properties
+  sectionTitle: types.TextValue
+  leftEmoji: types.TextValue
+  rightEmoji: types.TextValue
+  
+  // Content Control
+  showTitle: boolean
+  showEmojis: boolean
+  
+  // Layout & Styling
+  sectionBackground: { color: string }
+  titleColor: { color: string }
+  contentAlignment: 'left' | 'center' | 'right'
+  sectionPadding: 'sm' | 'md' | 'lg' | 'xl'
+  
+  // Advanced Styling
+  borderStyle: 'none' | 'top' | 'bottom' | 'both'
+  borderColor: { color: string }
+  _backgroundOverlay: number
+}
+
+const MenuDrinksSection: types.Brick<MenuDrinksSectionProps> = ({
+  // Content
+  sectionTitle,
+  leftEmoji,
+  rightEmoji,
+  
+  // Visibility
+  showTitle = true,
+  showEmojis = true,
+  
+  // Styling
+  sectionBackground = { color: 'rgba(17, 24, 39, 0.5)' }, // gray-900/50
+  titleColor = { color: '#ffffff' },
+  contentAlignment = 'center',
+  sectionPadding = 'lg',
+  
+  // Advanced
+  borderStyle = 'both',
+  borderColor = { color: 'rgba(55, 65, 81, 0.5)' }, // gray-700/50
+  _backgroundOverlay = 0.5
+}) => {
+  
+  const getPaddingClass = () => {
+    switch (sectionPadding) {
+      case 'sm': return 'py-4 sm:py-6'
+      case 'md': return 'py-6 sm:py-8'
+      case 'lg': return 'py-6 sm:py-8'
+      case 'xl': return 'py-8 sm:py-12'
+      default: return 'py-6 sm:py-8'
+    }
+  }
+
+  const getAlignmentClass = () => {
+    switch (contentAlignment) {
+      case 'left': return 'text-left'
+      case 'right': return 'text-right'
+      case 'center': return 'text-center'
+      default: return 'text-center'
+    }
+  }
+
+  const getBorderClass = () => {
+    const baseClass = 'border-gray-700/50'
+    switch (borderStyle) {
+      case 'top': return `border-t ${baseClass}`
+      case 'bottom': return `border-b ${baseClass}`
+      case 'both': return `border-y ${baseClass}`
+      case 'none': return ''
+      default: return `border-y ${baseClass}`
+    }
+  }
+
+  return (
+    <div className="w-full">
+      <div 
+        className={`bg-gray-900/50 ${getBorderClass()} ${getPaddingClass()}`}
+        style={{
+          backgroundColor: sectionBackground.color,
+          borderColor: borderColor.color
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          
+          {/* Section Header */}
+          {showTitle && (
+            <div className={`mb-6 sm:mb-8 ${getAlignmentClass()}`}>
+              <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2">
+                {showEmojis && (
+                  <Text
+                    propName="leftEmoji"
+                    value={leftEmoji}
+                    placeholder="☕"
+                    renderBlock={(props) => (
+                      <span className="text-2xl sm:text-3xl">
+                        {props.children}
+                      </span>
+                    )}
+                  />
+                )}
+                
+                <Text
+                  propName="sectionTitle"
+                  value={sectionTitle}
+                  placeholder="Drinks & Beverages"
+                  renderBlock={(props) => (
+                    <h2 
+                      className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-neonCyan to-neonPink bg-clip-text text-transparent"
+                      style={{ color: titleColor.color }}
+                    >
+                      {props.children}
+                    </h2>
+                  )}
+                />
+                
+                {showEmojis && (
+                  <Text
+                    propName="rightEmoji"
+                    value={rightEmoji}
+                    placeholder="☕"
+                    renderBlock={(props) => (
+                      <span className="text-2xl sm:text-3xl">
+                        {props.children}
+                      </span>
+                    )}
+                  />
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Category Panels Grid - Exact Current Layout */}
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+            <Repeater
+              propName="categoryPanels"
+              items={[
+                {
+                  categoryName: 'Hot Drinks',
+                  categoryDescription: 'Coffee, tea, and warm beverages',
+                  categoryIcon: '☕',
+                  categoryId: '',
+                  showName: true,
+                  showDescription: true,
+                  showIcon: true
+                }
+              ]}
+              itemProps={{
+                className: 'category-card flex-none w-72 sm:w-80'
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Preserved CSS for responsive centered grid - Exact from current page */}
+        <style jsx>{`
+          @media (min-width: 1536px) {
+            .category-card {
+              width: calc(20% - 1.2rem);
+              min-width: 280px;
+            }
+          }
+          
+          @media (min-width: 1280px) and (max-width: 1535px) {
+            .category-card {
+              width: calc(25% - 1.125rem);
+              min-width: 280px;
+            }
+          }
+          
+          @media (min-width: 1024px) and (max-width: 1279px) {
+            .category-card {
+              width: calc(33.333% - 1rem);
+              min-width: 280px;
+            }
+          }
+          
+          @media (min-width: 768px) and (max-width: 1023px) {
+            .category-card {
+              width: calc(50% - 1rem);
+              min-width: 280px;
+            }
+          }
+          
+          @media (max-width: 767px) {
+            .category-card {
+              width: 100%;
+              max-width: 400px;
+            }
+          }
+        `}</style>
+      </div>
+    </div>
+  )
+}
+
+//========================================
+// React Bricks Schema Configuration
+//========================================
+
+MenuDrinksSection.schema = {
+  name: 'menu-drinks-section',
+  label: 'Menu Drinks Section',
+  category: 'Menu Components',
+  tags: ['menu', 'drinks', 'beverages', 'section'],
+  
+  // Default props - Exact current content
+  getDefaultProps: () => ({
+    sectionTitle: 'Drinks & Beverages',
+    leftEmoji: '☕',
+    rightEmoji: '☕',
+    showTitle: true,
+    showEmojis: true,
+    sectionBackground: { color: 'rgba(17, 24, 39, 0.5)' },
+    titleColor: { color: '#ffffff' },
+    contentAlignment: 'center',
+    sectionPadding: 'lg',
+    borderStyle: 'both',
+    borderColor: { color: 'rgba(55, 65, 81, 0.5)' },
+    backgroundOverlay: 0.5,
+    categoryPanels: [
+      {
+        categoryName: 'Hot Drinks',
+        categoryDescription: 'Coffee, tea, and warm beverages',
+        categoryIcon: '☕',
+        categoryId: '',
+        showName: true,
+        showDescription: true,
+        showIcon: true
+      }
+    ]
+  }),
+
+  // Property Controls for Admin Editing
+  sideEditProps: [
+    {
+      groupName: 'Content',
+      defaultOpen: true,
+      props: [
+        {
+          name: 'showTitle',
+          label: 'Show Title',
+          type: types.SideEditPropType.Boolean,
+        },
+        {
+          name: 'showEmojis', 
+          label: 'Show Emojis',
+          type: types.SideEditPropType.Boolean,
+        }
+      ]
+    },
+    {
+      groupName: 'Layout',
+      defaultOpen: false,
+      props: [
+        {
+          name: 'contentAlignment',
+          label: 'Content Alignment',
+          type: types.SideEditPropType.Select,
+          selectOptions: {
+            display: types.OptionsDisplay.Select,
+            options: [
+              { value: 'left', label: 'Left' },
+              { value: 'center', label: 'Center' },
+              { value: 'right', label: 'Right' }
+            ]
+          }
+        },
+        {
+          name: 'sectionPadding',
+          label: 'Section Padding',
+          type: types.SideEditPropType.Select,
+          selectOptions: {
+            display: types.OptionsDisplay.Select,
+            options: [
+              { value: 'sm', label: 'Small' },
+              { value: 'md', label: 'Medium' },
+              { value: 'lg', label: 'Large' },
+              { value: 'xl', label: 'Extra Large' }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      groupName: 'Styling',
+      defaultOpen: false,
+      props: [
+        createAdvancedColorProp('sectionBackground', 'Section Background'),
+        createAdvancedColorProp('titleColor', 'Title Color'),
+        {
+          name: 'borderStyle',
+          label: 'Border Style',
+          type: types.SideEditPropType.Select,
+          selectOptions: {
+            display: types.OptionsDisplay.Select,
+            options: [
+              { value: 'none', label: 'None' },
+              { value: 'top', label: 'Top Only' },
+              { value: 'bottom', label: 'Bottom Only' },
+              { value: 'both', label: 'Top & Bottom' }
+            ]
+          }
+        },
+        createAdvancedColorProp('borderColor', 'Border Color'),
+        {
+          name: 'backgroundOverlay',
+          label: 'Background Overlay',
+          type: types.SideEditPropType.Range,
+          rangeOptions: {
+            min: 0,
+            max: 1,
+            step: 0.1,
+          }
+        }
+      ]
+    }
+  ],
+
+  // Repeater items
+  repeaterItems: [
+    {
+      name: 'categoryPanels',
+      itemType: 'menu-category-panel',
+      itemLabel: 'Category Panel'
+    }
+  ]
+}
+
+export default MenuDrinksSection

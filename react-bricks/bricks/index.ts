@@ -4,8 +4,11 @@ import CategoriesSection, { CategoryCard } from './CategoriesSection'
 import EventsSpecialsSection, { EventSpecialCard } from './EventsSpecialsSection'
 import BookingsSection from './BookingsSection'
 import MenuHero from './MenuHero'
-import MenuDisplay, { MenuCategoryCard, MenuSection } from './MenuDisplay'
-import MenuSectionNew, { MenuCategoryCard as MenuCategoryCardNew } from './MenuSection'
+import MenuDrinksSection from './MenuDrinksSection'
+import MenuMainFoodSection from './MenuMainFoodSection'
+import MenuBreakfastSidesSection from './MenuBreakfastSidesSection'
+import MenuExtrasSpecialtiesSection from './MenuExtrasSpecialtiesSection'
+import MenuCategoryPanel from './MenuCategoryPanel'
 import HeaderSection, { NavLink } from './HeaderSection'
 import FooterSection, { FooterLink, FooterColumn } from './FooterSection'
 import CartSection from './CartSection'
@@ -28,9 +31,11 @@ const bricks: types.Theme[] = [
       {
         categoryName: 'Menu Components',
         bricks: [
-          MenuHero,               // ✅ Professional menu hero with multiple styles
-          MenuDisplay,            // ✅ Full menu display with sections and categories
-          MenuSectionNew,         // ✅ New professional menu section with category cards
+          MenuHero,                      // ✅ Professional menu hero with multiple styles
+          MenuDrinksSection,             // ✅ NEW: Drinks & Beverages section with category panels
+          MenuMainFoodSection,           // ✅ NEW: Main Food section with category panels  
+          MenuBreakfastSidesSection,     // ✅ NEW: Breakfast & Sides section with category panels
+          MenuExtrasSpecialtiesSection,  // ✅ NEW: Extras & Specialties section with category panels
         ],
       },
       {
@@ -54,9 +59,7 @@ const bricks: types.Theme[] = [
           WelcomeInfoCard,        // Nested inside WelcomingSection
           CategoryCard,           // Nested inside CategoriesSection
           EventSpecialCard,       // Nested inside EventsSpecialsSection
-          MenuCategoryCard,       // Nested inside MenuDisplay
-          MenuSection,            // Nested inside MenuDisplay
-          MenuCategoryCardNew,    // Nested inside MenuSectionNew
+          MenuCategoryPanel,      // Nested inside Menu Section components
           NavLink,                // Nested inside HeaderSection
           FooterLink,             // Nested inside FooterSection
           FooterColumn,           // Nested inside FooterSection
