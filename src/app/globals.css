@@ -663,7 +663,8 @@ div[id*="vercel-toolbar"],
 div[class*="__vercel_toolbar"],
 div[data-testid*="vercel-toolbar"],
 .vercel-live-feedback,
-[data-vercel-live-feedback] {
+[data-vercel-live-feedback],
+iframe[src*="vercel"] {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
@@ -675,4 +676,23 @@ div[data-testid*="vercel-toolbar"],
   height: 0 !important;
   overflow: hidden !important;
   z-index: -1 !important;
+}
+
+/* Hide React Bricks Visual Elements in Production */
+.react-bricks-admin-badge,
+.react-bricks-floating-menu,
+.react-bricks-editor-badge,
+div[class*="react-bricks-badge"],
+div[data-cy="react-bricks-badge"],
+div[data-testid*="react-bricks"],
+button[data-cy*="edit"],
+button[class*="edit-button"],
+.rb-editor-overlay,
+.rb-floating-menu,
+[data-rb-admin],
+[data-rb-badge] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }

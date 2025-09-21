@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ReactBricks } from 'react-bricks'
 
 import NextLink from '../../react-bricks/NextLink'
@@ -14,24 +14,46 @@ interface ReactBricksAppProps {
 
 export function ReactBricksApp({ children, lang: _lang = 'en' }: ReactBricksAppProps) {
   const router = useRouter()
+  const [isClient, setIsClient] = useState(false)
 
   // Color Mode Management (like in working version)
-  const savedColorMode =
-    typeof window === 'undefined' ? '' : localStorage.getItem('color-mode')
+  const [colorMode, setColorMode] = useState('light')
 
-  const [colorMode, setColorMode] = useState(savedColorMode || 'light')
+  useEffect(() => {
+    setIsClient(true)
+    // Only access localStorage after client mount
+    const savedColorMode = localStorage.getItem('color-mode')
+    if (savedColorMode) {
+      setColorMode(savedColorMode)
+    }
+  }, [])
 
   const toggleColorMode = () => {
     const newColorMode = colorMode === 'light' ? 'dark' : 'light'
     setColorMode(newColorMode)
-    localStorage.setItem('color-mode', newColorMode)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('color-mode', newColorMode)
+    }
+  }
+
+  // Prevent rendering until client-side
+  if (!isClient) {
+    return <>{children}</>
   }
 
   const reactBricksConfig = {
     ...config,
     navigate: (path: string) => {
       // Enhanced navigation - use Next.js router for better UX
-      router.push(path);
+      try {
+        router.push(path);
+      } catch (error) {
+        console.warn('Navigation error:', error)
+        // Fallback to window.location if router fails
+        if (typeof window !== 'undefined') {
+          window.location.href = path
+        }
+      }
     },
     renderLocalLink: NextLink,
     isDarkColorMode: colorMode === 'dark',
@@ -39,9 +61,12 @@ export function ReactBricksApp({ children, lang: _lang = 'en' }: ReactBricksAppP
     contentClassName: `antialiased font-sans ${colorMode} ${
       colorMode === 'dark' ? 'dark bg-gray-900' : 'light bg-white'
     }`,
-    // Enhanced editor experience
+    // Enhanced editor experience with error handling
     enablePreview: true,
     enableAutoSave: true,
+    // Disable overlays in production
+    showAdminBadge: process.env.NODE_ENV === 'development',
+    showFloatingMenu: process.env.NODE_ENV === 'development',
   }
 
   return <ReactBricks {...reactBricksConfig}>{children}</ReactBricks>

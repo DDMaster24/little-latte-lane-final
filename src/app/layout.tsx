@@ -127,11 +127,48 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              // Disable Vercel Toolbar
-              if (typeof window !== 'undefined') {
+              // Comprehensive Vercel Toolbar Disabling
+              (function() {
+                // Set multiple disable flags
                 window.__VERCEL_TOOLBAR_DISABLED = true;
                 window.VERCEL_TOOLBAR = false;
-              }
+                window.__NEXT_ROUTER_BASEPATH = '';
+                
+                // Override any existing Vercel toolbar initialization
+                if (window.VercelToolbar) {
+                  window.VercelToolbar.hide = () => {};
+                  window.VercelToolbar.show = () => {};
+                }
+                
+                // Prevent toolbar from showing via CSS
+                const style = document.createElement('style');
+                style.textContent = \`
+                  [data-vercel-toolbar] { display: none !important; }
+                  .vercel-toolbar { display: none !important; }
+                  iframe[src*="vercel"] { display: none !important; }
+                  #vercel-toolbar { display: none !important; }
+                \`;
+                document.head.appendChild(style);
+                
+                // Remove any toolbar elements that might be added
+                const observer = new MutationObserver(function(mutations) {
+                  mutations.forEach(function(mutation) {
+                    mutation.addedNodes.forEach(function(node) {
+                      if (node.nodeType === 1) {
+                        if (node.matches && (
+                          node.matches('[data-vercel-toolbar]') ||
+                          node.matches('.vercel-toolbar') ||
+                          node.matches('#vercel-toolbar') ||
+                          (node.tagName === 'IFRAME' && node.src && node.src.includes('vercel'))
+                        )) {
+                          node.remove();
+                        }
+                      }
+                    });
+                  });
+                });
+                observer.observe(document.body, { childList: true, subtree: true });
+              })();
             `,
           }}
         />
