@@ -127,9 +127,9 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              // Comprehensive Vercel Toolbar Disabling
+              // Comprehensive Vercel Toolbar Disabling + React Bricks Badge Removal
               (function() {
-                // Set multiple disable flags
+                // Set multiple disable flags for Vercel
                 window.__VERCEL_TOOLBAR_DISABLED = true;
                 window.VERCEL_TOOLBAR = false;
                 window.__NEXT_ROUTER_BASEPATH = '';
@@ -140,21 +140,58 @@ export default function RootLayout({
                   window.VercelToolbar.show = () => {};
                 }
                 
-                // Prevent toolbar from showing via CSS
+                // Prevent toolbar and React Bricks from showing via CSS
                 const style = document.createElement('style');
                 style.textContent = \`
                   [data-vercel-toolbar] { display: none !important; }
                   .vercel-toolbar { display: none !important; }
                   iframe[src*="vercel"] { display: none !important; }
                   #vercel-toolbar { display: none !important; }
+                  
+                  /* Nuclear React Bricks hiding */
+                  div[class*="react-bricks"] { display: none !important; }
+                  a[href*="reactbricks"] { display: none !important; }
+                  *:contains("MADE IN REACT BRICKS") { display: none !important; }
+                  div[style*="position: fixed"][style*="bottom"] { display: none !important; }
                 \`;
                 document.head.appendChild(style);
                 
-                // Remove any toolbar elements that might be added
+                // Function to remove React Bricks elements
+                function removeReactBricksElements() {
+                  const selectors = [
+                    'a[href*="reactbricks"]',
+                    'div[class*="react-bricks"]',
+                    'div[class*="ReactBricks"]',
+                    '[data-cy*="react-bricks"]',
+                    'div[style*="position: fixed"][style*="bottom"]'
+                  ];
+                  
+                  selectors.forEach(selector => {
+                    document.querySelectorAll(selector).forEach(el => {
+                      el.remove();
+                    });
+                  });
+                  
+                  // Remove by text content
+                  document.querySelectorAll('*').forEach(el => {
+                    if (el.textContent && (
+                      el.textContent.includes('MADE IN REACT BRICKS') ||
+                      el.textContent.includes('Made in React Bricks')
+                    )) {
+                      el.remove();
+                    }
+                  });
+                }
+                
+                // Remove on load
+                document.addEventListener('DOMContentLoaded', removeReactBricksElements);
+                
+                // Remove any toolbar/badge elements that might be added dynamically
                 const observer = new MutationObserver(function(mutations) {
                   mutations.forEach(function(mutation) {
                     mutation.addedNodes.forEach(function(node) {
                       if (node.nodeType === 1) {
+                        // Vercel toolbar removal
                         if (node.matches && (
                           node.matches('[data-vercel-toolbar]') ||
                           node.matches('.vercel-toolbar') ||
@@ -163,11 +200,32 @@ export default function RootLayout({
                         )) {
                           node.remove();
                         }
+                        
+                        // React Bricks badge removal
+                        if (node.matches && (
+                          node.matches('a[href*="reactbricks"]') ||
+                          node.matches('div[class*="react-bricks"]') ||
+                          node.matches('div[class*="ReactBricks"]') ||
+                          (node.style && node.style.position === 'fixed' && node.style.bottom)
+                        )) {
+                          node.remove();
+                        }
+                        
+                        // Check text content for React Bricks badge
+                        if (node.textContent && (
+                          node.textContent.includes('MADE IN REACT BRICKS') ||
+                          node.textContent.includes('Made in React Bricks')
+                        )) {
+                          node.remove();
+                        }
                       }
                     });
                   });
                 });
                 observer.observe(document.body, { childList: true, subtree: true });
+                
+                // Aggressive interval-based removal as backup
+                setInterval(removeReactBricksElements, 1000);
               })();
             `,
           }}
