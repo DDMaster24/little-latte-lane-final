@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { PageViewer, fetchPage, ReactBricks, types } from 'react-bricks/frontend';
 import { ClientOnly } from '@/components/ClientOnly';
 import { CategorySkeleton } from '@/components/LoadingComponents';
+import { useRestaurantClosure } from '@/hooks/useRestaurantClosure';
 import config from '../../../react-bricks/config';
 import Link from 'next/link';
 
@@ -11,6 +12,7 @@ function MenuContent() {
   const [page, setPage] = useState<types.Page | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isClosed, closureStatus } = useRestaurantClosure();
 
   // React Bricks configuration
   const reactBricksConfig = {
@@ -89,6 +91,48 @@ function MenuContent() {
     );
   }
 
+  // Restaurant is closed - show closure message instead of menu
+  if (isClosed) {
+    return (
+      <main className="bg-darkBg py-8 px-6">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center max-w-2xl mx-auto">
+            <div className="bg-red-500/20 border-2 border-red-500/40 rounded-xl p-8 mb-8">
+              <div className="text-red-400 mb-4 text-6xl">🔒</div>
+              <h1 className="text-3xl font-bold text-red-300 mb-4">We&apos;re Currently Closed</h1>
+              <p className="text-red-200 text-lg mb-6">
+                {closureStatus.message || 'Online ordering is temporarily unavailable.'}
+              </p>
+              
+              {closureStatus.reason === 'scheduled' && closureStatus.scheduled_end && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6">
+                  <p className="text-red-300 text-sm">
+                    <strong>Reopening:</strong> {new Date(closureStatus.scheduled_end).toLocaleString()}
+                  </p>
+                </div>
+              )}
+              
+              <div className="space-y-3 text-red-200 text-sm">
+                <p>• Online ordering is currently disabled</p>
+                <p>• Please check back later or contact us directly</p>
+                <p>• Thank you for your patience</p>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-neonCyan/20 border border-neonCyan/30 text-neonCyan rounded-lg hover:bg-neonCyan/30 transition-all duration-200 font-medium"
+              >
+                ← Return to Homepage
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   if (error || !page) {
     return (
       <main className="bg-darkBg py-8 px-6">
@@ -135,24 +179,26 @@ function MenuContent() {
         {/* Render the React Bricks menu page content */}
         <PageViewer page={page} />
         
-        {/* Fallback Browse All Button */}
-        <div className="flex justify-center mt-8 sm:mt-12 px-4 pb-8">
-          <Link
-            href="/menu/modern"
-            className="neon-button group relative bg-black/20 backdrop-blur-md border border-neonCyan/50 hover:border-neonPink/70 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-neonCyan hover:text-neonPink transition-all duration-300 hover:scale-105 hover:shadow-neon text-sm sm:text-base"
-            style={{ 
-              background: 'rgba(0, 0, 0, 0.4)',
-              backdropFilter: 'blur(10px)',
-              boxShadow: '0 0 20px rgba(0, 255, 255, 0.2)'
-            }}
-          >
-            <span className="flex items-center gap-3">
-              <span className="text-2xl">🍽️</span>
-              <span>Browse All Menu Items</span>
-              <span className="text-2xl">🍽️</span>
-            </span>
-          </Link>
-        </div>
+        {/* Fallback Browse All Button - only show if restaurant is open */}
+        {!isClosed && (
+          <div className="flex justify-center mt-8 sm:mt-12 px-4 pb-8">
+            <Link
+              href="/menu/modern"
+              className="neon-button group relative bg-black/20 backdrop-blur-md border border-neonCyan/50 hover:border-neonPink/70 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-neonCyan hover:text-neonPink transition-all duration-300 hover:scale-105 hover:shadow-neon text-sm sm:text-base"
+              style={{ 
+                background: 'rgba(0, 0, 0, 0.4)',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 0 20px rgba(0, 255, 255, 0.2)'
+              }}
+            >
+              <span className="flex items-center gap-3">
+                <span className="text-2xl">🍽️</span>
+                <span>Browse All Menu Items</span>
+                <span className="text-2xl">🍽️</span>
+              </span>
+            </Link>
+          </div>
+        )}
       </main>
     </ReactBricks>
   );

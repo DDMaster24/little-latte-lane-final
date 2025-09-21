@@ -12,6 +12,7 @@ import MenuCategoryPanel from './MenuCategoryPanel'
 import HeaderSection, { NavLink } from './HeaderSection'
 import FooterSection, { FooterLink, FooterColumn } from './FooterSection'
 import CartSection from './CartSection'
+import ClosureBanner from './ClosureBanner'
 
 // Little Latte Lane Custom Bricks Theme
 
@@ -36,6 +37,12 @@ const bricks: types.Theme[] = [
           MenuMainFoodSection,           // ✅ NEW: Main Food section with category panels  
           MenuBreakfastSidesSection,     // ✅ NEW: Breakfast & Sides section with category panels
           MenuExtrasSpecialtiesSection,  // ✅ NEW: Extras & Specialties section with category panels
+        ],
+      },
+      {
+        categoryName: 'Restaurant Management',
+        bricks: [
+          ClosureBanner,          // ✅ NEW: Displays closure banner when restaurant is closed
         ],
       },
       {

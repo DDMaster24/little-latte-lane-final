@@ -5,7 +5,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Menu, Users, BarChart3, ShoppingBag, Calendar, 
-  Shield, Activity, CheckCircle, CreditCard, QrCode, Star
+  Shield, Activity, CheckCircle, CreditCard, QrCode, Star, Power
 } from 'lucide-react';
 
 // Tab Components
@@ -17,10 +17,12 @@ import BookingManagement from '@/components/Admin/BookingManagement';
 import AdminOverview from '@/components/Admin/AdminOverview';
 import EventsSpecialsManagement from '@/components/Admin/EventsSpecialsManagement';
 import BookingsManagementExtended from '@/components/Admin/BookingsManagementExtended';
+import RestaurantClosureManagement from '@/components/Admin/RestaurantClosureManagement';
 import { QRCodeGenerator } from '@/components/QRCodeGenerator';
 
 const tabs = [
   { id: 'overview', label: 'Overview', icon: BarChart3, color: 'neonCyan' },
+  { id: 'closure', label: 'Restaurant Status', icon: Power, color: 'red-500' },
   { id: 'content', label: 'Content Management', icon: CheckCircle, color: 'neonPink' },
   { id: 'menu', label: 'Menu Management', icon: Menu, color: 'neonCyan' },
   { id: 'orders', label: 'Order Management', icon: ShoppingBag, color: 'neonPink' },
@@ -58,6 +60,8 @@ export default function AdminPage() {
     switch (activeTab) {
       case 'overview':
         return <AdminOverview />;
+      case 'closure':
+        return <RestaurantClosureManagement />;
       case 'content':
         return (
           <div className="space-y-6">

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/components/AuthProvider';
+import { useRestaurantClosure } from '@/hooks/useRestaurantClosure';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -47,6 +48,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const removeItem = useCartStore((state) => state.removeItem);
   const total = useCartStore((state) => state.total());
   const { user, profile } = useAuth();
+  const { isClosed, message: closureMessage } = useRestaurantClosure();
   const router = useRouter();
 
   const [deliveryType, setDeliveryType] = useState<'delivery' | 'pickup'>(
@@ -121,6 +123,12 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   }, [profile]);
 
   const handleCreateOrder = async () => {
+    // Check if restaurant is closed
+    if (isClosed) {
+      toast.error(closureMessage || 'Restaurant is currently closed. Please try again later.');
+      return;
+    }
+
     if (!profile) {
       toast.error('Please log in to checkout');
       return;
@@ -443,12 +451,25 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                         </span>
                       </div>
 
+                      {/* Restaurant closure notice */}
+                      {isClosed && (
+                        <div className="bg-red-600/20 border border-red-600 rounded-lg p-3 mb-4">
+                          <div className="flex items-center gap-2 text-red-400">
+                            <span>🔒</span>
+                            <span className="text-sm font-medium">Restaurant Closed</span>
+                          </div>
+                          <p className="text-red-300 text-sm mt-1">
+                            {closureMessage || 'We are currently closed. Please try again later.'}
+                          </p>
+                        </div>
+                      )}
+
                       <Button
                         onClick={() => setStep('checkout')}
                         className="w-full neon-button"
-                        disabled={cart.length === 0}
+                        disabled={cart.length === 0 || isClosed}
                       >
-                        Proceed to Checkout
+                        {isClosed ? 'Restaurant Closed' : 'Proceed to Checkout'}
                       </Button>
                     </div>
                   </>
@@ -748,10 +769,15 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                       </Button>
                       <Button
                         onClick={handleCreateOrder}
-                        disabled={isCreatingOrder}
+                        disabled={isCreatingOrder || isClosed}
                         className="flex-1 neon-button"
                       >
-                        {isCreatingOrder ? 'Creating Order...' : 'Proceed to Payment'}
+                        {isClosed 
+                          ? 'Restaurant Closed' 
+                          : isCreatingOrder 
+                            ? 'Creating Order...' 
+                            : 'Proceed to Payment'
+                        }
                       </Button>
                     </div>
                   </>
