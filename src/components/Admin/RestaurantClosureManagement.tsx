@@ -108,15 +108,20 @@ export default function RestaurantClosureManagement() {
 
     setSchedulingLoading(true)
     try {
-      const startDateTime = `${scheduledStartDate}T${scheduledStartTime}:00.000Z`
-      const endDateTime = `${scheduledEndDate}T${scheduledEndTime}:00.000Z`
+      // Create datetime strings in local timezone (no Z suffix)
+      const startDateTime = `${scheduledStartDate}T${scheduledStartTime}:00`
+      const endDateTime = `${scheduledEndDate}T${scheduledEndTime}:00`
       
-      const result = await RestaurantClosureManager.scheduleClosure(startDateTime, endDateTime)
+      // Convert to ISO strings which will preserve local timezone
+      const startISO = new Date(startDateTime).toISOString()
+      const endISO = new Date(endDateTime).toISOString()
+      
+      const result = await RestaurantClosureManager.scheduleClosure(startISO, endISO)
       
       if (result.success) {
         toast({
           title: 'Closure Scheduled',
-          description: `Restaurant will close from ${new Date(startDateTime).toLocaleString()} to ${new Date(endDateTime).toLocaleString()}`,
+          description: `Restaurant will close from ${new Date(startISO).toLocaleString()} to ${new Date(endISO).toLocaleString()}`,
         })
         
         // Refresh status and settings
