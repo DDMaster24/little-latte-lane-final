@@ -186,13 +186,42 @@ export class RestaurantClosureManager {
    */
   static async setManualClosure(isClosed: boolean): Promise<{ success: boolean; error?: string }> {
     try {
-      const { error } = await this.supabase
+      // First try to update existing record
+      const { data: existingData, error: fetchError } = await this.supabase
         .from('theme_settings')
-        .upsert({
-          setting_key: 'restaurant_manually_closed',
-          setting_value: isClosed.toString(),
-          category: 'restaurant_closure'
-        })
+        .select('id')
+        .eq('setting_key', 'restaurant_manually_closed')
+        .single()
+
+      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = not found
+        console.error('Error checking existing record:', fetchError)
+        return { success: false, error: fetchError.message }
+      }
+
+      let error
+      if (existingData) {
+        // Update existing record
+        const result = await this.supabase
+          .from('theme_settings')
+          .update({
+            setting_value: isClosed.toString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('setting_key', 'restaurant_manually_closed')
+        
+        error = result.error
+      } else {
+        // Insert new record
+        const result = await this.supabase
+          .from('theme_settings')
+          .insert({
+            setting_key: 'restaurant_manually_closed',
+            setting_value: isClosed.toString(),
+            category: 'restaurant_closure'
+          })
+        
+        error = result.error
+      }
 
       if (error) {
         console.error('Error setting manual closure:', error)
