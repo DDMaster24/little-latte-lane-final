@@ -139,8 +139,8 @@ const MenuBreakfastSidesSection: types.Brick<MenuBreakfastSidesSectionProps> = (
             </div>
           )}
 
-          {/* Category Panels Grid - Exact Current Layout */}
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+          {/* Category Panels Grid - Proper CSS Grid Layout like CategoriesSection */}
+          <div className="grid-responsive-4 max-w-7xl mx-auto">
             <Repeater
               propName="categoryPanels"
               items={[
@@ -154,50 +154,9 @@ const MenuBreakfastSidesSection: types.Brick<MenuBreakfastSidesSectionProps> = (
                   showIcon: true
                 }
               ]}
-              itemProps={{
-                className: 'category-card flex-none w-72 sm:w-80'
-              }}
             />
           </div>
         </div>
-
-        {/* Preserved CSS for responsive centered grid - Exact from current page */}
-        <style jsx>{`
-          @media (min-width: 1536px) {
-            .category-card {
-              width: calc(20% - 1.2rem);
-              min-width: 280px;
-            }
-          }
-          
-          @media (min-width: 1280px) and (max-width: 1535px) {
-            .category-card {
-              width: calc(25% - 1.125rem);
-              min-width: 280px;
-            }
-          }
-          
-          @media (min-width: 1024px) and (max-width: 1279px) {
-            .category-card {
-              width: calc(33.333% - 1rem);
-              min-width: 280px;
-            }
-          }
-          
-          @media (min-width: 768px) and (max-width: 1023px) {
-            .category-card {
-              width: calc(50% - 1rem);
-              min-width: 280px;
-            }
-          }
-          
-          @media (max-width: 767px) {
-            .category-card {
-              width: 100%;
-              max-width: 400px;
-            }
-          }
-        `}</style>
       </div>
     </div>
   )
