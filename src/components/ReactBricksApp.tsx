@@ -64,9 +64,6 @@ export function ReactBricksApp({ children, lang: _lang = 'en' }: ReactBricksAppP
     // Enhanced editor experience with error handling
     enablePreview: true,
     enableAutoSave: true,
-    // Disable overlays in production
-    showAdminBadge: process.env.NODE_ENV === 'development',
-    showFloatingMenu: process.env.NODE_ENV === 'development',
   }
 
   return <ReactBricks {...reactBricksConfig}>{children}</ReactBricks>
