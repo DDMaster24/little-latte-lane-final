@@ -139,8 +139,8 @@ const MenuExtrasSpecialtiesSection: types.Brick<MenuExtrasSpecialtiesSectionProp
             </div>
           )}
 
-          {/* Category Panels Grid - Centered Layout for Flexible Panel Count */}
-          <div className="menu-grid-centered mx-auto">
+          {/* Category Panels Grid - Proper CSS Grid Layout like CategoriesSection */}
+          <div className="grid-responsive-4 max-w-7xl mx-auto">
             <Repeater
               propName="categoryPanels"
               items={[
