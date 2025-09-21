@@ -20,9 +20,9 @@ const envSchema = z.object({
     .string()
     .min(1, 'Supabase anonymous key is required'),
 
-  SUPABASE_SERVICE_KEY: z
+  SUPABASE_SERVICE_ROLE_KEY: z
     .string()
-    .min(1, 'Supabase service key is required')
+    .min(1, 'Supabase service role key is required')
     .optional(),
 
   // Yoco payment configuration (optional in development)
@@ -46,7 +46,7 @@ export const env = envSchema.parse({
   NODE_ENV: process.env['NODE_ENV'],
   NEXT_PUBLIC_SUPABASE_URL: process.env['NEXT_PUBLIC_SUPABASE_URL'],
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'],
-  SUPABASE_SERVICE_KEY: process.env['SUPABASE_SERVICE_KEY'],
+  SUPABASE_SERVICE_ROLE_KEY: process.env['SUPABASE_SERVICE_ROLE_KEY'],
   NEXT_PUBLIC_YOCO_TEST_MODE: process.env['NEXT_PUBLIC_YOCO_TEST_MODE'],
   YOCO_SECRET_KEY: process.env['YOCO_SECRET_KEY'],
   YOCO_PUBLIC_KEY: process.env['YOCO_PUBLIC_KEY'],
@@ -72,8 +72,8 @@ export function validateEnvironment(): void {
 
   // Production-specific checks
   if (env.NODE_ENV === 'production') {
-    if (!env.SUPABASE_SERVICE_KEY) {
-      errors.push('SUPABASE_SERVICE_KEY is required in production');
+    if (!env.SUPABASE_SERVICE_ROLE_KEY) {
+      errors.push('SUPABASE_SERVICE_ROLE_KEY is required in production');
     }
 
     if (!env.YOCO_SECRET_KEY) {
