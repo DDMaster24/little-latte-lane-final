@@ -678,7 +678,7 @@ iframe[src*="vercel"] {
   z-index: -1 !important;
 }
 
-/* Hide React Bricks Visual Elements in Production - AGGRESSIVE */
+/* Hide React Bricks Visual Elements in Production */
 .react-bricks-admin-badge,
 .react-bricks-floating-menu,
 .react-bricks-editor-badge,
@@ -690,39 +690,9 @@ button[class*="edit-button"],
 .rb-editor-overlay,
 .rb-floating-menu,
 [data-rb-admin],
-[data-rb-badge],
-/* More aggressive targeting */
-div[class*="ReactBricks"],
-div[class*="react-bricks"],
-div[class*="rbrick"],
-a[href*="reactbricks"],
-div[style*="position: fixed"][style*="bottom"],
-div[style*="z-index: 999"],
-div[style*="z-index: 9999"],
-button[class*="brick"],
-span[class*="brick"],
-[class*="editor-badge"],
-[class*="admin-badge"],
-[data-editor],
-[data-admin],
-/* Target the specific "MADE IN REACT BRICKS" badge */
-div:has(> a[href*="reactbricks"]),
-div:has(> span:contains("MADE IN")),
-div:has(> span:contains("REACT BRICKS")),
-/* Nuclear option - hide any element containing React Bricks text */
-*[class*="badge"]:contains("REACT BRICKS"),
-*:contains("MADE IN REACT BRICKS") {
+[data-rb-badge] {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
   pointer-events: none !important;
-  position: absolute !important;
-  left: -9999px !important;
-  top: -9999px !important;
-  width: 0 !important;
-  height: 0 !important;
-  overflow: hidden !important;
-  z-index: -1 !important;
-  transform: scale(0) !important;
-  clip: rect(0,0,0,0) !important;
 }
