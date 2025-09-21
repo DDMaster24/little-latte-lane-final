@@ -246,7 +246,7 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
   if (isAdmin) {
     return (
       <div
-        className={`group relative backdrop-blur-md border hover:border-neonPink/50 transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in w-full h-full block ${getPaddingClass()} ${getBorderRadiusClass()} ${getBorderWidthClass()} ${getShadowClass()}`}
+        className={`menu-category-panel group relative backdrop-blur-md border hover:border-neonPink/50 transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in w-full h-full block ${getPaddingClass()} ${getBorderRadiusClass()} ${getBorderWidthClass()} ${getShadowClass()}`}
         style={{ 
           background: cardBackground.color,
           backdropFilter: 'blur(10px)',
@@ -262,7 +262,7 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
   return (
     <Link
       href={getFinalLink()}
-      className={`group relative backdrop-blur-md border hover:border-neonPink/50 transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in w-full h-full block ${getPaddingClass()} ${getBorderRadiusClass()} ${getBorderWidthClass()} ${getShadowClass()}`}
+      className={`menu-category-panel group relative backdrop-blur-md border hover:border-neonPink/50 transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in w-full h-full block ${getPaddingClass()} ${getBorderRadiusClass()} ${getBorderWidthClass()} ${getShadowClass()}`}
       style={{ 
         background: cardBackground.color,
         backdropFilter: 'blur(10px)',

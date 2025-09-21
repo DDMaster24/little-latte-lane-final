@@ -68,6 +68,21 @@
 
   .grid-responsive-4 {
     @apply grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-3 xs:gap-4 sm:gap-6;
+    justify-items: center;
+  }
+
+  /* Fixed width for menu category panels to maintain consistent size when centered */
+  .menu-category-panel {
+    width: 280px;
+    max-width: 100%;
+  }
+  
+  /* Responsive adjustments for mobile */
+  @media (max-width: 640px) {
+    .menu-category-panel {
+      width: 100%;
+      max-width: 400px;
+    }
   }
 
   .grid-responsive-auto {
