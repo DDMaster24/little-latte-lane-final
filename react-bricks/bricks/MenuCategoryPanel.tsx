@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Text, types } from 'react-bricks/frontend'
+import { Text, types, useAdminContext } from 'react-bricks/frontend'
 import Link from 'next/link'
 import { getSupabaseClient } from '@/lib/supabase-client'
 import { createAdvancedColorProp } from '../components/colorPickerUtils'
@@ -175,18 +175,12 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
     return categoryDescription || selectedCategory?.description || ''
   }
 
-  return (
-    <Link
-      href={getFinalLink()}
-      className={`group relative backdrop-blur-md border hover:border-neonPink/50 transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in w-full h-full block ${getPaddingClass()} ${getBorderRadiusClass()} ${getBorderWidthClass()} ${getShadowClass()}`}
-      style={{ 
-        background: cardBackground.color,
-        backdropFilter: 'blur(10px)',
-        borderColor: borderColor.color,
-        boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)'
-      }}
-      prefetch={true}
-    >
+  // Use admin context to detect edit mode - prevents navigation in React Bricks editor
+  const { isAdmin } = useAdminContext()
+
+  // Content that will be wrapped conditionally
+  const panelContent = (
+    <>
       {/* Category Content */}
       <div className={`flex flex-col ${getAlignmentClass()}`}>
         
@@ -245,6 +239,39 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
         {/* Hover Effect Glow - Exact from current design */}
         <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-neonCyan/5 to-neonPink/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       </div>
+    </>
+  )
+
+  // Conditionally wrap with Link only if not in admin/edit mode
+  if (isAdmin) {
+    return (
+      <div
+        className={`group relative backdrop-blur-md border hover:border-neonPink/50 transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in w-full h-full block ${getPaddingClass()} ${getBorderRadiusClass()} ${getBorderWidthClass()} ${getShadowClass()}`}
+        style={{ 
+          background: cardBackground.color,
+          backdropFilter: 'blur(10px)',
+          borderColor: borderColor.color,
+          boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)'
+        }}
+      >
+        {panelContent}
+      </div>
+    )
+  }
+
+  return (
+    <Link
+      href={getFinalLink()}
+      className={`group relative backdrop-blur-md border hover:border-neonPink/50 transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in w-full h-full block ${getPaddingClass()} ${getBorderRadiusClass()} ${getBorderWidthClass()} ${getShadowClass()}`}
+      style={{ 
+        background: cardBackground.color,
+        backdropFilter: 'blur(10px)',
+        borderColor: borderColor.color,
+        boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)'
+      }}
+      prefetch={true}
+    >
+      {panelContent}
     </Link>
   )
 }
