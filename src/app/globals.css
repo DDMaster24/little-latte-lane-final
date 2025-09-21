@@ -690,7 +690,9 @@ button[class*="edit-button"],
 .rb-editor-overlay,
 .rb-floating-menu,
 [data-rb-admin],
-[data-rb-badge] {
+[data-rb-badge],
+/* ChatGPT's specific recommendation for React Bricks badge */
+a[href*="reactbricks.com"] {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
