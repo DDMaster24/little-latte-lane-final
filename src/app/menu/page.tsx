@@ -28,8 +28,8 @@ function MenuContent() {
         <MenuHero
           heroTitle="Our Full Menu"
           heroSubtitle="Organized by category for easy browsing"
-          leftEmoji=""
-          rightEmoji=""
+          leftEmoji="🍽️"
+          rightEmoji="🍽️"
           ctaButtonText="Browse All Menu Items"
           ctaButtonLink="/menu/modern"
           showTitle={true}
@@ -54,8 +54,8 @@ function MenuContent() {
         
         <MenuDrinksSection
           sectionTitle="Drinks & Beverages"
-          leftEmoji=""
-          rightEmoji=""
+          leftEmoji="☕"
+          rightEmoji="☕"
           showTitle={true}
           showEmojis={true}
           sectionBackground={{ color: 'rgba(17, 24, 39, 0.5)' }}
@@ -69,8 +69,8 @@ function MenuContent() {
         
         <MenuMainFoodSection
           sectionTitle="Main Food"
-          leftEmoji=""
-          rightEmoji=""
+          leftEmoji="🍕"
+          rightEmoji="🍕"
           showTitle={true}
           showEmojis={true}
           sectionBackground={{ color: 'rgba(17, 24, 39, 0.5)' }}
@@ -84,8 +84,8 @@ function MenuContent() {
         
         <MenuBreakfastSidesSection
           sectionTitle="Breakfast & Sides"
-          leftEmoji=""
-          rightEmoji=""
+          leftEmoji="🥐"
+          rightEmoji="🥐"
           showTitle={true}
           showEmojis={true}
           sectionBackground={{ color: 'rgba(17, 24, 39, 0.5)' }}
@@ -99,8 +99,8 @@ function MenuContent() {
         
         <MenuExtrasSpecialtiesSection
           sectionTitle="Extras & Specialties"
-          leftEmoji=""
-          rightEmoji=""
+          leftEmoji="✨"
+          rightEmoji="✨"
           showTitle={true}
           showEmojis={true}
           sectionBackground={{ color: 'rgba(17, 24, 39, 0.5)' }}
@@ -123,9 +123,9 @@ function MenuContent() {
             }}
           >
             <span className="flex items-center gap-3">
-              <span className="text-2xl"></span>
+              <span className="text-2xl">🍽️</span>
               <span>Browse All Menu Items</span>
-              <span className="text-2xl"></span>
+              <span className="text-2xl">🍽️</span>
             </span>
           </Link>
         </div>

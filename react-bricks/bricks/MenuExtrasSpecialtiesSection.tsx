@@ -229,9 +229,9 @@ MenuExtrasSpecialtiesSection.schema = {
     _backgroundOverlay: 0.5,
     categoryPanels: [
       {
-        categoryName: 'Fizzers',
-        categoryDescription: 'Refreshing fizzy drinks',
-        categoryIcon: '🥤',
+        categoryName: 'Monna & Rassies Corner',
+        categoryDescription: 'Kids menu and family favorites',
+        categoryIcon: '👶',
         categoryId: '',
         showName: true,
         showDescription: true,

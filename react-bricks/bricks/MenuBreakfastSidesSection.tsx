@@ -229,9 +229,18 @@ MenuBreakfastSidesSection.schema = {
     _backgroundOverlay: 0.5,
     categoryPanels: [
       {
-        categoryName: 'Scones',
-        categoryDescription: 'Fresh baked scones with various fillings',
-        categoryIcon: '🥐',
+        categoryName: 'All Day Brekkies',
+        categoryDescription: 'Breakfast items available all day',
+        categoryIcon: '🍳',
+        categoryId: '',
+        showName: true,
+        showDescription: true,
+        showIcon: true
+      },
+      {
+        categoryName: 'All Day Meals',
+        categoryDescription: 'Hearty meals served throughout the day',
+        categoryIcon: '🍽️',
         categoryId: '',
         showName: true,
         showDescription: true,

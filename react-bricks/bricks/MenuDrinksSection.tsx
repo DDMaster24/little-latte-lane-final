@@ -213,7 +213,7 @@ MenuDrinksSection.schema = {
   category: 'Menu Components',
   tags: ['menu', 'drinks', 'beverages', 'section'],
   
-  // Default props - Exact current content
+  // Default props - Exact current content with ALL drink categories
   getDefaultProps: () => ({
     sectionTitle: 'Drinks & Beverages',
     leftEmoji: '☕',
@@ -226,12 +226,66 @@ MenuDrinksSection.schema = {
     sectionPadding: 'lg',
     borderStyle: 'both',
     borderColor: { color: 'rgba(55, 65, 81, 0.5)' },
-    backgroundOverlay: 0.5,
+    _backgroundOverlay: 0.5,
     categoryPanels: [
       {
         categoryName: 'Hot Drinks',
         categoryDescription: 'Coffee, tea, and warm beverages',
         categoryIcon: '☕',
+        categoryId: '',
+        showName: true,
+        showDescription: true,
+        showIcon: true
+      },
+      {
+        categoryName: 'Lattes',
+        categoryDescription: 'Creamy lattes with various flavors and seasonal specials',
+        categoryIcon: '🍮',
+        categoryId: '',
+        showName: true,
+        showDescription: true,
+        showIcon: true
+      },
+      {
+        categoryName: 'Iced Lattes',
+        categoryDescription: 'Cold coffee specialties and iced latte varieties',
+        categoryIcon: '🧊',
+        categoryId: '',
+        showName: true,
+        showDescription: true,
+        showIcon: true
+      },
+      {
+        categoryName: 'Frappes',
+        categoryDescription: 'Blended frozen coffee drinks',
+        categoryIcon: '🌪️',
+        categoryId: '',
+        showName: true,
+        showDescription: true,
+        showIcon: true
+      },
+      {
+        categoryName: 'Smoothies',
+        categoryDescription: 'Fresh fruit smoothies and protein blends',
+        categoryIcon: '🍓',
+        categoryId: '',
+        showName: true,
+        showDescription: true,
+        showIcon: true
+      },
+      {
+        categoryName: 'Fizzers',
+        categoryDescription: 'Sparkling beverages and refreshing drinks',
+        categoryIcon: '💧',
+        categoryId: '',
+        showName: true,
+        showDescription: true,
+        showIcon: true
+      },
+      {
+        categoryName: 'Freezos',
+        categoryDescription: 'Frozen coffee drinks and cold specialties',
+        categoryIcon: '❄️',
         categoryId: '',
         showName: true,
         showDescription: true,
@@ -313,7 +367,7 @@ MenuDrinksSection.schema = {
         },
         createAdvancedColorProp('borderColor', 'Border Color'),
         {
-          name: 'backgroundOverlay',
+          name: '_backgroundOverlay',
           label: 'Background Overlay',
           type: types.SideEditPropType.Range,
           rangeOptions: {

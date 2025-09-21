@@ -213,7 +213,7 @@ MenuMainFoodSection.schema = {
   category: 'Menu Components',
   tags: ['menu', 'main', 'food', 'section'],
   
-  // Default props - Exact current content
+  // Default props - Exact current content with ALL main food categories
   getDefaultProps: () => ({
     sectionTitle: 'Main Food',
     leftEmoji: '🍕',
@@ -226,12 +226,39 @@ MenuMainFoodSection.schema = {
     sectionPadding: 'lg',
     borderStyle: 'both',
     borderColor: { color: 'rgba(55, 65, 81, 0.5)' },
-    backgroundOverlay: 0.5,
+    _backgroundOverlay: 0.5,
     categoryPanels: [
       {
         categoryName: 'Pizza',
         categoryDescription: 'Wood-fired pizzas with fresh toppings',
         categoryIcon: '🍕',
+        categoryId: '',
+        showName: true,
+        showDescription: true,
+        showIcon: true
+      },
+      {
+        categoryName: 'Pizza Add-ons',
+        categoryDescription: 'Extra toppings and pizza enhancements',
+        categoryIcon: '🧄',
+        categoryId: '',
+        showName: true,
+        showDescription: true,
+        showIcon: true
+      },
+      {
+        categoryName: 'Toasties',
+        categoryDescription: 'Grilled sandwiches and paninis',
+        categoryIcon: '🥪',
+        categoryId: '',
+        showName: true,
+        showDescription: true,
+        showIcon: true
+      },
+      {
+        categoryName: 'Scones',
+        categoryDescription: 'Freshly baked scones and pastries',
+        categoryIcon: '🧁',
         categoryId: '',
         showName: true,
         showDescription: true,
@@ -313,7 +340,7 @@ MenuMainFoodSection.schema = {
         },
         createAdvancedColorProp('borderColor', 'Border Color'),
         {
-          name: 'backgroundOverlay',
+          name: '_backgroundOverlay',
           label: 'Background Overlay',
           type: types.SideEditPropType.Range,
           rangeOptions: {
