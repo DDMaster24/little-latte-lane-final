@@ -1,6 +1,5 @@
 import EditableHomepage from '@/components/EditableHomepage';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
-import SessionDebugPanel from '@/components/SessionDebugPanel';
 
 export default function Home() {
   return (
@@ -10,9 +9,6 @@ export default function Home() {
 
       {/* Editable Homepage with admin controls */}
       <EditableHomepage enableEditing={true} />
-
-      {/* Temporary Debug Panel - Remove after fixing auth */}
-      <SessionDebugPanel />
     </>
   );
 }
