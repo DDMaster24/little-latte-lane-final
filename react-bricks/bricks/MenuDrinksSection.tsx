@@ -197,7 +197,17 @@ MenuDrinksSection.schema = {
         categoryId: '',
         showName: true,
         showDescription: true,
-        showIcon: true
+        showIcon: true,
+        showImage: true,
+        cardStyle: 'glass',
+        cardColor: 'neon',
+        contentAlignment: 'center',
+        titlePosition: 'top',
+        imagePosition: 'content',
+        cardBackground: { color: 'transparent' },
+        nameColor: { color: '#00ffff' },
+        descriptionColor: { color: '#d1d5db' },
+        borderColor: { color: '#00ffff' }
       },
       {
         categoryName: 'Lattes',
@@ -206,7 +216,17 @@ MenuDrinksSection.schema = {
         categoryId: '',
         showName: true,
         showDescription: true,
-        showIcon: true
+        showIcon: true,
+        showImage: true,
+        cardStyle: 'glass',
+        cardColor: 'neon',
+        contentAlignment: 'center',
+        titlePosition: 'top',
+        imagePosition: 'content',
+        cardBackground: { color: 'transparent' },
+        nameColor: { color: '#00ffff' },
+        descriptionColor: { color: '#d1d5db' },
+        borderColor: { color: '#00ffff' }
       },
       {
         categoryName: 'Iced Lattes',
@@ -215,7 +235,17 @@ MenuDrinksSection.schema = {
         categoryId: '',
         showName: true,
         showDescription: true,
-        showIcon: true
+        showIcon: true,
+        showImage: true,
+        cardStyle: 'glass',
+        cardColor: 'neon',
+        contentAlignment: 'center',
+        titlePosition: 'top',
+        imagePosition: 'content',
+        cardBackground: { color: 'transparent' },
+        nameColor: { color: '#00ffff' },
+        descriptionColor: { color: '#d1d5db' },
+        borderColor: { color: '#00ffff' }
       },
       {
         categoryName: 'Frappes',
@@ -224,7 +254,17 @@ MenuDrinksSection.schema = {
         categoryId: '',
         showName: true,
         showDescription: true,
-        showIcon: true
+        showIcon: true,
+        showImage: true,
+        cardStyle: 'glass',
+        cardColor: 'neon',
+        contentAlignment: 'center',
+        titlePosition: 'top',
+        imagePosition: 'content',
+        cardBackground: { color: 'transparent' },
+        nameColor: { color: '#00ffff' },
+        descriptionColor: { color: '#d1d5db' },
+        borderColor: { color: '#00ffff' }
       },
       {
         categoryName: 'Smoothies',
@@ -233,7 +273,17 @@ MenuDrinksSection.schema = {
         categoryId: '',
         showName: true,
         showDescription: true,
-        showIcon: true
+        showIcon: true,
+        showImage: true,
+        cardStyle: 'glass',
+        cardColor: 'neon',
+        contentAlignment: 'center',
+        titlePosition: 'top',
+        imagePosition: 'content',
+        cardBackground: { color: 'transparent' },
+        nameColor: { color: '#00ffff' },
+        descriptionColor: { color: '#d1d5db' },
+        borderColor: { color: '#00ffff' }
       },
       {
         categoryName: 'Fizzers',
@@ -242,7 +292,17 @@ MenuDrinksSection.schema = {
         categoryId: '',
         showName: true,
         showDescription: true,
-        showIcon: true
+        showIcon: true,
+        showImage: true,
+        cardStyle: 'glass',
+        cardColor: 'neon',
+        contentAlignment: 'center',
+        titlePosition: 'top',
+        imagePosition: 'content',
+        cardBackground: { color: 'transparent' },
+        nameColor: { color: '#00ffff' },
+        descriptionColor: { color: '#d1d5db' },
+        borderColor: { color: '#00ffff' }
       },
       {
         categoryName: 'Freezos',
@@ -251,7 +311,17 @@ MenuDrinksSection.schema = {
         categoryId: '',
         showName: true,
         showDescription: true,
-        showIcon: true
+        showIcon: true,
+        showImage: true,
+        cardStyle: 'glass',
+        cardColor: 'neon',
+        contentAlignment: 'center',
+        titlePosition: 'top',
+        imagePosition: 'content',
+        cardBackground: { color: 'transparent' },
+        nameColor: { color: '#00ffff' },
+        descriptionColor: { color: '#d1d5db' },
+        borderColor: { color: '#00ffff' }
       }
     ]
   }),
