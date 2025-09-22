@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LocalStorage Debug Tool</title>
+    <style>
+        body { 
+            font-family: monospace; 
+            background: #0f0f0f; 
+            color: #00ffff; 
+            padding: 20px; 
+        }
+        .key { color: #ff00ff; }
+        .value { color: #ffffff; }
+        .supabase-key { 
+            background: #004400; 
+            padding: 5px; 
+            border-left: 4px solid #00ff00; 
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+        }
+        button {
+            background: #00ffff;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 5px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .output {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Little Latte Lane - LocalStorage Debug Tool</h1>
+        
+        <button onclick="scanLocalStorage()">Scan LocalStorage</button>
+        <button onclick="scanSessionStorage()">Scan SessionStorage</button>
+        <button onclick="testSupabaseConnection()">Test Supabase Connection</button>
+        <button onclick="clearOutput()">Clear Output</button>
+        
+        <div id="output"></div>
+    </div>
+
+    <script>
+        function log(message, isSpecial = false) {
+            const output = document.getElementById('output');
+            const div = document.createElement('div');
+            div.className = 'output';
+            if (isSpecial) div.className += ' supabase-key';
+            div.innerHTML = message;
+            output.appendChild(div);
+        }
+
+        function clearOutput() {
+            document.getElementById('output').innerHTML = '';
+        }
+
+        function scanLocalStorage() {
+            log('<h2>🔍 LocalStorage Scan Results</h2>');
+            log(`<strong>Total keys found:</strong> ${localStorage.length}`);
+            
+            const supabaseKeys = [];
+            const sessionKeys = [];
+            const allKeys = [];
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key) {
+                    allKeys.push(key);
+                    const value = localStorage.getItem(key);
+                    const truncatedValue = value ? value.substring(0, 100) + (value.length > 100 ? '...' : '') : 'null';
+                    
+                    // Check for Supabase-related keys
+                    if (key.includes('supabase') || 
+                        key.includes('auth') || 
+                        key.startsWith('sb-') ||
+                        key.includes('token')) {
+                        supabaseKeys.push({ key, value });
+                        log(`<span class="key">🔑 SUPABASE KEY:</span> ${key}<br><span class="value">📄 Value:</span> ${truncatedValue}`, true);
+                    }
+                    
+                    // Check for session-related keys
+                    if (key.includes('session') || 
+                        key.includes('lll-') ||
+                        key.includes('user')) {
+                        sessionKeys.push({ key, value });
+                        log(`<span class="key">📱 SESSION KEY:</span> ${key}<br><span class="value">📄 Value:</span> ${truncatedValue}`);
+                    }
+                    
+                    // Show all keys for completeness
+                    if (!key.includes('supabase') && !key.includes('auth') && !key.startsWith('sb-') && 
+                        !key.includes('token') && !key.includes('session') && !key.includes('lll-') && !key.includes('user')) {
+                        log(`<span class="key">🔧 OTHER KEY:</span> ${key}<br><span class="value">📄 Value:</span> ${truncatedValue}`);
+                    }
+                }
+            }
+
+            log(`<h3>📊 Summary:</h3>`);
+            log(`• Supabase-related keys: ${supabaseKeys.length}`);
+            log(`• Session-related keys: ${sessionKeys.length}`);
+            log(`• Total keys: ${allKeys.length}`);
+            
+            // Test our exact detection logic
+            log(`<h3>🧪 Detection Logic Test:</h3>`);
+            const supabaseAuthKey = allKeys.find(key => 
+                key.includes('auth-token') || 
+                key.includes('supabase') ||
+                key.startsWith('sb-') ||
+                key === 'sb-awytuszmunxvthuizyur-auth-token'
+            );
+            
+            if (supabaseAuthKey) {
+                log(`✅ Found Supabase auth key: <strong>${supabaseAuthKey}</strong>`, true);
+                const authData = localStorage.getItem(supabaseAuthKey);
+                if (authData) {
+                    log(`✅ Auth data exists: ${authData.substring(0, 200)}...`, true);
+                } else {
+                    log(`❌ Auth key found but no data`, true);
+                }
+            } else {
+                log(`❌ No Supabase auth key found with current detection logic`, true);
+            }
+        }
+
+        function scanSessionStorage() {
+            log('<h2>📱 SessionStorage Scan Results</h2>');
+            log(`<strong>Total keys found:</strong> ${sessionStorage.length}`);
+            
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                if (key) {
+                    const value = sessionStorage.getItem(key);
+                    const truncatedValue = value ? value.substring(0, 100) + (value.length > 100 ? '...' : '') : 'null';
+                    
+                    if (key.includes('supabase') || key.includes('auth') || key.startsWith('sb-')) {
+                        log(`<span class="key">🔑 SUPABASE SESSION KEY:</span> ${key}<br><span class="value">📄 Value:</span> ${truncatedValue}`, true);
+                    } else {
+                        log(`<span class="key">📱 SESSION KEY:</span> ${key}<br><span class="value">📄 Value:</span> ${truncatedValue}`);
+                    }
+                }
+            }
+        }
+
+        async function testSupabaseConnection() {
+            log('<h2>🔗 Supabase Connection Test</h2>');
+            
+            try {
+                // Try to access Supabase from the page if available
+                if (typeof window !== 'undefined' && window.location.origin) {
+                    log(`🌐 Testing from origin: ${window.location.origin}`);
+                    
+                    // Try to get session info if supabase is available
+                    if (window.supabase) {
+                        log('✅ Supabase client found on window object');
+                        const { data: { session } } = await window.supabase.auth.getSession();
+                        if (session) {
+                            log(`✅ Active session found: ${session.user.email}`, true);
+                            log(`📅 Expires: ${new Date(session.expires_at * 1000).toLocaleString()}`, true);
+                        } else {
+                            log('❌ No active session found');
+                        }
+                    } else {
+                        log('⚠️ Supabase client not found on window object');
+                        log('💡 Try running this from a page where Supabase is loaded');
+                    }
+                }
+            } catch (error) {
+                log(`❌ Error testing Supabase connection: ${error.message}`);
+            }
+        }
+
+        // Auto-run localStorage scan on page load
+        window.addEventListener('load', () => {
+            setTimeout(scanLocalStorage, 500);
+        });
+    </script>
+</body>
+</html>

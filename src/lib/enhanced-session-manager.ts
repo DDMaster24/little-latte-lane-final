@@ -328,6 +328,17 @@ class SessionPersistenceManager {
         key === 'sb-awytuszmunxvthuizyur-auth-token' // Exact key for our project
       );
       
+      // Debug logging
+      console.log('🔍 Supabase Auth Debug:', {
+        allKeys: allKeys.length > 0 ? allKeys : 'No keys found',
+        detectedKey: supabaseAuthKey,
+        matchedKeys: allKeys.filter(key => 
+          key.includes('auth-token') || 
+          key.includes('supabase') ||
+          key.startsWith('sb-')
+        )
+      });
+      
       const supabaseAuthData = supabaseAuthKey ? window.localStorage.getItem(supabaseAuthKey) : null;
       
       const sessionData = window.localStorage.getItem(STORAGE_KEYS.SESSION);
