@@ -67,8 +67,34 @@
   }
 
   .grid-responsive-4 {
-    @apply grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-3 xs:gap-4 sm:gap-6;
+    @apply grid gap-3 xs:gap-4 sm:gap-6;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     justify-items: center;
+    justify-content: center;
+  }
+
+  /* Enhanced centering for incomplete rows */
+  .grid-responsive-4-centered {
+    display: grid;
+    gap: 1rem;
+    justify-content: center;
+    
+    /* Mobile: 1 column */
+    grid-template-columns: repeat(1, minmax(280px, 400px));
+    
+    /* Small screens: 2 columns */
+    @media (min-width: 640px) {
+      grid-template-columns: repeat(2, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    /* Medium screens and up: Smart centering for incomplete rows */
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
+      gap: 1.5rem;
+      max-width: 1400px; /* Prevents overstretching */
+      margin: 0 auto;
+    }
   }
 
   /* Fixed width for menu category panels to maintain consistent size when centered */

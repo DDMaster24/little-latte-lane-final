@@ -749,11 +749,11 @@ const CategoriesSection: types.Brick<CategoriesSectionProps> = ({
 }) => {
   const getGridClass = () => {
     switch (gridLayout) {
-      case '2x2': return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2'
-      case '3x1': return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-      case '4x1': return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
-      case 'auto': return 'grid-responsive-4'
-      default: return 'grid-responsive-4'
+      case '2x2': return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 justify-center'
+      case '3x1': return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 justify-center'
+      case '4x1': return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 justify-center'
+      case 'auto': return 'grid-responsive-4-centered'
+      default: return 'grid-responsive-4-centered'
     }
   }
 
@@ -819,9 +819,9 @@ const CategoriesSection: types.Brick<CategoriesSectionProps> = ({
         )}
       </div>
 
-      {/* Responsive Category Grid - Mobile First Design */}
+      {/* Responsive Category Grid - Mobile First Design with Enhanced Centering */}
       <div className="px-4 xs:px-6 sm:px-8 pb-8 xs:pb-12">
-        <div className={`${getGridClass()} max-w-7xl mx-auto gap-4 md:gap-6`}>
+        <div className={`${getGridClass()} max-w-7xl mx-auto`}>
           <Repeater
             propName="categories"
             items={categories}

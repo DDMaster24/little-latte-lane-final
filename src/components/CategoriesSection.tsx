@@ -48,7 +48,7 @@ export default function CategoriesSection() {
             </h2>
           </div>
           <div className="px-4 xs:px-6 sm:px-8 pb-8 xs:pb-12">
-            <CategorySkeleton count={4} className="grid-responsive-4 max-w-7xl mx-auto" />
+            <CategorySkeleton count={4} className="grid-responsive-4-centered max-w-7xl mx-auto" />
           </div>
         </section>
       }
@@ -70,9 +70,9 @@ export default function CategoriesSection() {
           </h2>
         </div>
 
-        {/* Responsive Category Grid - Mobile First Design */}
+        {/* Responsive Category Grid - Mobile First Design with Enhanced Centering */}
         <div className="px-4 xs:px-6 sm:px-8 pb-8 xs:pb-12">
-          <div className="grid-responsive-4 max-w-7xl mx-auto">
+          <div className="grid-responsive-4-centered max-w-7xl mx-auto">
             {mainCategories.map((category, index) => {
               const categoryCard = (
                 <div
