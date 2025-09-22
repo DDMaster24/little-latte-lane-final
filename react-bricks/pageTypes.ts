@@ -33,6 +33,9 @@ const pageTypes: types.IPageType[] = [
       'menu-breakfast-sides-section',
       'menu-extras-specialties-section',
       
+      // Restaurant Management Components
+      'closure-banner',
+      
       // Layout Components
       'FooterSection',
       'HeaderSection',
