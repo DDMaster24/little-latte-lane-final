@@ -16,6 +16,7 @@ import {
   type ReactNode,
 } from 'react';
 import { getSupabaseClient } from '@/lib/supabase-client';
+import { sessionManager } from '@/lib/enhanced-session-manager';
 import { User, Session } from '@supabase/supabase-js';
 import { getOrCreateUserProfile } from '@/app/actions';
 
@@ -114,6 +115,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
     let cancelled = false;
     let profileFetchInProgress = false;
 
+    // Force save current session on app start
+    const initializeSession = async () => {
+      try {
+        await sessionManager.forceSaveSession();
+        console.log('💾 AuthProvider: Initial session save completed');
+      } catch (error) {
+        console.warn('⚠️ AuthProvider: Initial session save failed:', error);
+      }
+    };
+
+    initializeSession();
+
     // Get initial session with retry logic
     const getInitialSession = async () => {
       try {
@@ -195,6 +208,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Sign out function
   const signOut = useCallback(async () => {
+    // Clear our enhanced session data first
+    sessionManager.clearAllSessionData();
+    // Then sign out from Supabase
     await supabase.auth.signOut();
   }, [supabase.auth]);
 

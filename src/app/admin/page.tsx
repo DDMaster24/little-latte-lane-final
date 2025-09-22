@@ -7,6 +7,7 @@ import {
   Menu, Users, BarChart3, ShoppingBag, Calendar, 
   Shield, Activity, CheckCircle, CreditCard, QrCode, Star, Power
 } from 'lucide-react';
+import SessionDebugPanel from '@/components/SessionDebugPanel';
 
 // Tab Components
 import OrderManagement from '@/components/Admin/OrderManagement';
@@ -253,6 +254,9 @@ export default function AdminPage() {
           </div>
         </div>
       </div>
+
+      {/* Temporary Debug Panel - Remove after fixing auth */}
+      <SessionDebugPanel />
     </div>
   );
 }

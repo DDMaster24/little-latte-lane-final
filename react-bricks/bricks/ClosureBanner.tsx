@@ -29,8 +29,6 @@ export interface ClosureBannerProps {
 // Component to be rendered
 //========================================
 const ClosureBanner: types.Brick<ClosureBannerProps> = ({ 
-  heading,
-  subheading,
   bannerImage,
   backgroundImage,
   showImage,
@@ -39,7 +37,6 @@ const ClosureBanner: types.Brick<ClosureBannerProps> = ({
   textColor,
   showIcon,
   iconType,
-  customMessage,
   showCustomMessage,
   borderStyle,
   backgroundPattern,
@@ -48,8 +45,15 @@ const ClosureBanner: types.Brick<ClosureBannerProps> = ({
 }) => {
   const { closureStatus, isClosed } = useRestaurantClosure()
 
-  // Don't render if restaurant is open
-  if (!isClosed) {
+  // Always show in edit mode (detect by admin path or React Bricks context)
+  const isEditMode = typeof window !== 'undefined' && 
+    (window.location.pathname.includes('/admin') || 
+     window.location.pathname.includes('/editor') ||
+     // @ts-expect-error - React Bricks editing context
+     window.__REACT_BRICKS_EDITING__)
+  
+  // Don't render if restaurant is open (unless in edit mode)
+  if (!isClosed && !isEditMode) {
     return null
   }
 
@@ -156,7 +160,14 @@ const ClosureBanner: types.Brick<ClosureBannerProps> = ({
       ${getHeightClasses()} ${getBorderClass()} 
       backdrop-blur-sm animate-fade-in
       ${useBackgroundImage && backgroundImage?.src ? '' : getBackgroundClass()}
+      ${isEditMode && !isClosed ? 'ring-2 ring-blue-400 ring-opacity-50' : ''}
     `}>
+      {/* Edit Mode Indicator */}
+      {isEditMode && !isClosed && (
+        <div className="absolute top-2 left-2 z-20 bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium">
+          Edit Mode - Restaurant Closure Banner
+        </div>
+      )}
       {/* Background Image */}
       {useBackgroundImage && backgroundImage?.src && (
         <div className="absolute inset-0">
@@ -188,11 +199,10 @@ const ClosureBanner: types.Brick<ClosureBannerProps> = ({
               
               <Text
                 propName="heading"
-                value={heading}
                 placeholder="We're Currently Closed"
                 renderBlock={({ children }) => (
                   <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold ${colorClasses.heading} drop-shadow-lg`}>
-                    {children || "We're Currently Closed"}
+                    {children}
                   </h2>
                 )}
               />
@@ -200,11 +210,10 @@ const ClosureBanner: types.Brick<ClosureBannerProps> = ({
 
             <Text
               propName="subheading"
-              value={subheading}
               placeholder="We'll be back soon! Check our schedule or contact us for more information."
               renderBlock={({ children }) => (
                 <p className={`text-lg sm:text-xl mb-4 ${colorClasses.text} drop-shadow-md`}>
-                  {children || "We'll be back soon! Check our schedule or contact us for more information."}
+                  {children}
                 </p>
               )}
             />
@@ -236,7 +245,6 @@ const ClosureBanner: types.Brick<ClosureBannerProps> = ({
               <div className={`mt-4 p-4 rounded-lg bg-black/20 backdrop-blur-sm border ${borderStyle !== 'none' ? 'border-current' : 'border-transparent'} border-opacity-30`}>
                 <RichText
                   propName="customMessage"
-                  value={customMessage}
                   placeholder="Add your custom closure message here..."
                   allowedFeatures={[
                     types.RichTextFeatures.Bold,
@@ -283,8 +291,8 @@ ClosureBanner.schema = {
   tags: ['closure', 'banner', 'status', 'restaurant'],
   
   getDefaultProps: () => ({
-    heading: 'We\'re Currently Closed',
-    subheading: 'We\'ll be back soon! Check our schedule or contact us for more information.',
+    heading: "We're Currently Closed",
+    subheading: "We'll be back soon! Check our schedule or contact us for more information.",
     bannerImage: {
       src: '',
       placeholderSrc: '',
