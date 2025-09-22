@@ -10,8 +10,10 @@ export interface ClosureBannerProps {
   heading: types.TextValue
   subheading: types.TextValue
   bannerImage: types.IImageSource
+  backgroundImage: types.IImageSource
   showImage: boolean
-  bannerColor: 'red' | 'orange' | 'yellow' | 'gray'
+  useBackgroundImage: boolean
+  bannerColor: 'red' | 'orange' | 'yellow' | 'gray' | 'black'
   textColor: 'white' | 'dark'
   showIcon: boolean
   iconType: 'alert' | 'clock' | 'calendar' | 'power'
@@ -19,6 +21,8 @@ export interface ClosureBannerProps {
   showCustomMessage: boolean
   borderStyle: 'solid' | 'dashed' | 'dotted' | 'none'
   backgroundPattern: 'none' | 'diagonal' | 'dots' | 'gradient'
+  sectionHeight: 'small' | 'medium' | 'large' | 'extra-large' | 'full-screen'
+  backgroundOverlay: 'none' | 'light' | 'medium' | 'dark'
 }
 
 //========================================
@@ -28,7 +32,9 @@ const ClosureBanner: types.Brick<ClosureBannerProps> = ({
   heading,
   subheading,
   bannerImage,
+  backgroundImage,
   showImage,
+  useBackgroundImage,
   bannerColor,
   textColor,
   showIcon,
@@ -36,7 +42,9 @@ const ClosureBanner: types.Brick<ClosureBannerProps> = ({
   customMessage,
   showCustomMessage,
   borderStyle,
-  backgroundPattern
+  backgroundPattern,
+  sectionHeight,
+  backgroundOverlay
 }) => {
   const { closureStatus, isClosed } = useRestaurantClosure()
 
@@ -71,9 +79,38 @@ const ClosureBanner: types.Brick<ClosureBannerProps> = ({
         text: textColor === 'white' ? 'text-gray-100' : 'text-gray-800',
         heading: textColor === 'white' ? 'text-gray-200' : 'text-gray-900',
         icon: 'text-gray-400'
+      },
+      black: {
+        bg: 'bg-black border-gray-700',
+        text: textColor === 'white' ? 'text-white' : 'text-gray-300',
+        heading: textColor === 'white' ? 'text-white' : 'text-gray-100',
+        icon: 'text-gray-400'
       }
     }
     return colors[bannerColor]
+  }
+
+  // Get height classes based on section height
+  const getHeightClasses = () => {
+    const heights = {
+      'small': 'min-h-[200px]',
+      'medium': 'min-h-[300px]',
+      'large': 'min-h-[400px]',
+      'extra-large': 'min-h-[500px]',
+      'full-screen': 'min-h-screen'
+    }
+    return heights[sectionHeight]
+  }
+
+  // Get background overlay classes
+  const getOverlayClasses = () => {
+    const overlays = {
+      'none': '',
+      'light': 'bg-black/20',
+      'medium': 'bg-black/40',
+      'dark': 'bg-black/60'
+    }
+    return overlays[backgroundOverlay]
   }
 
   // Get border style class
@@ -115,17 +152,34 @@ const ClosureBanner: types.Brick<ClosureBannerProps> = ({
 
   return (
     <div className={`
-      relative w-full max-w-7xl mx-auto my-6 p-6 sm:p-8 rounded-xl 
-      ${getBackgroundClass()} ${getBorderClass()} 
+      relative w-full max-w-7xl mx-auto my-6 rounded-xl overflow-hidden
+      ${getHeightClasses()} ${getBorderClass()} 
       backdrop-blur-sm animate-fade-in
+      ${useBackgroundImage && backgroundImage?.src ? '' : getBackgroundClass()}
     `}>
+      {/* Background Image */}
+      {useBackgroundImage && backgroundImage?.src && (
+        <div className="absolute inset-0">
+          <Image
+            propName="backgroundImage"
+            source={backgroundImage}
+            alt="Background"
+            imageClassName="w-full h-full object-cover"
+          />
+          {/* Background Overlay */}
+          {backgroundOverlay !== 'none' && (
+            <div className={`absolute inset-0 ${getOverlayClasses()}`}></div>
+          )}
+        </div>
+      )}
+
       {/* Background Pattern Overlay */}
-      {backgroundPattern === 'diagonal' && (
+      {!useBackgroundImage && backgroundPattern === 'diagonal' && (
         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-black/10 to-black/20 rounded-xl"></div>
       )}
       
-      <div className="relative z-10">
-        <div className={`flex flex-col lg:flex-row items-center gap-6 ${showImage && bannerImage ? 'lg:gap-8' : ''}`}>
+      <div className={`relative z-10 p-6 sm:p-8 h-full flex items-center ${getHeightClasses()}`}>
+        <div className={`flex flex-col lg:flex-row items-center gap-6 w-full ${showImage && bannerImage?.src ? 'lg:gap-8' : ''}`}>
           
           {/* Content Section */}
           <div className="flex-1 text-center lg:text-left">
@@ -137,8 +191,8 @@ const ClosureBanner: types.Brick<ClosureBannerProps> = ({
                 value={heading}
                 placeholder="We're Currently Closed"
                 renderBlock={({ children }) => (
-                  <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold ${colorClasses.heading}`}>
-                    {children}
+                  <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold ${colorClasses.heading} drop-shadow-lg`}>
+                    {children || "We're Currently Closed"}
                   </h2>
                 )}
               />
@@ -149,8 +203,8 @@ const ClosureBanner: types.Brick<ClosureBannerProps> = ({
               value={subheading}
               placeholder="We'll be back soon! Check our schedule or contact us for more information."
               renderBlock={({ children }) => (
-                <p className={`text-lg sm:text-xl mb-4 ${colorClasses.text}`}>
-                  {children}
+                <p className={`text-lg sm:text-xl mb-4 ${colorClasses.text} drop-shadow-md`}>
+                  {children || "We'll be back soon! Check our schedule or contact us for more information."}
                 </p>
               )}
             />
@@ -158,20 +212,20 @@ const ClosureBanner: types.Brick<ClosureBannerProps> = ({
             {/* Dynamic closure information */}
             <div className="space-y-2 mb-4">
               {closureStatus.message && (
-                <p className={`text-sm sm:text-base ${colorClasses.text} opacity-90`}>
+                <p className={`text-sm sm:text-base ${colorClasses.text} opacity-90 drop-shadow-md`}>
                   <strong>Reason:</strong> {closureStatus.message}
                 </p>
               )}
               
               {closureStatus.reason === 'scheduled' && closureStatus.scheduled_end && (
-                <p className={`text-sm sm:text-base ${colorClasses.text} opacity-90 flex items-center justify-center lg:justify-start gap-2`}>
+                <p className={`text-sm sm:text-base ${colorClasses.text} opacity-90 flex items-center justify-center lg:justify-start gap-2 drop-shadow-md`}>
                   <Clock className="h-4 w-4" />
                   <strong>Reopening:</strong> {new Date(closureStatus.scheduled_end).toLocaleString()}
                 </p>
               )}
               
               {closureStatus.reason === 'manual' && (
-                <p className={`text-sm sm:text-base ${colorClasses.text} opacity-90`}>
+                <p className={`text-sm sm:text-base ${colorClasses.text} opacity-90 drop-shadow-md`}>
                   <strong>Status:</strong> Temporarily closed - Please check back later
                 </p>
               )}
@@ -179,7 +233,7 @@ const ClosureBanner: types.Brick<ClosureBannerProps> = ({
 
             {/* Custom Message */}
             {showCustomMessage && (
-              <div className={`mt-4 p-4 rounded-lg bg-black/10 border ${borderStyle !== 'none' ? 'border-current' : 'border-transparent'} border-opacity-20`}>
+              <div className={`mt-4 p-4 rounded-lg bg-black/20 backdrop-blur-sm border ${borderStyle !== 'none' ? 'border-current' : 'border-transparent'} border-opacity-30`}>
                 <RichText
                   propName="customMessage"
                   value={customMessage}
@@ -190,7 +244,7 @@ const ClosureBanner: types.Brick<ClosureBannerProps> = ({
                     types.RichTextFeatures.Link
                   ]}
                   renderBlock={({ children }) => (
-                    <div className={`text-sm sm:text-base ${colorClasses.text}`}>
+                    <div className={`text-sm sm:text-base ${colorClasses.text} drop-shadow-md`}>
                       {children}
                     </div>
                   )}
@@ -199,8 +253,8 @@ const ClosureBanner: types.Brick<ClosureBannerProps> = ({
             )}
           </div>
 
-          {/* Image Section */}
-          {showImage && (
+          {/* Side Image Section (Optional) */}
+          {showImage && bannerImage?.src && (
             <div className="flex-shrink-0 w-full lg:w-80 xl:w-96">
               <Image
                 propName="bannerImage"
@@ -235,18 +289,28 @@ ClosureBanner.schema = {
       src: '',
       placeholderSrc: '',
       srcSet: '',
-      alt: 'Closure banner',
-      seoName: 'closure-banner'
+      alt: 'Closure banner side image',
+      seoName: 'closure-banner-side'
     },
-    showImage: true,
-    bannerColor: 'red',
+    backgroundImage: {
+      src: '',
+      placeholderSrc: '',
+      srcSet: '',
+      alt: 'Closure banner background',
+      seoName: 'closure-banner-background'
+    },
+    showImage: false,
+    useBackgroundImage: false,
+    bannerColor: 'black',
     textColor: 'white',
     showIcon: true,
     iconType: 'alert',
     customMessage: 'Thank you for your patience!',
     showCustomMessage: false,
-    borderStyle: 'solid',
-    backgroundPattern: 'none'
+    borderStyle: 'none',
+    backgroundPattern: 'none',
+    sectionHeight: 'medium',
+    backgroundOverlay: 'medium'
   }),
 
   repeaterItems: [],
@@ -257,13 +321,52 @@ ClosureBanner.schema = {
       props: [
         {
           name: 'showImage',
-          label: 'Show Image',
+          label: 'Show Side Image',
           type: types.SideEditPropType.Boolean,
         },
         {
           name: 'showCustomMessage',
           label: 'Show Custom Message',
           type: types.SideEditPropType.Boolean,
+        },
+      ],
+    },
+    {
+      groupName: 'Background & Layout',
+      props: [
+        {
+          name: 'useBackgroundImage',
+          label: 'Use Background Image',
+          type: types.SideEditPropType.Boolean,
+        },
+        {
+          name: 'sectionHeight',
+          label: 'Section Height',
+          type: types.SideEditPropType.Select,
+          selectOptions: {
+            display: types.OptionsDisplay.Select,
+            options: [
+              { value: 'small', label: 'Small (200px)' },
+              { value: 'medium', label: 'Medium (300px)' },
+              { value: 'large', label: 'Large (400px)' },
+              { value: 'extra-large', label: 'Extra Large (500px)' },
+              { value: 'full-screen', label: 'Full Screen' },
+            ],
+          },
+        },
+        {
+          name: 'backgroundOverlay',
+          label: 'Background Overlay',
+          type: types.SideEditPropType.Select,
+          selectOptions: {
+            display: types.OptionsDisplay.Select,
+            options: [
+              { value: 'none', label: 'No Overlay' },
+              { value: 'light', label: 'Light Overlay' },
+              { value: 'medium', label: 'Medium Overlay' },
+              { value: 'dark', label: 'Dark Overlay' },
+            ],
+          },
         },
       ],
     },
@@ -277,6 +380,7 @@ ClosureBanner.schema = {
           selectOptions: {
             display: types.OptionsDisplay.Color,
             options: [
+              { value: 'black', label: 'Black (Classic)' },
               { value: 'red', label: 'Red (Emergency)' },
               { value: 'orange', label: 'Orange (Warning)' },
               { value: 'yellow', label: 'Yellow (Scheduled)' },
@@ -303,10 +407,10 @@ ClosureBanner.schema = {
           selectOptions: {
             display: types.OptionsDisplay.Select,
             options: [
+              { value: 'none', label: 'No Border' },
               { value: 'solid', label: 'Solid' },
               { value: 'dashed', label: 'Dashed' },
               { value: 'dotted', label: 'Dotted' },
-              { value: 'none', label: 'No Border' },
             ],
           },
         },
