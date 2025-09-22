@@ -139,8 +139,8 @@ const MenuBreakfastSidesSection: types.Brick<MenuBreakfastSidesSectionProps> = (
             </div>
           )}
 
-          {/* Category Panels Grid - Proper CSS Grid Layout like CategoriesSection */}
-          <div className="grid-responsive-4 max-w-7xl mx-auto">
+          {/* Category Panels Grid - Using Enhanced CategoryCard like Homepage */}
+          <div className="grid-responsive-4-centered max-w-7xl mx-auto">
             <Repeater
               propName="categoryPanels"
               items={[
@@ -151,7 +151,10 @@ const MenuBreakfastSidesSection: types.Brick<MenuBreakfastSidesSectionProps> = (
                   categoryId: '',
                   showName: true,
                   showDescription: true,
-                  showIcon: true
+                  showIcon: true,
+                  showImage: true, // Enable image uploads like homepage
+                  cardStyle: 'glass',
+                  cardColor: 'neon'
                 }
               ]}
             />

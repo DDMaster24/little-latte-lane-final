@@ -8,7 +8,7 @@ import MenuDrinksSection from './MenuDrinksSection'
 import MenuMainFoodSection from './MenuMainFoodSection'
 import MenuBreakfastSidesSection from './MenuBreakfastSidesSection'
 import MenuExtrasSpecialtiesSection from './MenuExtrasSpecialtiesSection'
-import MenuCategoryPanel from './MenuCategoryPanel'
+// Note: Removed MenuCategoryPanel - using CategoryCard for all sections
 import HeaderSection, { NavLink } from './HeaderSection'
 import FooterSection, { FooterLink, FooterColumn } from './FooterSection'
 import CartSection from './CartSection'
@@ -64,9 +64,8 @@ const bricks: types.Theme[] = [
           // Advanced individual text components (nested use only)
           // AdvancedHeading, AdvancedSubheading, AdvancedDescription,
           WelcomeInfoCard,        // Nested inside WelcomingSection
-          CategoryCard,           // Nested inside CategoriesSection
+          CategoryCard,           // Nested inside CategoriesSection (also used in Menu Sections)
           EventSpecialCard,       // Nested inside EventsSpecialsSection
-          MenuCategoryPanel,      // Nested inside Menu Section components
           NavLink,                // Nested inside HeaderSection
           FooterLink,             // Nested inside FooterSection
           FooterColumn,           // Nested inside FooterSection
