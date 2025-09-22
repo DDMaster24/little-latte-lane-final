@@ -3,6 +3,7 @@ import { Text, Repeater, types, Image, useAdminContext } from 'react-bricks/fron
 import Link from 'next/link'
 import { createAdvancedColorProp, TEXT_PALETTE, BACKGROUND_PALETTE } from '../components/colorPickerUtils'
 import { useMenuCategories } from '@/hooks/useMenuCategories'
+import { getCategorySlug } from '@/lib/categoryUtils'
 
 //========================================
 // Nested Component: Category Card
@@ -105,7 +106,7 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
   // Use database data if available, otherwise fall back to manual input
   const effectiveName = dbCategory ? dbCategory.name : categoryName
   const effectiveDescription = dbCategory ? dbCategory.description || '' : categoryDescription
-  const effectiveLink = dbCategory ? `/menu/modern?category=${dbCategory.id}` : categoryLink
+  const effectiveLink = dbCategory ? `/menu/modern/category/${getCategorySlug(dbCategory.name)}` : categoryLink
 
   // Enhanced styling functions (similar to WelcomeCard)
   const getCardStyleClass = () => {
