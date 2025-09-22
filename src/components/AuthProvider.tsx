@@ -118,14 +118,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Force save current session on app start
     const initializeSession = async () => {
       try {
-        await sessionManager.forceSaveSession();
-        console.log('💾 AuthProvider: Initial session save completed');
+        // Only do this if we're not in a React Bricks admin context
+        const isReactBricksContext = window.location.pathname.includes('/admin/');
+        if (!isReactBricksContext) {
+          await sessionManager.forceSaveSession();
+          console.log('💾 AuthProvider: Initial session save completed');
+        } else {
+          console.log('🎨 AuthProvider: Skipping session force save in React Bricks context');
+        }
       } catch (error) {
         console.warn('⚠️ AuthProvider: Initial session save failed:', error);
       }
     };
 
-    initializeSession();
+    // Don't initialize session aggressively if we're in React Bricks admin
+    if (!window.location.pathname.includes('/admin/')) {
+      initializeSession();
+    }
 
     // Get initial session with retry logic
     const getInitialSession = async () => {

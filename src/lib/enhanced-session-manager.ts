@@ -71,10 +71,18 @@ class SessionPersistenceManager {
                 window.sessionStorage.setItem(key, value);
                 console.log(`💾 Stored key "${key}" in both storage types`);
                 
-                // Also store our custom session backup
-                this.backupSessionData(key, value);
+                // Also store our custom session backup - but avoid infinite loops
+                if (!key.includes('lll-')) {
+                  this.backupSessionData(key, value);
+                }
               } catch (error) {
                 console.warn('Storage setItem error:', error);
+                // Fallback: try to store in just one location
+                try {
+                  window.localStorage.setItem(key, value);
+                } catch (fallbackError) {
+                  console.error('Critical storage error:', fallbackError);
+                }
               }
             },
             removeItem: (key: string) => {
@@ -110,7 +118,7 @@ class SessionPersistenceManager {
     
     try {
       // Parse the session data if it's the auth token
-      if (key.includes('auth-token')) {
+      if (key.includes('auth-token') && value) {
         const sessionData = JSON.parse(value);
         
         if (sessionData.access_token) {
@@ -136,6 +144,7 @@ class SessionPersistenceManager {
       }
     } catch (error) {
       console.warn('Session backup error:', error);
+      // Don't let backup errors break the main flow
     }
   }
 
@@ -145,22 +154,28 @@ class SessionPersistenceManager {
   private initializeSessionMonitoring() {
     if (typeof window === 'undefined') return;
 
-    // Check session every 30 seconds
-    this.sessionCheckInterval = setInterval(() => {
-      this.validateAndRecoverSession();
-    }, 30000);
-
-    // Check on visibility change (tab focus)
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
+    // Wait a bit before starting aggressive monitoring to avoid conflicts
+    setTimeout(() => {
+      // Check session every 30 seconds (less aggressive than before)
+      this.sessionCheckInterval = setInterval(() => {
         this.validateAndRecoverSession();
-      }
-    });
+      }, 30000);
 
-    // Initial session recovery attempt
+      // Check on visibility change (tab focus) - but only after initial load
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+          // Add delay to avoid conflicts with other initialization
+          setTimeout(() => {
+            this.validateAndRecoverSession();
+          }, 1000);
+        }
+      });
+    }, 2000); // Wait 2 seconds after construction
+
+    // Initial session recovery attempt - but delayed to avoid conflicts
     setTimeout(() => {
       this.attemptSessionRecovery();
-    }, 1000);
+    }, 3000); // Wait 3 seconds for other systems to initialize
   }
 
   /**

@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import React, { useState, useEffect } from 'react'
 import { ReactBricks } from 'react-bricks'
+import { ReactBricksErrorBoundary } from './ReactBricksErrorBoundary'
 
 import NextLink from '../../react-bricks/NextLink'
 import config from '../../react-bricks/config'
@@ -21,18 +22,31 @@ export function ReactBricksApp({ children, lang: _lang = 'en' }: ReactBricksAppP
 
   useEffect(() => {
     setIsClient(true)
-    // Only access localStorage after client mount
-    const savedColorMode = localStorage.getItem('color-mode')
-    if (savedColorMode) {
-      setColorMode(savedColorMode)
+    
+    // Only access localStorage after client mount and add defensive error handling
+    try {
+      const savedColorMode = localStorage.getItem('color-mode')
+      if (savedColorMode && (savedColorMode === 'light' || savedColorMode === 'dark')) {
+        setColorMode(savedColorMode)
+      }
+    } catch (error) {
+      console.warn('Error accessing localStorage for color mode:', error)
+      // Fall back to light mode if localStorage access fails
+      setColorMode('light')
     }
   }, [])
 
   const toggleColorMode = () => {
     const newColorMode = colorMode === 'light' ? 'dark' : 'light'
     setColorMode(newColorMode)
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('color-mode', newColorMode)
+    
+    // Add defensive error handling for localStorage
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('color-mode', newColorMode)
+      }
+    } catch (error) {
+      console.warn('Error saving color mode to localStorage:', error)
     }
   }
 
@@ -66,5 +80,9 @@ export function ReactBricksApp({ children, lang: _lang = 'en' }: ReactBricksAppP
     enableAutoSave: true,
   }
 
-  return <ReactBricks {...reactBricksConfig}>{children}</ReactBricks>
+  return (
+    <ReactBricksErrorBoundary>
+      <ReactBricks {...reactBricksConfig}>{children}</ReactBricks>
+    </ReactBricksErrorBoundary>
+  )
 }
