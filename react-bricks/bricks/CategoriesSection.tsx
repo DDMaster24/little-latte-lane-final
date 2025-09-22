@@ -269,20 +269,54 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
           </div>
         )}
 
-        {/* Header with Icon and Badge */}
+        {/* Header with Icon/Image and Badge */}
         <div className="flex items-start justify-between mb-3">
-          {showIcon && (
-            <div className="w-full h-20 xs:h-24 sm:h-32 bg-gradient-to-br from-neonCyan/10 to-neonPink/10 backdrop-blur-sm rounded-lg flex items-center justify-center group-hover:from-neonCyan/20 group-hover:to-neonPink/20 transition-all duration-300 border border-neonCyan/20 hover:border-neonPink/50">
-              <Text
-                propName="categoryIcon"
-                value={categoryIcon}
-                renderBlock={(props) => (
-                  <span className={`${getIconSizeClass()} filter drop-shadow-lg`}>
-                    {props.children}
-                  </span>
-                )}
-                placeholder="🍽️"
-              />
+          {(showIcon || showImage) && (
+            <div className="w-full h-20 xs:h-24 sm:h-32 bg-gradient-to-br from-neonCyan/10 to-neonPink/10 backdrop-blur-sm rounded-lg flex items-center justify-center group-hover:from-neonCyan/20 group-hover:to-neonPink/20 transition-all duration-300 border border-neonCyan/20 hover:border-neonPink/50 relative overflow-hidden">
+              {/* Image Upload (when enabled and showImage is true) */}
+              {showImage && (
+                <Image
+                  propName="categoryImage"
+                  source={categoryImage}
+                  alt="Category image"
+                  imageStyle={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    borderRadius: '8px',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    zIndex: 1
+                  }}
+                  renderWrapper={(props) => (
+                    <div className="absolute inset-0">
+                      {props.children}
+                    </div>
+                  )}
+                />
+              )}
+              
+              {/* Icon Fallback (when no image or showIcon is true) */}
+              {showIcon && (!showImage || !categoryImage) && (
+                <Text
+                  propName="categoryIcon"
+                  value={categoryIcon}
+                  renderBlock={(props) => (
+                    <span className={`${getIconSizeClass()} filter drop-shadow-lg relative z-10`}>
+                      {props.children}
+                    </span>
+                  )}
+                  placeholder="🍽️"
+                />
+              )}
+              
+              {/* Image Upload Overlay for Admin (when in edit mode and showImage is true) */}
+              {showImage && isAdmin && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-opacity duration-200">
+                  <span className="text-white text-sm font-medium">Click to upload image</span>
+                </div>
+              )}
             </div>
           )}
           
@@ -299,24 +333,6 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
             />
           )}
         </div>
-
-        {/* Content Image (positioned within card content) */}
-        {showImage && categoryImage && imagePosition === 'content' && (
-          <div className="mb-4">
-            <Image
-              propName="categoryImage"
-              source={categoryImage}
-              alt="Category content image"
-              imageStyle={{
-                width: '100%',
-                height: '80px',
-                objectFit: 'cover',
-                borderRadius: '6px',
-                ...getImageStyle()
-              }}
-            />
-          </div>
-        )}
 
         {/* Content Area - Flexible positioning */}
         <div className={`flex-grow flex flex-col ${titlePosition === 'middle' ? 'justify-center' : titlePosition === 'bottom' ? 'justify-end' : 'justify-start'}`}>
@@ -394,7 +410,7 @@ CategoryCard.schema = {
     showDescription: true,
     showIcon: true,
     showBadge: false,
-    showImage: false,
+    showImage: true,
     
     // Layout & Positioning
     contentAlignment: 'center',
