@@ -62,13 +62,42 @@ export function useSessionPersistence() {
       return { hasSession: false, storageInfo: {} };
     }
 
+    // Enhanced Supabase key detection
+    const allKeys = [];
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (key) allKeys.push(key);
+    }
+    
+    // Look for Supabase auth key with multiple patterns
+    const supabaseAuthKey = allKeys.find(key => 
+      key.includes('auth-token') || 
+      key.includes('supabase') ||
+      key.startsWith('sb-') ||
+      key === 'sb-awytuszmunxvthuizyur-auth-token' || // Our project key
+      key.includes('awytuszmunxvthuizyur') || // Our project ID
+      key === 'supabase.auth.token' // Legacy v1 format
+    );
+
+    console.log('🔍 UseSessionPersistence Debug:', {
+      totalKeys: allKeys.length,
+      detectedSupabaseKey: supabaseAuthKey,
+      allKeys: allKeys,
+      supabaseRelatedKeys: allKeys.filter(key => 
+        key.includes('supabase') || 
+        key.includes('auth') || 
+        key.startsWith('sb-') ||
+        key.includes('awytuszmunxvthuizyur')
+      )
+    });
+
     const storageInfo = {
       sessionData: Boolean(window.localStorage.getItem('lll-session-data')),
       refreshToken: Boolean(window.localStorage.getItem('lll-refresh-token')),
       accessToken: Boolean(window.localStorage.getItem('lll-access-token')),
       expiresAt: window.localStorage.getItem('lll-session-expires'),
       userData: Boolean(window.localStorage.getItem('lll-user-data')),
-      supabaseAuth: Boolean(window.localStorage.getItem('supabase.auth.token')),
+      supabaseAuth: Boolean(supabaseAuthKey && window.localStorage.getItem(supabaseAuthKey)),
     };
 
     return {
