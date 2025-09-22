@@ -105,7 +105,7 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
   // Use database data if available, otherwise fall back to manual input
   const effectiveName = dbCategory ? dbCategory.name : categoryName
   const effectiveDescription = dbCategory ? dbCategory.description || '' : categoryDescription
-  const effectiveLink = dbCategory ? `/menu/${dbCategory.id}` : categoryLink
+  const effectiveLink = dbCategory ? `/menu/modern?category=${dbCategory.id}` : categoryLink
 
   // Enhanced styling functions (similar to WelcomeCard)
   const getCardStyleClass = () => {
