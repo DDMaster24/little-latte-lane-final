@@ -2,6 +2,7 @@ import React from 'react'
 import { Text, Repeater, types, Image, useAdminContext } from 'react-bricks/frontend'
 import Link from 'next/link'
 import { createAdvancedColorProp, TEXT_PALETTE, BACKGROUND_PALETTE } from '../components/colorPickerUtils'
+import { useMenuCategories } from '@/hooks/useMenuCategories'
 
 //========================================
 // Nested Component: Category Card
@@ -14,6 +15,7 @@ interface CategoryCardProps {
   categoryBadge?: types.TextValue
   categoryImage?: types.IImageSource
   categoryLink: string
+  categoryId?: string  // NEW: Link to database category
 
   // Content Display Controls
   showName: boolean
@@ -59,6 +61,7 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
   categoryBadge,
   categoryImage,
   categoryLink = '/menu',
+  categoryId = '', // NEW: Database category link
   
   // Visibility
   showName = true,
@@ -95,6 +98,15 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
   _hoverEffect = 'both',
   iconSize = 'md'
 }) => {
+  // Fetch database category data if categoryId is provided
+  const { categories } = useMenuCategories()
+  const dbCategory = categoryId ? categories.find(cat => cat.id === categoryId) : null
+  
+  // Use database data if available, otherwise fall back to manual input
+  const effectiveName = dbCategory ? dbCategory.name : categoryName
+  const effectiveDescription = dbCategory ? dbCategory.description || '' : categoryDescription
+  const effectiveLink = dbCategory ? `/menu/${dbCategory.id}` : categoryLink
+
   // Enhanced styling functions (similar to WelcomeCard)
   const getCardStyleClass = () => {
     const baseClasses = ['group', 'relative', 'transition-all', 'duration-300', 'hover:scale-105', 'touch-target', 'block']
@@ -361,6 +373,7 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
             <Text
               propName="categoryName"
               value={categoryName}
+              placeholder={dbCategory ? dbCategory.name : 'Category Name'}
               renderBlock={(props) => (
                 <h3 
                   className={`font-semibold text-fluid-base xs:text-fluid-lg mb-2 transition-colors duration-300 ${getColorAccent()}`}
@@ -377,7 +390,6 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
                   {props.children}
                 </h3>
               )}
-              placeholder="Category Name"
             />
           )}
 
@@ -386,6 +398,7 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
             <Text
               propName="categoryDescription"
               value={categoryDescription}
+              placeholder={dbCategory ? (dbCategory.description || 'Description from database') : 'Category Description'}
               renderBlock={(props) => (
                 <p 
                   className="text-sm xs:text-base leading-relaxed"
@@ -402,7 +415,6 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
                   {props.children}
                 </p>
               )}
-              placeholder="Category description goes here"
             />
           )}
         </div>
@@ -423,7 +435,7 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
   }
 
   return (
-    <Link href={categoryLink} className={getCardStyleClass()} style={getCardStyle()}>
+    <Link href={effectiveLink} className={getCardStyleClass()} style={getCardStyle()}>
       {cardContent}
     </Link>
   )
@@ -439,6 +451,7 @@ CategoryCard.schema = {
     categoryIcon: '🍽️',
     categoryBadge: '',
     categoryLink: '/menu',
+    categoryId: '', // NEW: Database category link
     
     // Content Display
     showName: true,
@@ -486,6 +499,15 @@ CategoryCard.schema = {
           name: 'categoryLink',
           label: 'Link URL',
           type: types.SideEditPropType.Text,
+        },
+        {
+          name: 'categoryId',
+          label: 'Database Category ID',
+          type: types.SideEditPropType.Text,
+          validate: (_value) => {
+            // Optional validation - can be empty for manual categories
+            return true
+          }
         },
         {
           name: 'showName',
