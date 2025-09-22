@@ -301,7 +301,7 @@ MenuBreakfastSidesSection.schema = {
   repeaterItems: [
     {
       name: 'categoryPanels',
-      itemType: 'menu-category-panel',
+      itemType: 'category-card',
       itemLabel: 'Category Panel'
     }
   ]
