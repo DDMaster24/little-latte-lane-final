@@ -320,23 +320,32 @@ class SessionPersistenceManager {
         if (key) allKeys.push(key);
       }
       
-      // Look for any Supabase auth key
+      // Enhanced Supabase auth key detection with multiple patterns
       const supabaseAuthKey = allKeys.find(key => 
         key.includes('auth-token') || 
         key.includes('supabase') ||
         key.startsWith('sb-') ||
-        key === 'sb-awytuszmunxvthuizyur-auth-token' // Exact key for our project
+        key === 'sb-awytuszmunxvthuizyur-auth-token' || // Exact key for our project
+        key.includes('awytuszmunxvthuizyur') || // Our project ID anywhere in key
+        key.match(/^sb-.*-auth-token.*$/) || // Any sb-*-auth-token pattern
+        (key.includes('session') && key.includes('supabase')) // Any supabase session key
       );
       
-      // Debug logging
+      // Debug logging with comprehensive information
       console.log('🔍 Supabase Auth Debug:', {
-        allKeys: allKeys.length > 0 ? allKeys : 'No keys found',
+        totalKeys: allKeys.length,
+        allKeys: allKeys,
         detectedKey: supabaseAuthKey,
         matchedKeys: allKeys.filter(key => 
           key.includes('auth-token') || 
           key.includes('supabase') ||
-          key.startsWith('sb-')
-        )
+          key.startsWith('sb-') ||
+          key.includes('awytuszmunxvthuizyur')
+        ),
+        // Show keys that contain our project ID
+        projectIdKeys: allKeys.filter(key => key.includes('awytuszmunxvthuizyur')),
+        // Show any auth-related keys
+        authKeys: allKeys.filter(key => key.toLowerCase().includes('auth'))
       });
       
       const supabaseAuthData = supabaseAuthKey ? window.localStorage.getItem(supabaseAuthKey) : null;
