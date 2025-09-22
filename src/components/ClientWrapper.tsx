@@ -11,6 +11,7 @@ import FooterSection from '@/components/FooterSection';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import StaffRedirect from '@/components/StaffRedirect';
 import EditorNavigation from '@/components/EditorNavigation';
+import { initializeSessionTracking } from '@/lib/session-storage';
 
 // Create a client instance for React Query
 const queryClient = new QueryClient({
@@ -35,6 +36,9 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setIsClient(true);
+
+    // Initialize session tracking for better authentication persistence
+    initializeSessionTracking();
 
     // Service Worker registration - simplified
     if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {

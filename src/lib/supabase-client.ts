@@ -26,6 +26,14 @@ export function getSupabaseClient() {
         auth: {
           persistSession: true,
           autoRefreshToken: true,
+          detectSessionInUrl: true,
+          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+          storageKey: 'supabase.auth.token',
+        },
+        global: {
+          headers: {
+            'X-Client-Info': 'little-latte-lane@1.0.0',
+          },
         },
       }
     );

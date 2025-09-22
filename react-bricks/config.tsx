@@ -12,7 +12,11 @@ const config: types.ReactBricksConfig = {
   pageTypes,
   customFields: [],
   logo: '/images/logo.svg',
-  loginUI: {},
+  loginUI: {
+    logo: '/images/logo.svg',
+    logoWidth: 120,
+    logoHeight: 60,
+  },
   contentClassName: '',
   renderLocalLink: NextLink,
   navigate: (path: string) => {

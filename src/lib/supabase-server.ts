@@ -37,20 +37,42 @@ export async function getSupabaseServer() {
         },
         set(name: string, value: string, options) {
           try {
-            cookieStore.set({ name, value, ...options });
+            cookieStore.set({ 
+              name, 
+              value, 
+              ...options,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              httpOnly: false, // Allow client access for auth tokens
+              path: '/',
+              maxAge: 60 * 60 * 24 * 7, // 7 days
+            });
           } catch (error) {
             // Handle cases where cookies can't be set (like in some server contexts)
-            console.warn('Failed to set cookie:', error);
+            console.warn('Failed to set auth cookie:', error);
           }
         },
         remove(name: string, options) {
           try {
-            cookieStore.set({ name, value: '', ...options });
+            cookieStore.set({ 
+              name, 
+              value: '', 
+              ...options,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              path: '/',
+              maxAge: 0,
+            });
           } catch (error) {
             // Handle cases where cookies can't be removed
-            console.warn('Failed to remove cookie:', error);
+            console.warn('Failed to remove auth cookie:', error);
           }
         },
+      },
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
       },
     }
   );
