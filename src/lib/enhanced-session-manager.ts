@@ -47,9 +47,12 @@ class SessionPersistenceManager {
                   const backupSession = window.localStorage.getItem(STORAGE_KEYS.SESSION);
                   if (backupSession) {
                     console.log(`🔄 Restoring ${key} from backup session`);
+                    console.log(`📋 Backup session data:`, backupSession.substring(0, 100) + '...');
                     // Restore the backup session to the expected key
                     window.localStorage.setItem(key, backupSession);
                     value = backupSession;
+                  } else {
+                    console.log(`❌ No backup session found for ${key}`);
                   }
                 }
                 
@@ -295,9 +298,21 @@ class SessionPersistenceManager {
     }
 
     try {
-      // Check for active Supabase session
-      const supabaseKeyPattern = `sb-${process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0]}-auth-token`;
-      const supabaseAuthData = window.localStorage.getItem(supabaseKeyPattern);
+      // Get all localStorage keys to find Supabase auth key
+      const allKeys = [];
+      for (let i = 0; i < window.localStorage.length; i++) {
+        const key = window.localStorage.key(i);
+        if (key) allKeys.push(key);
+      }
+      
+      // Look for any Supabase auth key
+      const supabaseAuthKey = allKeys.find(key => 
+        key.includes('auth-token') || 
+        key.includes('supabase') ||
+        key.startsWith('sb-')
+      );
+      
+      const supabaseAuthData = supabaseAuthKey ? window.localStorage.getItem(supabaseAuthKey) : null;
       
       const sessionData = window.localStorage.getItem(STORAGE_KEYS.SESSION);
       const refreshToken = window.localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
@@ -317,7 +332,11 @@ class SessionPersistenceManager {
         },
         isLoggedIn: !!(sessionData && refreshToken),
         userEmail: userData ? JSON.parse(userData).email : null,
-        lastSave: null, // We'll implement this later
+        lastSave: null,
+        // Debug info
+        allStorageKeys: allKeys,
+        supabaseKeyFound: supabaseAuthKey,
+        supabaseAuthExists: !!supabaseAuthData,
       };
     } catch (error) {
       console.error('Error getting session info:', error);

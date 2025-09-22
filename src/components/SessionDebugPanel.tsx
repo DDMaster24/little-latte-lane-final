@@ -139,9 +139,36 @@ export default function SessionDebugPanel() {
         {/* Debug Info */}
         <details className="text-xs">
           <summary className="cursor-pointer">Debug Info</summary>
-          <pre className="mt-2 p-2 bg-gray-900 rounded text-xs overflow-auto max-h-32">
-            {JSON.stringify(sessionInfo, null, 2)}
-          </pre>
+          <div className="mt-2 space-y-2">
+            {/* Storage Keys Found */}
+            {sessionInfo && 'allStorageKeys' in sessionInfo && (
+              <div>
+                <strong>Storage Keys Found:</strong>
+                <div className="text-xs bg-gray-900 p-2 rounded max-h-20 overflow-auto">
+                  {(sessionInfo.allStorageKeys as string[])?.map(key => (
+                    <div key={key} className={key.includes('sb-') || key.includes('supabase') ? 'text-yellow-400' : ''}>
+                      {key}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Supabase Key Detection */}
+            {sessionInfo && 'supabaseKeyFound' in sessionInfo && (
+              <div>
+                <strong>Supabase Key:</strong> {(sessionInfo.supabaseKeyFound as string) || 'Not found'}
+              </div>
+            )}
+            
+            {/* Full Debug JSON */}
+            <div>
+              <strong>Full Session Info:</strong>
+              <pre className="mt-1 p-2 bg-gray-900 rounded text-xs overflow-auto max-h-32">
+                {JSON.stringify(sessionInfo, null, 2)}
+              </pre>
+            </div>
+          </div>
         </details>
       </CardContent>
     </Card>
