@@ -44,6 +44,7 @@ interface CategoryCardProps {
   // Image Effects
   imageOpacity: number
   imageBlur: 'none' | 'sm' | 'md' | 'lg'
+  imageObjectPosition: 'center' | 'top' | 'bottom' | 'left' | 'right' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 
   // Legacy props for backward compatibility
   _hoverEffect?: 'scale' | 'glow' | 'both'
@@ -88,6 +89,7 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
   // Image Styling
   imageOpacity = 0.3,
   imageBlur = 'none',
+  imageObjectPosition = 'center',
   
   // Legacy props
   _hoverEffect = 'both',
@@ -200,6 +202,20 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
   const getImageStyle = () => {
     const style: React.CSSProperties = {}
     
+    // Object position for better image positioning
+    const objectPositionMap: Record<string, string> = {
+      'center': 'center center',
+      'top': 'center top',
+      'bottom': 'center bottom',
+      'left': 'left center',
+      'right': 'right center',
+      'top-left': 'left top',
+      'top-right': 'right top',
+      'bottom-left': 'left bottom',
+      'bottom-right': 'right bottom'
+    }
+    style.objectPosition = objectPositionMap[imageObjectPosition] || 'center center'
+    
     if (imagePosition === 'background') {
       style.opacity = imageOpacity
       
@@ -279,6 +295,8 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
                   propName="categoryImage"
                   source={categoryImage}
                   alt="Category image"
+                  aspectRatio={4/3} // Set aspect ratio to match container proportions
+                  maxWidth={400} // Reasonable max width for crisp images
                   imageStyle={{
                     width: '100%',
                     height: '100%',
@@ -287,7 +305,8 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
                     position: 'absolute',
                     top: 0,
                     left: 0,
-                    zIndex: 1
+                    zIndex: 1,
+                    ...getImageStyle() // Apply enhanced image styling including object-position
                   }}
                   renderWrapper={(props) => (
                     <div className="absolute inset-0">
@@ -346,6 +365,14 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
                 <h3 
                   className={`font-semibold text-fluid-base xs:text-fluid-lg mb-2 transition-colors duration-300 ${getColorAccent()}`}
                   style={{ color: nameColor?.color }}
+                  onFocus={(e) => {
+                    // Prevent automatic scrolling when editing
+                    e.preventDefault();
+                    // Keep element in view without jumping
+                    if (typeof window !== 'undefined') {
+                      e.target.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'nearest' });
+                    }
+                  }}
                 >
                   {props.children}
                 </h3>
@@ -363,6 +390,14 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
                 <p 
                   className="text-sm xs:text-base leading-relaxed"
                   style={{ color: descriptionColor?.color }}
+                  onFocus={(e) => {
+                    // Prevent automatic scrolling when editing
+                    e.preventDefault();
+                    // Keep element in view without jumping
+                    if (typeof window !== 'undefined') {
+                      e.target.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'nearest' });
+                    }
+                  }}
                 >
                   {props.children}
                 </p>
@@ -434,6 +469,7 @@ CategoryCard.schema = {
     // Image Effects
     imageOpacity: 0.3,
     imageBlur: 'none',
+    imageObjectPosition: 'center',
     
     // Legacy props
     hoverEffect: 'both',
@@ -638,6 +674,26 @@ CategoryCard.schema = {
           },
           show: (props) => props.showImage,
         },
+        {
+          name: 'imageObjectPosition',
+          label: 'Image Position',
+          type: types.SideEditPropType.Select,
+          selectOptions: {
+            display: types.OptionsDisplay.Select,
+            options: [
+              { value: 'center', label: 'Center' },
+              { value: 'top', label: 'Top' },
+              { value: 'bottom', label: 'Bottom' },
+              { value: 'left', label: 'Left' },
+              { value: 'right', label: 'Right' },
+              { value: 'top-left', label: 'Top Left' },
+              { value: 'top-right', label: 'Top Right' },
+              { value: 'bottom-left', label: 'Bottom Left' },
+              { value: 'bottom-right', label: 'Bottom Right' },
+            ],
+          },
+          show: (props) => props.showImage,
+        },
       ],
     },
     
@@ -721,8 +777,9 @@ CategoryCard.schema = {
           label: 'Category Image',
           type: types.SideEditPropType.Image,
           imageOptions: {
-            maxWidth: 800,
-            quality: 85,
+            maxWidth: 400,
+            quality: 90,
+            aspectRatio: 4/3, // Match the category panel dimensions (landscape)
           },
           show: (props) => props.showImage,
         },
