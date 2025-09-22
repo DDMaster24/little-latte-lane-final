@@ -36,9 +36,23 @@ class SessionPersistenceManager {
             getItem: (key: string) => {
               if (typeof window === 'undefined') return null;
               try {
-                // Try multiple storage methods
-                const value = window.localStorage.getItem(key) || 
-                             window.sessionStorage.getItem(key);
+                // First try localStorage, then sessionStorage, then our backup
+                let value = window.localStorage.getItem(key);
+                if (!value) {
+                  value = window.sessionStorage.getItem(key);
+                }
+                
+                // If it's the main auth token and we don't have it, try to restore from backup
+                if (!value && key.includes('auth-token')) {
+                  const backupSession = window.localStorage.getItem(STORAGE_KEYS.SESSION);
+                  if (backupSession) {
+                    console.log(`🔄 Restoring ${key} from backup session`);
+                    // Restore the backup session to the expected key
+                    window.localStorage.setItem(key, backupSession);
+                    value = backupSession;
+                  }
+                }
+                
                 console.log(`📦 Getting storage key "${key}":`, value ? 'Found' : 'Not found');
                 return value;
               } catch (error) {
@@ -149,7 +163,7 @@ class SessionPersistenceManager {
   /**
    * Attempt to recover session from backup storage
    */
-  private async attemptSessionRecovery() {
+  public async attemptSessionRecovery() {
     if (typeof window === 'undefined') return false;
 
     try {
@@ -270,6 +284,45 @@ class SessionPersistenceManager {
     });
     
     console.log('🗑️ Cleared all session data');
+  }
+
+  /**
+   * Get comprehensive session information for debugging
+   */
+  public getSessionInfo() {
+    if (typeof window === 'undefined') {
+      return { hasSession: false, storageInfo: {} };
+    }
+
+    try {
+      // Check for active Supabase session
+      const supabaseKeyPattern = `sb-${process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0]}-auth-token`;
+      const supabaseAuthData = window.localStorage.getItem(supabaseKeyPattern);
+      
+      const sessionData = window.localStorage.getItem(STORAGE_KEYS.SESSION);
+      const refreshToken = window.localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+      const accessToken = window.localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+      const expiresAt = window.localStorage.getItem(STORAGE_KEYS.EXPIRES);
+      const userData = window.localStorage.getItem(STORAGE_KEYS.USER);
+
+      return {
+        hasSession: !!(sessionData || refreshToken),
+        storageInfo: {
+          sessionData: !!sessionData,
+          refreshToken: !!refreshToken,
+          accessToken: !!accessToken,
+          expiresAt: expiresAt,
+          userData: !!userData,
+          supabaseAuth: !!supabaseAuthData,
+        },
+        isLoggedIn: !!(sessionData && refreshToken),
+        userEmail: userData ? JSON.parse(userData).email : null,
+        lastSave: null, // We'll implement this later
+      };
+    } catch (error) {
+      console.error('Error getting session info:', error);
+      return { hasSession: false, storageInfo: {} };
+    }
   }
 
   /**

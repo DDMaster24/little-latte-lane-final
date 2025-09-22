@@ -138,7 +138,43 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (cancelled) return;
 
         console.log('📧 AuthProvider: Initial session:', initialSession?.user?.email || 'none');
-        setSession(initialSession);
+        
+        // If no session found, try to recover from backup storage
+        if (!initialSession) {
+          console.log('🔄 AuthProvider: No session found, attempting recovery...');
+          try {
+            const recoveryResult = await sessionManager.attemptSessionRecovery();
+            if (recoveryResult) {
+              console.log('✅ AuthProvider: Session recovered, re-fetching...');
+              // Re-fetch session after recovery
+              const { data: { session: recoveredSession } } = await supabase.auth.getSession();
+              if (recoveredSession) {
+                setSession(recoveredSession);
+                console.log('🎉 AuthProvider: Successfully restored session for:', recoveredSession.user?.email);
+                
+                // Fetch profile for recovered session
+                if (!profileFetchInProgress) {
+                  profileFetchInProgress = true;
+                  
+                  // Add delay for database consistency
+                  await new Promise(resolve => setTimeout(resolve, 200));
+                  
+                  const userProfile = await fetchProfile(recoveredSession.user.id);
+                  if (!cancelled) {
+                    console.log('✅ AuthProvider: Profile set:', userProfile ? 'found' : 'not found');
+                    setProfile(userProfile);
+                  }
+                  profileFetchInProgress = false;
+                }
+                return; // Exit early since we handled the recovered session
+              }
+            }
+          } catch (recoveryError) {
+            console.warn('⚠️ AuthProvider: Session recovery failed:', recoveryError);
+          }
+        } else {
+          setSession(initialSession);
+        }
 
         if (initialSession?.user && !profileFetchInProgress) {
           profileFetchInProgress = true;
