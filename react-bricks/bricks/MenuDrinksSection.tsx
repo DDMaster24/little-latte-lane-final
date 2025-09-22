@@ -148,7 +148,7 @@ const MenuDrinksSection: types.Brick<MenuDrinksSectionProps> = ({
                   categoryName: 'Hot Drinks',
                   categoryDescription: 'Coffee, tea, and warm beverages',
                   categoryIcon: '☕',
-                  categoryId: '',
+                  categoryId: '550e8400-e29b-41d4-a716-446655440010', // Auto-linked to database
                   showName: true,
                   showDescription: true,
                   showIcon: true,
@@ -194,7 +194,7 @@ MenuDrinksSection.schema = {
         categoryName: 'Hot Drinks',
         categoryDescription: 'Coffee, tea, and warm beverages',
         categoryIcon: '☕',
-        categoryId: '',
+        categoryId: '550e8400-e29b-41d4-a716-446655440010', // Auto-linked to database
         showName: true,
         showDescription: true,
         showIcon: true,
@@ -211,9 +211,9 @@ MenuDrinksSection.schema = {
       },
       {
         categoryName: 'Lattes',
-        categoryDescription: 'Creamy lattes with various flavors and seasonal specials',
+        categoryDescription: 'Specialty latte creations',
         categoryIcon: '🍮',
-        categoryId: '',
+        categoryId: '550e8400-e29b-41d4-a716-446655440011', // Auto-linked to database
         showName: true,
         showDescription: true,
         showIcon: true,
@@ -230,9 +230,9 @@ MenuDrinksSection.schema = {
       },
       {
         categoryName: 'Iced Lattes',
-        categoryDescription: 'Cold coffee specialties and iced latte varieties',
+        categoryDescription: 'Cold coffee specialties',
         categoryIcon: '🧊',
-        categoryId: '',
+        categoryId: '550e8400-e29b-41d4-a716-446655440012', // Auto-linked to database
         showName: true,
         showDescription: true,
         showIcon: true,
@@ -249,9 +249,9 @@ MenuDrinksSection.schema = {
       },
       {
         categoryName: 'Frappes',
-        categoryDescription: 'Blended frozen coffee drinks',
+        categoryDescription: 'Blended coffee drinks',
         categoryIcon: '🌪️',
-        categoryId: '',
+        categoryId: '550e8400-e29b-41d4-a716-446655440013', // Auto-linked to database
         showName: true,
         showDescription: true,
         showIcon: true,
@@ -268,9 +268,9 @@ MenuDrinksSection.schema = {
       },
       {
         categoryName: 'Smoothies',
-        categoryDescription: 'Fresh fruit smoothies and protein blends',
+        categoryDescription: 'Fresh fruit and protein smoothies',
         categoryIcon: '🍓',
-        categoryId: '',
+        categoryId: '550e8400-e29b-41d4-a716-446655440016', // Auto-linked to database
         showName: true,
         showDescription: true,
         showIcon: true,
@@ -287,9 +287,9 @@ MenuDrinksSection.schema = {
       },
       {
         categoryName: 'Fizzers',
-        categoryDescription: 'Sparkling beverages and refreshing drinks',
+        categoryDescription: 'Refreshing fizzy drinks',
         categoryIcon: '💧',
-        categoryId: '',
+        categoryId: '550e8400-e29b-41d4-a716-446655440014', // Auto-linked to database
         showName: true,
         showDescription: true,
         showIcon: true,
@@ -306,9 +306,9 @@ MenuDrinksSection.schema = {
       },
       {
         categoryName: 'Freezos',
-        categoryDescription: 'Frozen coffee drinks and cold specialties',
+        categoryDescription: 'Frozen coffee treats',
         categoryIcon: '❄️',
-        categoryId: '',
+        categoryId: '550e8400-e29b-41d4-a716-446655440015', // Auto-linked to database
         showName: true,
         showDescription: true,
         showIcon: true,

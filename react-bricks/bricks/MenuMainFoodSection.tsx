@@ -148,7 +148,7 @@ const MenuMainFoodSection: types.Brick<MenuMainFoodSectionProps> = ({
                   categoryName: 'Pizza',
                   categoryDescription: 'Wood-fired pizzas with fresh toppings',
                   categoryIcon: '🍕',
-                  categoryId: '',
+                  categoryId: '550e8400-e29b-41d4-a716-446655440002', // Auto-linked to database
                   showName: true,
                   showDescription: true,
                   showIcon: true,
@@ -194,34 +194,25 @@ MenuMainFoodSection.schema = {
         categoryName: 'Pizza',
         categoryDescription: 'Wood-fired pizzas with fresh toppings',
         categoryIcon: '🍕',
-        categoryId: '',
-        showName: true,
-        showDescription: true,
-        showIcon: true
-      },
-      {
-        categoryName: 'Pizza Add-ons',
-        categoryDescription: 'Extra toppings and pizza enhancements',
-        categoryIcon: '🧄',
-        categoryId: '',
+        categoryId: '550e8400-e29b-41d4-a716-446655440002', // Auto-linked to database
         showName: true,
         showDescription: true,
         showIcon: true
       },
       {
         categoryName: 'Toasties',
-        categoryDescription: 'Grilled sandwiches and paninis',
+        categoryDescription: 'Grilled sandwiches and toasted treats',
         categoryIcon: '🥪',
-        categoryId: '',
+        categoryId: '550e8400-e29b-41d4-a716-446655440006', // Auto-linked to database
         showName: true,
         showDescription: true,
         showIcon: true
       },
       {
         categoryName: 'Scones',
-        categoryDescription: 'Freshly baked scones and pastries',
+        categoryDescription: 'Fresh baked scones with various fillings',
         categoryIcon: '🧁',
-        categoryId: '',
+        categoryId: '550e8400-e29b-41d4-a716-446655440001', // Auto-linked to database
         showName: true,
         showDescription: true,
         showIcon: true

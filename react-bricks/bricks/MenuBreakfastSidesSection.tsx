@@ -145,10 +145,10 @@ const MenuBreakfastSidesSection: types.Brick<MenuBreakfastSidesSectionProps> = (
               propName="categoryPanels"
               items={[
                 {
-                  categoryName: 'Scones',
-                  categoryDescription: 'Fresh baked scones with various fillings',
-                  categoryIcon: '🥐',
-                  categoryId: '',
+                  categoryName: 'All Day Brekkies',
+                  categoryDescription: 'Breakfast items available all day',
+                  categoryIcon: '🍳',
+                  categoryId: '550e8400-e29b-41d4-a716-446655440007', // Auto-linked to database
                   showName: true,
                   showDescription: true,
                   showIcon: true,
@@ -194,7 +194,7 @@ MenuBreakfastSidesSection.schema = {
         categoryName: 'All Day Brekkies',
         categoryDescription: 'Breakfast items available all day',
         categoryIcon: '🍳',
-        categoryId: '',
+        categoryId: '550e8400-e29b-41d4-a716-446655440007', // Auto-linked to database
         showName: true,
         showDescription: true,
         showIcon: true
@@ -203,7 +203,7 @@ MenuBreakfastSidesSection.schema = {
         categoryName: 'All Day Meals',
         categoryDescription: 'Hearty meals served throughout the day',
         categoryIcon: '🍽️',
-        categoryId: '',
+        categoryId: '550e8400-e29b-41d4-a716-446655440008', // Auto-linked to database
         showName: true,
         showDescription: true,
         showIcon: true

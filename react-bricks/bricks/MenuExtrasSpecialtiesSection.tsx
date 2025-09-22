@@ -145,10 +145,10 @@ const MenuExtrasSpecialtiesSection: types.Brick<MenuExtrasSpecialtiesSectionProp
               propName="categoryPanels"
               items={[
                 {
-                  categoryName: 'Fizzers',
-                  categoryDescription: 'Refreshing fizzy drinks',
-                  categoryIcon: '🥤',
-                  categoryId: '',
+                  categoryName: 'Monna & Rassie\'s Corner',
+                  categoryDescription: 'Kids menu and family favorites',
+                  categoryIcon: '👶',
+                  categoryId: '550e8400-e29b-41d4-a716-446655440009', // Auto-linked to database
                   showName: true,
                   showDescription: true,
                   showIcon: true,
@@ -191,10 +191,10 @@ MenuExtrasSpecialtiesSection.schema = {
     _backgroundOverlay: 0.5,
     categoryPanels: [
       {
-        categoryName: 'Monna & Rassies Corner',
+        categoryName: 'Monna & Rassie\'s Corner',
         categoryDescription: 'Kids menu and family favorites',
         categoryIcon: '👶',
-        categoryId: '',
+        categoryId: '550e8400-e29b-41d4-a716-446655440009', // Auto-linked to database
         showName: true,
         showDescription: true,
         showIcon: true
