@@ -2,8 +2,8 @@
 
 import { useRouter } from 'next/navigation'
 import React, { useState, useEffect } from 'react'
-import { ReactBricks } from 'react-bricks'
 import { ReactBricksErrorBoundary } from './ReactBricksErrorBoundary'
+import { ReactBricksSafeWrapper } from './ReactBricksSafeWrapper'
 
 import NextLink from '../../react-bricks/NextLink'
 import config from '../../react-bricks/config'
@@ -16,6 +16,7 @@ interface ReactBricksAppProps {
 export function ReactBricksApp({ children, lang: _lang = 'en' }: ReactBricksAppProps) {
   const router = useRouter()
   const [isClient, setIsClient] = useState(false)
+  const [isReactBricksReady, setIsReactBricksReady] = useState(false)
 
   // Color Mode Management (like in working version)
   const [colorMode, setColorMode] = useState('light')
@@ -34,6 +35,13 @@ export function ReactBricksApp({ children, lang: _lang = 'en' }: ReactBricksAppP
       // Fall back to light mode if localStorage access fails
       setColorMode('light')
     }
+
+    // Delayed initialization to ensure React Bricks has stable state
+    const timer = setTimeout(() => {
+      setIsReactBricksReady(true)
+    }, 500) // Wait 500ms for all systems to stabilize
+
+    return () => clearTimeout(timer)
   }, [])
 
   const toggleColorMode = () => {
@@ -50,9 +58,16 @@ export function ReactBricksApp({ children, lang: _lang = 'en' }: ReactBricksAppP
     }
   }
 
-  // Prevent rendering until client-side
-  if (!isClient) {
-    return <>{children}</>
+  // Prevent rendering until client-side AND React Bricks is ready
+  if (!isClient || !isReactBricksReady) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-neonCyan mx-auto mb-4"></div>
+          <p className="text-sm text-gray-400">Loading React Bricks...</p>
+        </div>
+      </div>
+    )
   }
 
   const reactBricksConfig = {
@@ -82,7 +97,9 @@ export function ReactBricksApp({ children, lang: _lang = 'en' }: ReactBricksAppP
 
   return (
     <ReactBricksErrorBoundary>
-      <ReactBricks {...reactBricksConfig}>{children}</ReactBricks>
+      <ReactBricksSafeWrapper config={reactBricksConfig}>
+        {children}
+      </ReactBricksSafeWrapper>
     </ReactBricksErrorBoundary>
   )
 }

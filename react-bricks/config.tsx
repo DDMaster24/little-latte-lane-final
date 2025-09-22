@@ -22,7 +22,11 @@ const config: types.ReactBricksConfig = {
   navigate: (path: string) => {
     // Navigate in same tab instead of opening new tab
     if (typeof window !== 'undefined') {
-      window.location.href = path;
+      try {
+        window.location.href = path;
+      } catch (error) {
+        console.error('Navigation error:', error);
+      }
     }
   },
   loginPath: '/admin/cms',
@@ -32,7 +36,9 @@ const config: types.ReactBricksConfig = {
   appSettingsPath: '/admin/app-settings',
   previewPath: '/preview',
   isDarkColorMode: false,
-  toggleColorMode: () => {},
+  toggleColorMode: () => {
+    // Safe no-op - will be overridden in ReactBricksApp
+  },
   useCssInJs: false,
   appRootElement: 'body',
   clickToEditSide: types.ClickToEditSide.BottomRight,
