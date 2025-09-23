@@ -108,9 +108,12 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
   // SIMPLIFIED: Use direct category ID for fast navigation
   const effectiveLink = dbCategory ? `/menu/${dbCategory.id}` : categoryLink
 
-  // Enhanced styling functions (similar to WelcomeCard)
+  // Enhanced styling functions with equal height support
   const getCardStyleClass = () => {
-    const baseClasses = ['group', 'relative', 'transition-all', 'duration-300', 'hover:scale-105', 'touch-target', 'block']
+    const baseClasses = [
+      'group', 'relative', 'transition-all', 'duration-300', 'hover:scale-105', 'touch-target', 'block',
+      'h-full', 'flex', 'flex-col' // Added for equal heights
+    ]
     
     // Border radius
     const radiusMap: Record<string, string> = {

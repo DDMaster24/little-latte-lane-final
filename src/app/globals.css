@@ -73,52 +73,49 @@
     justify-content: center;
   }
 
-  /* AGGRESSIVE centering - forces center alignment for all scenarios */
+  /* HYBRID SMART GRID: Adaptive columns with equal heights and smart centering */
   .grid-responsive-4-centered {
-    display: flex !important;
-    flex-wrap: wrap !important;
+    display: grid !important;
     gap: 1rem;
-    justify-content: center !important;
-    align-items: start;
     width: 100% !important;
+    align-items: stretch !important; /* Equal heights for all panels */
+    justify-content: center !important;
     
-    /* Each panel takes fixed width with centering */
-    > * {
-      flex: 0 0 320px !important;
-      max-width: 320px !important;
-    }
+    /* Mobile: 1 column centered */
+    grid-template-columns: repeat(1, minmax(280px, 320px)) !important;
     
     /* Small screens: 2 columns centered */
     @media (min-width: 640px) {
+      grid-template-columns: repeat(2, minmax(280px, 320px)) !important;
       gap: 1.5rem;
-      
-      > * {
-        flex: 0 0 320px !important;
-      }
     }
     
     /* Medium screens: 3 columns centered */
     @media (min-width: 900px) {
+      grid-template-columns: repeat(3, minmax(280px, 320px)) !important;
       gap: 1.5rem;
-      
-      > * {
-        flex: 0 0 320px !important;
-      }
     }
     
-    /* Large screens: 4 columns max with perfect centering */
+    /* Large screens: 4 columns with smart centering */
     @media (min-width: 1200px) {
+      grid-template-columns: repeat(4, minmax(280px, 320px)) !important;
       gap: 1.5rem;
-      
-      > * {
-        flex: 0 0 320px !important;
-        max-width: 320px !important;
-      }
+      max-width: 1400px;
+      margin: 0 auto;
     }
     
     /* Extra large screens */
     @media (min-width: 1400px) {
       gap: 2rem;
+      grid-template-columns: repeat(4, 320px) !important;
+    }
+    
+    /* Ensure all grid items have equal height */
+    > * {
+      height: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+      min-height: 200px !important;
     }
   }
 
@@ -165,37 +162,48 @@
     }
   }
 
-  /* NUCLEAR OVERRIDE: Force ALL category grids on homepage to be 4-column */
+  /* HOMEPAGE OVERRIDE: Smart 4-column with equal heights */
   main .grid-responsive-4-centered {
     display: grid !important;
-    grid-template-columns: repeat(1, 1fr) !important;
     gap: 1rem;
     width: 100% !important;
-    justify-content: stretch !important;
+    align-items: stretch !important; /* Equal heights */
+    justify-content: center !important;
     
+    /* Mobile: 1 column centered */
+    grid-template-columns: repeat(1, minmax(280px, 320px)) !important;
+    
+    /* Small screens: 2 columns centered */
     @media (min-width: 640px) {
-      grid-template-columns: repeat(2, 1fr) !important;
+      grid-template-columns: repeat(2, minmax(280px, 320px)) !important;
       gap: 1.5rem;
     }
     
+    /* Medium screens: 3 columns centered */
     @media (min-width: 900px) {
-      grid-template-columns: repeat(3, 1fr) !important;
+      grid-template-columns: repeat(3, minmax(280px, 320px)) !important;
       gap: 1.5rem;
     }
     
+    /* Large screens: 4 columns with perfect centering */
     @media (min-width: 1200px) {
-      grid-template-columns: repeat(4, 1fr) !important;
+      grid-template-columns: repeat(4, minmax(280px, 320px)) !important;
       gap: 1.5rem;
+      max-width: 1400px;
+      margin: 0 auto;
     }
     
     @media (min-width: 1400px) {
       gap: 2rem;
+      grid-template-columns: repeat(4, 320px) !important;
     }
     
+    /* Equal height panels with flexible content */
     > * {
-      flex: none !important;
-      max-width: none !important;
-      width: 100% !important;
+      height: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+      min-height: 200px !important; /* Consistent minimum height */
     }
   }
 
