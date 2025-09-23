@@ -165,6 +165,40 @@
     }
   }
 
+  /* NUCLEAR OVERRIDE: Force ALL category grids on homepage to be 4-column */
+  main .grid-responsive-4-centered {
+    display: grid !important;
+    grid-template-columns: repeat(1, 1fr) !important;
+    gap: 1rem;
+    width: 100% !important;
+    justify-content: stretch !important;
+    
+    @media (min-width: 640px) {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 1.5rem;
+    }
+    
+    @media (min-width: 900px) {
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 1.5rem;
+    }
+    
+    @media (min-width: 1200px) {
+      grid-template-columns: repeat(4, 1fr) !important;
+      gap: 1.5rem;
+    }
+    
+    @media (min-width: 1400px) {
+      gap: 2rem;
+    }
+    
+    > * {
+      flex: none !important;
+      max-width: none !important;
+      width: 100% !important;
+    }
+  }
+
   /* Fixed width for menu category panels to maintain consistent size when centered */
   .menu-category-panel {
     width: 280px;

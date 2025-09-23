@@ -968,7 +968,7 @@ CategoriesSection.schema = {
     backgroundColor: '#0f0f0f',
     titleColor: { color: '#ffffff' },
     subtitleColor: { color: '#d1d5db' },
-    gridLayout: 'auto',
+    gridLayout: 'homepage',
     showViewAllButton: true,
     viewAllButtonText: 'View Full Menu',
     viewAllButtonLink: '/menu',
