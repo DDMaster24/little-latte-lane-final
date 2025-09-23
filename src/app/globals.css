@@ -73,7 +73,7 @@
     justify-content: center;
   }
 
-  /* Simple 4-column grid with flexbox fallback for centering */
+  /* Enhanced centering - works with max-w-7xl mx-auto wrapper */
   .grid-responsive-4-centered {
     display: flex;
     flex-wrap: wrap;
@@ -81,21 +81,16 @@
     justify-content: center;
     align-items: start;
     width: 100%;
-    margin: 0 auto;
     
-    /* Each panel takes fixed width */
+    /* Each panel takes fixed width with centering */
     > * {
       flex: 0 0 320px;
       max-width: 320px;
     }
     
-    /* Mobile: 1 column centered */
-    max-width: 320px;
-    
     /* Small screens: 2 columns centered */
     @media (min-width: 640px) {
       gap: 1.5rem;
-      max-width: 680px;
       
       > * {
         flex: 0 0 320px;
@@ -105,17 +100,15 @@
     /* Medium screens: 3 columns centered */
     @media (min-width: 900px) {
       gap: 1.5rem;
-      max-width: 1020px;
       
       > * {
         flex: 0 0 320px;
       }
     }
     
-    /* Large screens: 4 columns max with natural centering */
+    /* Large screens: 4 columns max with perfect centering */
     @media (min-width: 1200px) {
       gap: 1.5rem;
-      max-width: 1380px;
       
       > * {
         flex: 0 0 320px;
@@ -126,7 +119,6 @@
     /* Extra large screens */
     @media (min-width: 1400px) {
       gap: 2rem;
-      max-width: 1400px;
     }
   }
 
