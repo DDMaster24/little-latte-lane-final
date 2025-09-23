@@ -100,12 +100,24 @@
       max-width: 1020px;
     }
     
-    /* Large screens: 4 columns max, centered incomplete rows */
+    /* Large screens: 4 columns max with perfect centering for incomplete rows */
     @media (min-width: 1200px) {
-      grid-template-columns: repeat(4, minmax(280px, 320px));
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
       gap: 1.5rem;
       max-width: 1380px;
-      justify-content: center;
+      
+      /* Each item takes fixed width */
+      & > * {
+        flex: 0 0 320px;
+        max-width: 320px;
+      }
+      
+      /* Ensure max 4 items per row */
+      & > *:nth-child(4n+1):nth-last-child(-n+4) ~ * {
+        /* This targets incomplete rows and centers them */
+      }
     }
     
     /* Extra large screens: maintain 4 column max with perfect centering */
