@@ -375,41 +375,30 @@ export default function RestaurantClosureManagement() {
         </Card>
       </div>
 
-      {/* Instructions */}
+      {/* Quick Guide */}
       <Card className="bg-gray-800/30 border-gray-700/50">
         <CardHeader>
           <CardTitle className="text-white text-lg flex items-center gap-2">
             <Eye className="h-5 w-5" />
-            Next Steps
+            Implementation Guide
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="flex items-start gap-3">
-              <div className="bg-blue-500/20 border border-blue-500/30 rounded-full p-1 mt-0.5">
-                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+              <div className="bg-neonCyan/20 border border-neonCyan/30 rounded-full p-1 mt-0.5">
+                <div className="w-2 h-2 bg-neonCyan rounded-full"></div>
               </div>
               <div>
-                <p className="text-white font-medium text-sm">Create Closure Banner</p>
-                <p className="text-gray-400 text-xs">Add a closure banner brick to your homepage and menu page in the React Bricks editor</p>
+                <p className="text-white font-medium text-sm">Add closure banners to your homepage and menu via the Content Editor</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="bg-green-500/20 border border-green-500/30 rounded-full p-1 mt-0.5">
-                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+              <div className="bg-neonPink/20 border border-neonPink/30 rounded-full p-1 mt-0.5">
+                <div className="w-2 h-2 bg-neonPink rounded-full"></div>
               </div>
               <div>
-                <p className="text-white font-medium text-sm">Customize Message</p>
-                <p className="text-gray-400 text-xs">Use the ClosureBanner component to create custom closure messages with images</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="bg-purple-500/20 border border-purple-500/30 rounded-full p-1 mt-0.5">
-                <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-              </div>
-              <div>
-                <p className="text-white font-medium text-sm">Test the System</p>
-                <p className="text-gray-400 text-xs">Toggle closure status and verify that ordering is properly disabled</p>
+                <p className="text-white font-medium text-sm">Verify closure status prevents new orders</p>
               </div>
             </div>
           </div>
