@@ -152,14 +152,11 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
     }
   }
 
-  // Get final link with clean URLs
+  // Get final link - SIMPLIFIED for fast navigation
   const getFinalLink = () => {
-    if (selectedCategory) {
-      // Generate clean slug from category name
-      const slug = selectedCategory.name.toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9-]/g, '');
-      return `/menu/modern/category/${slug}`;
+    // Use direct category ID for fast loading - no complex URL generation
+    if (categoryId && categoryId.trim()) {
+      return `/menu/${categoryId}`;
     }
     
     // Fallback to manual categoryLink if provided
@@ -168,7 +165,7 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
     }
     
     // Default fallback
-    return '/menu/modern';
+    return '/menu';
   }
 
   // Get display values - prefer database content if linked
@@ -280,7 +277,6 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
         borderColor: borderColor.color,
         boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)'
       }}
-      prefetch={true}
     >
       {panelContent}
     </Link>

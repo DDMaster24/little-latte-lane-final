@@ -122,11 +122,12 @@
     }
   }
 
-  /* Homepage categories - ALWAYS 4 panels per row, no centering */
+  /* Homepage categories - ALWAYS 4 panels per row, no centering - OVERRIDE EVERYTHING */
   .grid-homepage-4-fixed {
     display: grid !important;
     gap: 1rem;
     width: 100% !important;
+    justify-content: stretch !important;
     
     /* Mobile: 1 column */
     grid-template-columns: repeat(1, 1fr) !important;
@@ -143,15 +144,24 @@
       gap: 1.5rem;
     }
     
-    /* Large screens: EXACTLY 4 columns */
+    /* Large screens: EXACTLY 4 columns - FORCE OVERRIDE */
     @media (min-width: 1200px) {
       grid-template-columns: repeat(4, 1fr) !important;
       gap: 1.5rem;
+      justify-content: stretch !important;
+      align-items: stretch !important;
     }
     
     /* Extra large screens */
     @media (min-width: 1400px) {
       gap: 2rem;
+    }
+    
+    /* Override any flex properties that might interfere */
+    > * {
+      flex: none !important;
+      max-width: none !important;
+      width: 100% !important;
     }
   }
 
