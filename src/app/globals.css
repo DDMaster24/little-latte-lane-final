@@ -102,15 +102,10 @@
     
     /* Large screens: 4 columns max, centered incomplete rows */
     @media (min-width: 1200px) {
-      grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
+      grid-template-columns: repeat(4, minmax(280px, 320px));
       gap: 1.5rem;
       max-width: 1380px;
       justify-content: center;
-      
-      /* Ensure max 4 columns */
-      & > *:nth-child(n+5) {
-        /* Grid items beyond 4 will wrap to new row and center */
-      }
     }
     
     /* Extra large screens: maintain 4 column max with perfect centering */
