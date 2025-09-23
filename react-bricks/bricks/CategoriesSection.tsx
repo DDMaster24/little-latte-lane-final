@@ -821,7 +821,7 @@ interface CategoriesSectionProps {
   backgroundColor: string
   titleColor: { color: string }
   subtitleColor: { color: string }
-  gridLayout: '2x2' | '3x1' | '4x1' | 'auto'
+  gridLayout: '2x2' | '3x1' | '4x1' | 'homepage' | 'auto'
   showViewAllButton: boolean
   viewAllButtonText: types.TextValue
   viewAllButtonLink: string
@@ -848,6 +848,7 @@ const CategoriesSection: types.Brick<CategoriesSectionProps> = ({
       case '2x2': return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 justify-center'
       case '3x1': return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 justify-center'
       case '4x1': return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 justify-center'
+      case 'homepage': return 'grid-homepage-4-fixed'  // NEW: Homepage fixed layout
       case 'auto': return 'grid-responsive-4-centered'
       default: return 'grid-responsive-4-centered'
     }
@@ -1059,6 +1060,7 @@ CategoriesSection.schema = {
             display: types.OptionsDisplay.Select,
             options: [
               { value: 'auto', label: 'Auto (Responsive)' },
+              { value: 'homepage', label: 'Homepage (4 Fixed)' },
               { value: '2x2', label: '2x2 Grid' },
               { value: '3x1', label: '3 Columns' },
               { value: '4x1', label: '4 Columns' },
