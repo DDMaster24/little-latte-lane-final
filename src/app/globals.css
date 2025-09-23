@@ -73,35 +73,50 @@
     justify-content: center;
   }
 
-  /* Enhanced centering for incomplete rows */
+  /* Enhanced centering for incomplete rows - Perfect alignment */
   .grid-responsive-4-centered {
     display: grid;
     gap: 1rem;
     justify-content: center;
+    align-items: start;
+    width: 100%;
     
-    /* Mobile: 1 column */
-    grid-template-columns: repeat(1, minmax(280px, 400px));
+    /* Mobile: 1 column centered */
+    grid-template-columns: repeat(1, minmax(280px, 320px));
+    max-width: 320px;
+    margin: 0 auto;
     
-    /* Small screens: 2 columns */
+    /* Small screens: 2 columns centered */
     @media (min-width: 640px) {
-      grid-template-columns: repeat(2, minmax(280px, 1fr));
+      grid-template-columns: repeat(2, minmax(280px, 320px));
       gap: 1.5rem;
+      max-width: 680px;
     }
     
-    /* Medium screens: 3 columns */
-    @media (min-width: 768px) {
+    /* Medium screens: 3 columns centered */
+    @media (min-width: 900px) {
       grid-template-columns: repeat(3, minmax(280px, 320px));
       gap: 1.5rem;
-      max-width: 1200px;
-      margin: 0 auto;
+      max-width: 1020px;
     }
     
-    /* Large screens and up: 4 columns */
-    @media (min-width: 1024px) {
-      grid-template-columns: repeat(4, minmax(280px, 320px));
+    /* Large screens: 4 columns max, centered incomplete rows */
+    @media (min-width: 1200px) {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
       gap: 1.5rem;
-      max-width: 1400px;
-      margin: 0 auto;
+      max-width: 1380px;
+      justify-content: center;
+      
+      /* Ensure max 4 columns */
+      & > *:nth-child(n+5) {
+        /* Grid items beyond 4 will wrap to new row and center */
+      }
+    }
+    
+    /* Extra large screens: maintain 4 column max with perfect centering */
+    @media (min-width: 1400px) {
+      max-width: 1380px;
+      gap: 2rem;
     }
   }
 

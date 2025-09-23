@@ -638,7 +638,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                               setDeliveryType(value as 'delivery' | 'pickup')
                             }
                           >
-                            <SelectTrigger className="bg-darkBg/80 backdrop-blur-md border-neonPink/50 text-neonPink focus:border-neonCyan focus:ring-neonCyan/20">
+                            <SelectTrigger className="bg-darkBg/80 backdrop-blur-md border-neonPink/50 text-white focus:border-neonCyan focus:ring-neonCyan/20">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="bg-darkBg/95 backdrop-blur-lg border-neonPink/50">
@@ -666,7 +666,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                               name="delivery_location"
                               value={address}
                               onChange={(e) => setAddress(e.target.value)}
-                              className="bg-darkBg/80 backdrop-blur-md border-neonPink/50 text-neonPink placeholder:text-neonPink/50 focus:border-neonCyan focus:ring-neonCyan/20"
+                              className="bg-darkBg/80 backdrop-blur-md border-neonPink/50 text-white placeholder:text-gray-400 focus:border-neonCyan focus:ring-neonCyan/20"
                               placeholder={
                                 profile?.address
                                   ? 'Your saved delivery address'
@@ -701,7 +701,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                             type="tel"
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
-                            className="bg-darkBg/80 backdrop-blur-md border-neonPink/50 text-neonPink placeholder:text-neonPink/50 focus:border-neonCyan focus:ring-neonCyan/20"
+                            className="bg-darkBg/80 backdrop-blur-md border-neonPink/50 text-white placeholder:text-gray-400 focus:border-neonCyan focus:ring-neonCyan/20"
                             placeholder={
                               profile?.phone
                                 ? 'Your saved phone number'
@@ -742,7 +742,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                             name="special_instructions"
                             value={specialInstructions}
                             onChange={(e) => setSpecialInstructions(e.target.value)}
-                            className="bg-darkBg/80 backdrop-blur-md border-neonPink/50 text-neonPink placeholder:text-neonPink/50 focus:border-neonCyan focus:ring-neonCyan/20 min-h-[80px]"
+                            className="bg-darkBg/80 backdrop-blur-md border-neonPink/50 text-white placeholder:text-gray-400 focus:border-neonCyan focus:ring-neonCyan/20 min-h-[80px]"
                             placeholder="Any special requests or dietary requirements..."
                             autoComplete="off"
                             autoCorrect="off"
