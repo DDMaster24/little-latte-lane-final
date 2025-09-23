@@ -152,7 +152,19 @@ const MenuExtrasSpecialtiesSection: types.Brick<MenuExtrasSpecialtiesSectionProp
                   showName: true,
                   showDescription: true,
                   showIcon: true,
-                  showImage: true, // Enable image uploads like homepage
+                  showImage: true,
+                  cardStyle: 'glass',
+                  cardColor: 'neon'
+                },
+                {
+                  categoryName: 'Extras',
+                  categoryDescription: 'Additional extras and bread options',
+                  categoryIcon: '🍞',
+                  categoryId: '550e8400-e29b-41d4-a716-446655440005', // Auto-linked to database
+                  showName: true,
+                  showDescription: true,
+                  showIcon: true,
+                  showImage: true,
                   cardStyle: 'glass',
                   cardColor: 'neon'
                 }
@@ -195,6 +207,15 @@ MenuExtrasSpecialtiesSection.schema = {
         categoryDescription: 'Kids menu and family favorites',
         categoryIcon: '👶',
         categoryId: '550e8400-e29b-41d4-a716-446655440009', // Auto-linked to database
+        showName: true,
+        showDescription: true,
+        showIcon: true
+      },
+      {
+        categoryName: 'Extras',
+        categoryDescription: 'Additional items and sides',
+        categoryIcon: '🍰',
+        categoryId: '550e8400-e29b-41d4-a716-446655440010', // Auto-linked to database
         showName: true,
         showDescription: true,
         showIcon: true

@@ -152,7 +152,31 @@ const MenuMainFoodSection: types.Brick<MenuMainFoodSectionProps> = ({
                   showName: true,
                   showDescription: true,
                   showIcon: true,
-                  showImage: true, // Enable image uploads like homepage
+                  showImage: true,
+                  cardStyle: 'glass',
+                  cardColor: 'neon'
+                },
+                {
+                  categoryName: 'All Day Meals',
+                  categoryDescription: 'Hearty meals served throughout the day',
+                  categoryIcon: '🍽️',
+                  categoryId: '550e8400-e29b-41d4-a716-446655440008', // Auto-linked to database
+                  showName: true,
+                  showDescription: true,
+                  showIcon: true,
+                  showImage: true,
+                  cardStyle: 'glass',
+                  cardColor: 'neon'
+                },
+                {
+                  categoryName: 'Toasties',
+                  categoryDescription: 'Grilled sandwiches and toasted treats',
+                  categoryIcon: '🥪',
+                  categoryId: '550e8400-e29b-41d4-a716-446655440006', // Auto-linked to database
+                  showName: true,
+                  showDescription: true,
+                  showIcon: true,
+                  showImage: true,
                   cardStyle: 'glass',
                   cardColor: 'neon'
                 }
@@ -200,19 +224,19 @@ MenuMainFoodSection.schema = {
         showIcon: true
       },
       {
-        categoryName: 'Toasties',
-        categoryDescription: 'Grilled sandwiches and toasted treats',
-        categoryIcon: '🥪',
-        categoryId: '550e8400-e29b-41d4-a716-446655440006', // Auto-linked to database
+        categoryName: 'All Day Meals',
+        categoryDescription: 'Hearty meals served throughout the day',
+        categoryIcon: '🍽️',
+        categoryId: '550e8400-e29b-41d4-a716-446655440008', // Auto-linked to database
         showName: true,
         showDescription: true,
         showIcon: true
       },
       {
-        categoryName: 'Scones',
-        categoryDescription: 'Fresh baked scones with various fillings',
-        categoryIcon: '🧁',
-        categoryId: '550e8400-e29b-41d4-a716-446655440001', // Auto-linked to database
+        categoryName: 'Toasties',
+        categoryDescription: 'Grilled sandwiches and toasted treats',
+        categoryIcon: '�',
+        categoryId: '550e8400-e29b-41d4-a716-446655440006', // Auto-linked to database
         showName: true,
         showDescription: true,
         showIcon: true

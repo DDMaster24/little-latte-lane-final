@@ -152,7 +152,31 @@ const MenuBreakfastSidesSection: types.Brick<MenuBreakfastSidesSectionProps> = (
                   showName: true,
                   showDescription: true,
                   showIcon: true,
-                  showImage: true, // Enable image uploads like homepage
+                  showImage: true,
+                  cardStyle: 'glass',
+                  cardColor: 'neon'
+                },
+                {
+                  categoryName: 'Scones',
+                  categoryDescription: 'Fresh baked scones with various fillings',
+                  categoryIcon: '🧁',
+                  categoryId: '550e8400-e29b-41d4-a716-446655440001', // Auto-linked to database
+                  showName: true,
+                  showDescription: true,
+                  showIcon: true,
+                  showImage: true,
+                  cardStyle: 'glass',
+                  cardColor: 'neon'
+                },
+                {
+                  categoryName: 'Sides',
+                  categoryDescription: 'Perfect sides to complete your meal',
+                  categoryIcon: '🍟',
+                  categoryId: '550e8400-e29b-41d4-a716-446655440004', // Auto-linked to database
+                  showName: true,
+                  showDescription: true,
+                  showIcon: true,
+                  showImage: true,
                   cardStyle: 'glass',
                   cardColor: 'neon'
                 }
@@ -200,10 +224,19 @@ MenuBreakfastSidesSection.schema = {
         showIcon: true
       },
       {
-        categoryName: 'All Day Meals',
-        categoryDescription: 'Hearty meals served throughout the day',
-        categoryIcon: '🍽️',
-        categoryId: '550e8400-e29b-41d4-a716-446655440008', // Auto-linked to database
+        categoryName: 'Scones',
+        categoryDescription: 'Fresh baked scones with various fillings',
+        categoryIcon: '🧁',
+        categoryId: '550e8400-e29b-41d4-a716-446655440001', // Auto-linked to database
+        showName: true,
+        showDescription: true,
+        showIcon: true
+      },
+      {
+        categoryName: 'Sides',
+        categoryDescription: 'Perfect sides to complete your meal',
+        categoryIcon: '�',
+        categoryId: '550e8400-e29b-41d4-a716-446655440004', // Auto-linked to database
         showName: true,
         showDescription: true,
         showIcon: true

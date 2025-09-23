@@ -152,7 +152,79 @@ const MenuDrinksSection: types.Brick<MenuDrinksSectionProps> = ({
                   showName: true,
                   showDescription: true,
                   showIcon: true,
-                  showImage: true, // Enable image uploads like homepage
+                  showImage: true,
+                  cardStyle: 'glass',
+                  cardColor: 'neon'
+                },
+                {
+                  categoryName: 'Lattes',
+                  categoryDescription: 'Specialty latte creations',
+                  categoryIcon: '🍮',
+                  categoryId: '550e8400-e29b-41d4-a716-446655440011', // Auto-linked to database
+                  showName: true,
+                  showDescription: true,
+                  showIcon: true,
+                  showImage: true,
+                  cardStyle: 'glass',
+                  cardColor: 'neon'
+                },
+                {
+                  categoryName: 'Iced Lattes',
+                  categoryDescription: 'Cold coffee specialties',
+                  categoryIcon: '🧊',
+                  categoryId: '550e8400-e29b-41d4-a716-446655440012', // Auto-linked to database
+                  showName: true,
+                  showDescription: true,
+                  showIcon: true,
+                  showImage: true,
+                  cardStyle: 'glass',
+                  cardColor: 'neon'
+                },
+                {
+                  categoryName: 'Frappes',
+                  categoryDescription: 'Blended coffee drinks',
+                  categoryIcon: '🌪️',
+                  categoryId: '550e8400-e29b-41d4-a716-446655440013', // Auto-linked to database
+                  showName: true,
+                  showDescription: true,
+                  showIcon: true,
+                  showImage: true,
+                  cardStyle: 'glass',
+                  cardColor: 'neon'
+                },
+                {
+                  categoryName: 'Smoothies',
+                  categoryDescription: 'Fresh fruit and protein smoothies',
+                  categoryIcon: '🍓',
+                  categoryId: '550e8400-e29b-41d4-a716-446655440016', // Auto-linked to database
+                  showName: true,
+                  showDescription: true,
+                  showIcon: true,
+                  showImage: true,
+                  cardStyle: 'glass',
+                  cardColor: 'neon'
+                },
+                {
+                  categoryName: 'Fizzers',
+                  categoryDescription: 'Refreshing fizzy drinks',
+                  categoryIcon: '💧',
+                  categoryId: '550e8400-e29b-41d4-a716-446655440014', // Auto-linked to database
+                  showName: true,
+                  showDescription: true,
+                  showIcon: true,
+                  showImage: true,
+                  cardStyle: 'glass',
+                  cardColor: 'neon'
+                },
+                {
+                  categoryName: 'Freezos',
+                  categoryDescription: 'Frozen coffee treats',
+                  categoryIcon: '❄️',
+                  categoryId: '550e8400-e29b-41d4-a716-446655440015', // Auto-linked to database
+                  showName: true,
+                  showDescription: true,
+                  showIcon: true,
+                  showImage: true,
                   cardStyle: 'glass',
                   cardColor: 'neon'
                 }
