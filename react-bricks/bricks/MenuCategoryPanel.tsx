@@ -152,12 +152,23 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
     }
   }
 
-  // Get final link with category ID if database category is selected
+  // Get final link with clean URLs
   const getFinalLink = () => {
     if (selectedCategory) {
-      return `${categoryLink}?category=${selectedCategory.id}`
+      // Generate clean slug from category name
+      const slug = selectedCategory.name.toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '');
+      return `/menu/modern/category/${slug}`;
     }
-    return categoryLink
+    
+    // Fallback to manual categoryLink if provided
+    if (categoryLink && categoryLink !== '/menu/modern') {
+      return categoryLink;
+    }
+    
+    // Default fallback
+    return '/menu/modern';
   }
 
   // Get display values - prefer database content if linked
