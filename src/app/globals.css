@@ -73,19 +73,19 @@
     justify-content: center;
   }
 
-  /* Enhanced centering - works with max-w-7xl mx-auto wrapper */
+  /* AGGRESSIVE centering - forces center alignment for all scenarios */
   .grid-responsive-4-centered {
-    display: flex;
-    flex-wrap: wrap;
+    display: flex !important;
+    flex-wrap: wrap !important;
     gap: 1rem;
-    justify-content: center;
+    justify-content: center !important;
     align-items: start;
-    width: 100%;
+    width: 100% !important;
     
     /* Each panel takes fixed width with centering */
     > * {
-      flex: 0 0 320px;
-      max-width: 320px;
+      flex: 0 0 320px !important;
+      max-width: 320px !important;
     }
     
     /* Small screens: 2 columns centered */
@@ -93,7 +93,7 @@
       gap: 1.5rem;
       
       > * {
-        flex: 0 0 320px;
+        flex: 0 0 320px !important;
       }
     }
     
@@ -102,7 +102,7 @@
       gap: 1.5rem;
       
       > * {
-        flex: 0 0 320px;
+        flex: 0 0 320px !important;
       }
     }
     
@@ -111,8 +111,8 @@
       gap: 1.5rem;
       
       > * {
-        flex: 0 0 320px;
-        max-width: 320px;
+        flex: 0 0 320px !important;
+        max-width: 320px !important;
       }
     }
     
