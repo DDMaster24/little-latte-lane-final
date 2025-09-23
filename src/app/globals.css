@@ -73,7 +73,7 @@
     justify-content: center;
   }
 
-  /* Enhanced centering for incomplete rows - 4 columns max with perfect centering */
+  /* 4 columns max with REAL centering for incomplete rows */
   .grid-responsive-4-centered {
     display: grid;
     gap: 1rem;
@@ -100,16 +100,41 @@
       max-width: 1020px;
     }
     
-    /* Large screens: EXACTLY 4 columns with perfect centering */
+    /* Large screens: 4 columns with REAL centering for incomplete rows */
     @media (min-width: 1200px) {
       grid-template-columns: repeat(4, 320px);
       gap: 1.5rem;
-      max-width: 1380px;
+      max-width: 1400px;
       justify-content: center;
-      width: 100%;
+      
+      /* Center 1 item in last row */
+      > :only-child,
+      > :nth-child(4n+1):last-child {
+        grid-column: 2 / 4;
+        justify-self: center;
+      }
+      
+      /* Center 2 items in last row */
+      > :nth-child(4n+1):nth-last-child(2) {
+        grid-column: 2;
+      }
+      > :nth-child(4n+2):last-child {
+        grid-column: 3;
+      }
+      
+      /* Center 3 items in last row */
+      > :nth-child(4n+1):nth-last-child(3) {
+        grid-column: 1;
+      }
+      > :nth-child(4n+2):nth-last-child(2) {
+        grid-column: 2;
+      }
+      > :nth-child(4n+3):last-child {
+        grid-column: 4;
+      }
     }
     
-    /* Extra large screens: maintain 4 column max */
+    /* Extra large screens */
     @media (min-width: 1400px) {
       gap: 2rem;
       max-width: 1400px;
