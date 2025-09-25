@@ -154,17 +154,17 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
 
   // Get final link - Navigate to ordering page with category selection
   const getFinalLink = () => {
-    // Use category ID parameter for ordering page navigation
+    // PRIORITY 1: Use category ID parameter for ordering page navigation
     if (categoryId && categoryId.trim()) {
       return `/ordering?category=${categoryId}`;
     }
     
-    // Fallback to manual categoryLink if provided
-    if (categoryLink && categoryLink !== '/ordering') {
+    // PRIORITY 2: Fallback to manual categoryLink only if it's specifically set to ordering-related path
+    if (categoryLink && (categoryLink.includes('/ordering') || categoryLink.includes('category'))) {
       return categoryLink;
     }
     
-    // Default fallback to ordering page
+    // PRIORITY 3: Default fallback to ordering page
     return '/ordering';
   }
 
@@ -331,7 +331,7 @@ MenuCategoryPanel.schema = {
         },
         {
           name: 'categoryLink',
-          label: 'Base Link URL',
+          label: 'Base Link URL (only used if no Category ID)',
           type: types.SideEditPropType.Text,
         }
       ]

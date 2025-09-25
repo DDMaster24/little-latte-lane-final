@@ -20,7 +20,7 @@ const MenuCategoryCard: types.Brick<MenuCategoryCardProps> = ({
   categoryName,
   categoryDescription,
   categoryIcon,
-  categoryLink = '/menu',
+  categoryLink = '/ordering',
   itemCount,
   cardStyle = 'glass',
   hoverEffect = 'both',

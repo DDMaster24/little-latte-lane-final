@@ -60,7 +60,7 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
   categoryIcon,
   categoryBadge,
   categoryImage,
-  categoryLink = '/menu',
+  categoryLink = '/ordering',
   categoryId = '', // NEW: Database category link
   
   // Visibility
@@ -454,7 +454,7 @@ CategoryCard.schema = {
     categoryDescription: 'Description of this category',
     categoryIcon: '🍽️',
     categoryBadge: '',
-    categoryLink: '/menu',
+    categoryLink: '/ordering',
     categoryId: '', // NEW: Database category link
     
     // Content Display
@@ -842,7 +842,7 @@ const CategoriesSection: types.Brick<CategoriesSectionProps> = ({
   gridLayout = 'auto',
   showViewAllButton = true,
   viewAllButtonText,
-  viewAllButtonLink = '/menu',
+  viewAllButtonLink = '/ordering',
   sectionPadding = 'md',
   backgroundImage
 }) => {
