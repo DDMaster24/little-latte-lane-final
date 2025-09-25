@@ -36,16 +36,22 @@ import {
   MenuItemSkeleton,
   ErrorState,
 } from '@/components/LoadingComponents';
-import { type MenuItem } from '@/lib/dataClient';
 import PizzaCustomizationPanel from '@/components/PizzaCustomizationPanel';
 import CartSidebar from '@/components/CartSidebar';
+import { 
+  groupMenuItemsBySize, 
+  type GroupedMenuItem, 
+  needsSizeSelection, 
+  getVariantBySize, 
+  getDefaultSize 
+} from '@/utils/menuGrouping';
 
 type MobileTab = 'categories' | 'menu' | 'cart';
 
 export default function MenuContentMobile() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
+  const [selectedSizes, setSelectedSizes] = useState<Record<string, string>>({}); // Track selected size for each grouped item
   const [paymentAlert, setPaymentAlert] = useState<{
     type: 'success' | 'error';
     message: string;
@@ -143,44 +149,12 @@ export default function MenuContentMobile() {
     router.push(`/ordering?category=${categoryId}`, { scroll: false });
   }, [router]);
 
-  // Filter items by selected category with memoization and consolidate duplicates
-  const currentMenuItems = useMemo(() => {
+  // Filter items by selected category and group by size variants
+  const currentGroupedItems = useMemo(() => {
     if (!selectedCategory || menuItems.length === 0) return [];
     
     const categoryItems = menuItems.filter((item) => item.category_id === selectedCategory);
-    
-    // Group similar items (same base name but different sizes)
-    const itemGroups = new Map<string, MenuItem[]>();
-    
-    categoryItems.forEach(item => {
-      const baseName = item.name
-        .replace(/\s+(Regular|Large|Small|Medium)$/i, '')
-        .replace(/\s+(R|L|S|M)$/i, '')
-        .trim();
-      
-      if (!itemGroups.has(baseName)) {
-        itemGroups.set(baseName, []);
-      }
-      itemGroups.get(baseName)!.push(item);
-    });
-    
-    // Convert groups back to consolidated items
-    const consolidatedItems: (MenuItem & { variants?: MenuItem[] })[] = [];
-    
-    itemGroups.forEach((items, baseName) => {
-      if (items.length === 1) {
-        consolidatedItems.push(items[0]);
-      } else {
-        const baseItem = items[0];
-        consolidatedItems.push({
-          ...baseItem,
-          name: baseName,
-          variants: items.sort((a, b) => a.price - b.price),
-        });
-      }
-    });
-    
-    return consolidatedItems;
+    return groupMenuItemsBySize(categoryItems);
   }, [selectedCategory, menuItems]);
 
   // Get category name with fallback
@@ -198,17 +172,22 @@ export default function MenuContentMobile() {
     return menuItems.filter((item) => item.category_id === categoryId).length;
   }, [menuItems]);
 
-  const handleAddToCart = (menuItem: MenuItem & { variants?: MenuItem[] }, variantIndex?: number) => {
-    const itemToAdd = menuItem.variants && variantIndex !== undefined 
-      ? menuItem.variants[variantIndex] 
-      : menuItem;
+  const handleAddToCart = (groupedItem: GroupedMenuItem, selectedSize?: string) => {
+    // If item has variants and no size is selected, don't add to cart
+    if (groupedItem.variants.length > 1 && !selectedSize) {
+      return; // This prevents adding to cart without size selection
+    }
+
+    // Get the specific variant to add to cart
+    const itemToAdd = selectedSize 
+      ? getVariantBySize(groupedItem, selectedSize) || groupedItem.variants[0]
+      : groupedItem.variants[0];
 
     const cartItem: CartItem = {
       id: itemToAdd.id,
       name: itemToAdd.name,
       price: itemToAdd.price,
       quantity: 1,
-      ...(itemToAdd.description && { description: itemToAdd.description }),
     };
 
     addItem(cartItem);
@@ -395,9 +374,9 @@ export default function MenuContentMobile() {
             <div className="flex items-center justify-center gap-2">
               <Package className="h-4 w-4" />
               <span className="text-sm">Menu</span>
-              {currentMenuItems.length > 0 && (
+              {currentGroupedItems.length > 0 && (
                 <Badge variant="secondary" className="bg-gray-600 text-xs">
-                  {currentMenuItems.length}
+                  {currentGroupedItems.length}
                 </Badge>
               )}
             </div>
@@ -490,7 +469,7 @@ export default function MenuContentMobile() {
                   <div>
                     <h2 className="text-xl font-bold text-white">{selectedCategoryName}</h2>
                     <p className="text-gray-400 text-sm">
-                      {currentMenuItems.length} items available
+                      {currentGroupedItems.length} items available
                     </p>
                   </div>
                   <Button
@@ -508,7 +487,7 @@ export default function MenuContentMobile() {
                   <PizzaCustomizationPanel />
                 ) : (
                   <>
-                    {currentMenuItems.length === 0 ? (
+                    {currentGroupedItems.length === 0 ? (
                       <div className="text-center py-12">
                         <Clock className="h-12 w-12 text-gray-500 mx-auto mb-4" />
                         <p className="text-gray-400">
@@ -517,44 +496,42 @@ export default function MenuContentMobile() {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {currentMenuItems.map((item) => {
-                          const selectedVariantIndex = selectedVariants[item.name] ? 
-                            parseInt(selectedVariants[item.name]) : 0;
+                        {currentGroupedItems.map((groupedItem) => {
+                          // Get selected size for this grouped item
+                          const selectedSize = selectedSizes[groupedItem.baseName] || getDefaultSize(groupedItem);
                           
                           return (
                             <Card
-                              key={item.id}
+                              key={groupedItem.id}
                               className="bg-gray-800/50 border border-gray-700 hover:border-neonCyan/50 transition-all duration-300"
                             >
                               <CardContent className="p-4">
                                 <div className="space-y-3">
                                   <div>
                                     <h3 className="text-lg font-semibold text-white mb-1">
-                                      {item.name}
+                                      {groupedItem.baseName}
                                     </h3>
-                                    {item.description && (
+                                    {groupedItem.description && (
                                       <p className="text-gray-400 text-sm line-clamp-2">
-                                        {item.description}
+                                        {groupedItem.description}
                                       </p>
                                     )}
                                   </div>
 
-                                  {/* Size Selection for Items with Variants */}
-                                  {item.variants && item.variants.length > 1 && (
+                                  {/* Size Selection for Items with Multiple Variants */}
+                                  {groupedItem.variants.length > 1 && (
                                     <div>
                                       <p className="text-gray-300 text-sm mb-2">Size:</p>
                                       <div className="flex gap-2 flex-wrap">
-                                        {item.variants.map((variant, index) => {
-                                          const sizeLabel = variant.name.match(/(Regular|Large|Small|Medium|R|L|S|M)$/i)?.[0] || 
-                                                           (index === 0 ? 'Regular' : 'Large');
-                                          const isSelected = selectedVariantIndex === index;
+                                        {groupedItem.variants.map((variant) => {
+                                          const isSelected = selectedSize === variant.size;
                                           
                                           return (
                                             <button
                                               key={variant.id}
-                                              onClick={() => setSelectedVariants(prev => ({
+                                              onClick={() => setSelectedSizes(prev => ({
                                                 ...prev,
-                                                [item.name]: index.toString()
+                                                [groupedItem.baseName]: variant.size
                                               }))}
                                               className={`px-3 py-1 rounded text-sm font-medium transition-all duration-300 ${
                                                 isSelected
@@ -562,7 +539,7 @@ export default function MenuContentMobile() {
                                                   : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                                               }`}
                                             >
-                                              {sizeLabel} - R{variant.price.toFixed(2)}
+                                              {variant.size} - R{variant.price.toFixed(2)}
                                             </button>
                                           );
                                         })}
@@ -572,23 +549,32 @@ export default function MenuContentMobile() {
 
                                   <div className="flex items-center justify-between">
                                     <span className="text-xl font-bold text-neonPink">
-                                      R{(item.variants ? 
-                                        item.variants[selectedVariantIndex]?.price || item.price : 
-                                        item.price
-                                      ).toFixed(2)}
+                                      R{(() => {
+                                        const variant = getVariantBySize(groupedItem, selectedSize);
+                                        return (variant?.price || groupedItem.variants[0].price).toFixed(2);
+                                      })()}
                                     </span>
 
                                     {(() => {
-                                      const currentItem = item.variants ? item.variants[selectedVariantIndex] : item;
-                                      const quantity = currentItem ? getCartQuantity(currentItem.id) : 0;
+                                      // Get the current variant based on selected size
+                                      const currentVariant = getVariantBySize(groupedItem, selectedSize) || groupedItem.variants[0];
+                                      const quantity = getCartQuantity(currentVariant.id);
+                                      
+                                      // Check if this item needs size selection and none is selected
+                                      const needsSelection = needsSizeSelection(groupedItem, selectedSize);
                                       
                                       return quantity === 0 ? (
                                         <Button
-                                          onClick={() => handleAddToCart(item, selectedVariantIndex)}
-                                          className="bg-neonCyan text-black hover:bg-neonCyan/80 font-semibold"
+                                          onClick={() => handleAddToCart(groupedItem, selectedSize)}
+                                          disabled={needsSelection}
+                                          className={`font-semibold ${
+                                            needsSelection 
+                                              ? 'bg-gray-600/50 text-gray-400 cursor-not-allowed'
+                                              : 'bg-neonCyan text-black hover:bg-neonCyan/80'
+                                          }`}
                                         >
                                           <Plus className="h-4 w-4 mr-1" />
-                                          Add to Cart
+                                          {needsSelection ? 'Select Size' : 'Add to Cart'}
                                         </Button>
                                       ) : (
                                         <div className="flex items-center gap-2">
@@ -596,7 +582,7 @@ export default function MenuContentMobile() {
                                             size="sm"
                                             variant="outline"
                                             onClick={() =>
-                                              updateCartQuantity(currentItem.id, quantity - 1)
+                                              updateCartQuantity(currentVariant.id, quantity - 1)
                                             }
                                             className="border-gray-600 text-gray-300 hover:bg-gray-700 h-8 w-8 p-0"
                                           >
@@ -609,7 +595,7 @@ export default function MenuContentMobile() {
                                             size="sm"
                                             variant="outline"
                                             onClick={() =>
-                                              updateCartQuantity(currentItem.id, quantity + 1)
+                                              updateCartQuantity(currentVariant.id, quantity + 1)
                                             }
                                             className="border-gray-600 text-gray-300 hover:bg-gray-700 h-8 w-8 p-0"
                                           >
