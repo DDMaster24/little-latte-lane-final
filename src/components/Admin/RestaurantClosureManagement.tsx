@@ -13,8 +13,7 @@ import {
   Clock,
   CheckCircle,
   AlertTriangle,
-  Calendar,
-  Eye
+  Calendar
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { 
@@ -374,36 +373,6 @@ export default function RestaurantClosureManagement() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Quick Guide */}
-      <Card className="bg-gray-800/30 border-gray-700/50">
-        <CardHeader>
-          <CardTitle className="text-white text-lg flex items-center gap-2">
-            <Eye className="h-5 w-5" />
-            Implementation Guide
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex items-start gap-3">
-              <div className="bg-neonCyan/20 border border-neonCyan/30 rounded-full p-1 mt-0.5">
-                <div className="w-2 h-2 bg-neonCyan rounded-full"></div>
-              </div>
-              <div>
-                <p className="text-white font-medium text-sm">Add closure banners to your homepage and menu via the Content Editor</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="bg-neonPink/20 border border-neonPink/30 rounded-full p-1 mt-0.5">
-                <div className="w-2 h-2 bg-neonPink rounded-full"></div>
-              </div>
-              <div>
-                <p className="text-white font-medium text-sm">Verify closure status prevents new orders</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {error && (
         <Card className="bg-red-500/10 border-red-500/30">

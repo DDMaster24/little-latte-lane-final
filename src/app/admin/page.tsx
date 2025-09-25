@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
-  Menu, Users, BarChart3, ShoppingBag, Calendar, 
-  Shield, Activity, CheckCircle, CreditCard, QrCode, Star, Power
+  Menu, Users, BarChart3, ShoppingBag,
+  Shield, Activity, CheckCircle, CreditCard, QrCode, Power
 } from 'lucide-react';
 
 // Tab Components
@@ -15,23 +15,19 @@ import AnalyticsDashboard from '@/components/Admin/AnalyticsDashboard';
 import UserManagement from '@/components/Admin/UserManagement';
 import BookingManagement from '@/components/Admin/BookingManagement';
 import AdminOverview from '@/components/Admin/AdminOverview';
-import EventsSpecialsManagement from '@/components/Admin/EventsSpecialsManagement';
-import BookingsManagementExtended from '@/components/Admin/BookingsManagementExtended';
 import RestaurantClosureManagement from '@/components/Admin/RestaurantClosureManagement';
 import { QRCodeGenerator } from '@/components/QRCodeGenerator';
 
 const tabs = [
-  { id: 'overview', label: 'Overview', icon: BarChart3, color: 'neonCyan' },
-  { id: 'closure', label: 'Restaurant Status', icon: Power, color: 'red-500' },
+  { id: 'analytics', label: 'Analytics', icon: BarChart3, color: 'green-500' },
   { id: 'content', label: 'Content Management', icon: CheckCircle, color: 'neonPink' },
   { id: 'menu', label: 'Menu Management', icon: Menu, color: 'neonCyan' },
   { id: 'orders', label: 'Order Management', icon: ShoppingBag, color: 'neonPink' },
-  { id: 'events', label: 'Events & Specials', icon: Star, color: 'yellow-500' },
-  { id: 'bookings-management', label: 'Bookings Management', icon: Calendar, color: 'blue-500' },
-  { id: 'bookings', label: 'Virtual Golf', icon: Activity, color: 'green-500' },
-  { id: 'users', label: 'User Management', icon: Users, color: 'purple-500' },
-  { id: 'analytics', label: 'Analytics', icon: BarChart3, color: 'green-500' },
+  { id: 'overview', label: 'Overview', icon: BarChart3, color: 'neonCyan' },
   { id: 'qrcode', label: 'QR Code & App', icon: QrCode, color: 'orange-500' },
+  { id: 'closure', label: 'Restaurant Status', icon: Power, color: 'red-500' },
+  { id: 'users', label: 'User Management', icon: Users, color: 'purple-500' },
+  { id: 'bookings', label: 'Virtual Golf', icon: Activity, color: 'green-500' },
 ];
 
 export default function AdminPage() {
@@ -134,10 +130,6 @@ export default function AdminPage() {
         return <MenuManagementThreeTier />;
       case 'orders':
         return <OrderManagement />;
-      case 'events':
-        return <EventsSpecialsManagement />;
-      case 'bookings-management':
-        return <BookingsManagementExtended />;
       case 'bookings':
         return <BookingManagement />;
       case 'users':
@@ -194,8 +186,8 @@ export default function AdminPage() {
 
             {/* Tab Navigation */}
             <div className="w-full">
-              <div className="bg-gray-800/50 p-1 rounded-xl border border-gray-700/50">
-                <div className="flex flex-wrap gap-1">
+              <div className="bg-gray-800/30 backdrop-blur-sm p-2 rounded-2xl border border-gray-700/30 shadow-2xl">
+                <div className="flex flex-wrap gap-2 lg:gap-3">
                   {tabs.map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
@@ -203,15 +195,19 @@ export default function AdminPage() {
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-300 whitespace-nowrap ${
+                        className={`relative flex items-center gap-2 px-4 lg:px-6 py-3 rounded-xl text-xs lg:text-sm font-semibold transition-all duration-300 whitespace-nowrap transform hover:scale-105 ${
                           isActive
-                            ? 'bg-gradient-to-r from-neonCyan/20 to-neonPink/20 text-white border border-neonCyan/30 shadow-lg'
-                            : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                            ? 'bg-gradient-to-r from-neonCyan/30 via-neonPink/20 to-neonCyan/30 text-white border-2 border-neonCyan/50 shadow-lg shadow-neonCyan/20 backdrop-blur-sm'
+                            : 'text-gray-400 hover:text-white hover:bg-gray-700/50 border-2 border-transparent hover:border-gray-600/50 hover:shadow-md'
                         }`}
                       >
-                        <Icon className={`h-4 w-4 ${isActive ? 'text-neonCyan' : ''}`} />
-                        <span className="hidden sm:inline">{tab.label}</span>
-                        <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                        {/* Active tab glow effect */}
+                        {isActive && (
+                          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-neonCyan/10 to-neonPink/10 blur-sm"></div>
+                        )}
+                        <Icon className={`relative z-10 h-4 w-4 ${isActive ? 'text-neonCyan drop-shadow-sm' : ''}`} />
+                        <span className="relative z-10 hidden sm:inline font-medium">{tab.label}</span>
+                        <span className="relative z-10 sm:hidden font-medium">{tab.label.split(' ')[0]}</span>
                       </button>
                     );
                   })}
@@ -223,8 +219,12 @@ export default function AdminPage() {
 
         {/* Tab Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-          <div className="w-full overflow-x-hidden">
-            {renderTabContent()}
+          <div className="relative w-full overflow-x-hidden">
+            {/* Neon border effect */}
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-neonCyan/10 via-transparent to-neonPink/10 border border-neonCyan/20 pointer-events-none"></div>
+            <div className="relative z-10 p-6 rounded-2xl">
+              {renderTabContent()}
+            </div>
           </div>
         </div>
 

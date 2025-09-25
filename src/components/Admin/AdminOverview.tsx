@@ -17,11 +17,11 @@ interface DashboardStats {
   activeOrders: number;
   pendingBookings: number;
   totalCustomers: number;
-  recentActivity: Array<{
-    type: string;
-    message: string;
-    timestamp: string;
-    status?: string;
+  lowStockItems: Array<{
+    name: string;
+    currentStock: number;
+    minStock: number;
+    category: string;
   }>;
   topSellingItems: Array<{
     name: string;
@@ -41,7 +41,7 @@ export default function AdminOverview() {
     activeOrders: 0,
     pendingBookings: 0,
     totalCustomers: 0,
-    recentActivity: [],
+    lowStockItems: [],
     topSellingItems: [],
     weeklyTrend: { revenue: 0, orders: 0, growth: 0 }
   });
@@ -139,21 +139,13 @@ export default function AdminOverview() {
       const weeklyOrders = weeklyOrdersData?.length || 0;
       const growth = todayRevenue > 0 ? ((todayRevenue - (weeklyRevenue / 7)) / (weeklyRevenue / 7)) * 100 : 0;
 
-      // Generate recent activity
-      const recentActivity = [
-        ...ordersData?.slice(-5).map(order => ({
-          type: 'order',
-          message: `New order #${order.order_number || order.id.slice(0, 8)} - R${(order.total_amount || 0).toFixed(2)}`,
-          timestamp: order.created_at || new Date().toISOString(),
-          status: order.status || undefined
-        })) || [],
-        ...bookingsData?.slice(-3).map(booking => ({
-          type: 'booking',
-          message: `New booking: ${booking.name} - ${booking.party_size} guests`,
-          timestamp: booking.created_at || new Date().toISOString(),
-          status: booking.status || undefined
-        })) || []
-      ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10);
+      // Mock low stock items (will be replaced with real data when stock management is implemented)
+      const lowStockItems = [
+        { name: 'Espresso Beans', currentStock: 3, minStock: 10, category: 'Coffee' },
+        { name: 'Milk (1L)', currentStock: 5, minStock: 15, category: 'Dairy' },
+        { name: 'Sugar Packets', currentStock: 2, minStock: 20, category: 'Supplies' },
+        { name: 'Pastry Flour', currentStock: 1, minStock: 5, category: 'Baking' }
+      ];
 
       setStats({
         todayRevenue,
@@ -161,7 +153,7 @@ export default function AdminOverview() {
         activeOrders,
         pendingBookings,
         totalCustomers,
-        recentActivity,
+        lowStockItems,
         topSellingItems,
         weeklyTrend: { revenue: weeklyRevenue, orders: weeklyOrders, growth }
       });
@@ -179,13 +171,6 @@ export default function AdminOverview() {
   }, [fetchDashboardStats]);
 
   const formatCurrency = (amount: number) => `R${amount.toFixed(2)}`;
-
-  const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString('en-ZA', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
 
   if (loading) {
     return (
@@ -295,43 +280,50 @@ export default function AdminOverview() {
 
       {/* Charts and Details */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activity */}
+        {/* Low Stock Items */}
         <Card className="bg-gray-800/50 border-gray-700/50">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <Activity className="w-5 h-5 text-neonCyan" />
-              Recent Activity
+              <AlertTriangle className="w-5 h-5 text-yellow-400" />
+              Low Stock Items
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {stats.recentActivity.length > 0 ? (
-                stats.recentActivity.map((activity, index) => (
-                  <div key={index} className="flex items-center gap-3 p-3 bg-gray-700/30 rounded-lg">
-                    <div className={`w-2 h-2 rounded-full ${
-                      activity.type === 'order' ? 'bg-neonCyan' : 'bg-yellow-400'
-                    }`}></div>
+              {stats.lowStockItems.length > 0 ? (
+                stats.lowStockItems.map((item, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg border-l-4 border-yellow-400">
                     <div className="flex-1">
-                      <p className="text-white text-sm">{activity.message}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <p className="text-xs text-gray-400">
-                          {formatTime(activity.timestamp)}
-                        </p>
-                        {activity.status && (
-                          <span className={`text-xs px-2 py-1 rounded ${
-                            activity.status === 'completed' ? 'bg-green-500/20 text-green-400' :
-                            activity.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                            'bg-blue-500/20 text-blue-400'
-                          }`}>
-                            {activity.status}
-                          </span>
-                        )}
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                        <p className="text-white font-medium">{item.name}</p>
+                        <span className="text-xs px-2 py-1 bg-gray-600/50 text-gray-300 rounded">
+                          {item.category}
+                        </span>
                       </div>
+                      <div className="flex items-center gap-4 mt-1">
+                        <p className="text-xs text-gray-400">
+                          Current: <span className="text-yellow-400 font-medium">{item.currentStock}</span>
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          Min: <span className="text-gray-300">{item.minStock}</span>
+                        </p>
+                      </div>
+                    </div>
+                    <div className={`text-right ${item.currentStock === 0 ? 'text-red-400' : 'text-yellow-400'}`}>
+                      <div className="text-sm font-bold">
+                        {item.currentStock === 0 ? 'OUT' : 'LOW'}
+                      </div>
+                      <div className="text-xs">STOCK</div>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-400 text-center py-8">No recent activity</p>
+                <div className="text-center py-8">
+                  <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
+                  <p className="text-green-400 font-medium">All items are well stocked</p>
+                  <p className="text-gray-400 text-sm">No low stock alerts</p>
+                </div>
               )}
             </div>
           </CardContent>
@@ -369,51 +361,6 @@ export default function AdminOverview() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Quick Actions */}
-      <Card className="bg-gray-800/50 border-gray-700/50">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <CheckCircle className="w-5 h-5 text-green-400" />
-            Quick Actions
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-gray-700/30 rounded-lg p-4 text-center">
-              <ShoppingBag className="w-8 h-8 text-neonCyan mx-auto mb-2" />
-              <p className="text-white font-medium mb-1">Orders</p>
-              <p className="text-xs text-gray-400 mb-3">Manage customer orders</p>
-              <div className="text-2xl font-bold text-neonCyan">{stats.activeOrders}</div>
-              <p className="text-xs text-gray-400">Active now</p>
-            </div>
-
-            <div className="bg-gray-700/30 rounded-lg p-4 text-center">
-              <Calendar className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
-              <p className="text-white font-medium mb-1">Bookings</p>
-              <p className="text-xs text-gray-400 mb-3">Table reservations</p>
-              <div className="text-2xl font-bold text-yellow-400">{stats.pendingBookings}</div>
-              <p className="text-xs text-gray-400">Pending</p>
-            </div>
-
-            <div className="bg-gray-700/30 rounded-lg p-4 text-center">
-              <DollarSign className="w-8 h-8 text-green-400 mx-auto mb-2" />
-              <p className="text-white font-medium mb-1">Revenue</p>
-              <p className="text-xs text-gray-400 mb-3">Today&apos;s earnings</p>
-              <div className="text-lg font-bold text-green-400">{formatCurrency(stats.todayRevenue)}</div>
-              <p className="text-xs text-gray-400">Total today</p>
-            </div>
-
-            <div className="bg-gray-700/30 rounded-lg p-4 text-center">
-              <Users className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-              <p className="text-white font-medium mb-1">Customers</p>
-              <p className="text-xs text-gray-400 mb-3">Total registered</p>
-              <div className="text-2xl font-bold text-purple-400">{stats.totalCustomers}</div>
-              <p className="text-xs text-gray-400">Users</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
