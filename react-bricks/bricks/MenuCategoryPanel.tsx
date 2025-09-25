@@ -316,12 +316,15 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
   if (isAdmin) {
     return (
       <div
-        className={`menu-category-panel group relative backdrop-blur-md border hover:border-neonPink/50 transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in h-full block ${getPaddingClass()} ${getBorderRadiusClass()} ${getBorderWidthClass()} ${getShadowClass()}`}
+        className={`menu-category-panel group relative backdrop-blur-md border hover:border-neonPink/50 transition-all duration-300 hover:shadow-neon animate-fade-in h-full block ${getPaddingClass()} ${getBorderRadiusClass()} ${getBorderWidthClass()} ${getShadowClass()}`}
         style={{ 
           background: cardBackground.color,
           backdropFilter: 'blur(10px)',
           borderColor: borderColor.color,
-          boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)'
+          boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)',
+          // Prevent React Bricks scroll interference
+          scrollMarginTop: '0px',
+          scrollSnapStop: 'normal'
         }}
       >
         {panelContent}
@@ -332,7 +335,7 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
   return (
     <Link
       href={getFinalLink()}
-      className={`menu-category-panel group relative backdrop-blur-md border hover:border-neonPink/50 transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in h-full block ${getPaddingClass()} ${getBorderRadiusClass()} ${getBorderWidthClass()} ${getShadowClass()}`}
+      className={`menu-category-panel group relative backdrop-blur-md border hover:border-neonPink/50 transition-all duration-300 hover:shadow-neon animate-fade-in h-full block ${getPaddingClass()} ${getBorderRadiusClass()} ${getBorderWidthClass()} ${getShadowClass()}`}
       style={{ 
         background: cardBackground.color,
         backdropFilter: 'blur(10px)',
