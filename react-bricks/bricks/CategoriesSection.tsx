@@ -102,11 +102,31 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
   const { categories } = useMenuCategories()
   const dbCategory = categoryId ? categories.find(cat => cat.id === categoryId) : null
   
+  // Debug logging
+  console.log('CategoryCard Debug:', {
+    categoryId,
+    hasCategories: categories.length > 0,
+    dbCategory: dbCategory ? { id: dbCategory.id, name: dbCategory.name } : null,
+    totalCategories: categories.length
+  })
+  
   // Use database data if available, otherwise fall back to manual input
   const _effectiveName = dbCategory ? dbCategory.name : categoryName
   const _effectiveDescription = dbCategory ? dbCategory.description || '' : categoryDescription
-  // SIMPLIFIED: Use direct category ID for fast navigation
-  const effectiveLink = dbCategory ? `/ordering?category=${dbCategory.id}` : categoryLink
+  
+  // Enhanced navigation logic - use categoryId even if DB lookup fails
+  const effectiveLink = (() => {
+    if (dbCategory) {
+      // Database category found - use it
+      return `/ordering?category=${dbCategory.id}`
+    } else if (categoryId && categoryId.trim()) {
+      // No DB category but categoryId provided - use it directly
+      return `/ordering?category=${categoryId.trim()}`
+    } else {
+      // Fallback to manual link
+      return categoryLink
+    }
+  })()
 
   // Enhanced styling functions with equal height support
   const getCardStyleClass = () => {
