@@ -8,9 +8,23 @@ const withPWA = require('next-pwa')({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development', // Disable PWA in development
-  sw: 'sw.js',
+  sw: 'sw.js', // Use auto-generated service worker for now - custom one caused build issues
   scope: '/',
   reloadOnOnline: true,
+  runtimeCaching: [
+    {
+      urlPattern: /^https?.*/,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'offlineCache',
+        expiration: {
+          maxEntries: 200,
+        },
+      },
+    },
+  ],
+  buildExcludes: [/middleware-manifest\.json$/],
+  maximumFileSizeToCacheInBytes: 5000000, // 5MB
 });
 
 // Content Security Policy - extracted to reduce bundle size

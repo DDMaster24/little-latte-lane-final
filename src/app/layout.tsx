@@ -32,8 +32,20 @@ export const metadata: Metadata = {
     title: 'Little Latte Lane',
     startupImage: [
       {
-        url: '/icon-512x512.png',
+        url: '/icon-192x192.png',
         media: '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)',
+      },
+      {
+        url: '/icon-192x192.png',
+        media: '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)',
+      },
+      {
+        url: '/icon-512x512.png',
+        media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)',
+      },
+      {
+        url: '/icon-512x512.png',
+        media: '(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)',
       },
     ],
   },
@@ -79,6 +91,7 @@ export const viewport: Viewport = {
     { media: '(prefers-color-scheme: dark)', color: '#0f0f0f' },
   ],
   viewportFit: 'cover',
+  colorScheme: 'dark light',
 };
 
 export default function RootLayout({
@@ -89,21 +102,37 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Favicon and Icons */}
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/icon-192x192.png" type="image/png" sizes="192x192" />
-        <link rel="icon" href="/icon-512x512.png" type="image/png" sizes="512x512" />
-        <link rel="apple-touch-icon" href="/icon-192x192.png" />
-        
-        {/* PWA Manifest */}
+        {/* PWA Manifest - MUST be first */}
         <link rel="manifest" href="/manifest.json" />
         
-        {/* iOS PWA Support */}
+        {/* Favicon and Basic Icons */}
+        <link rel="icon" href="/favicon.ico" sizes="32x32" />
+        <link rel="icon" href="/icon-192x192.png" type="image/png" sizes="192x192" />
+        <link rel="icon" href="/icon-512x512.png" type="image/png" sizes="512x512" />
+        
+        {/* iOS PWA Support - Comprehensive */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Little Latte Lane" />
+        <meta name="apple-mobile-web-app-orientations" content="portrait" />
+        
+        {/* iOS Icons - All Required Sizes */}
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
-        <link rel="apple-touch-startup-image" href="/icon-512x512.png" />
+        <link rel="apple-touch-icon" sizes="57x57" href="/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="60x60" href="/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="72x72" href="/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="76x76" href="/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="114x114" href="/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="120x120" href="/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="144x144" href="/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icon-192x192.png" />
+        
+        {/* iOS Startup Images */}
+        <link rel="apple-touch-startup-image" href="/icon-192x192.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" />
+        <link rel="apple-touch-startup-image" href="/icon-192x192.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" />
+        <link rel="apple-touch-startup-image" href="/icon-512x512.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" />
+        <link rel="apple-touch-startup-image" href="/icon-512x512.png" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" />
         
         {/* Android PWA Support */}
         <meta name="mobile-web-app-capable" content="yes" />
@@ -116,13 +145,25 @@ export default function RootLayout({
         <meta name="msapplication-tap-highlight" content="no" />
         
         {/* Samsung PWA Support */}
-        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-status-bar-style" content="black-translucent" />
+        
+        {/* PWA Theme Colors */}
+        <meta name="theme-color" content="#00ffff" />
+        <meta name="msapplication-navbutton-color" content="#00ffff" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         
         {/* Enhanced PWA Tags */}
         <meta name="format-detection" content="telephone=no" />
-        <meta name="msapplication-navbutton-color" content="#00ffff" />
-        <meta name="apple-mobile-web-app-orientations" content="any" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, minimum-scale=1, user-scalable=yes, viewport-fit=cover" />
+        
+        {/* PWA Installation Hints */}
+        <meta name="mobile-web-app-orientations" content="portrait" />
+        <meta name="apple-itunes-app" content="app-id=none" />
+        
+        {/* Force PWA Installation Prompt */}
+        <meta name="mobile-web-app-status-bar" content="#00ffff" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-touch-fullscreen" content="yes" />
         
         <script
           dangerouslySetInnerHTML={{
