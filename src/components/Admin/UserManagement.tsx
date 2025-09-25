@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { 
   Users, Search, User, Mail, Calendar,
@@ -67,32 +66,6 @@ export default function UserManagement() {
 
     return matchesSearch && matchesRole;
   });
-
-  const handleRoleToggle = async (userId: string, role: 'admin' | 'staff', value: boolean) => {
-    try {
-      const updateData = role === 'admin' 
-        ? { is_admin: value }
-        : { is_staff: value };
-
-      const { error } = await supabase
-        .from('profiles')
-        .update(updateData)
-        .eq('id', userId);
-
-      if (error) throw error;
-
-      setUsers(prev => prev.map(user => 
-        user.id === userId 
-          ? { ...user, ...updateData }
-          : user
-      ));
-
-      toast.success(`User ${role} status updated`);
-    } catch (error) {
-      console.error('Error updating user role:', error);
-      toast.error('Failed to update user role');
-    }
-  };
 
   const getRoleBadge = (user: UserProfile) => {
     if (user.is_admin) {
@@ -282,30 +255,41 @@ export default function UserManagement() {
                         </div>
                       </div>
 
-                      {/* Role Controls */}
-                      <div className="flex flex-col gap-3 lg:w-64">
-                        <div className="flex items-center justify-between bg-gray-800/50 rounded-lg p-3">
-                          <div className="flex items-center gap-2">
-                            <Crown className="w-4 h-4 text-red-400" />
-                            <span className="text-sm text-white">Admin</span>
+                      {/* Role Display - Read Only for Security */}
+                      <div className="flex flex-col gap-2 lg:w-64">
+                        <div className="bg-gray-800/30 rounded-lg p-3 border border-gray-700/50">
+                          <div className="text-center">
+                            <p className="text-gray-400 text-xs mb-2">User Role</p>
+                            <div className="flex justify-center">
+                              {getRoleBadge(user)}
+                            </div>
+                            <p className="text-gray-500 text-xs mt-2">
+                              Contact system admin to change roles
+                            </p>
                           </div>
-                          <Switch
-                            checked={user.is_admin || false}
-                            onCheckedChange={(checked) => handleRoleToggle(user.id, 'admin', checked)}
-                            className="data-[state=checked]:bg-red-500"
-                          />
                         </div>
                         
-                        <div className="flex items-center justify-between bg-gray-800/50 rounded-lg p-3">
-                          <div className="flex items-center gap-2">
-                            <Briefcase className="w-4 h-4 text-blue-400" />
-                            <span className="text-sm text-white">Staff</span>
+                        <div className="bg-gray-800/30 rounded-lg p-2 border border-gray-700/50">
+                          <div className="flex items-center justify-center gap-2 text-xs">
+                            {user.is_admin && (
+                              <div className="flex items-center gap-1 text-red-400">
+                                <Crown className="w-3 h-3" />
+                                <span>Admin Access</span>
+                              </div>
+                            )}
+                            {user.is_staff && (
+                              <div className="flex items-center gap-1 text-blue-400">
+                                <Briefcase className="w-3 h-3" />
+                                <span>Staff Access</span>
+                              </div>
+                            )}
+                            {!user.is_admin && !user.is_staff && (
+                              <div className="flex items-center gap-1 text-gray-400">
+                                <User className="w-3 h-3" />
+                                <span>Customer</span>
+                              </div>
+                            )}
                           </div>
-                          <Switch
-                            checked={user.is_staff || false}
-                            onCheckedChange={(checked) => handleRoleToggle(user.id, 'staff', checked)}
-                            className="data-[state=checked]:bg-blue-500"
-                          />
                         </div>
                       </div>
                     </div>

@@ -9,8 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getStaffOrders, updateOrderStatus } from '@/app/actions';
 import { 
   RefreshCw, Search, Filter, Clock, ChefHat, Package, 
-  CheckCircle, AlertCircle, Eye, Phone, Mail, MapPin,
-  DollarSign, Users, TrendingUp
+  CheckCircle, AlertCircle, Eye, Phone, Mail, MapPin, Users
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -37,12 +36,9 @@ interface Order {
 }
 
 interface OrderStats {
-  totalOrders: number;
+  dailyOrders: number;
   pendingOrders: number;
-  completedToday: number;
-  totalRevenue: number;
-  averageOrderValue: number;
-  completionRate: number;
+  completedOrders: number;
 }
 
 export default function OrderManagement() {
@@ -54,12 +50,9 @@ export default function OrderManagement() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [stats, setStats] = useState<OrderStats>({
-    totalOrders: 0,
+    dailyOrders: 0,
     pendingOrders: 0,
-    completedToday: 0,
-    totalRevenue: 0,
-    averageOrderValue: 0,
-    completionRate: 0
+    completedOrders: 0
   });
 
   const fetchOrders = useCallback(async () => {
@@ -81,26 +74,22 @@ export default function OrderManagement() {
 
   const calculateStats = (orderData: Order[]) => {
     const today = new Date().toDateString();
-    const completedToday = orderData.filter(order => 
-      order.status === 'completed' && 
-      new Date(order.updated_at || order.created_at || '').toDateString() === today
+    const dailyOrders = orderData.filter(order => 
+      new Date(order.created_at || '').toDateString() === today
     );
     
-    const totalRevenue = orderData
-      .filter(order => order.status === 'completed')
-      .reduce((sum, order) => sum + (order.total_amount || 0), 0);
-    
-    const pendingCount = orderData.filter(order => 
+    const pendingOrders = orderData.filter(order => 
       ['pending', 'confirmed', 'preparing'].includes(order.status || '')
+    ).length;
+    
+    const completedOrders = orderData.filter(order => 
+      order.status === 'completed'
     ).length;
 
     setStats({
-      totalOrders: orderData.length,
-      pendingOrders: pendingCount,
-      completedToday: completedToday.length,
-      totalRevenue,
-      averageOrderValue: orderData.length > 0 ? totalRevenue / orderData.length : 0,
-      completionRate: orderData.length > 0 ? (orderData.filter(o => o.status === 'completed').length / orderData.length) * 100 : 0
+      dailyOrders: dailyOrders.length,
+      pendingOrders,
+      completedOrders
     });
   };
 
@@ -206,76 +195,55 @@ export default function OrderManagement() {
 
   return (
     <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        <Card className="bg-gray-800/50 border-gray-700/50">
-          <CardContent className="p-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-white mb-2">Order Management</h2>
+          <p className="text-gray-400">Manage and track all customer orders</p>
+        </div>
+        <Button onClick={fetchOrders} disabled={loading} className="neon-button">
+          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
+      </div>
+
+      {/* Simplified Stats - Only 3 Essential Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="bg-gradient-to-br from-neonCyan/10 to-neonCyan/5 border-neonCyan/20 hover:border-neonCyan/40 transition-all duration-300">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-400">Total Orders</p>
-                <p className="text-2xl font-bold text-white">{stats.totalOrders}</p>
+                <p className="text-sm text-gray-400 mb-1">Daily Orders</p>
+                <p className="text-3xl font-bold text-white">{stats.dailyOrders}</p>
+                <p className="text-xs text-neonCyan mt-1">Orders placed today</p>
               </div>
-              <Users className="h-8 w-8 text-neonCyan" />
+              <Users className="h-12 w-12 text-neonCyan" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-800/50 border-gray-700/50">
-          <CardContent className="p-4">
+        <Card className="bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border-yellow-500/20 hover:border-yellow-500/40 transition-all duration-300">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-400">Pending</p>
-                <p className="text-2xl font-bold text-yellow-400">{stats.pendingOrders}</p>
+                <p className="text-sm text-gray-400 mb-1">Pending Orders</p>
+                <p className="text-3xl font-bold text-white">{stats.pendingOrders}</p>
+                <p className="text-xs text-yellow-400 mt-1">Awaiting processing</p>
               </div>
-              <Clock className="h-8 w-8 text-yellow-400" />
+              <Clock className="h-12 w-12 text-yellow-400" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-800/50 border-gray-700/50">
-          <CardContent className="p-4">
+        <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20 hover:border-green-500/40 transition-all duration-300">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-400">Completed Today</p>
-                <p className="text-2xl font-bold text-green-400">{stats.completedToday}</p>
+                <p className="text-sm text-gray-400 mb-1">Completed Orders</p>
+                <p className="text-3xl font-bold text-white">{stats.completedOrders}</p>
+                <p className="text-xs text-green-400 mt-1">Successfully completed</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-800/50 border-gray-700/50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Total Revenue</p>
-                <p className="text-2xl font-bold text-neonPink">{formatCurrency(stats.totalRevenue)}</p>
-              </div>
-              <DollarSign className="h-8 w-8 text-neonPink" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-800/50 border-gray-700/50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Avg Order</p>
-                <p className="text-2xl font-bold text-blue-400">{formatCurrency(stats.averageOrderValue)}</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-blue-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-800/50 border-gray-700/50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Completion Rate</p>
-                <p className="text-2xl font-bold text-purple-400">{stats.completionRate.toFixed(1)}%</p>
-              </div>
-              <Package className="h-8 w-8 text-purple-400" />
+              <CheckCircle className="h-12 w-12 text-green-400" />
             </div>
           </CardContent>
         </Card>
