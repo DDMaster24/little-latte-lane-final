@@ -834,3 +834,27 @@ a[href*="reactbricks.com"] {
   opacity: 0 !important;
   pointer-events: none !important;
 }
+
+/* React Bricks Editor Scroll Behavior Fix */
+.react-bricks-editor * {
+  scroll-behavior: auto !important;
+}
+
+/* Prevent unwanted scrolling during editing */
+.react-bricks-editor-wrapper {
+  scroll-behavior: auto !important;
+}
+
+/* Fix Text component focus scrolling */
+[data-rb-text-editing="true"] {
+  scroll-behavior: auto !important;
+}
+
+/* Override React Bricks auto-scroll to focused elements */
+html.react-bricks-editing {
+  scroll-behavior: auto !important;
+}
+
+html.react-bricks-editing body {
+  scroll-behavior: auto !important;
+}

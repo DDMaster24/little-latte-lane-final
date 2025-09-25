@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Text, types, useAdminContext } from 'react-bricks/frontend'
+import { Text, Image, types, useAdminContext } from 'react-bricks/frontend'
 import Link from 'next/link'
 import { getSupabaseClient } from '@/lib/supabase-client'
 import { createAdvancedColorProp } from '../components/colorPickerUtils'
@@ -16,6 +16,11 @@ interface MenuCategoryPanelProps {
   categoryIcon: types.TextValue
   categoryId: string
   _categoryLink: string
+  
+  // Image Properties
+  categoryImage: types.IImageSource
+  showImage: boolean
+  imagePosition: 'background' | 'top' | 'icon'
   
   // Content Display Controls
   showName: boolean
@@ -49,6 +54,11 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
   categoryIcon,
   categoryId = '',
   _categoryLink = '/ordering',
+  
+  // Image Properties
+  categoryImage,
+  showImage = false,
+  imagePosition = 'icon',
   
   // Visibility
   showName = true,
@@ -184,11 +194,49 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
   // Content that will be wrapped conditionally
   const panelContent = (
     <>
+      {/* Background Image */}
+      {showImage && categoryImage && imagePosition === 'background' && (
+        <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 'inherit' }}>
+          <Image
+            propName="categoryImage"
+            source={categoryImage}
+            alt="Category background"
+            aspectRatio={4/3}
+            maxWidth={800}
+            imageClassName="w-full h-full object-cover"
+            renderWrapper={({ children }) => (
+              <div className="w-full h-full opacity-40">
+                {children}
+              </div>
+            )}
+          />
+        </div>
+      )}
+
       {/* Category Content */}
-      <div className={`flex flex-col ${getAlignmentClass()}`}>
+      <div className={`relative z-10 flex flex-col ${getAlignmentClass()}`}>
+        
+        {/* Top Image */}
+        {showImage && categoryImage && imagePosition === 'top' && (
+          <div className="mb-4">
+            <Image
+              propName="categoryImage"
+              source={categoryImage}
+              alt="Category image"
+              aspectRatio={4/3}
+              maxWidth={400}
+              imageClassName="w-full rounded-lg shadow-md"
+              renderWrapper={({ children }) => (
+                <div className="w-full">
+                  {children}
+                </div>
+              )}
+            />
+          </div>
+        )}
         
         {/* Category Icon Section */}
-        {showIcon && (
+        {showIcon && imagePosition !== 'icon' && (
           <div 
             className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mb-3 sm:mb-4 flex items-center justify-center rounded-xl bg-black/30 backdrop-blur-sm border border-neonCyan/20 group-hover:border-neonPink/40 transition-all duration-300"
           >
@@ -200,6 +248,25 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
                 <span className="text-2xl sm:text-3xl lg:text-4xl">
                   {props.children}
                 </span>
+              )}
+            />
+          </div>
+        )}
+
+        {/* Image as Icon */}
+        {showImage && categoryImage && imagePosition === 'icon' && (
+          <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mb-3 sm:mb-4 rounded-xl overflow-hidden bg-black/30 backdrop-blur-sm border border-neonCyan/20 group-hover:border-neonPink/40 transition-all duration-300">
+            <Image
+              propName="categoryImage"
+              source={categoryImage}
+              alt="Category icon"
+              aspectRatio={1}
+              maxWidth={200}
+              imageClassName="w-full h-full object-cover"
+              renderWrapper={({ children }) => (
+                <div className="w-full h-full">
+                  {children}
+                </div>
               )}
             />
           </div>
@@ -301,6 +368,8 @@ MenuCategoryPanel.schema = {
     showName: true,
     showDescription: true,
     showIcon: true,
+    showImage: false,
+    imagePosition: 'icon',
     contentAlignment: 'center',
     cardBackground: { color: 'rgba(0, 0, 0, 0.4)' },
     nameColor: { color: '#00ffff' },
@@ -328,6 +397,31 @@ MenuCategoryPanel.schema = {
           name: '_categoryLink',
           label: 'Base Link URL (not used - category ID takes precedence)',
           type: types.SideEditPropType.Text,
+        }
+      ]
+    },
+    {
+      groupName: 'Image Settings',
+      defaultOpen: true,
+      props: [
+        {
+          name: 'showImage',
+          label: 'Show Image',
+          type: types.SideEditPropType.Boolean,
+        },
+        {
+          name: 'imagePosition',
+          label: 'Image Position',
+          type: types.SideEditPropType.Select,
+          selectOptions: {
+            display: types.OptionsDisplay.Select,
+            options: [
+              { value: 'background', label: 'Background' },
+              { value: 'top', label: 'Top' },
+              { value: 'icon', label: 'Replace Icon' }
+            ]
+          },
+          show: (props) => props.showImage,
         }
       ]
     },
