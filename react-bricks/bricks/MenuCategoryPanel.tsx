@@ -48,7 +48,7 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
   categoryDescription,
   categoryIcon,
   categoryId = '',
-  categoryLink = '/menu/modern',
+  categoryLink = '/ordering',
   
   // Visibility
   showName = true,
@@ -152,20 +152,20 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
     }
   }
 
-  // Get final link - SIMPLIFIED for fast navigation
+  // Get final link - Navigate to ordering page with category selection
   const getFinalLink = () => {
-    // Use direct category ID for fast loading - no complex URL generation
+    // Use category ID parameter for ordering page navigation
     if (categoryId && categoryId.trim()) {
-      return `/menu/${categoryId}`;
+      return `/ordering?category=${categoryId}`;
     }
     
     // Fallback to manual categoryLink if provided
-    if (categoryLink && categoryLink !== '/menu/modern') {
+    if (categoryLink && categoryLink !== '/ordering') {
       return categoryLink;
     }
     
-    // Default fallback
-    return '/menu';
+    // Default fallback to ordering page
+    return '/ordering';
   }
 
   // Get display values - prefer database content if linked
@@ -302,7 +302,7 @@ MenuCategoryPanel.schema = {
     categoryDescription: '',
     categoryIcon: '🍽️',
     categoryId: '',
-    categoryLink: '/menu/modern',
+    categoryLink: '/ordering',
     showName: true,
     showDescription: true,
     showIcon: true,

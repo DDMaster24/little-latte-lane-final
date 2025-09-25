@@ -57,7 +57,7 @@ export default function ConfirmSignupPage() {
 
             <div className="space-y-3">
               <Button
-                onClick={() => router.push('/menu/modern')}
+                onClick={() => router.push('/ordering')}
                 className="w-full bg-neonCyan text-black hover:bg-neonCyan/80 font-semibold"
               >
                 Browse Menu While You Wait

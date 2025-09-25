@@ -601,7 +601,7 @@ export default function AccountPage() {
                                   loadOrderToCart(result.orderItems);
                                   
                                   // Redirect to menu page where they can proceed to checkout
-                                  router.push('/menu/modern');
+                                  router.push('/ordering');
                                   
                                   toast.success(`Order #${result.orderNumber || order.order_number || order.id.slice(-8)} loaded to cart!`);
                                 } else {

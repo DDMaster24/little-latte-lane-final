@@ -140,7 +140,7 @@ export default function MenuContentMobile() {
     setSelectedCategory(categoryId);
     setShowCategoryDropdown(false);
     setActiveTab('menu'); // Switch to menu tab when category is selected
-    router.push(`/menu/modern?category=${categoryId}`, { scroll: false });
+    router.push(`/ordering?category=${categoryId}`, { scroll: false });
   }, [router]);
 
   // Filter items by selected category with memoization and consolidate duplicates

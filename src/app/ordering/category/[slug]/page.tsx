@@ -1,6 +1,6 @@
 /**
  * Category Slug Route - Clean URLs for category selection
- * Handles URLs like /menu/modern/category/frappes
+ * Handles URLs like /ordering/category/frappes
  */
 
 'use client';
@@ -37,11 +37,11 @@ export default function CategorySlugPage({ params }: CategorySlugPageProps) {
     });
 
     if (matchingCategory) {
-      // Redirect to the modern menu with the category ID parameter
-      router.replace(`/menu/modern?category=${matchingCategory.id}`);
+      // Redirect to the ordering page with the category ID parameter
+      router.replace(`/ordering?category=${matchingCategory.id}`);
     } else {
-      // If category not found, redirect to main menu
-      router.replace('/menu/modern');
+      // If category not found, redirect to main ordering page
+      router.replace('/ordering');
     }
   }, [slug, categories, loading, router]);
 

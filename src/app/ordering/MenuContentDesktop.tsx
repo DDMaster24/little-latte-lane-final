@@ -135,7 +135,7 @@ export default function MenuContentDesktop() {
   const handleCategoryChange = useCallback((categoryId: string) => {
     setSelectedCategory(categoryId);
     // Use Next.js router for proper navigation
-    router.push(`/menu/modern?category=${categoryId}`, { scroll: false });
+    router.push(`/ordering?category=${categoryId}`, { scroll: false });
   }, [router]);
 
   // Optimized: Filter items by selected category with memoization and consolidate duplicates

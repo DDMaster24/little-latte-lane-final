@@ -28,7 +28,7 @@ export const customerJourneySteps: NavigationStep[] = [
   {
     id: 'menu-modern',
     name: 'Select Items',
-    path: '/menu/modern',
+    path: '/ordering',
   },
   {
     id: 'cart',
@@ -184,7 +184,7 @@ export class NavigationFlow {
     if (error.includes('cart') || error.includes('empty')) {
       // Cart related error - go to menu
       this.setCurrentStep('menu-modern');
-      router.push('/menu/modern');
+      router.push('/ordering');
       toast.error('Cart issue detected. Redirecting to menu...');
       return;
     }

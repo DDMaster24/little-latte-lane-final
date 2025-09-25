@@ -116,7 +116,7 @@ function MenuContent() {
             </div>
             <div className="flex justify-center mt-8">
               <Link
-                href="/menu/modern"
+                href="/ordering"
                 className="neon-button group relative bg-black/20 backdrop-blur-md border border-neonCyan/50 hover:border-neonPink/70 px-6 py-3 rounded-xl font-bold text-neonCyan hover:text-neonPink transition-all duration-300 hover:scale-105"
                 style={{ 
                   background: 'rgba(0, 0, 0, 0.4)',
@@ -147,7 +147,7 @@ function MenuContent() {
         {!isClosed && (
           <div className="flex justify-center mt-8 sm:mt-12 px-4 pb-8">
             <Link
-              href="/menu/modern"
+              href="/ordering"
               className="neon-button group relative bg-black/20 backdrop-blur-md border border-neonCyan/50 hover:border-neonPink/70 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-neonCyan hover:text-neonPink transition-all duration-300 hover:scale-105 hover:shadow-neon text-sm sm:text-base"
               style={{ 
                 background: 'rgba(0, 0, 0, 0.4)',

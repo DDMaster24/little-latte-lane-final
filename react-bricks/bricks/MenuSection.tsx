@@ -48,7 +48,7 @@ const MenuCategoryCard: types.Brick<MenuCategoryCardProps> = ({
   categoryDescription,
   categoryIcon,
   categoryImage,
-  categoryLink = '/menu/modern',
+  categoryLink = '/ordering',
   
   // Visibility
   showName = true,
