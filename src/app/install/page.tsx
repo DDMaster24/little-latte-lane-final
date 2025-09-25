@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 
@@ -66,75 +66,8 @@ export default function PWAInstallPage() {
   const [deviceInfo, setDeviceInfo] = useState({ platform: 'unknown', browser: 'unknown', isIOS: false });
   const [installAttempted, setInstallAttempted] = useState(false);
 
-  useEffect(() => {
-    // Set device info
-    const info = getDeviceInfo();
-    setDeviceInfo(info);
-    
-    // Check if already installed
-    setIsInstalled(checkIfInstalled());
-    
-    if (checkIfInstalled()) return;
-
-    // For ALL devices and browsers, show install option
-    setIsInstallable(true);
-
-    // Listen for beforeinstallprompt event (mainly Chrome/Edge)
-    const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('📱 Native PWA install prompt available');
-      e.preventDefault();
-      const beforeInstallEvent = e as BeforeInstallPromptEvent;
-      setDeferredPrompt(beforeInstallEvent);
-    };
-
-    // Listen for app installed event
-    const handleAppInstalled = (_e: Event) => {
-      console.log('✅ PWA installation successful');
-      setIsInstalled(true);
-      setIsInstallable(false);
-      setDeferredPrompt(null);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
-    };
-  }, []);
-
-  const handleInstallClick = async () => {
-    console.log('🚀 Install button clicked');
-    console.log('📱 Platform:', deviceInfo.platform, 'Browser:', deviceInfo.browser);
-    setInstallAttempted(true);
-    
-    // Try native installation first (Chrome, Edge, etc.)
-    if (deferredPrompt) {
-      try {
-        console.log('📱 Using native install prompt...');
-        await deferredPrompt.prompt();
-        
-        const choiceResult = await deferredPrompt.userChoice;
-        console.log('📱 User choice:', choiceResult.outcome);
-        
-        if (choiceResult.outcome === 'accepted') {
-          console.log('✅ PWA installation accepted');
-          setIsInstalled(true);
-        }
-        
-        setDeferredPrompt(null);
-        return;
-      } catch (error) {
-        console.error('❌ Native install failed:', error);
-      }
-    }
-
-    // Show platform-specific instructions
-    showInstallInstructions();
-  };
-
-  const showInstallInstructions = () => {
+  // Move showInstallInstructions function here to fix dependency issue
+  const showInstallInstructions = useCallback(() => {
     const { platform, browser, isIOS } = deviceInfo;
     
     let title = 'Install Little Latte Lane App';
@@ -276,6 +209,98 @@ export default function PWAInstallPage() {
         document.body.removeChild(modal);
       }
     }, 30000);
+  }, [deviceInfo]);
+
+  // Add early event interception - IMMEDIATELY on page load
+  useEffect(() => {
+    // Suppress the native install popup immediately
+    const suppressNativePopup = (e: Event) => {
+      console.log('🚫 SUPPRESSING native install popup - will show custom instructions instead');
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      return false;
+    };
+
+    // Add the event listener immediately with capture=true to catch it early
+    window.addEventListener('beforeinstallprompt', suppressNativePopup, true);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', suppressNativePopup, true);
+    };
+  }, []);
+
+  useEffect(() => {
+    // Set device info
+    const info = getDeviceInfo();
+    setDeviceInfo(info);
+    
+    // Check if already installed
+    setIsInstalled(checkIfInstalled());
+    
+    if (checkIfInstalled()) return;
+
+    // For ALL devices and browsers, show install option
+    setIsInstallable(true);
+
+    // CRITICAL: Intercept and prevent native install popup IMMEDIATELY
+    const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('📱 INTERCEPTED native PWA install prompt - showing custom instructions instead');
+      e.preventDefault(); // Block the native popup
+      e.stopImmediatePropagation(); // Stop all other handlers
+      const beforeInstallEvent = e as BeforeInstallPromptEvent;
+      setDeferredPrompt(beforeInstallEvent);
+      
+      // Immediately show our custom instructions instead
+      setTimeout(() => {
+        showInstallInstructions();
+      }, 100);
+    };
+
+    // Listen for app installed event
+    const handleAppInstalled = (_e: Event) => {
+      console.log('✅ PWA installation successful');
+      setIsInstalled(true);
+      setIsInstallable(false);
+      setDeferredPrompt(null);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, [showInstallInstructions]);
+
+  const handleInstallClick = async () => {
+    console.log('🚀 Install button clicked');
+    console.log('📱 Platform:', deviceInfo.platform, 'Browser:', deviceInfo.browser);
+    setInstallAttempted(true);
+    
+    // Try native installation first (Chrome, Edge, etc.)
+    if (deferredPrompt) {
+      try {
+        console.log('📱 Using native install prompt...');
+        await deferredPrompt.prompt();
+        
+        const choiceResult = await deferredPrompt.userChoice;
+        console.log('📱 User choice:', choiceResult.outcome);
+        
+        if (choiceResult.outcome === 'accepted') {
+          console.log('✅ PWA installation accepted');
+          setIsInstalled(true);
+        }
+        
+        setDeferredPrompt(null);
+        return;
+      } catch (error) {
+        console.error('❌ Native install failed:', error);
+      }
+    }
+
+    // Show platform-specific instructions
+    showInstallInstructions();
   };
 
   if (isInstalled) {
