@@ -15,9 +15,9 @@ interface BeforeInstallPromptEvent extends Event {
   platforms?: string[];
 }
 
-// Detect device and browser with high accuracy
+// Detect device and browser with high accuracy + QR code detection
 const getDeviceInfo = () => {
-  if (typeof window === 'undefined') return { platform: 'unknown', browser: 'unknown', isIOS: false };
+  if (typeof window === 'undefined') return { platform: 'unknown', browser: 'unknown', isIOS: false, isQRAccess: false };
   
   const userAgent = navigator.userAgent.toLowerCase();
   
@@ -26,6 +26,15 @@ const getDeviceInfo = () => {
                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
                 /iPad/.test(navigator.userAgent) ||
                 (navigator.userAgent.includes('Safari') && navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+  
+  // Detect QR code access (comes from camera/QR scanner apps)
+  const referrer = document.referrer.toLowerCase();
+  const isQRAccess = !referrer || 
+                     referrer.includes('camera') || 
+                     referrer.includes('qr') ||
+                     referrer.includes('scanner') ||
+                     window.location.search.includes('qr=true') ||
+                     window.location.hash.includes('qr');
   
   // More accurate platform detection
   const platform = /iPhone|iPod/.test(navigator.userAgent) ? 'ios' :
@@ -37,9 +46,9 @@ const getDeviceInfo = () => {
                  userAgent.includes('firefox') ? 'firefox' :
                  userAgent.includes('edg') ? 'edge' : 'other';
   
-  console.log('🔍 Device Detection:', { userAgent, platform, browser, isIOS, touchPoints: navigator.maxTouchPoints });
+  console.log('🔍 Device Detection:', { userAgent, platform, browser, isIOS, isQRAccess, referrer, touchPoints: navigator.maxTouchPoints });
   
-  return { platform, browser, isIOS };
+  return { platform, browser, isIOS, isQRAccess };
 };
 
 // Check if already installed
@@ -63,7 +72,7 @@ export default function PWAInstallPage() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [_isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [deviceInfo, setDeviceInfo] = useState({ platform: 'unknown', browser: 'unknown', isIOS: false });
+  const [deviceInfo, setDeviceInfo] = useState({ platform: 'unknown', browser: 'unknown', isIOS: false, isQRAccess: false });
   const [installAttempted, setInstallAttempted] = useState(false);
 
   // Move showInstallInstructions function here to fix dependency issue
