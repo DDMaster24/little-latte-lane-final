@@ -106,7 +106,7 @@ const CategoryCard: types.Brick<CategoryCardProps> = ({
   const _effectiveName = dbCategory ? dbCategory.name : categoryName
   const _effectiveDescription = dbCategory ? dbCategory.description || '' : categoryDescription
   // SIMPLIFIED: Use direct category ID for fast navigation
-  const effectiveLink = dbCategory ? `/menu/${dbCategory.id}` : categoryLink
+  const effectiveLink = dbCategory ? `/ordering?category=${dbCategory.id}` : categoryLink
 
   // Enhanced styling functions with equal height support
   const getCardStyleClass = () => {
