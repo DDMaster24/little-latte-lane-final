@@ -219,26 +219,28 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
         {/* Top Image */}
         {showImage && categoryImage && imagePosition === 'top' && (
           <div className="mb-4">
-            <Image
-              propName="categoryImage"
-              source={categoryImage}
-              alt="Category image"
-              aspectRatio={4/3}
-              maxWidth={400}
-              imageClassName="w-full rounded-lg shadow-md"
-              renderWrapper={({ children }) => (
-                <div className="w-full">
-                  {children}
-                </div>
-              )}
-            />
+            <div className="w-full h-48 sm:h-56 lg:h-64 overflow-hidden rounded-lg shadow-md bg-black/20">
+              <Image
+                propName="categoryImage"
+                source={categoryImage}
+                alt="Category image"
+                aspectRatio={4/3}
+                maxWidth={400}
+                imageClassName="w-full h-full object-cover"
+                renderWrapper={({ children }) => (
+                  <div className="w-full h-full">
+                    {children}
+                  </div>
+                )}
+              />
+            </div>
           </div>
         )}
         
         {/* Category Icon Section */}
         {showIcon && imagePosition !== 'icon' && (
           <div 
-            className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mb-3 sm:mb-4 flex items-center justify-center rounded-xl bg-black/30 backdrop-blur-sm border border-neonCyan/20 group-hover:border-neonPink/40 transition-all duration-300"
+            className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 mb-3 sm:mb-4 flex items-center justify-center rounded-xl bg-black/30 backdrop-blur-sm border border-neonCyan/20 group-hover:border-neonPink/40 transition-all duration-300 flex-shrink-0"
           >
             <Text
               propName="categoryIcon"
@@ -255,7 +257,7 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
 
         {/* Image as Icon */}
         {showImage && categoryImage && imagePosition === 'icon' && (
-          <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mb-3 sm:mb-4 rounded-xl overflow-hidden bg-black/30 backdrop-blur-sm border border-neonCyan/20 group-hover:border-neonPink/40 transition-all duration-300">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 mb-3 sm:mb-4 rounded-xl overflow-hidden bg-black/30 backdrop-blur-sm border border-neonCyan/20 group-hover:border-neonPink/40 transition-all duration-300 flex-shrink-0">
             <Image
               propName="categoryImage"
               source={categoryImage}
