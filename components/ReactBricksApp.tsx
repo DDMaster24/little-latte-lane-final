@@ -7,6 +7,7 @@ import { ReactBricks } from 'react-bricks/rsc/client'
 
 import NextLink from '../react-bricks/NextLink'
 import config from '../react-bricks/config'
+import ScrollBehaviorFixProvider from '../react-bricks/components/ScrollBehaviorFix'
 
 export default function ReactBricksApp({
   children,
@@ -25,5 +26,11 @@ export default function ReactBricksApp({
 
   register(reactBricksConfig)
 
-  return <ReactBricks {...reactBricksConfig}>{children}</ReactBricks>
+  return (
+    <ReactBricks {...reactBricksConfig}>
+      <ScrollBehaviorFixProvider>
+        {children}
+      </ScrollBehaviorFixProvider>
+    </ReactBricks>
+  )
 }
