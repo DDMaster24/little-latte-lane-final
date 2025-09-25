@@ -17,10 +17,19 @@ interface BeforeInstallPromptEvent extends Event {
 
 // Detect device and browser with high accuracy
 const getDeviceInfo = () => {
-  if (typeof window === 'undefined') return { platform: 'unknown', browser: 'unknown' };
+  if (typeof window === 'undefined') return { platform: 'unknown', browser: 'unknown', isIOS: false };
   
   const userAgent = navigator.userAgent.toLowerCase();
-  const platform = /iPad|iPhone|iPod/.test(navigator.userAgent) ? 'ios' : 
+  
+  // Enhanced iOS detection - iPads now report as desktop in iPadOS 13+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+                /iPad/.test(navigator.userAgent) ||
+                (navigator.userAgent.includes('Safari') && navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+  
+  // More accurate platform detection
+  const platform = /iPhone|iPod/.test(navigator.userAgent) ? 'ios' :
+                  isIOS ? 'ios' : // This catches iPads in desktop mode
                   /android/i.test(userAgent) ? 'android' : 'desktop';
   
   const browser = userAgent.includes('safari') && !userAgent.includes('chrome') ? 'safari' :
@@ -28,7 +37,9 @@ const getDeviceInfo = () => {
                  userAgent.includes('firefox') ? 'firefox' :
                  userAgent.includes('edg') ? 'edge' : 'other';
   
-  return { platform, browser };
+  console.log('🔍 Device Detection:', { userAgent, platform, browser, isIOS, touchPoints: navigator.maxTouchPoints });
+  
+  return { platform, browser, isIOS };
 };
 
 // Check if already installed
@@ -52,7 +63,7 @@ export default function PWAInstallPage() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [_isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [deviceInfo, setDeviceInfo] = useState({ platform: 'unknown', browser: 'unknown' });
+  const [deviceInfo, setDeviceInfo] = useState({ platform: 'unknown', browser: 'unknown', isIOS: false });
   const [installAttempted, setInstallAttempted] = useState(false);
 
   useEffect(() => {
@@ -124,31 +135,37 @@ export default function PWAInstallPage() {
   };
 
   const showInstallInstructions = () => {
-    const { platform, browser } = deviceInfo;
+    const { platform, browser, isIOS } = deviceInfo;
     
     let title = 'Install Little Latte Lane App';
     let instructions = [];
+    let browserSpecific = '';
     
-    if (platform === 'ios') {
+    // Universal iOS instructions (including iPads that report as desktop)
+    if (isIOS || platform === 'ios') {
       if (browser === 'safari') {
-        title = '📱 Install on iPhone/iPad';
+        title = '📱 Install on iPad/iPhone - Safari';
         instructions = [
-          '1. Tap the Share button (□↗) at the bottom of Safari',
+          '1. Tap the Share button (□↗) at the bottom/top of Safari',
           '2. Scroll down and tap "Add to Home Screen"',
           '3. Tap "Add" in the top right corner',
           '4. Find the app icon on your home screen'
         ];
+        browserSpecific = '✅ Perfect! Safari is the best browser for iOS PWA installation.';
       } else {
-        title = '🚨 Safari Required for iOS Installation';
+        title = '📱 Install on iPad/iPhone - Any Browser';
         instructions = [
-          '1. Open Safari on your iPhone/iPad',
-          '2. Go to: littlelattelane.co.za/install',
+          '1. Copy this URL: littlelattelane.co.za/install',
+          '2. Open Safari and paste the URL',
           '3. Tap Share (□↗) → "Add to Home Screen"',
-          '4. Other browsers cannot install PWAs on iOS'
+          '4. Or look for "Install" option in your current browser menu'
         ];
+        browserSpecific = '💡 Tip: Safari works best for iOS, but other browsers also support installation.';
       }
-    } else if (platform === 'android') {
-      title = '📱 Install on Android';
+    }
+    // Android instructions - works in most browsers
+    else if (platform === 'android') {
+      title = '📱 Install on Android - Universal';
       if (browser === 'chrome') {
         instructions = [
           '1. Tap the menu (⋮) in Chrome',
@@ -156,62 +173,109 @@ export default function PWAInstallPage() {
           '3. Tap "Add" or "Install" to confirm',
           '4. Find the app icon on your home screen'
         ];
-      } else if (browser === 'firefox') {
-        instructions = [
-          '1. Tap the menu (☰) in Firefox',
-          '2. Select "Install"',
-          '3. Tap "Add" to confirm',
-          '4. Find the app icon on your home screen'
-        ];
+        browserSpecific = '✅ Chrome is perfect for Android PWA installation!';
       } else {
         instructions = [
           '1. Look for "Install" or "Add to Home Screen" in your browser menu',
-          '2. Or use Chrome browser for best compatibility',
-          '3. Go to: littlelattelane.co.za/install in Chrome',
-          '4. Follow the installation prompts'
+          '2. Or try Chrome browser: littlelattelane.co.za/install',
+          '3. Tap "Install" or "Add" when prompted',
+          '4. Find the app icon on your home screen'
         ];
+        browserSpecific = '💡 Most Android browsers support PWA installation. Chrome works best.';
       }
-    } else {
-      title = '💻 Install on Desktop';
-      instructions = [
-        '1. Look for the install icon (⊕) in your address bar',
-        '2. Click "Install" when prompted',
-        '3. Or use browser menu → "Install Little Latte Lane"',
-        '4. Access from your desktop or app menu'
-      ];
+    }
+    // Desktop instructions - ALL browsers supported
+    else {
+      title = '💻 Install on Desktop/Laptop - All Browsers';
+      
+      if (browser === 'chrome') {
+        instructions = [
+          '1. Look for the install icon (⊕) in your address bar',
+          '2. Click "Install" when prompted',
+          '3. Or use menu (⋮) → "Install Little Latte Lane"',
+          '4. Access from your desktop or start menu'
+        ];
+        browserSpecific = '✅ Chrome has excellent PWA support!';
+      } else if (browser === 'edge') {
+        instructions = [
+          '1. Click the menu (⋯) in Edge',
+          '2. Select "Apps" → "Install this site as an app"',
+          '3. Click "Install" to confirm',
+          '4. Access from your desktop or start menu'
+        ];
+        browserSpecific = '✅ Edge has great PWA support!';
+      } else if (browser === 'firefox') {
+        instructions = [
+          '1. Look for "Install" in the address bar or menu',
+          '2. Click the menu (☰) → "Install Little Latte Lane"',
+          '3. Or bookmark this page for quick access',
+          '4. Firefox PWA support varies by version'
+        ];
+        browserSpecific = '💡 Firefox PWA support is improving. Try Chrome/Edge for best experience.';
+      } else if (browser === 'safari') {
+        instructions = [
+          '1. This might be an iPad in desktop mode!',
+          '2. Try: Share → "Add to Home Screen"',
+          '3. Or look for "Install" in browser menu',
+          '4. Safari on Mac has limited PWA support'
+        ];
+        browserSpecific = '🍎 If this is an iPad, use the Share button method. For Mac, try Chrome/Edge.';
+      } else {
+        instructions = [
+          '1. Look for "Install", "Add to Home Screen", or app icon in your browser',
+          '2. Check the browser menu for installation options',
+          '3. Or try Chrome/Edge: littlelattelane.co.za/install',
+          '4. Bookmark this page as a fallback'
+        ];
+        browserSpecific = '💡 Try Chrome or Edge for the best installation experience.';
+      }
     }
 
     // Create and show modal with instructions
     const modal = document.createElement('div');
     modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50';
     modal.innerHTML = `
-      <div class="bg-gray-900 rounded-xl p-6 max-w-md w-full border border-cyan-400/30">
+      <div class="bg-gray-900 rounded-xl p-6 max-w-md w-full border border-cyan-400/30 max-h-[90vh] overflow-y-auto">
         <h2 class="text-xl font-bold text-cyan-400 mb-4">${title}</h2>
-        <div class="space-y-2 mb-6">
-          ${instructions.map(step => `
-            <p class="text-gray-300 text-sm">${step}</p>
+        
+        <div class="space-y-2 mb-4">
+          ${instructions.map((step, index) => `
+            <p class="text-gray-300 text-sm flex items-start gap-2">
+              <span class="bg-cyan-400 text-black rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">${index + 1}</span>
+              <span>${step.replace(/^\d+\.\s*/, '')}</span>
+            </p>
           `).join('')}
         </div>
+        
+        <div class="bg-blue-800/20 rounded-lg p-3 border border-blue-400/30 mb-4">
+          <p class="text-blue-400 text-sm">${browserSpecific}</p>
+        </div>
+        
         <div class="bg-green-800/20 rounded-lg p-3 border border-green-400/30 mb-4">
           <p class="text-green-400 text-sm">
-            ✅ <strong>This app works on ALL devices!</strong><br>
-            If you can't find the install option, bookmark this page: 
-            <span class="text-cyan-400">littlelattelane.co.za/install</span>
+            ✅ <strong>Universal Support:</strong> This app works on ALL devices and browsers!<br>
+            📱 Bookmark: <span class="text-cyan-400">littlelattelane.co.za/install</span>
           </p>
         </div>
-        <button class="w-full bg-cyan-400 text-black font-bold py-2 px-4 rounded-lg" onclick="this.parentElement.parentElement.remove()">
-          Got it!
-        </button>
+        
+        <div class="space-y-2">
+          <button class="w-full bg-cyan-400 text-black font-bold py-3 px-4 rounded-lg text-sm" onclick="this.parentElement.parentElement.parentElement.remove()">
+            ✅ Got it! Let me try
+          </button>
+          <button class="w-full bg-gray-700 text-white font-bold py-2 px-4 rounded-lg text-sm" onclick="window.open('${window.location.origin}', '_blank')">
+            🔗 Open in New Tab
+          </button>
+        </div>
       </div>
     `;
     document.body.appendChild(modal);
     
-    // Auto-remove after 15 seconds
+    // Auto-remove after 30 seconds
     setTimeout(() => {
       if (document.body.contains(modal)) {
         document.body.removeChild(modal);
       }
-    }, 15000);
+    }, 30000);
   };
 
   if (isInstalled) {
