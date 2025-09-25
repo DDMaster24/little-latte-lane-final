@@ -198,7 +198,7 @@ export default function AdminPage() {
                         className={`relative flex items-center gap-2 px-4 lg:px-6 py-3 rounded-xl text-xs lg:text-sm font-semibold transition-all duration-300 whitespace-nowrap transform hover:scale-105 ${
                           isActive
                             ? 'bg-gradient-to-r from-neonCyan/30 via-neonPink/20 to-neonCyan/30 text-white border-2 border-neonCyan/50 shadow-lg shadow-neonCyan/20 backdrop-blur-sm'
-                            : 'text-gray-400 hover:text-white hover:bg-gray-700/50 border-2 border-transparent hover:border-gray-600/50 hover:shadow-md'
+                            : 'text-gray-300 bg-gray-800/40 border-2 border-gray-600/50 hover:text-white hover:bg-gray-700/60 hover:border-gray-500/70 hover:shadow-lg hover:shadow-gray-500/20 backdrop-blur-sm'
                         }`}
                       >
                         {/* Active tab glow effect */}
