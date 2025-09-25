@@ -15,7 +15,7 @@ interface MenuCategoryPanelProps {
   categoryDescription: types.TextValue
   categoryIcon: types.TextValue
   categoryId: string
-  categoryLink: string
+  _categoryLink: string
   
   // Content Display Controls
   showName: boolean
@@ -48,7 +48,7 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
   categoryDescription,
   categoryIcon,
   categoryId = '',
-  categoryLink = '/ordering',
+  _categoryLink = '/ordering',
   
   // Visibility
   showName = true,
@@ -152,19 +152,14 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
     }
   }
 
-  // Get final link - Navigate to ordering page with category selection
+  // Get final link - SIMPLE: Always go to ordering page with category parameter
   const getFinalLink = () => {
-    // PRIORITY 1: Use category ID parameter for ordering page navigation
+    // If we have a category ID, always use the ordering page with category parameter
     if (categoryId && categoryId.trim()) {
-      return `/ordering?category=${categoryId}`;
+      return `/ordering?category=${categoryId.trim()}`;
     }
     
-    // PRIORITY 2: Fallback to manual categoryLink only if it's specifically set to ordering-related path
-    if (categoryLink && (categoryLink.includes('/ordering') || categoryLink.includes('category'))) {
-      return categoryLink;
-    }
-    
-    // PRIORITY 3: Default fallback to ordering page
+    // If no category ID, just go to ordering page
     return '/ordering';
   }
 
@@ -302,7 +297,7 @@ MenuCategoryPanel.schema = {
     categoryDescription: '',
     categoryIcon: '🍽️',
     categoryId: '',
-    categoryLink: '/ordering',
+    _categoryLink: '/ordering',
     showName: true,
     showDescription: true,
     showIcon: true,
@@ -330,8 +325,8 @@ MenuCategoryPanel.schema = {
           validate: (value) => value?.length <= 50,
         },
         {
-          name: 'categoryLink',
-          label: 'Base Link URL (only used if no Category ID)',
+          name: '_categoryLink',
+          label: 'Base Link URL (not used - category ID takes precedence)',
           type: types.SideEditPropType.Text,
         }
       ]
