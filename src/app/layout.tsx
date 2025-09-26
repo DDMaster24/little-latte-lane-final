@@ -7,9 +7,9 @@ import { Toaster } from 'sonner';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Little Latte Lane Café & Deli',
-  description: 'Premium café and deli experience with specialty coffee, fresh pizzas, and delicious meals in a vibrant atmosphere. Located in Roberts Estate, Middleburg.',
-  keywords: ['café', 'deli', 'coffee', 'pizza', 'restaurant', 'Middleburg', 'Roberts Estate', 'Little Latte Lane'],
+  title: 'Little Latte Lane Café & Deli | Roberts Estate, Middleburg',
+  description: 'Authentic café and deli in Roberts Estate, Middleburg. Fresh artisan coffee, wood-fired pizzas, and homemade meals. Open daily for breakfast, lunch, and dinner.',
+  keywords: ['café', 'deli', 'coffee', 'pizza', 'restaurant', 'Middleburg', 'Roberts Estate', 'Little Latte Lane', 'wood-fired pizza', 'artisan coffee', 'homemade meals'],
   authors: [{ name: 'Little Latte Lane' }],
   creator: 'Little Latte Lane',
   publisher: 'Little Latte Lane',
@@ -66,17 +66,25 @@ export const metadata: Metadata = {
     'icon': '/favicon.ico',
     'shortcut icon': '/favicon.ico',
     // Open Graph tags for social media and search engines
-    'og:title': 'Little Latte Lane Café & Deli',
-    'og:description': 'Premium café and deli experience with specialty coffee, fresh pizzas, and delicious meals in a vibrant atmosphere.',
+    'og:title': 'Little Latte Lane Café & Deli | Roberts Estate, Middleburg',
+    'og:description': 'Authentic café and deli in Roberts Estate, Middleburg. Fresh artisan coffee, wood-fired pizzas, and homemade meals.',
     'og:type': 'website',
     'og:url': 'https://littlelattelane.co.za',
     'og:image': '/icon-512x512.png',
     'og:site_name': 'Little Latte Lane',
     // Twitter Card tags
     'twitter:card': 'summary_large_image',
-    'twitter:title': 'Little Latte Lane Café & Deli',
-    'twitter:description': 'Premium café and deli experience with specialty coffee, fresh pizzas, and delicious meals.',
+    'twitter:title': 'Little Latte Lane Café & Deli | Roberts Estate, Middleburg',
+    'twitter:description': 'Authentic café and deli in Roberts Estate, Middleburg. Fresh artisan coffee, wood-fired pizzas, and homemade meals.',
     'twitter:image': '/icon-512x512.png',
+    // Additional SEO and business information
+    'business:contact_data:locality': 'Roberts Estate',
+    'business:contact_data:region': 'Middleburg',
+    'business:contact_data:country_name': 'South Africa',
+    // Google site verification and business info
+    'geo.placename': 'Roberts Estate, Middleburg',
+    'geo.region': 'Mpumalanga',
+    'robots': 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
   },
 };
 
@@ -106,7 +114,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         
         {/* Favicon and Basic Icons */}
-        <link rel="icon" href="/favicon.ico" sizes="32x32" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon-192x192.png" type="image/png" sizes="192x192" />
         <link rel="icon" href="/icon-512x512.png" type="image/png" sizes="512x512" />
         
