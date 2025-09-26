@@ -132,20 +132,21 @@ export default function PWAInstallPage() {
   const handleDesktopInstall = async () => {
     console.log('💻 Desktop install button clicked', { browser: deviceInfo.browser, platform: deviceInfo.platform });
     
-    // Special handling for Safari on macOS
+    // Special handling for Safari on macOS - recommend Chrome instead
     if (deviceInfo.browser === 'safari' && deviceInfo.isMacOS) {
-      alert(`🍎 Safari Installation Instructions:
+      alert(`🍎 Safari Installation Not Recommended
 
-1. Look for a small "⊞" icon in the address bar (right side)
-2. OR go to Safari menu → "Install Little Latte Lane..."
-3. OR click the address bar and look for "Install" option
+For the best installation experience on Mac, we recommend using Google Chrome instead of Safari.
 
-If you don't see these options:
-• Make sure you're on the main site page
-• Try refreshing the page
-• Ensure Safari is up to date
+📌 Quick Setup:
+1. Download Google Chrome (if not installed)
+2. Visit Little Latte Lane in Chrome
+3. Look for the install icon in the address bar
+4. Click to install with one click!
 
-Alternative: Use Chrome or Edge for one-click installation!`);
+Chrome provides a much smoother and more reliable installation process.
+
+Would you like to continue with Safari anyway? You can try the Safari menu → "Install Little Latte Lane..." option, but results may vary.`);
       return;
     }
     
@@ -174,7 +175,7 @@ Alternative: Use Chrome or Edge for one-click installation!`);
     } else {
       // Browser-specific fallback instructions
       const instructions = deviceInfo.browser === 'safari' && deviceInfo.isMacOS
-        ? 'Safari: Look for the small "⊞" icon in the address bar, or go to Safari menu → "Install Little Latte Lane..."'
+        ? 'Safari on Mac: We recommend using Google Chrome for easier installation. If you prefer Safari, try Safari menu → "Install Little Latte Lane..." (results may vary)'
         : deviceInfo.browser === 'firefox'
         ? 'Firefox: This browser doesn\'t support PWA installation. Please use Chrome, Edge, or Safari for the best experience.'
         : 'Please look for the install icon in your browser address bar (Chrome/Edge), or check your browser menu for "Install Little Latte Lane" option.';
@@ -370,27 +371,28 @@ Alternative: Use Chrome or Edge for one-click installation!`);
               </div>
             </div>
 
-            {/* Safari on macOS specific instructions */}
+            {/* Chrome recommendation for Safari on macOS */}
             {deviceInfo.browser === 'safari' && deviceInfo.isMacOS && (
-              <div className="bg-purple-800/20 rounded-xl p-6 border border-purple-400/30 mb-8">
-                <h3 className="text-xl font-bold text-purple-400 mb-4">🍎 Safari Installation Steps:</h3>
+              <div className="bg-orange-800/20 rounded-xl p-6 border border-orange-400/30 mb-8">
+                <h3 className="text-xl font-bold text-orange-400 mb-4">🚀 Recommended: Use Google Chrome</h3>
                 <div className="space-y-3 text-gray-300">
-                  <div className="flex items-center gap-3">
-                    <span className="bg-purple-400 text-black rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold flex-shrink-0">1</span>
-                    <span>Look for the small <strong className="text-purple-300">&ldquo;⊞&rdquo; install icon</strong> in the address bar (right side)</span>
+                  <p>For the best installation experience on Mac, we recommend using <strong className="text-orange-300">Google Chrome</strong> instead of Safari.</p>
+                  <div className="flex items-center gap-3 mt-4">
+                    <span className="bg-orange-400 text-black rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold flex-shrink-0">1</span>
+                    <span>Download and open <strong className="text-orange-300">Google Chrome</strong></span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="bg-purple-400 text-black rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold flex-shrink-0">2</span>
-                    <span>OR go to <strong className="text-purple-300">Safari menu → &ldquo;Install Little Latte Lane...&rdquo;</strong></span>
+                    <span className="bg-orange-400 text-black rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold flex-shrink-0">2</span>
+                    <span>Visit <strong className="text-orange-300">Little Latte Lane in Chrome</strong></span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="bg-purple-400 text-black rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold flex-shrink-0">3</span>
-                    <span>Click <strong className="text-purple-300">&ldquo;Install&rdquo;</strong> to add to your Applications folder</span>
+                    <span className="bg-orange-400 text-black rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold flex-shrink-0">3</span>
+                    <span>Click the <strong className="text-orange-300">install icon</strong> in the address bar - one click install!</span>
                   </div>
                 </div>
-                <div className="mt-4 p-3 bg-purple-900/40 rounded-lg border border-purple-400/20">
-                  <p className="text-sm text-purple-200">
-                    💡 <strong>Tip:</strong> If you don&apos;t see these options, try refreshing the page or navigate to the main site first.
+                <div className="mt-4 p-3 bg-orange-900/40 rounded-lg border border-orange-400/20">
+                  <p className="text-sm text-orange-200">
+                    💡 <strong>Why Chrome?</strong> Much easier installation process with reliable one-click setup.
                   </p>
                 </div>
               </div>
@@ -416,19 +418,21 @@ Alternative: Use Chrome or Edge for one-click installation!`);
               disabled={deviceInfo.platform !== 'desktop' && deviceInfo.platform !== 'macos'}
               className={`w-full py-4 px-4 sm:px-8 rounded-xl text-base sm:text-lg font-bold transition-all duration-300 ${
                 deviceInfo.platform === 'desktop' || deviceInfo.platform === 'macos'
-                  ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white shadow-lg hover:shadow-purple-400/30 transform hover:scale-105'
+                  ? deviceInfo.browser === 'safari' && deviceInfo.isMacOS
+                    ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white shadow-lg hover:shadow-orange-400/30 transform hover:scale-105'
+                    : 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white shadow-lg hover:shadow-purple-400/30 transform hover:scale-105'
                   : 'bg-gray-700 text-gray-400 cursor-not-allowed'
               }`}
             >
               {(deviceInfo.platform === 'desktop' || deviceInfo.platform === 'macos') 
                 ? <span className="block sm:hidden">
-                    {deviceInfo.browser === 'safari' && deviceInfo.isMacOS ? '🍎 Safari Guide' : '🚀 Install Now'}
+                    {deviceInfo.browser === 'safari' && deviceInfo.isMacOS ? '🚀 Get Chrome Recommendation' : '🚀 Install Now'}
                   </span>
                 : null}
               {(deviceInfo.platform === 'desktop' || deviceInfo.platform === 'macos') 
                 ? <span className="hidden sm:block">
                     {deviceInfo.browser === 'safari' && deviceInfo.isMacOS 
-                      ? '🍎 Show Safari Installation Guide' 
+                      ? '🚀 Get Chrome Installation Guide' 
                       : '🚀 Install Now - Desktop'}
                   </span>
                 : <span className="text-xs sm:text-base">🚫 Use your computer</span>}
