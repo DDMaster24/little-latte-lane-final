@@ -177,25 +177,8 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// PWA installation prompt handling
-self.addEventListener('beforeinstallprompt', (event) => {
-  console.log('📱 PWA install prompt available');
-  // Don't prevent the default behavior - let the system handle it
-});
-
-// PWA installation success
-self.addEventListener('appinstalled', (event) => {
-  console.log('🎉 PWA installed successfully!', event);
-  
-  // Optional: Send analytics event or show welcome message
-  self.clients.matchAll().then(clients => {
-    clients.forEach(client => {
-      client.postMessage({
-        type: 'PWA_INSTALLED',
-        message: 'Welcome to Little Latte Lane!'
-      });
-    });
-  });
-});
+// PWA installation events - DISABLED to prevent automatic popups
+// Users should use the dedicated /install page instead
+console.log('🔕 PWA install events disabled - use /install page for manual installation');
 
 console.log('🚀 Little Latte Lane Service Worker loaded successfully');

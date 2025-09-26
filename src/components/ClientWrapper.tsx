@@ -8,7 +8,6 @@ import { AuthProvider } from '@/components/AuthProvider';
 import { Toaster } from 'react-hot-toast';
 import Header from '@/components/Header';
 import FooterSection from '@/components/FooterSection';
-import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import StaffRedirect from '@/components/StaffRedirect';
 import EditorNavigation from '@/components/EditorNavigation';
 import { initializeSessionTracking } from '@/lib/session-storage';
@@ -100,9 +99,6 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
         </main>
         
         {!isEditorMode && <FooterSection />}
-        
-        {/* PWA Install Prompt - shows when triggered */}
-        <PWAInstallPrompt source="auto" />
         
         <Toaster
           position="top-right"

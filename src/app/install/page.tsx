@@ -9,12 +9,6 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-  platforms?: string[];
-}
-
 // Detect device and browser with high accuracy
 const getDeviceInfo = () => {
   if (typeof window === 'undefined') return { platform: 'unknown', browser: 'unknown', isIOS: false };
@@ -49,106 +43,34 @@ const checkIfInstalled = () => {
 };
 
 export default function PWAInstallPage() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState({ platform: 'unknown', browser: 'unknown', isIOS: false });
 
   useEffect(() => {
-    // Set device info
+    // Set device info only - NO PWA event handling
     const info = getDeviceInfo();
     setDeviceInfo(info);
     
     // Check if already installed
     setIsInstalled(checkIfInstalled());
-    
-    if (checkIfInstalled()) return;
-
-    // COMPLETELY SUPPRESS all native install prompts - no popups allowed
-    const handleBeforeInstallPrompt = (e: Event) => {
-      const beforeInstallEvent = e as BeforeInstallPromptEvent;
-      console.log('📱 SUPPRESSING native PWA install prompt - using our sectioned UI instead');
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      setDeferredPrompt(beforeInstallEvent);
-      return false;
-    };
-
-    // Listen for app installed event
-    const handleAppInstalled = (_e: Event) => {
-      console.log('✅ PWA installation successful');
-      setIsInstalled(true);
-      setDeferredPrompt(null);
-    };
-
-    // Add listeners with capture to catch early
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt, { capture: true, passive: false });
-    window.addEventListener('appinstalled', handleAppInstalled);
-    
-    // Also add to document for extra coverage
-    document.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt, { capture: true, passive: false });
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt, { capture: true });
-      window.removeEventListener('appinstalled', handleAppInstalled);
-      document.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt, { capture: true });
-    };
   }, []);
 
-  // Android native install handler
-  const handleAndroidInstall = async () => {
-    if (!deferredPrompt) {
-      console.log('❌ No deferred prompt available for Android install');
-      return;
-    }
-
-    try {
-      console.log('📱 Android native install triggered');
-      await deferredPrompt.prompt();
-      
-      const choiceResult = await deferredPrompt.userChoice;
-      console.log('📱 User choice:', choiceResult.outcome);
-      
-      if (choiceResult.outcome === 'accepted') {
-        console.log('✅ Android PWA installation accepted');
-        setIsInstalled(true);
-      }
-      
-      setDeferredPrompt(null);
-    } catch (error) {
-      console.error('❌ Android install failed:', error);
-    }
+  // Android install handler - NO native prompts, just show message
+  const handleAndroidInstall = () => {
+    console.log('📱 Android install button clicked - showing instructions');
+    alert('Please use Chrome browser on your Android device and look for the install icon in the address bar, or check your browser menu for "Install app" option.');
   };
 
-  // Desktop native install handler  
-  const handleDesktopInstall = async () => {
-    if (!deferredPrompt) {
-      console.log('❌ No deferred prompt available for desktop install');
-      return;
-    }
-
-    try {
-      console.log('💻 Desktop native install triggered');
-      await deferredPrompt.prompt();
-      
-      const choiceResult = await deferredPrompt.userChoice;
-      console.log('💻 User choice:', choiceResult.outcome);
-      
-      if (choiceResult.outcome === 'accepted') {
-        console.log('✅ Desktop PWA installation accepted');
-        setIsInstalled(true);
-      }
-      
-      setDeferredPrompt(null);
-    } catch (error) {
-      console.error('❌ Desktop install failed:', error);
-    }
+  // Desktop install handler - NO native prompts, just show message  
+  const handleDesktopInstall = () => {
+    console.log('💻 Desktop install button clicked - showing instructions');
+    alert('Please look for the install icon in your browser address bar (Chrome/Edge), or check your browser menu for "Install Little Latte Lane" option.');
   };
 
-  // iOS instruction handler
+  // iOS instruction handler - just a simple message
   const handleiOSInstructions = () => {
-    console.log('📱 iOS installation instructions triggered');
-    // Just scroll to show the instructions are right there - no popup needed
+    console.log('📱 iOS installation instructions - no action needed');
+    // Instructions are already visible on the page
   };
 
   if (isInstalled) {
@@ -242,15 +164,15 @@ export default function PWAInstallPage() {
 
             <Button
               onClick={handleAndroidInstall}
-              disabled={deviceInfo.platform !== 'android' || !deferredPrompt}
+              disabled={deviceInfo.platform !== 'android'}
               className={`w-full py-4 px-8 rounded-xl text-lg font-bold transition-all duration-300 ${
-                deviceInfo.platform === 'android' && deferredPrompt
+                deviceInfo.platform === 'android'
                   ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white shadow-lg hover:shadow-green-400/30 transform hover:scale-105'
                   : 'bg-gray-700 text-gray-400 cursor-not-allowed'
               }`}
             >
               {deviceInfo.platform === 'android' 
-                ? (deferredPrompt ? '🚀 Install Now - Android' : '⏳ Loading...')
+                ? '🚀 Install Now - Android'
                 : '🚫 Not Available (Use your Android device)'}
             </Button>
           </div>
@@ -340,15 +262,15 @@ export default function PWAInstallPage() {
 
             <Button
               onClick={handleDesktopInstall}
-              disabled={deviceInfo.platform !== 'desktop' || !deferredPrompt}
+              disabled={deviceInfo.platform !== 'desktop'}
               className={`w-full py-4 px-8 rounded-xl text-lg font-bold transition-all duration-300 ${
-                deviceInfo.platform === 'desktop' && deferredPrompt
+                deviceInfo.platform === 'desktop'
                   ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white shadow-lg hover:shadow-purple-400/30 transform hover:scale-105'
                   : 'bg-gray-700 text-gray-400 cursor-not-allowed'
               }`}
             >
               {deviceInfo.platform === 'desktop' 
-                ? (deferredPrompt ? '🚀 Install Now - Desktop' : '⏳ Loading...')
+                ? '🚀 Install Now - Desktop'
                 : '🚫 Not Available (Use your Windows/Mac computer)'}
             </Button>
           </div>
