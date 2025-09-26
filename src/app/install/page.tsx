@@ -21,7 +21,7 @@ interface BeforeInstallPromptEvent extends Event {
 
 // Detect device and browser with high accuracy
 const getDeviceInfo = () => {
-  if (typeof window === 'undefined') return { platform: 'unknown', browser: 'unknown', isIOS: false };
+  if (typeof window === 'undefined') return { platform: 'unknown', browser: 'unknown', isIOS: false, isMacOS: false };
   
   const userAgent = navigator.userAgent.toLowerCase();
   
@@ -31,10 +31,15 @@ const getDeviceInfo = () => {
                 /iPad/.test(navigator.userAgent) ||
                 (navigator.userAgent.includes('Safari') && navigator.userAgent.includes('Mac') && 'ontouchend' in document);
   
+  // macOS detection (separate from iOS)
+  const isMacOS = navigator.platform.indexOf('Mac') === 0 && !isIOS;
+  
   // More accurate platform detection
   const platform = /iPhone|iPod/.test(navigator.userAgent) ? 'ios' :
                   isIOS ? 'ios' : // This catches iPads in desktop mode
-                  /android/i.test(userAgent) ? 'android' : 'desktop';
+                  /android/i.test(userAgent) ? 'android' : 
+                  isMacOS ? 'macos' :
+                  'desktop';
   
   // Browser detection
   const browser = /chrome/i.test(userAgent) && !/edg/i.test(userAgent) ? 'chrome' :
@@ -42,7 +47,7 @@ const getDeviceInfo = () => {
                  /firefox/i.test(userAgent) ? 'firefox' :
                  /safari/i.test(userAgent) && !/chrome/i.test(userAgent) ? 'safari' : 'unknown';
 
-  return { platform, browser, isIOS };
+  return { platform, browser, isIOS, isMacOS };
 };
 
 // Check if PWA is already installed
@@ -54,7 +59,7 @@ const checkIfInstalled = () => {
 
 export default function PWAInstallPage() {
   const [isInstalled, setIsInstalled] = useState(false);
-  const [deviceInfo, setDeviceInfo] = useState({ platform: 'unknown', browser: 'unknown', isIOS: false });
+  const [deviceInfo, setDeviceInfo] = useState({ platform: 'unknown', browser: 'unknown', isIOS: false, isMacOS: false });
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [canInstall, setCanInstall] = useState(false);
 
@@ -123,9 +128,26 @@ export default function PWAInstallPage() {
     }
   };
 
-  // Desktop install handler - Use native install if available
+  // Desktop install handler - Use native install if available, special handling for Safari
   const handleDesktopInstall = async () => {
-    console.log('💻 Desktop install button clicked');
+    console.log('💻 Desktop install button clicked', { browser: deviceInfo.browser, platform: deviceInfo.platform });
+    
+    // Special handling for Safari on macOS
+    if (deviceInfo.browser === 'safari' && deviceInfo.isMacOS) {
+      alert(`🍎 Safari Installation Instructions:
+
+1. Look for a small "⊞" icon in the address bar (right side)
+2. OR go to Safari menu → "Install Little Latte Lane..."
+3. OR click the address bar and look for "Install" option
+
+If you don't see these options:
+• Make sure you're on the main site page
+• Try refreshing the page
+• Ensure Safari is up to date
+
+Alternative: Use Chrome or Edge for one-click installation!`);
+      return;
+    }
     
     if (deferredPrompt && canInstall) {
       try {
@@ -150,8 +172,14 @@ export default function PWAInstallPage() {
         alert('Please look for the install icon in your browser address bar (Chrome/Edge), or check your browser menu for "Install Little Latte Lane" option.');
       }
     } else {
-      // Fallback for browsers that don't support native install
-      alert('Please look for the install icon in your browser address bar (Chrome/Edge), or check your browser menu for "Install Little Latte Lane" option.');
+      // Browser-specific fallback instructions
+      const instructions = deviceInfo.browser === 'safari' && deviceInfo.isMacOS
+        ? 'Safari: Look for the small "⊞" icon in the address bar, or go to Safari menu → "Install Little Latte Lane..."'
+        : deviceInfo.browser === 'firefox'
+        ? 'Firefox: This browser doesn\'t support PWA installation. Please use Chrome, Edge, or Safari for the best experience.'
+        : 'Please look for the install icon in your browser address bar (Chrome/Edge), or check your browser menu for "Install Little Latte Lane" option.';
+      
+      alert(instructions);
     }
   };
 
@@ -320,7 +348,7 @@ export default function PWAInstallPage() {
 
           {/* WINDOWS & MAC SECTION */}
           <div className={`bg-gradient-to-br from-darkBg to-gray-900 border rounded-2xl p-8 ${
-            deviceInfo.platform === 'desktop' 
+            deviceInfo.platform === 'desktop' || deviceInfo.platform === 'macos'
               ? 'border-purple-400/50 shadow-purple-400/20 shadow-lg' 
               : 'border-gray-600/30 opacity-75'
           }`}>
@@ -331,10 +359,42 @@ export default function PWAInstallPage() {
                 </svg>
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-purple-400 mb-1">Windows & Mac Users</h2>
-                <p className="text-gray-300">Desktop app installation</p>
+                <h2 className="text-2xl font-bold text-purple-400 mb-1">
+                  {deviceInfo.isMacOS ? 'Mac Users' : 'Windows & Mac Users'}
+                </h2>
+                <p className="text-gray-300">
+                  {deviceInfo.browser === 'safari' && deviceInfo.isMacOS 
+                    ? 'Safari installation on macOS' 
+                    : 'Desktop app installation'}
+                </p>
               </div>
             </div>
+
+            {/* Safari on macOS specific instructions */}
+            {deviceInfo.browser === 'safari' && deviceInfo.isMacOS && (
+              <div className="bg-purple-800/20 rounded-xl p-6 border border-purple-400/30 mb-8">
+                <h3 className="text-xl font-bold text-purple-400 mb-4">🍎 Safari Installation Steps:</h3>
+                <div className="space-y-3 text-gray-300">
+                  <div className="flex items-center gap-3">
+                    <span className="bg-purple-400 text-black rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold flex-shrink-0">1</span>
+                    <span>Look for the small <strong className="text-purple-300">&ldquo;⊞&rdquo; install icon</strong> in the address bar (right side)</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="bg-purple-400 text-black rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold flex-shrink-0">2</span>
+                    <span>OR go to <strong className="text-purple-300">Safari menu → &ldquo;Install Little Latte Lane...&rdquo;</strong></span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="bg-purple-400 text-black rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold flex-shrink-0">3</span>
+                    <span>Click <strong className="text-purple-300">&ldquo;Install&rdquo;</strong> to add to your Applications folder</span>
+                  </div>
+                </div>
+                <div className="mt-4 p-3 bg-purple-900/40 rounded-lg border border-purple-400/20">
+                  <p className="text-sm text-purple-200">
+                    💡 <strong>Tip:</strong> If you don&apos;t see these options, try refreshing the page or navigate to the main site first.
+                  </p>
+                </div>
+              </div>
+            )}
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
               <div className="bg-purple-800/20 rounded-xl p-4 border border-purple-400/20">
@@ -353,18 +413,24 @@ export default function PWAInstallPage() {
 
             <Button
               onClick={handleDesktopInstall}
-              disabled={deviceInfo.platform !== 'desktop'}
+              disabled={deviceInfo.platform !== 'desktop' && deviceInfo.platform !== 'macos'}
               className={`w-full py-4 px-4 sm:px-8 rounded-xl text-base sm:text-lg font-bold transition-all duration-300 ${
-                deviceInfo.platform === 'desktop'
+                deviceInfo.platform === 'desktop' || deviceInfo.platform === 'macos'
                   ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white shadow-lg hover:shadow-purple-400/30 transform hover:scale-105'
                   : 'bg-gray-700 text-gray-400 cursor-not-allowed'
               }`}
             >
-              {deviceInfo.platform === 'desktop' 
-                ? <span className="block sm:hidden">🚀 Install Now</span>
+              {(deviceInfo.platform === 'desktop' || deviceInfo.platform === 'macos') 
+                ? <span className="block sm:hidden">
+                    {deviceInfo.browser === 'safari' && deviceInfo.isMacOS ? '🍎 Safari Guide' : '🚀 Install Now'}
+                  </span>
                 : null}
-              {deviceInfo.platform === 'desktop' 
-                ? <span className="hidden sm:block">🚀 Install Now - Desktop</span>
+              {(deviceInfo.platform === 'desktop' || deviceInfo.platform === 'macos') 
+                ? <span className="hidden sm:block">
+                    {deviceInfo.browser === 'safari' && deviceInfo.isMacOS 
+                      ? '🍎 Show Safari Installation Guide' 
+                      : '🚀 Install Now - Desktop'}
+                  </span>
                 : <span className="text-xs sm:text-base">🚫 Use your computer</span>}
             </Button>
           </div>
