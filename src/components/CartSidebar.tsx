@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { X, ShoppingCart, Plus, Minus, Trash2, Edit2, CheckCircle2 } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, Edit2, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { createOrderServerAction } from '@/app/actions';
 import YocoPayment from '@/components/YocoPayment';
@@ -384,10 +384,10 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={onClose}
-              className="text-gray-400 hover:text-white"
+              onClick={() => setStep('cart')}
+              className="text-gray-400 hover:text-white hover:bg-gray-700/50 px-3 py-2"
             >
-              <X className="h-5 w-5" />
+              Back to Cart
             </Button>
           </div>
 
@@ -655,44 +655,98 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                       onSubmit={(e) => e.preventDefault()}
                       data-form-type="checkout"
                     >
-                      <div className="space-y-4">
-                        <div>
-                          <Label className="text-neonCyan">
-                            Delivery Type *
-                          </Label>
-                          <Select
-                            value={deliveryType}
-                            onValueChange={(value) =>
-                              setDeliveryType(value as 'delivery' | 'pickup')
-                            }
-                          >
-                            <SelectTrigger className="bg-darkBg/80 backdrop-blur-md border-neonPink/50 text-white focus:border-neonCyan focus:ring-neonCyan/20">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-darkBg/95 backdrop-blur-lg border-neonPink/50">
-                              <SelectItem value="delivery">Delivery</SelectItem>
-                              <SelectItem value="pickup">Pickup</SelectItem>
-                            </SelectContent>
-                          </Select>
+                      <div className="space-y-6">
+                        {/* Contact Information Panel */}
+                        <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 space-y-4">
+                          <h3 className="text-white font-medium text-sm">Contact Information</h3>
+                          
+                          <div className="grid grid-cols-1 gap-4">
+                            {/* Delivery Type */}
+                            <div>
+                              <Label className="text-gray-300 text-sm">
+                                Delivery Type *
+                              </Label>
+                              <Select
+                                value={deliveryType}
+                                onValueChange={(value) =>
+                                  setDeliveryType(value as 'delivery' | 'pickup')
+                                }
+                              >
+                                <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white focus:border-neonCyan focus:ring-1 focus:ring-neonCyan/20 mt-1">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-gray-800 border-gray-600">
+                                  <SelectItem value="delivery">🚚 Delivery</SelectItem>
+                                  <SelectItem value="pickup">🏪 Pickup</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            {/* Phone Number */}
+                            <div>
+                              <Label
+                                htmlFor="contact-number"
+                                className="text-gray-300 text-sm flex items-center gap-1"
+                              >
+                                Phone Number *
+                                {profile?.phone && (
+                                  <span className="text-xs text-neonCyan/60">
+                                    (from profile)
+                                  </span>
+                                )}
+                              </Label>
+                              <Input
+                                id="contact-number"
+                                name="contact_number"
+                                type="tel"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                className="bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-neonCyan focus:ring-1 focus:ring-neonCyan/20 mt-1"
+                                placeholder={
+                                  profile?.phone
+                                    ? 'Your saved phone number'
+                                    : '082 345 6789'
+                                }
+                                autoComplete="off"
+                                autoCorrect="off"
+                                autoCapitalize="off"
+                                spellCheck="false"
+                                data-form-type="other"
+                                data-lpignore="true"
+                                required
+                              />
+                              {phone && isValidSouthAfricanPhone(phone) && (
+                                <p className="text-neonCyan text-xs mt-1">
+                                  ✓ {displaySouthAfricanPhone(phone)}
+                                </p>
+                              )}
+                              {phone &&
+                                !isValidSouthAfricanPhone(phone) &&
+                                phone.length > 5 && (
+                                  <p className="text-red-400 text-xs mt-1">
+                                    Please enter a valid SA phone number
+                                  </p>
+                                )}
+                            </div>
+                          </div>
                         </div>
 
+                        {/* Delivery Address Panel */}
                         {deliveryType === 'delivery' && (
-                          <div className="space-y-4">
-                            <Label className="text-neonCyan">
-                              Delivery Address *
-                            </Label>
+                          <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 space-y-4">
+                            <h3 className="text-white font-medium text-sm">Delivery Address</h3>
 
                             {!isEditingAddress ? (
                               // Simplified Address Preview
                               <div className="space-y-4">
-                                {/* Address Preview Card */}
-                                <div className="bg-darkBg/80 backdrop-blur-md border border-neonPink/50 rounded-lg p-4">
+                                {/* Address Preview */}
+                                <div className="bg-gray-700/30 rounded-lg p-4">
                                   <div className="flex items-start justify-between">
                                     <div className="flex items-start gap-3 flex-1">
                                       <CheckCircle2 className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
                                       <div className="flex-1">
                                         <p className="text-sm text-gray-400 mb-1">Address Preview</p>
-                                        <p className="text-white font-medium leading-relaxed">
+                                        <p className="text-white font-medium leading-relaxed text-sm">
                                           {profile?.address 
                                             ? formatAddressForDisplay(parseAddressString(profile.address))
                                             : address.fullAddress || 'No address set'
@@ -705,9 +759,9 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                                       size="sm"
                                       variant="outline"
                                       onClick={() => setIsEditingAddress(true)}
-                                      className="border-neonCyan/30 text-neonCyan hover:bg-neonCyan/10 hover:border-neonCyan ml-3"
+                                      className="border-gray-600 text-gray-300 hover:bg-gray-600/50 hover:border-gray-500 ml-3 text-xs"
                                     >
-                                      <Edit2 className="h-4 w-4 mr-1" />
+                                      <Edit2 className="h-3 w-3 mr-1" />
                                       Edit
                                     </Button>
                                   </div>
@@ -720,11 +774,11 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                                       id="roberts-estate-resident"
                                       checked={isRobertsEstateResident}
                                       onCheckedChange={(checked) => setIsRobertsEstateResident(checked === true)}
-                                      className="border-neonCyan data-[state=checked]:bg-neonCyan data-[state=checked]:border-neonCyan"
+                                      className="border-gray-500 data-[state=checked]:bg-neonCyan data-[state=checked]:border-neonCyan"
                                     />
                                     <Label 
                                       htmlFor="roberts-estate-resident" 
-                                      className="text-white text-sm font-medium cursor-pointer"
+                                      className="text-gray-300 text-sm cursor-pointer"
                                     >
                                       I confirm I am a Roberts Estate resident
                                     </Label>
@@ -735,11 +789,11 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                                       id="address-correct"
                                       checked={confirmAddressCorrect}
                                       onCheckedChange={(checked) => setConfirmAddressCorrect(checked === true)}
-                                      className="border-neonCyan data-[state=checked]:bg-neonCyan data-[state=checked]:border-neonCyan"
+                                      className="border-gray-500 data-[state=checked]:bg-neonCyan data-[state=checked]:border-neonCyan"
                                     />
                                     <Label 
                                       htmlFor="address-correct" 
-                                      className="text-white text-sm font-medium cursor-pointer"
+                                      className="text-gray-300 text-sm cursor-pointer"
                                     >
                                       I confirm my address is correct
                                     </Label>
@@ -764,7 +818,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                                     type="button"
                                     size="sm"
                                     onClick={() => setIsEditingAddress(false)}
-                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                    className="bg-green-600 hover:bg-green-700 text-white text-xs"
                                   >
                                     Save & Close
                                   </Button>
@@ -781,7 +835,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                                         setIsRobertsEstateResident(profileAddress.isRobertsEstateResident);
                                       }
                                     }}
-                                    className="border-gray-500 text-gray-400 hover:bg-gray-600"
+                                    className="border-gray-500 text-gray-400 hover:bg-gray-600/50 text-xs"
                                   >
                                     Cancel
                                   </Button>
@@ -791,94 +845,38 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                           </div>
                         )}
 
-                        <div>
-                          <Label
-                            htmlFor="contact-number"
-                            className="text-neonCyan flex items-center gap-1"
-                          >
-                            Phone Number *
-                            {profile?.phone && (
-                              <span className="text-xs text-neonCyan/60">
-                                (from profile)
-                              </span>
-                            )}
-                          </Label>
-                          <Input
-                            id="contact-number"
-                            name="contact_number"
-                            type="tel"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            className="bg-darkBg/80 backdrop-blur-md border-neonPink/50 text-white placeholder:text-gray-400 focus:border-neonCyan focus:ring-neonCyan/20"
-                            placeholder={
-                              profile?.phone
-                                ? 'Your saved phone number'
-                                : '082 345 6789'
-                            }
-                            autoComplete="off"
-                            autoCorrect="off"
-                            autoCapitalize="off"
-                            spellCheck="false"
-                            data-form-type="other"
-                            data-lpignore="true"
-                            required
-                          />
-                          {phone && isValidSouthAfricanPhone(phone) && (
-                            <p className="text-neonCyan text-xs mt-1">
-                              ✓ {displaySouthAfricanPhone(phone)}
+                        {/* Special Instructions Panel */}
+                        <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4">
+                          <h3 className="text-white font-medium text-sm mb-3">Special Instructions</h3>
+                          <div>
+                            <Textarea
+                              id="special-instructions"
+                              name="special_instructions"
+                              value={specialInstructions}
+                              onChange={(e) => setSpecialInstructions(e.target.value)}
+                              className="bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-neonCyan focus:ring-1 focus:ring-neonCyan/20 min-h-[80px] text-sm"
+                              placeholder="Any special requests or dietary requirements..."
+                              autoComplete="off"
+                              autoCorrect="off"
+                              autoCapitalize="off"
+                              spellCheck="false"
+                              data-form-type="other"
+                              data-lpignore="true"
+                              rows={3}
+                            />
+                            <p className="text-xs text-gray-400 mt-2">
+                              Optional: Add any special instructions for your order
                             </p>
-                          )}
-                          {phone &&
-                            !isValidSouthAfricanPhone(phone) &&
-                            phone.length > 5 && (
-                              <p className="text-red-400 text-xs mt-1">
-                                Please enter a valid SA phone number
-                              </p>
-                            )}
-                        </div>
-
-                        <div>
-                          <Label
-                            htmlFor="special-instructions"
-                            className="text-neonCyan"
-                          >
-                            Special Instructions
-                            <span className="text-xs text-neonCyan/60 ml-1">(optional)</span>
-                          </Label>
-                          <Textarea
-                            id="special-instructions"
-                            name="special_instructions"
-                            value={specialInstructions}
-                            onChange={(e) => setSpecialInstructions(e.target.value)}
-                            className="bg-darkBg/80 backdrop-blur-md border-neonPink/50 text-white placeholder:text-gray-400 focus:border-neonCyan focus:ring-neonCyan/20 min-h-[80px]"
-                            placeholder="Any special requests or dietary requirements..."
-                            autoComplete="off"
-                            autoCorrect="off"
-                            autoCapitalize="off"
-                            spellCheck="false"
-                            data-form-type="other"
-                            data-lpignore="true"
-                            rows={3}
-                          />
-                          <p className="text-xs text-gray-400 mt-1">
-                            Optional: Add any special instructions for your order
-                          </p>
+                          </div>
                         </div>
                       </div>
                     </form>
 
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => setStep('cart')}
-                        variant="outline"
-                        className="flex-1 border-neonPink/50 text-neonPink hover:bg-neonPink/10"
-                      >
-                        Back to Cart
-                      </Button>
+                    <div className="mt-6">
                       <Button
                         onClick={handleCreateOrder}
                         disabled={isCreatingOrder || isClosed}
-                        className="flex-1 neon-button"
+                        className="w-full bg-gradient-to-r from-neonCyan to-neonPink hover:from-neonCyan/90 hover:to-neonPink/90 text-black font-medium py-3 text-base shadow-lg hover:shadow-xl transition-all duration-200"
                       >
                         {isClosed 
                           ? 'Restaurant Closed' 
