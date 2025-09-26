@@ -13,17 +13,15 @@ import toast from 'react-hot-toast';
 interface AnalyticsData {
   totalOrders: number;
   totalRevenue: number;
-  averageOrderValue: number;
-  completionRate: number;
+  totalUsers: number;
+  mostPopularItem: {
+    name: string;
+    quantity: number;
+  } | null;
   popularItems: Array<{
     name: string;
     quantity: number;
     revenue: number;
-  }>;
-  recentActivity: Array<{
-    type: string;
-    message: string;
-    timestamp: string;
   }>;
   dailyStats: Array<{
     date: string;
@@ -36,10 +34,9 @@ export default function AnalyticsDashboard() {
   const [analytics, setAnalytics] = useState<AnalyticsData>({
     totalOrders: 0,
     totalRevenue: 0,
-    averageOrderValue: 0,
-    completionRate: 0,
+    totalUsers: 0,
+    mostPopularItem: null,
     popularItems: [],
-    recentActivity: [],
     dailyStats: []
   });
   const [loading, setLoading] = useState(true);
@@ -62,7 +59,7 @@ export default function AnalyticsDashboard() {
         startDate = new Date('2020-01-01'); // All time
       }
 
-      // Fetch orders
+      // Fetch orders with proper status filtering (matching AdminOverview logic)
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
         .select(`
@@ -73,16 +70,22 @@ export default function AnalyticsDashboard() {
             menu_items (name)
           )
         `)
+        .eq('payment_status', 'paid')
+        .in('status', ['confirmed', 'preparing', 'ready', 'completed'])
         .gte('created_at', startDate.toISOString());
 
       if (ordersError) throw ordersError;
 
+      // Fetch total users count
+      const { count: totalUsers, error: usersError } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      if (usersError) throw usersError;
+
       // Calculate total orders and revenue
       const totalOrders = orders?.length || 0;
-      const completedOrders = orders?.filter(o => o.status === 'completed') || [];
-      const totalRevenue = completedOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
-      const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-      const completionRate = totalOrders > 0 ? (completedOrders.length / totalOrders) * 100 : 0;
+      const totalRevenue = orders?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
 
       // Calculate popular items
       const itemCounts: Record<string, { quantity: number; revenue: number }> = {};
@@ -102,12 +105,8 @@ export default function AnalyticsDashboard() {
         .sort((a, b) => b.quantity - a.quantity)
         .slice(0, 5);
 
-      // Generate recent activity (mock for now)
-      const recentActivity = orders?.slice(-5).map(order => ({
-        type: 'order',
-        message: `Order #${order.order_number || order.id.slice(0, 8)} - R${(order.total_amount || 0).toFixed(2)}`,
-        timestamp: order.created_at || new Date().toISOString()
-      })) || [];
+      const mostPopularItem = popularItems.length > 0 ? 
+        { name: popularItems[0].name, quantity: popularItems[0].quantity } : null;
 
       // Generate daily stats for the past week
       const dailyStats = [];
@@ -122,9 +121,7 @@ export default function AnalyticsDashboard() {
           return orderDate >= dayStart && orderDate <= dayEnd;
         }) || [];
         
-        const dayRevenue = dayOrders
-          .filter(o => o.status === 'completed')
-          .reduce((sum, order) => sum + (order.total_amount || 0), 0);
+        const dayRevenue = dayOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
 
         dailyStats.push({
           date: date.toLocaleDateString('en-ZA', { weekday: 'short' }),
@@ -136,10 +133,9 @@ export default function AnalyticsDashboard() {
       setAnalytics({
         totalOrders,
         totalRevenue,
-        averageOrderValue,
-        completionRate,
+        totalUsers: totalUsers || 0,
+        mostPopularItem,
         popularItems,
-        recentActivity,
         dailyStats
       });
 
@@ -221,7 +217,7 @@ export default function AnalyticsDashboard() {
                 <p className="text-3xl font-bold text-white">{formatCurrency(analytics.totalRevenue)}</p>
                 <p className="text-xs text-green-400 flex items-center mt-1">
                   <TrendingUp className="w-3 h-3 mr-1" />
-                  From completed orders
+                  From paid orders
                 </p>
               </div>
               <DollarSign className="h-12 w-12 text-neonPink" />
@@ -233,11 +229,13 @@ export default function AnalyticsDashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-400">Avg Order Value</p>
-                <p className="text-3xl font-bold text-white">{formatCurrency(analytics.averageOrderValue)}</p>
+                <p className="text-sm text-gray-400">Most Popular Item</p>
+                <p className="text-xl font-bold text-white">
+                  {analytics.mostPopularItem ? analytics.mostPopularItem.name : 'No data'}
+                </p>
                 <p className="text-xs text-blue-400 flex items-center mt-1">
                   <Target className="w-3 h-3 mr-1" />
-                  Per order average
+                  {analytics.mostPopularItem ? `${analytics.mostPopularItem.quantity} sold` : 'No sales yet'}
                 </p>
               </div>
               <BarChart3 className="h-12 w-12 text-blue-400" />
@@ -249,11 +247,11 @@ export default function AnalyticsDashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-400">Completion Rate</p>
-                <p className="text-3xl font-bold text-white">{analytics.completionRate.toFixed(1)}%</p>
+                <p className="text-sm text-gray-400">Total Users</p>
+                <p className="text-3xl font-bold text-white">{analytics.totalUsers}</p>
                 <p className="text-xs text-purple-400 flex items-center mt-1">
                   <Clock className="w-3 h-3 mr-1" />
-                  Orders completed
+                  Registered customers
                 </p>
               </div>
               <Target className="h-12 w-12 text-purple-400" />
@@ -330,35 +328,6 @@ export default function AnalyticsDashboard() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Recent Activity */}
-      <Card className="bg-gray-800/50 border-gray-700/50">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Clock className="w-5 h-5 text-blue-400" />
-            Recent Activity
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {analytics.recentActivity.length > 0 ? (
-              analytics.recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-center gap-3 p-3 bg-gray-700/30 rounded-lg">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="text-white text-sm">{activity.message}</p>
-                    <p className="text-xs text-gray-400">
-                      {new Date(activity.timestamp).toLocaleString('en-ZA')}
-                    </p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-400 text-center py-8">No recent activity</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
