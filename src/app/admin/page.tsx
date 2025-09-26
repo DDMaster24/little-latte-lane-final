@@ -20,6 +20,7 @@ import { QRCodeGenerator } from '@/components/QRCodeGenerator';
 
 const tabs = [
   { id: 'analytics', label: 'Analytics', icon: BarChart3, color: 'green-500' },
+  { id: 'bookings', label: 'Booking Management', icon: Activity, color: 'green-500' },
   { id: 'content', label: 'Content Management', icon: CheckCircle, color: 'neonPink' },
   { id: 'menu', label: 'Menu Management', icon: Menu, color: 'neonCyan' },
   { id: 'orders', label: 'Order Management', icon: ShoppingBag, color: 'neonPink' },
@@ -27,7 +28,6 @@ const tabs = [
   { id: 'qrcode', label: 'QR Code & App', icon: QrCode, color: 'orange-500' },
   { id: 'closure', label: 'Restaurant Status', icon: Power, color: 'red-500' },
   { id: 'users', label: 'User Management', icon: Users, color: 'purple-500' },
-  { id: 'bookings', label: 'Virtual Golf', icon: Activity, color: 'green-500' },
 ];
 
 export default function AdminPage() {
