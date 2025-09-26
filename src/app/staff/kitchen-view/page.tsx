@@ -8,24 +8,13 @@ import OrderDetailsModal from '@/components/OrderDetailsModal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  ArrowLeft,
   RefreshCw,
   Clock,
   ChefHat,
   Package,
   CheckCircle,
   Timer,
-  Filter,
   Volume2,
-  VolumeX,
-  Bell,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -59,12 +48,10 @@ export default function KitchenView() {
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   
-  // Phase 3 Part 3: Enhanced Kitchen Features
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  // Simplified Kitchen State
+  const [soundEnabled] = useState(true); // Always enabled as requested
   const [newOrderCount, setNewOrderCount] = useState(0);
   const [previousOrderCount, setPreviousOrderCount] = useState(0);
-  const [showOnlyUrgent, setShowOnlyUrgent] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
@@ -298,26 +285,12 @@ export default function KitchenView() {
   };
 
   const getFilteredOrders = () => {
-    let filtered = orders;
-    
-    // Filter by status
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(order => order.status === statusFilter);
-    }
-    
-    // Filter by urgency
-    if (showOnlyUrgent) {
-      filtered = filtered.filter(order => isOrderUrgent(order));
-    }
-    
     // Sort by creation time (oldest first) for proper FIFO queue
-    filtered = filtered.sort((a, b) => {
+    return orders.sort((a, b) => {
       const timeA = new Date(a.created_at || 0).getTime();
       const timeB = new Date(b.created_at || 0).getTime();
       return timeA - timeB; // Oldest first
     });
-    
-    return filtered;
   };
 
   const getActiveOrders = () => {
@@ -327,19 +300,15 @@ export default function KitchenView() {
     );
   };
 
-  const getCompletedOrders = () => {
-    // Orders that are completed and awaiting pickup/delivery
-    // Don't show orders that have been picked up or delivered
+  const getReadyOrders = () => {
+    // Show only orders that are ready for pickup/delivery
+    // Remove completed orders from kitchen view as requested
     return orders
-      .filter(order => {
-        const status = order.status;
-        // Show only orders that are completed but not yet collected
-        return status === 'completed';
-      })
+      .filter(order => order.status === 'ready')
       .sort((a, b) => {
         const timeA = new Date(a.updated_at || a.created_at || 0).getTime();
         const timeB = new Date(b.updated_at || b.created_at || 0).getTime();
-        return timeB - timeA; // Most recently completed first
+        return timeB - timeA; // Most recently ready first
       });
   };
 
@@ -367,88 +336,58 @@ export default function KitchenView() {
 
   return (
     <div className="min-h-screen bg-darkBg text-neonText overflow-x-hidden">
-      {/* Full-Screen Header - Enhanced with Kitchen Controls */}
-      <div className="bg-gray-900/95 backdrop-blur-md border-b border-neonCyan/30 sticky top-0 z-50">
-        <div className="max-w-full px-4 sm:px-6 py-3 sm:py-4">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-              {/* Only show back button for admins */}
-              {profile?.is_admin && (
-                <Button
-                  onClick={() => router.push('/staff')}
-                  variant="ghost"
-                  className="text-neonCyan hover:text-neonPink text-sm"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">Back to Staff Panel</span>
-                  <span className="sm:hidden">Back</span>
-                </Button>
+      {/* Streamlined Kitchen Header */}
+      <div className="bg-gray-900/95 backdrop-blur-md border-b border-gray-700/50 sticky top-0 z-50">
+        <div className="max-w-full px-4 py-3">
+          <div className="flex justify-between items-center">
+            {/* Kitchen Title */}
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-white">
+                🍳 Kitchen View
+              </h1>
+              {newOrderCount > 0 && (
+                <Badge className="bg-red-500 text-white animate-pulse">
+                  +{newOrderCount} NEW
+                </Badge>
               )}
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-neonCyan flex items-center gap-2">
-                  🍳 Kitchen View
-                  {newOrderCount > 0 && (
-                    <Badge className="bg-red-500 text-white animate-pulse text-xs">
-                      +{newOrderCount} NEW
-                    </Badge>
-                  )}
-                </h1>
-                <p className="text-neonText/70 text-xs sm:text-sm">
-                  {profile?.is_admin ? 'Full-screen order management' : 'Real-time Order Processing'}
-                </p>
-              </div>
             </div>
             
-            {/* Kitchen Controls */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 lg:space-x-4 w-full lg:w-auto">
-              {/* Status Filter */}
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-32 lg:w-40 bg-gray-800 border-gray-600 text-gray-200 text-xs sm:text-sm">
-                  <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-600">
-                  <SelectItem value="all">All Orders</SelectItem>
-                  <SelectItem value="confirmed">⏱️ Confirmed</SelectItem>
-                  <SelectItem value="preparing">👨‍🍳 Preparing</SelectItem>
-                  <SelectItem value="ready">✅ Ready</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Urgent Orders Toggle */}
-              <Button
-                onClick={() => setShowOnlyUrgent(!showOnlyUrgent)}
-                variant={showOnlyUrgent ? "default" : "outline"}
-                className={`${showOnlyUrgent ? 'bg-red-500 hover:bg-red-600' : 'border-gray-600 text-gray-300'} text-xs px-2 sm:px-3 py-2`}
-                title="Show only orders that are urgent (over 20 minutes old or ready for pickup)"
-              >
-                <Bell className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                <span className="hidden sm:inline">Urgent Only ({showOnlyUrgent ? 'ON' : 'OFF'})</span>
-                <span className="sm:hidden">{showOnlyUrgent ? 'ON' : 'OFF'}</span>
-              </Button>
-
-              {/* Sound Toggle */}
-              <Button
-                onClick={() => setSoundEnabled(!soundEnabled)}
-                variant="outline"
-                className="border-gray-600 text-gray-300 text-xs px-2 sm:px-3 py-2"
-              >
-                {soundEnabled ? <Volume2 className="w-3 h-3 sm:w-4 sm:h-4" /> : <VolumeX className="w-3 h-3 sm:w-4 sm:h-4" />}
-              </Button>
-
+            {/* Essential Controls */}
+            <div className="flex items-center gap-3">
+              {/* Last Update Time */}
               {lastUpdate && (
-                <div className="text-xs text-gray-400 hidden lg:block">
+                <div className="text-sm text-gray-400">
                   Last update: {lastUpdate.toLocaleTimeString()}
                 </div>
               )}
               
+              {/* Sound Button (Always On) */}
+              <Button
+                variant="ghost"
+                className="text-gray-300 p-2"
+                title="Sound notifications are active"
+              >
+                <Volume2 className="w-5 h-5 text-green-400" />
+              </Button>
+
+              {/* Refresh Button */}
               <Button
                 onClick={fetchOrders}
                 disabled={loading}
-                className="neon-button text-xs px-2 sm:px-3 py-2"
+                variant="outline"
+                className="border-gray-600 text-gray-300 hover:bg-gray-700"
               >
-                <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">Refresh</span>
+                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+
+              {/* Logout Button */}
+              <Button
+                onClick={() => router.push('/auth/callback?logout=true')}
+                variant="outline"
+                className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
+              >
+                Logout
               </Button>
             </div>
           </div>
@@ -459,9 +398,8 @@ export default function KitchenView() {
       <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 p-4 sm:p-6">
         {/* Left Side - Active Orders */}
         <div className="flex-1 xl:w-2/3">
-          <div className="mb-4">
-            <h2 className="text-lg sm:text-xl font-bold text-white mb-2">Active Orders - Kitchen Queue</h2>
-            <p className="text-gray-400 text-xs sm:text-sm">Orders requiring kitchen preparation (Confirmed → Preparing → Ready)</p>
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-white">Orders</h2>
           </div>
           
           {getActiveOrders().length === 0 ? (
@@ -581,20 +519,19 @@ export default function KitchenView() {
 
         {/* Right Side - Completed Orders */}
         <div className="xl:w-1/3 xl:border-l xl:border-gray-700 xl:pl-6">
-          <div className="mb-4">
-            <h2 className="text-lg sm:text-xl font-bold text-white mb-2">Completed Orders</h2>
-            <p className="text-gray-400 text-xs sm:text-sm">Ready for pickup/delivery - awaiting customer collection</p>
+          <div className="text-center mb-4">
+            <h2 className="text-xl font-bold text-white">Ready Orders</h2>
           </div>
 
-          {getCompletedOrders().length === 0 ? (
+          {getReadyOrders().length === 0 ? (
             <div className="text-center py-6 sm:py-8">
               <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 text-gray-500" />
-              <p className="text-gray-400 text-sm">No completed orders</p>
-              <p className="text-gray-500 text-xs">Completed orders appear here</p>
+              <p className="text-gray-400 text-sm">No orders ready</p>
+              <p className="text-gray-500 text-xs">Ready orders appear here</p>
             </div>
           ) : (
             <div className="space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto">
-              {getCompletedOrders().map((order) => (
+              {getReadyOrders().map((order) => (
                 <div
                   key={order.id}
                   className="bg-gray-800 border border-gray-600 rounded-lg p-3 sm:p-4 hover:border-gray-500 transition-colors"
