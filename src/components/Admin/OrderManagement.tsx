@@ -39,6 +39,7 @@ interface OrderStats {
   dailyOrders: number;
   pendingOrders: number;
   completedOrders: number;
+  totalOrdersForTimeFrame: number;
 }
 
 export default function OrderManagement() {
@@ -48,11 +49,13 @@ export default function OrderManagement() {
   const [updating, setUpdating] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [timeFrame, setTimeFrame] = useState('daily'); // daily, weekly, monthly, 3months, 6months, 1year, all
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [stats, setStats] = useState<OrderStats>({
     dailyOrders: 0,
     pendingOrders: 0,
-    completedOrders: 0
+    completedOrders: 0,
+    totalOrdersForTimeFrame: 0
   });
 
   const fetchOrders = useCallback(async () => {
@@ -72,12 +75,18 @@ export default function OrderManagement() {
     }
   }, []);
 
-  const calculateStats = (orderData: Order[]) => {
-    const today = new Date().toDateString();
-    const dailyOrders = orderData.filter(order => 
-      new Date(order.created_at || '').toDateString() === today
-    );
+  const calculateStats = useCallback((orderData: Order[], currentTimeFrame = timeFrame) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     
+    // Daily orders (always for today)
+    const dailyOrders = orderData.filter(order => {
+      const orderDate = new Date(order.created_at || '');
+      orderDate.setHours(0, 0, 0, 0);
+      return orderDate.getTime() === today.getTime();
+    });
+    
+    // Pending and completed orders (across all time)
     const pendingOrders = orderData.filter(order => 
       ['pending', 'confirmed', 'preparing'].includes(order.status || '')
     ).length;
@@ -86,12 +95,62 @@ export default function OrderManagement() {
       order.status === 'completed'
     ).length;
 
+    // Time frame specific orders
+    let timeFrameOrders = [];
+    const now = new Date();
+    
+    switch (currentTimeFrame) {
+      case 'daily':
+        timeFrameOrders = dailyOrders;
+        break;
+      case 'weekly':
+        const weekAgo = new Date();
+        weekAgo.setDate(now.getDate() - 7);
+        timeFrameOrders = orderData.filter(order => 
+          new Date(order.created_at || '') >= weekAgo
+        );
+        break;
+      case 'monthly':
+        const monthAgo = new Date();
+        monthAgo.setMonth(now.getMonth() - 1);
+        timeFrameOrders = orderData.filter(order => 
+          new Date(order.created_at || '') >= monthAgo
+        );
+        break;
+      case '3months':
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(now.getMonth() - 3);
+        timeFrameOrders = orderData.filter(order => 
+          new Date(order.created_at || '') >= threeMonthsAgo
+        );
+        break;
+      case '6months':
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(now.getMonth() - 6);
+        timeFrameOrders = orderData.filter(order => 
+          new Date(order.created_at || '') >= sixMonthsAgo
+        );
+        break;
+      case '1year':
+        const yearAgo = new Date();
+        yearAgo.setFullYear(now.getFullYear() - 1);
+        timeFrameOrders = orderData.filter(order => 
+          new Date(order.created_at || '') >= yearAgo
+        );
+        break;
+      case 'all':
+      default:
+        timeFrameOrders = orderData;
+        break;
+    }
+
     setStats({
       dailyOrders: dailyOrders.length,
       pendingOrders,
-      completedOrders
+      completedOrders,
+      totalOrdersForTimeFrame: timeFrameOrders.length
     });
-  };
+  }, [timeFrame]);
 
   useEffect(() => {
     fetchOrders();
@@ -99,6 +158,12 @@ export default function OrderManagement() {
     const interval = setInterval(fetchOrders, 30000);
     return () => clearInterval(interval);
   }, [fetchOrders]);
+
+  useEffect(() => {
+    if (orders.length > 0) {
+      calculateStats(orders);
+    }
+  }, [timeFrame, orders, calculateStats]);
 
   useEffect(() => {
     let filtered = orders;
@@ -196,19 +261,42 @@ export default function OrderManagement() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white mb-2">Order Management</h2>
           <p className="text-gray-400">Manage and track all customer orders</p>
         </div>
-        <Button onClick={fetchOrders} disabled={loading} className="neon-button">
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <div className="flex bg-gray-800/50 rounded-lg p-1">
+            {[
+              { value: 'daily', label: 'Daily' },
+              { value: 'weekly', label: 'Weekly' },
+              { value: 'monthly', label: 'Monthly' },
+              { value: '3months', label: '3 Months' },
+              { value: '6months', label: '6 Months' },
+              { value: '1year', label: '1 Year' },
+              { value: 'all', label: 'All Time' }
+            ].map((option) => (
+              <Button
+                key={option.value}
+                onClick={() => setTimeFrame(option.value)}
+                variant={timeFrame === option.value ? 'default' : 'ghost'}
+                size="sm"
+                className={`px-3 py-1 text-xs ${timeFrame === option.value ? 'bg-neonCyan text-black' : 'text-gray-300 hover:bg-gray-700'}`}
+              >
+                {option.label}
+              </Button>
+            ))}
+          </div>
+          <Button onClick={fetchOrders} disabled={loading} className="neon-button">
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
-      {/* Simplified Stats - Only 3 Essential Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Enhanced Stats - Now 4 Cards Including Time Frame */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="bg-gradient-to-br from-neonCyan/10 to-neonCyan/5 border-neonCyan/20 hover:border-neonCyan/40 transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -244,6 +332,28 @@ export default function OrderManagement() {
                 <p className="text-xs text-green-400 mt-1">Successfully completed</p>
               </div>
               <CheckCircle className="h-12 w-12 text-green-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border-purple-500/20 hover:border-purple-500/40 transition-all duration-300">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-400 mb-1">
+                  {timeFrame === 'daily' ? 'Today' : 
+                   timeFrame === 'weekly' ? 'This Week' :
+                   timeFrame === 'monthly' ? 'This Month' :
+                   timeFrame === '3months' ? 'Last 3 Months' :
+                   timeFrame === '6months' ? 'Last 6 Months' :
+                   timeFrame === '1year' ? 'Last Year' : 'All Time'}
+                </p>
+                <p className="text-3xl font-bold text-white">{stats.totalOrdersForTimeFrame}</p>
+                <p className="text-xs text-purple-400 mt-1">
+                  Total orders in timeframe
+                </p>
+              </div>
+              <Package className="h-12 w-12 text-purple-400" />
             </div>
           </CardContent>
         </Card>

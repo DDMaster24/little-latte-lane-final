@@ -427,33 +427,8 @@ export default function MenuManagementThreeTier() {
             </Button>
           </div>
 
-          {/* React Bricks Integration Info */}
-          <div className="mb-6 p-4 bg-neonCyan/10 border border-neonCyan/30 rounded-lg">
-            <div className="flex items-start gap-3">
-              <div className="p-2 bg-neonCyan/20 rounded-lg">
-                <MenuSquare className="h-5 w-5 text-neonCyan" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-neonCyan font-semibold mb-2">🔗 React Bricks Integration</h3>
-                <p className="text-gray-300 text-sm mb-3">
-                  Connect these database categories to your menu page panels in React Bricks. Each category has a unique ID shown below.
-                </p>
-                <div className="space-y-2 text-xs text-gray-400">
-                  <p><strong>How to use:</strong></p>
-                  <ol className="list-decimal list-inside space-y-1 ml-2">
-                    <li>Copy the <span className="text-neonCyan font-mono">Category ID</span> from below</li>
-                    <li>Go to your menu page in React Bricks editor mode</li>
-                    <li>Select a category panel and paste the ID in &quot;Database Category ID&quot; field</li>
-                    <li>Content will automatically sync from this database</li>
-                  </ol>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {sections.map(section => (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{sections.map(section => (
               <div key={section.name} className="bg-gray-700/30 rounded-lg p-4">
                 <div className={`w-2 h-2 bg-${section.color} rounded-full mb-2`}></div>
                 <div className="text-sm text-gray-400">{section.name}</div>
