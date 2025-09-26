@@ -196,72 +196,75 @@ export default function PWAInstallPage() {
   }
 
   return (
-    <div className="min-h-screen bg-darkBg text-neonText">
-      <div className="container-responsive py-8">
-        <div className="text-center mb-12">
+    <div className="min-h-screen bg-darkBg text-neonText safe-area-top">
+      <div className="container-responsive py-4 sm:py-8">
+        <div className="text-center mb-8 sm:mb-12">
           <Image
             src="/images/logo.svg"
             alt="Little Latte Lane"
             width={120}
             height={60}
-            className="mx-auto mb-4 h-auto w-auto max-w-[120px]"
+            className="mx-auto mb-4 h-auto w-auto max-w-[100px] sm:max-w-[120px]"
             priority
           />
-          <h1 className="text-3xl xs:text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-2">
+          <h1 className="text-2xl xs:text-3xl sm:text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent mb-2 px-4">
             Install Little Latte Lane App
           </h1>
-          <p className="text-gray-400 text-lg">
+          <p className="text-gray-400 text-base sm:text-lg px-4">
             Choose your device type below for installation
           </p>
         </div>
 
-        <div className="max-w-4xl mx-auto space-y-8">
+        <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
           
           {/* ANDROID SECTION */}
-          <div className={`bg-gradient-to-br from-darkBg to-gray-900 border rounded-2xl p-8 ${
+          <div className={`bg-gradient-to-br from-darkBg to-gray-900 border rounded-2xl p-4 sm:p-8 ${
             deviceInfo.platform === 'android' 
               ? 'border-green-400/50 shadow-green-400/20 shadow-lg' 
               : 'border-gray-600/30 opacity-75'
           }`}>
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 rounded-2xl bg-green-500/10 flex items-center justify-center border border-green-400/20">
-                <svg className="w-8 h-8 text-green-400" viewBox="0 0 24 24" fill="currentColor">
+            <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-green-500/10 flex items-center justify-center border border-green-400/20">
+                <svg className="w-6 h-6 sm:w-8 sm:h-8 text-green-400" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M6,18c0,0.55 0.45,1 1,1h1v3.5c0,0.83 0.67,1.5 1.5,1.5s1.5,-0.67 1.5,-1.5V19h2v3.5c0,0.83 0.67,1.5 1.5,1.5s1.5,-0.67 1.5,-1.5V19h1c0.55,0 1,-0.45 1,-1V8H6v10zM3.5,8C2.67,8 2,8.67 2,9.5v7c0,0.83 0.67,1.5 1.5,1.5S5,17.33 5,16.5v-7C5,8.67 4.33,8 3.5,8zM20.5,8C19.67,8 19,8.67 19,9.5v7c0,0.83 0.67,1.5 1.5,1.5s1.5,-0.67 1.5,-1.5v-7C22,8.67 21.33,8 20.5,8zM15.53,2.16l1.3,-1.3c0.2,-0.2 0.2,-0.51 0,-0.71c-0.2,-0.2 -0.51,-0.2 -0.71,0l-1.48,1.48C13.85,1.23 12.95,1 12,1c-0.96,0 -1.86,0.23 -2.66,0.63L7.85,0.15c-0.2,-0.2 -0.51,-0.2 -0.71,0c-0.2,0.2 -0.2,0.51 0,0.71l1.31,1.31C6.97,3.26 6,5.01 6,7h12C18,5.01 17.03,3.26 15.53,2.16zM10,5H9V4h1V5zM15,5h-1V4h1V5z"/>
                 </svg>
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-green-400 mb-1">Android Users</h2>
-                <p className="text-gray-300">One-click native installation</p>
+                <h2 className="text-xl sm:text-2xl font-bold text-green-400 mb-1">Android Users</h2>
+                <p className="text-gray-300 text-sm sm:text-base">One-click native installation</p>
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="bg-green-800/20 rounded-xl p-4 border border-green-400/20">
-                <div className="text-2xl mb-2">⚡</div>
-                <p className="text-green-400 text-sm font-medium">Lightning Fast</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
+              <div className="bg-green-800/20 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-green-400/20">
+                <div className="text-lg sm:text-2xl mb-1 sm:mb-2">⚡</div>
+                <p className="text-green-400 text-xs sm:text-sm font-medium">Lightning Fast</p>
               </div>
-              <div className="bg-green-800/20 rounded-xl p-4 border border-green-400/20">
-                <div className="text-2xl mb-2">📱</div>
-                <p className="text-green-400 text-sm font-medium">Native App Feel</p>
+              <div className="bg-green-800/20 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-green-400/20">
+                <div className="text-lg sm:text-2xl mb-1 sm:mb-2">📱</div>
+                <p className="text-green-400 text-xs sm:text-sm font-medium">Native App Feel</p>
               </div>
-              <div className="bg-green-800/20 rounded-xl p-4 border border-green-400/20">
-                <div className="text-2xl mb-2">🔔</div>
-                <p className="text-green-400 text-sm font-medium">Push Notifications</p>
+              <div className="bg-green-800/20 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-green-400/20">
+                <div className="text-lg sm:text-2xl mb-1 sm:mb-2">🔔</div>
+                <p className="text-green-400 text-xs sm:text-sm font-medium">Push Notifications</p>
               </div>
             </div>
 
             <Button
               onClick={handleAndroidInstall}
               disabled={deviceInfo.platform !== 'android'}
-              className={`w-full py-4 px-8 rounded-xl text-lg font-bold transition-all duration-300 ${
+              className={`w-full py-4 px-4 sm:px-8 rounded-xl text-base sm:text-lg font-bold transition-all duration-300 ${
                 deviceInfo.platform === 'android'
                   ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white shadow-lg hover:shadow-green-400/30 transform hover:scale-105'
                   : 'bg-gray-700 text-gray-400 cursor-not-allowed'
               }`}
             >
               {deviceInfo.platform === 'android' 
-                ? '🚀 Install Now - Android'
-                : '🚫 Not Available (Use your Android device)'}
+                ? <span className="block sm:hidden">🚀 Install Now</span>
+                : null}
+              {deviceInfo.platform === 'android' 
+                ? <span className="hidden sm:block">🚀 Install Now - Android</span>
+                : <span className="text-xs sm:text-base">🚫 Use your Android device</span>}
             </Button>
           </div>
 
@@ -351,15 +354,18 @@ export default function PWAInstallPage() {
             <Button
               onClick={handleDesktopInstall}
               disabled={deviceInfo.platform !== 'desktop'}
-              className={`w-full py-4 px-8 rounded-xl text-lg font-bold transition-all duration-300 ${
+              className={`w-full py-4 px-4 sm:px-8 rounded-xl text-base sm:text-lg font-bold transition-all duration-300 ${
                 deviceInfo.platform === 'desktop'
                   ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white shadow-lg hover:shadow-purple-400/30 transform hover:scale-105'
                   : 'bg-gray-700 text-gray-400 cursor-not-allowed'
               }`}
             >
               {deviceInfo.platform === 'desktop' 
-                ? '🚀 Install Now - Desktop'
-                : '🚫 Not Available (Use your Windows/Mac computer)'}
+                ? <span className="block sm:hidden">🚀 Install Now</span>
+                : null}
+              {deviceInfo.platform === 'desktop' 
+                ? <span className="hidden sm:block">🚀 Install Now - Desktop</span>
+                : <span className="text-xs sm:text-base">🚫 Use your computer</span>}
             </Button>
           </div>
         </div>
