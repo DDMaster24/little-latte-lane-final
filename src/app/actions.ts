@@ -430,7 +430,7 @@ export async function getAllOrdersForAdmin() {
     }
 
     console.log('✅ Admin: Successfully fetched all orders:', data?.length || 0);
-    return { success: true, data: (data || []) as unknown as OrderItem[], error: null };
+    return { success: true, data: (data || []), error: null };
 
   } catch (error) {
     console.error('❌ Admin: Exception fetching all orders:', error);

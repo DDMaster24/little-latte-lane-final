@@ -20,36 +20,9 @@ export async function GET() {
       );
     }
 
-    // Fetch section settings
-    const { data: settings, error: settingsError } = await supabase
-      .from('events_section_settings')
-      .select('*')
-      .limit(1)
-      .single();
-
-    if (settingsError && settingsError.code !== 'PGRST116') {
-      console.error('Error fetching section settings:', settingsError);
-      return NextResponse.json(
-        { success: false, error: settingsError.message },
-        { status: 500 }
-      );
-    }
-
     return NextResponse.json({
       success: true,
-      events: events || [],
-      settings: settings || {
-        section_title: 'Events & Specials',
-        section_subtitle: 'Stay updated with our latest happenings',
-        section_background_color: '#0f0f0f',
-        section_text_color: '#ffffff',
-        title_gradient: 'bg-neon-gradient',
-        max_events_display: 6,
-        layout_style: 'grid',
-        show_icons: true,
-        show_dates: true,
-        show_buttons: true
-      }
+      events: events || []
     });
   } catch (error) {
     console.error('Events API error:', error);
@@ -160,26 +133,6 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({
         success: true,
         event
-      });
-    } else if (type === 'settings') {
-      // Update section settings
-      const { data: settings, error } = await supabase
-        .from('events_section_settings')
-        .upsert(updateData)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error updating section settings:', error);
-        return NextResponse.json(
-          { success: false, error: error.message },
-          { status: 500 }
-        );
-      }
-
-      return NextResponse.json({
-        success: true,
-        settings
       });
     } else {
       return NextResponse.json(

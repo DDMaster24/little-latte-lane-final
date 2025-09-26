@@ -79,7 +79,7 @@ export default function OrderStatusUpdateModal({
         additionalData.completionTime = new Date().toISOString();
       }
 
-      const response = await updateOrderStatus(orderId, selectedStatus, additionalData);
+      const response = await updateOrderStatus(orderId, selectedStatus);
       
       if (response.success) {
         console.log(`✅ Order ${orderId} status updated to ${selectedStatus}`);
@@ -87,8 +87,8 @@ export default function OrderStatusUpdateModal({
         setIsOpen(false);
         setEstimatedMinutes('');
       } else {
-        console.error('❌ Failed to update order status:', response.message);
-        alert('Failed to update order status: ' + response.message);
+        console.error('❌ Failed to update order status:', response.error);
+        alert('Failed to update order status: ' + (response.error || 'Unknown error'));
       }
     } catch (error) {
       console.error('❌ Error updating order status:', error);
