@@ -220,21 +220,26 @@ export default function PWAInstallPage() {
     }, 30000);
   }, [deviceInfo]);
 
-  // Add early event interception - IMMEDIATELY on page load
+  // Add early event interception - iOS-only suppression
   useEffect(() => {
-    // Suppress the native install popup immediately
-    const suppressNativePopup = (e: Event) => {
-      console.log('🚫 SUPPRESSING native install popup - will show custom instructions instead');
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      return false;
+    // Only suppress native popup for iOS devices
+    const suppressiOSNativePopup = (e: Event) => {
+      const info = getDeviceInfo();
+      if (info.isIOS || info.platform === 'ios') {
+        console.log('🚫 SUPPRESSING native install popup for iOS - will show custom instructions instead');
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
+      }
+      // Let Android/Desktop native prompts through
+      console.log('✅ Allowing native install prompt for Android/Desktop');
     };
 
     // Add the event listener immediately with capture=true to catch it early
-    window.addEventListener('beforeinstallprompt', suppressNativePopup, true);
+    window.addEventListener('beforeinstallprompt', suppressiOSNativePopup, true);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', suppressNativePopup, true);
+      window.removeEventListener('beforeinstallprompt', suppressiOSNativePopup, true);
     };
   }, []);
 
@@ -251,18 +256,26 @@ export default function PWAInstallPage() {
     // For ALL devices and browsers, show install option
     setIsInstallable(true);
 
-    // CRITICAL: Intercept and prevent native install popup IMMEDIATELY
+    // CRITICAL: Store but DON'T block native install prompt for Android/Desktop
     const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('📱 INTERCEPTED native PWA install prompt - showing custom instructions instead');
-      e.preventDefault(); // Block the native popup
-      e.stopImmediatePropagation(); // Stop all other handlers
       const beforeInstallEvent = e as BeforeInstallPromptEvent;
-      setDeferredPrompt(beforeInstallEvent);
+      console.log('📱 CAPTURED native PWA install prompt - storing for use');
       
-      // Immediately show our custom instructions instead
-      setTimeout(() => {
-        showInstallInstructions();
-      }, 100);
+      // For iOS: prevent and show custom instructions
+      const info = getDeviceInfo();
+      if (info.isIOS || info.platform === 'ios') {
+        console.log('📱 iOS detected - preventing native prompt, will show custom instructions');
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        setDeferredPrompt(beforeInstallEvent);
+        // Don't show instructions immediately - wait for user to click install
+        return;
+      }
+      
+      // For Android/Desktop: prevent default but store the prompt for manual triggering
+      e.preventDefault();
+      setDeferredPrompt(beforeInstallEvent);
+      console.log('📱 Android/Desktop - stored native prompt for manual installation');
     };
 
     // Listen for app installed event
