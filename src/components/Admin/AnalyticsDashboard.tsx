@@ -56,8 +56,10 @@ export default function AnalyticsDashboard() {
       } else if (dateRange === 'month') {
         startDate.setMonth(now.getMonth() - 1);
       } else {
-        startDate = new Date('2020-01-01'); // All time
+        startDate = new Date('2020-01-01'); // All time - much earlier date
       }
+
+      console.log('Analytics Debug - Date range:', dateRange, 'Start date:', startDate.toISOString());
 
       // Fetch all orders for the date range - more inclusive filtering
       const { data: orders, error: ordersError } = await supabase
@@ -77,10 +79,13 @@ export default function AnalyticsDashboard() {
 
       if (ordersError) throw ordersError;
 
-      // Fetch total users count
-      const { count: totalUsers, error: usersError } = await supabase
+      // Fetch total users count - get actual data to ensure count works
+      const { data: profilesData, count: totalUsers, error: usersError } = await supabase
         .from('profiles')
-        .select('*', { count: 'exact', head: true });
+        .select('id', { count: 'exact' });
+
+      console.log('Analytics Debug - Users count:', totalUsers);
+      console.log('Analytics Debug - Users data length:', profilesData?.length);
 
       if (usersError) throw usersError;
 
@@ -137,6 +142,13 @@ export default function AnalyticsDashboard() {
           revenue: dayRevenue
         });
       }
+
+      console.log('Analytics Debug - Final Results:');
+      console.log('Total Orders:', totalOrders);
+      console.log('Total Revenue:', totalRevenue);
+      console.log('Total Users:', totalUsers || 0);
+      console.log('Popular Items:', popularItems.length);
+      console.log('Daily Stats:', dailyStats.length);
 
       setAnalytics({
         totalOrders,
