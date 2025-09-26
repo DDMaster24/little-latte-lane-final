@@ -429,14 +429,68 @@ export async function getAllOrdersForAdmin() {
       return { success: false, error: error.message, data: [] };
     }
 
-    console.log(`✅ Admin: Fetched ${data?.length || 0} total orders for admin dashboard`);
-    return { success: true, data: data || [] };
+    console.log('✅ Admin: Successfully fetched all orders:', data?.length || 0);
+    return { success: true, data: (data || []) as unknown as OrderItem[], error: null };
+
   } catch (error) {
-    console.error('💥 Admin: Unexpected error fetching orders:', error);
+    console.error('❌ Admin: Exception fetching all orders:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error', 
+      data: [] 
+    };
+  }
+}
+
+export async function getAnalyticsDataForAdmin() {
+  try {
+    const supabase = getSupabaseAdmin();
+    
+    // Get orders with order items and menu items for analytics
+    const { data: orders, error: ordersError } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items (
+          quantity,
+          price,
+          menu_items (name)
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (ordersError) {
+      console.error('❌ Analytics: Error fetching orders:', ordersError);
+      return { success: false, error: ordersError.message, orders: [], userCount: 0 };
+    }
+
+    // Get user count
+    const { count: userCount, error: userError } = await supabase
+      .from('profiles')
+      .select('id', { count: 'exact', head: true });
+
+    if (userError) {
+      console.error('❌ Analytics: Error fetching user count:', userError);
+      return { success: false, error: userError.message, orders: [], userCount: 0 };
+    }
+
+    console.log('✅ Analytics: Successfully fetched orders:', orders?.length || 0);
+    console.log('✅ Analytics: Successfully fetched user count:', userCount || 0);
+    
+    return { 
+      success: true, 
+      orders: (orders || []) as unknown as OrderItem[], 
+      userCount: userCount || 0,
+      error: null 
+    };
+
+  } catch (error) {
+    console.error('❌ Analytics: Exception fetching data:', error);
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error',
-      data: [] 
+      orders: [],
+      userCount: 0
     };
   }
 }

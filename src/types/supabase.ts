@@ -67,39 +67,6 @@ export type Database = {
           },
         ]
       }
-      carousel_panels: {
-        Row: {
-          config: Json
-          created_at: string | null
-          id: string
-          is_active: boolean | null
-          panel_id: string
-          panel_order: number
-          template_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          config?: Json
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          panel_id: string
-          panel_order: number
-          template_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          config?: Json
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          panel_id?: string
-          panel_order?: number
-          template_id?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       contact_submissions: {
         Row: {
           created_at: string | null
@@ -196,54 +163,6 @@ export type Database = {
           theme_settings?: Json | null
           title?: string
           updated_at?: string | null
-        }
-        Relationships: []
-      }
-      events_section_settings: {
-        Row: {
-          created_at: string
-          id: number
-          layout_style: string | null
-          max_events_display: number | null
-          section_background_color: string | null
-          section_subtitle: string | null
-          section_text_color: string | null
-          section_title: string | null
-          show_buttons: boolean | null
-          show_dates: boolean | null
-          show_icons: boolean | null
-          title_gradient: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: number
-          layout_style?: string | null
-          max_events_display?: number | null
-          section_background_color?: string | null
-          section_subtitle?: string | null
-          section_text_color?: string | null
-          section_title?: string | null
-          show_buttons?: boolean | null
-          show_dates?: boolean | null
-          show_icons?: boolean | null
-          title_gradient?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: number
-          layout_style?: string | null
-          max_events_display?: number | null
-          section_background_color?: string | null
-          section_subtitle?: string | null
-          section_text_color?: string | null
-          section_title?: string | null
-          show_buttons?: boolean | null
-          show_dates?: boolean | null
-          show_icons?: boolean | null
-          title_gradient?: string | null
-          updated_at?: string
         }
         Relationships: []
       }
@@ -505,33 +424,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      theme_settings: {
-        Row: {
-          category: string | null
-          created_at: string | null
-          id: number
-          setting_key: string
-          setting_value: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          category?: string | null
-          created_at?: string | null
-          id?: number
-          setting_key: string
-          setting_value?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          category?: string | null
-          created_at?: string | null
-          id?: number
-          setting_key?: string
-          setting_value?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
       }
     }
     Views: {

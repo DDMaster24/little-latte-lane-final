@@ -3,12 +3,27 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { getSupabaseClient } from '@/lib/supabase-client';
+import { getAnalyticsDataForAdmin } from '@/app/actions';
 import { 
   RefreshCw, TrendingUp, ShoppingBag,
   DollarSign, Clock, Target, Calendar, BarChart3
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+interface OrderForAnalytics {
+  id: string;
+  created_at: string | null;
+  total_amount: number | null;
+  payment_status: string | null;
+  status: string | null;
+  order_items?: {
+    quantity: number;
+    price: number | null;
+    menu_items?: {
+      name: string;
+    } | null;
+  }[];
+}
 
 interface AnalyticsData {
   totalOrders: number;
@@ -42,8 +57,6 @@ export default function AnalyticsDashboard() {
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('week'); // week, month, all
 
-  const supabase = getSupabaseClient();
-
   const fetchAnalytics = useCallback(async () => {
     try {
       setLoading(true);
@@ -61,49 +74,45 @@ export default function AnalyticsDashboard() {
 
       console.log('Analytics Debug - Date range:', dateRange, 'Start date:', startDate.toISOString());
 
-      // Fetch all orders for the date range - more inclusive filtering
-      const { data: orders, error: ordersError } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          order_items (
-            quantity,
-            price,
-            menu_items (name)
-          )
-        `)
-        .gte('created_at', startDate.toISOString());
+      // Use server action to get all data with admin permissions
+      const result = await getAnalyticsDataForAdmin();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch analytics data');
+      }
+
+      const { orders, userCount } = result;
 
       console.log('Analytics Debug - Raw orders fetched:', orders?.length || 0);
+      console.log('Analytics Debug - User count:', userCount);
       console.log('Analytics Debug - First few orders:', orders?.slice(0, 3));
 
-      if (ordersError) throw ordersError;
+      // Cast orders to the correct type
+      const ordersData = orders as unknown as OrderForAnalytics[];
 
-      // Fetch total users count - get actual data to ensure count works
-      const { data: profilesData, count: totalUsers, error: usersError } = await supabase
-        .from('profiles')
-        .select('id', { count: 'exact' });
+      // Filter orders by date range
+      const filteredOrders = ordersData?.filter((order: OrderForAnalytics) => {
+        const orderDate = new Date(order.created_at || '');
+        return orderDate >= startDate;
+      }) || [];
 
-      console.log('Analytics Debug - Users count:', totalUsers);
-      console.log('Analytics Debug - Users data length:', profilesData?.length);
-
-      if (usersError) throw usersError;
+      console.log('Analytics Debug - Filtered orders:', filteredOrders.length);
 
       // Filter orders for revenue calculation (only count paid/completed orders for revenue)
-      const paidOrders = orders?.filter(order => 
+      const paidOrders = filteredOrders.filter((order: OrderForAnalytics) => 
         order.payment_status === 'paid' || 
         order.status === 'completed' ||
         (order.total_amount && order.total_amount > 0)
-      ) || [];
+      );
 
       // Calculate total orders and revenue
-      const totalOrders = orders?.length || 0;
-      const totalRevenue = paidOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
+      const totalOrders = filteredOrders.length;
+      const totalRevenue = paidOrders.reduce((sum: number, order: OrderForAnalytics) => sum + (order.total_amount || 0), 0);
 
-      // Calculate popular items - use all orders to show full activity
+      // Calculate popular items - use filtered orders
       const itemCounts: Record<string, { quantity: number; revenue: number }> = {};
-      orders?.forEach(order => {
-        order.order_items?.forEach(item => {
+      filteredOrders.forEach((order: OrderForAnalytics) => {
+        order.order_items?.forEach((item) => {
           const itemName = item.menu_items?.name || 'Unknown Item';
           if (!itemCounts[itemName]) {
             itemCounts[itemName] = { quantity: 0, revenue: 0 };
@@ -129,12 +138,12 @@ export default function AnalyticsDashboard() {
         const dayStart = new Date(date.setHours(0, 0, 0, 0));
         const dayEnd = new Date(date.setHours(23, 59, 59, 999));
         
-        const dayOrders = orders?.filter(order => {
+        const dayOrders = filteredOrders.filter((order: OrderForAnalytics) => {
           const orderDate = new Date(order.created_at || '');
           return orderDate >= dayStart && orderDate <= dayEnd;
-        }) || [];
+        });
         
-        const dayRevenue = dayOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
+        const dayRevenue = dayOrders.reduce((sum: number, order: OrderForAnalytics) => sum + (order.total_amount || 0), 0);
 
         dailyStats.push({
           date: date.toLocaleDateString('en-ZA', { weekday: 'short' }),
@@ -146,14 +155,14 @@ export default function AnalyticsDashboard() {
       console.log('Analytics Debug - Final Results:');
       console.log('Total Orders:', totalOrders);
       console.log('Total Revenue:', totalRevenue);
-      console.log('Total Users:', totalUsers || 0);
+      console.log('Total Users:', userCount);
       console.log('Popular Items:', popularItems.length);
       console.log('Daily Stats:', dailyStats.length);
 
       setAnalytics({
         totalOrders,
         totalRevenue,
-        totalUsers: totalUsers || 0,
+        totalUsers: userCount,
         mostPopularItem,
         popularItems,
         dailyStats
@@ -165,7 +174,7 @@ export default function AnalyticsDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [supabase, dateRange]);
+  }, [dateRange]);
 
   useEffect(() => {
     fetchAnalytics();
