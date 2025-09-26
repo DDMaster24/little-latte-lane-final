@@ -34,20 +34,22 @@ import {
   OrderStatusSkeleton
 } from '@/components/LoadingComponents';
 
+interface OrderItem {
+  menu_item_id?: string | null;
+  quantity?: number;
+  price?: number;
+  menu_items?: { name?: string } | null;
+}
+
 interface Order {
-  id: string;  // UUID in database
-  order_number: string | null;  // User-friendly order number
+  id: string;
+  order_number: string | null;
   status: string | null;
-  total_amount: number | null;  // Database field name
+  total_amount: number | null;
   created_at: string | null;
   special_instructions?: string | null;
   payment_status: string | null;
-  order_items: {
-    menu_item_id: string | null;  // UUID in database
-    quantity: number;
-    price: number;  // Database field name
-    menu_items?: { name: string } | null;
-  }[];
+  order_items: OrderItem[];
 }
 
 // Inline editing state
@@ -145,15 +147,9 @@ export default function AccountPage() {
       }
 
       console.log('✅ Account Page: Orders fetched:', orderData?.length || 0);
-      console.log('📋 Account Page: Order details:', orderData?.map((o: Order) => ({
-        id: o.id,
-        status: o.status,
-        payment_status: o.payment_status,
-        total: o.total_amount,
-        created_at: o.created_at
-      })));
+      console.log('📋 Account Page: Order details:', orderData?.slice(0, 3));
       
-      setOrders(orderData || []);
+      setOrders((orderData as unknown as Order[]) || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Failed to load account data');
@@ -465,7 +461,7 @@ export default function AccountPage() {
                                 × {item.quantity}
                               </span>
                               <span className="text-white">
-                                R{(item.price * item.quantity).toFixed(2)}
+                                R{((item.price || 0) * (item.quantity || 0)).toFixed(2)}
                               </span>
                             </div>
                           ))}
@@ -559,7 +555,7 @@ export default function AccountPage() {
                                 × {item.quantity}
                               </span>
                               <span className="text-white">
-                                R{(item.price * item.quantity).toFixed(2)}
+                                R{((item.price || 0) * (item.quantity || 0)).toFixed(2)}
                               </span>
                             </div>
                           ))}
@@ -947,7 +943,7 @@ export default function AccountPage() {
                               × {item.quantity}
                             </span>
                             <span className="text-white">
-                              R{(item.price * item.quantity).toFixed(2)}
+                              R{((item.price || 0) * (item.quantity || 0)).toFixed(2)}
                             </span>
                           </div>
                         ))}

@@ -59,7 +59,7 @@ export default function AnalyticsDashboard() {
         startDate = new Date('2020-01-01'); // All time
       }
 
-      // Fetch orders with proper status filtering (matching AdminOverview logic)
+      // Fetch all orders for the date range - more inclusive filtering
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
         .select(`
@@ -70,9 +70,10 @@ export default function AnalyticsDashboard() {
             menu_items (name)
           )
         `)
-        .eq('payment_status', 'paid')
-        .in('status', ['confirmed', 'preparing', 'ready', 'completed'])
         .gte('created_at', startDate.toISOString());
+
+      console.log('Analytics Debug - Raw orders fetched:', orders?.length || 0);
+      console.log('Analytics Debug - First few orders:', orders?.slice(0, 3));
 
       if (ordersError) throw ordersError;
 
@@ -83,11 +84,18 @@ export default function AnalyticsDashboard() {
 
       if (usersError) throw usersError;
 
+      // Filter orders for revenue calculation (only count paid/completed orders for revenue)
+      const paidOrders = orders?.filter(order => 
+        order.payment_status === 'paid' || 
+        order.status === 'completed' ||
+        (order.total_amount && order.total_amount > 0)
+      ) || [];
+
       // Calculate total orders and revenue
       const totalOrders = orders?.length || 0;
-      const totalRevenue = orders?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
+      const totalRevenue = paidOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
 
-      // Calculate popular items
+      // Calculate popular items - use all orders to show full activity
       const itemCounts: Record<string, { quantity: number; revenue: number }> = {};
       orders?.forEach(order => {
         order.order_items?.forEach(item => {

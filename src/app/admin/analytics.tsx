@@ -24,15 +24,6 @@ type TopItem = {
   quantity: number;
 };
 
-// Simplified type for the analytics
-type TopSellersQueryItem = {
-  menu_item_id: string | null;
-  quantity: number;
-  menu_items: {
-    name: string;
-  } | null;
-};
-
 // Remove unused type
 // type Order = any & {
 //   order_items: any[];
@@ -114,7 +105,7 @@ export default function Analytics() {
 
       // Aggregate top sellers client-side
       const counts = new Map<string, { name: string; quantity: number }>();
-      orderItemsData?.forEach((item: TopSellersQueryItem) => {
+      (orderItemsData as unknown as { menu_item_id: string | null; quantity: number; menu_items: { name: string } | null }[])?.forEach((item) => {
         // Skip items with null menu_item_id
         if (!item.menu_item_id || !item.menu_items) return;
         

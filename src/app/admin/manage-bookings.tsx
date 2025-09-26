@@ -77,7 +77,7 @@ export default function ManageBookings() {
         return;
       }
 
-      setBookings((bookingsData || []) as Booking[]);
+      setBookings((bookingsData || []) as unknown as Booking[]);
       setIsLoading(false);
     };
 
@@ -107,7 +107,7 @@ export default function ManageBookings() {
               .eq('id', payload.new.id)
               .single()
               .then(({ data }) => {
-                if (data) setBookings((prev) => [data as Booking, ...prev]);
+                if (data) setBookings((prev) => [data as unknown as Booking, ...prev]);
               });
           } else if (payload.eventType === 'UPDATE') {
             setBookings((prev) =>

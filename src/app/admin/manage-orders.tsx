@@ -207,7 +207,7 @@ export default function ManageOrders() {
       // Most popular items
       const itemCounts = new Map();
       orders.forEach(order => {
-        order.order_items?.forEach(item => {
+        (order.order_items as unknown as { quantity: number; menu_items: { name: string; price: number } | null }[])?.forEach(item => {
           const name = item.menu_items?.name || 'Unknown Item';
           const price = item.menu_items?.price || 0;
           const quantity = item.quantity || 0;

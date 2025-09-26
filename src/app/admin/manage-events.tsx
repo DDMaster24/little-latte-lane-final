@@ -92,8 +92,12 @@ export default function ManageEvents() {
 
     try {
       const eventData: EventInsert = {
-        ...formData,
+        title: formData.title,
+        description: formData.description,
+        start_date: formData.start_date,
         end_date: formData.end_date || null,
+        event_type: formData.type,
+        is_active: formData.is_active,
       };
 
       if (editingEvent) {

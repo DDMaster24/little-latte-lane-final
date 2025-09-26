@@ -69,7 +69,7 @@ export default function AdminOverview() {
       const monthAgo = new Date();
       monthAgo.setDate(monthAgo.getDate() - 30);
 
-      // Fetch orders for today
+      // Fetch all orders for today - more inclusive approach
       const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
         .select(`
@@ -83,9 +83,11 @@ export default function AdminOverview() {
         .gte('created_at', startOfDay.toISOString())
         .lte('created_at', endOfDay.toISOString());
 
+      console.log('Overview Debug - Today orders fetched:', ordersData?.length || 0);
+
       if (ordersError) throw ordersError;
 
-      // Fetch weekly orders for top selling items
+      // Fetch all weekly/monthly orders - more inclusive
       const { data: weeklyOrdersData, error: weeklyOrdersError } = await supabase
         .from('orders')
         .select(`
@@ -96,8 +98,7 @@ export default function AdminOverview() {
             menu_items (name)
           )
         `)
-        .gte('created_at', weekAgo.toISOString())
-        .eq('status', 'completed');
+        .gte('created_at', weekAgo.toISOString());
 
       if (weeklyOrdersError) throw weeklyOrdersError;
 
@@ -112,17 +113,21 @@ export default function AdminOverview() {
             menu_items (name)
           )
         `)
-        .gte('created_at', monthAgo.toISOString())
-        .eq('status', 'completed');
+        .gte('created_at', monthAgo.toISOString());
+
+      console.log('Overview Debug - Weekly orders:', weeklyOrdersData?.length || 0);
+      console.log('Overview Debug - Monthly orders:', monthlyOrdersData?.length || 0);
 
       if (monthlyOrdersError) throw monthlyOrdersError;
 
-      // Fetch all active orders (must match staff panel logic)
+      // Fetch all active orders - more inclusive status filtering
       const { data: activeOrdersData, error: activeOrdersError } = await supabase
         .from('orders')
         .select('*')
-        .in('status', ['confirmed', 'preparing', 'ready'])
-        .eq('payment_status', 'paid');
+        .not('status', 'in', '(completed,cancelled)')
+        .gte('created_at', weekAgo.toISOString()); // Only show recent active orders
+
+      console.log('Overview Debug - Active orders:', activeOrdersData?.length || 0);
 
       if (activeOrdersError) throw activeOrdersError;
 
@@ -140,9 +145,12 @@ export default function AdminOverview() {
 
       if (customersError) throw customersError;
 
-      // Calculate today's stats
+      // Calculate today's stats - more inclusive revenue calculation
       const todayRevenue = ordersData
-        ?.filter(order => order.status === 'completed' && order.payment_status === 'paid')
+        ?.filter(order => 
+          (order.payment_status === 'paid' || order.status === 'completed') && 
+          order.total_amount && order.total_amount > 0
+        )
         ?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
 
       const todayOrders = ordersData?.length || 0;

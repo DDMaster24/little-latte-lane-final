@@ -323,7 +323,7 @@ export async function getOrderForRetry(
       } | null;
     }
     
-    const cartItems = order.order_items.map((item: OrderItemWithMenu) => ({
+    const cartItems = (order.order_items as unknown as OrderItemWithMenu[])?.map((item: OrderItemWithMenu) => ({
       id: item.menu_items?.id || item.menu_item_id || 'unknown',
       name: item.menu_items?.name || 'Unknown Item',
       price: item.price,
@@ -388,6 +388,51 @@ export async function getStaffOrders() {
     return { success: true, data: data || [] };
   } catch (error) {
     console.error('💥 Staff: Unexpected error fetching orders:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      data: [] 
+    };
+  }
+}
+
+export async function getAllOrdersForAdmin() {
+  try {
+    const supabase = getSupabaseAdmin();
+    
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items (
+          id,
+          menu_item_id,
+          quantity,
+          price,
+          special_instructions,
+          menu_items (
+            name,
+            category_id
+          )
+        ),
+        profiles (
+          full_name,
+          email,
+          phone
+        )
+      `)
+      .order('created_at', { ascending: false })
+      .limit(200); // Limit to prevent overwhelming the UI
+
+    if (error) {
+      console.error('❌ Admin: Error fetching all orders:', error);
+      return { success: false, error: error.message, data: [] };
+    }
+
+    console.log(`✅ Admin: Fetched ${data?.length || 0} total orders for admin dashboard`);
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error('💥 Admin: Unexpected error fetching orders:', error);
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -686,7 +731,7 @@ export async function getAdminPopularItems() {
     // Aggregate popular items
     const itemCounts: Record<string, number> = {};
     data?.forEach(item => {
-      const name = item.menu_items?.name || 'Unknown Item';
+      const name = (item as unknown as { menu_items?: { name?: string } }).menu_items?.name || 'Unknown Item';
       itemCounts[name] = (itemCounts[name] || 0) + (item.quantity || 0);
     });
 
@@ -927,7 +972,7 @@ export async function getAdminAnalytics(period: 'day' | 'week' | 'month') {
     // Calculate most popular items
     const itemCounts: Record<string, { quantity: number; revenue: number }> = {};
     orders.forEach(order => {
-      order.order_items?.forEach((item: OrderItem) => {
+      (order.order_items as unknown as OrderItem[])?.forEach((item: OrderItem) => {
         const name = item.menu_items?.name || 'Unknown Item';
         if (!itemCounts[name]) {
           itemCounts[name] = { quantity: 0, revenue: 0 };

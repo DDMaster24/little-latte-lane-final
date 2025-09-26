@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getStaffOrders, updateOrderStatus } from '@/app/actions';
+import { updateOrderStatus, getAllOrdersForAdmin } from '@/app/actions';
 import { 
   RefreshCw, Search, Filter, Clock, ChefHat, Package, 
   CheckCircle, AlertCircle, Eye, Phone, Mail, MapPin, Users
@@ -57,23 +57,6 @@ export default function OrderManagement() {
     completedOrders: 0,
     totalOrdersForTimeFrame: 0
   });
-
-  const fetchOrders = useCallback(async () => {
-    try {
-      const result = await getStaffOrders();
-      if (result.success) {
-        setOrders(result.data);
-        calculateStats(result.data);
-      } else {
-        toast.error('Failed to fetch orders');
-      }
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-      toast.error('Error loading orders');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
   const calculateStats = useCallback((orderData: Order[], currentTimeFrame = timeFrame) => {
     const today = new Date();
@@ -151,6 +134,23 @@ export default function OrderManagement() {
       totalOrdersForTimeFrame: timeFrameOrders.length
     });
   }, [timeFrame]);
+
+  const fetchOrders = useCallback(async () => {
+    try {
+      const result = await getAllOrdersForAdmin();
+      if (result.success) {
+        setOrders(result.data);
+        calculateStats(result.data);
+      } else {
+        toast.error('Failed to fetch orders');
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      toast.error('Error loading orders');
+    } finally {
+      setLoading(false);
+    }
+  }, [calculateStats]);
 
   useEffect(() => {
     fetchOrders();
