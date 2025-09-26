@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { getSupabaseAdmin } from '@/lib/supabase-server';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -149,6 +150,49 @@ ${data.message}
 Please respond within 24 hours for excellent customer service!
 Reply to: ${data.email}
     `;
+
+    // Save to database
+    const supabase = getSupabaseAdmin();
+    
+    // Parse the preferred date and time if provided
+    let preferredDate = null;
+    let preferredTime = null;
+    
+    if (data.preferredDate) {
+      const dateObj = new Date(data.preferredDate);
+      if (!isNaN(dateObj.getTime())) {
+        preferredDate = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD format
+        // If time is included in the date string, extract it
+        const timeMatch = data.preferredDate.match(/T(\d{2}:\d{2})/);
+        if (timeMatch) {
+          preferredTime = timeMatch[1];
+        }
+      }
+    }
+
+    try {
+      const { error: dbError } = await supabase
+        .from('contact_submissions')
+        .insert({
+          name: data.name,
+          email: data.email,
+          phone: data.phone || null,
+          preferred_date: preferredDate,
+          preferred_time: preferredTime,
+          party_size: data.partySize || null,
+          event_type: data.eventType || null,
+          message: data.message,
+          status: 'pending'
+        });
+
+      if (dbError) {
+        console.error('Database error saving contact submission:', dbError);
+        // Continue with email sending even if database save fails
+      }
+    } catch (dbErr) {
+      console.error('Failed to save contact submission to database:', dbErr);
+      // Continue with email sending even if database save fails
+    }
 
     // Send email using Resend
     if (process.env.RESEND_API_KEY) {
