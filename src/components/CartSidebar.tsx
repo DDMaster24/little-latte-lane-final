@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { X, ShoppingCart, Plus, Minus, Trash2 } from 'lucide-react';
+import { X, ShoppingCart, Plus, Minus, Trash2, Edit2, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { createOrderServerAction } from '@/app/actions';
 import YocoPayment from '@/components/YocoPayment';
@@ -28,7 +28,8 @@ import {
   displaySouthAfricanPhone,
 } from '@/lib/phoneUtils';
 import AddressInput, { EnhancedAddress } from '@/components/AddressInput';
-import { parseAddressString, serializeAddress, validateDeliveryEligibility, formatAddressForDisplay } from '@/lib/addressUtils';
+import { parseAddressString, serializeAddress, formatAddressForDisplay } from '@/lib/addressUtils';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface CartSidebarProps {
   isOpen: boolean;
@@ -59,6 +60,12 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const [address, setAddress] = useState<EnhancedAddress>(parseAddressString(null));
   const [phone, setPhone] = useState('');
   const [specialInstructions, setSpecialInstructions] = useState('');
+  
+  // New state for streamlined checkout
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [isRobertsEstateResident, setIsRobertsEstateResident] = useState(false);
+  const [confirmAddressCorrect, setConfirmAddressCorrect] = useState(false);
+  
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderData, setOrderData] = useState<{
     id: string;
@@ -93,9 +100,12 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
 
       // Auto-populate address if available
       if (profile.address && profile.address.trim()) {
-        setAddress(parseAddressString(profile.address));
+        const parsedAddress = parseAddressString(profile.address);
+        setAddress(parsedAddress);
+        setIsRobertsEstateResident(parsedAddress.isRobertsEstateResident);
         fieldsPopulated.push('delivery address');
         console.log('🏠 Auto-populated address:', profile.address);
+        console.log('🏘️ Roberts Estate status:', parsedAddress.isRobertsEstateResident);
       }
 
       // Auto-populate full name if available
@@ -120,6 +130,9 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
       setAddress(parseAddressString(null));
       setPhone('');
       setDeliveryType('delivery');
+      setIsRobertsEstateResident(false);
+      setConfirmAddressCorrect(false);
+      setIsEditingAddress(false);
       setHasLoadedProfileData(false);
     }
   }, [profile]);
@@ -141,18 +154,20 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
       return;
     }
 
-    if (deliveryType === 'delivery' && !address.fullAddress.trim()) {
-      toast.error('Please enter a delivery address');
-      return;
-    }
-
-    // Add Roberts Estate validation
+    // Simplified validation using checkboxes
     if (deliveryType === 'delivery') {
-      const deliveryEligibility = validateDeliveryEligibility(address);
-      if (!deliveryEligibility.eligible) {
-        toast.error(deliveryEligibility.reason || 'Delivery not available for this address', {
-          duration: 6000,
-        });
+      if (!profile?.address && !address.fullAddress.trim()) {
+        toast.error('Please set up your delivery address');
+        return;
+      }
+
+      if (!isRobertsEstateResident) {
+        toast.error('Please confirm you are a Roberts Estate resident');
+        return;
+      }
+
+      if (!confirmAddressCorrect) {
+        toast.error('Please confirm your address is correct');
         return;
       }
     }
@@ -662,25 +677,117 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                         </div>
 
                         {deliveryType === 'delivery' && (
-                          <div>
-                            <Label
-                              htmlFor="delivery-address"
-                              className="text-neonCyan flex items-center gap-1"
-                            >
+                          <div className="space-y-4">
+                            <Label className="text-neonCyan">
                               Delivery Address *
-                              {profile?.address && (
-                                <span className="text-xs text-neonCyan/60">
-                                  (from profile)
-                                </span>
-                              )}
                             </Label>
-                            <AddressInput
-                              address={address}
-                              onChange={setAddress}
-                              required={true}
-                              showRobertsEstateVerification={true}
-                              className="mt-2"
-                            />
+
+                            {!isEditingAddress ? (
+                              // Simplified Address Preview
+                              <div className="space-y-4">
+                                {/* Address Preview Card */}
+                                <div className="bg-darkBg/80 backdrop-blur-md border border-neonPink/50 rounded-lg p-4">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex items-start gap-3 flex-1">
+                                      <CheckCircle2 className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
+                                      <div className="flex-1">
+                                        <p className="text-sm text-gray-400 mb-1">Address Preview</p>
+                                        <p className="text-white font-medium leading-relaxed">
+                                          {profile?.address 
+                                            ? formatAddressForDisplay(parseAddressString(profile.address))
+                                            : address.fullAddress || 'No address set'
+                                          }
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => setIsEditingAddress(true)}
+                                      className="border-neonCyan/30 text-neonCyan hover:bg-neonCyan/10 hover:border-neonCyan ml-3"
+                                    >
+                                      <Edit2 className="h-4 w-4 mr-1" />
+                                      Edit
+                                    </Button>
+                                  </div>
+                                </div>
+
+                                {/* Confirmation Checkboxes */}
+                                <div className="space-y-3">
+                                  <div className="flex items-center space-x-3">
+                                    <Checkbox
+                                      id="roberts-estate-resident"
+                                      checked={isRobertsEstateResident}
+                                      onCheckedChange={(checked) => setIsRobertsEstateResident(checked === true)}
+                                      className="border-neonCyan data-[state=checked]:bg-neonCyan data-[state=checked]:border-neonCyan"
+                                    />
+                                    <Label 
+                                      htmlFor="roberts-estate-resident" 
+                                      className="text-white text-sm font-medium cursor-pointer"
+                                    >
+                                      I confirm I am a Roberts Estate resident
+                                    </Label>
+                                  </div>
+
+                                  <div className="flex items-center space-x-3">
+                                    <Checkbox
+                                      id="address-correct"
+                                      checked={confirmAddressCorrect}
+                                      onCheckedChange={(checked) => setConfirmAddressCorrect(checked === true)}
+                                      className="border-neonCyan data-[state=checked]:bg-neonCyan data-[state=checked]:border-neonCyan"
+                                    />
+                                    <Label 
+                                      htmlFor="address-correct" 
+                                      className="text-white text-sm font-medium cursor-pointer"
+                                    >
+                                      I confirm my address is correct
+                                    </Label>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              // Expanded Address Edit Form
+                              <div className="space-y-4">
+                                <AddressInput
+                                  address={address}
+                                  onChange={(newAddress) => {
+                                    setAddress(newAddress);
+                                    setIsRobertsEstateResident(newAddress.isRobertsEstateResident);
+                                  }}
+                                  required={true}
+                                  showRobertsEstateVerification={true}
+                                  className="mt-2"
+                                />
+                                <div className="flex gap-2 justify-end">
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    onClick={() => setIsEditingAddress(false)}
+                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                  >
+                                    Save & Close
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setIsEditingAddress(false);
+                                      // Reset to profile address if available
+                                      if (profile?.address) {
+                                        const profileAddress = parseAddressString(profile.address);
+                                        setAddress(profileAddress);
+                                        setIsRobertsEstateResident(profileAddress.isRobertsEstateResident);
+                                      }
+                                    }}
+                                    className="border-gray-500 text-gray-400 hover:bg-gray-600"
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
 
