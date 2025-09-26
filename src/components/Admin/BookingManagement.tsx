@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getSupabaseClient } from '@/lib/supabase-client';
+import { getBookingInquiries } from '@/app/admin/actions';
 import { 
   Mail, Calendar, Users, Phone,
   RefreshCw, Clock, MessageSquare
@@ -35,21 +36,20 @@ export default function BookingManagement() {
     try {
       setLoading(true);
       
-      const { data: submissions, error } = await supabase
-        .from('contact_submissions')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const result = await getBookingInquiries();
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to fetch inquiries');
+      }
 
-      if (error) throw error;
-
-      setInquiries(submissions || []);
+      setInquiries(result.data || []);
     } catch (error) {
       console.error('Error fetching inquiries:', error);
       toast.error('Failed to load inquiries');
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, []);
 
   const updateStatus = async (id: string, newStatus: string) => {
     try {
