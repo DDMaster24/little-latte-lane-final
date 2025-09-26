@@ -39,9 +39,7 @@ export async function POST(request: NextRequest) {
     const eventTypeMap: { [key: string]: string } = {
       'general': 'General Table Booking',
       'birthday': 'Birthday Party',
-      'corporate': 'Corporate Event', 
-      'wedding': 'Wedding Reception',
-      'private': 'Private Dining',
+      'corporate': 'Corporate Event',
       'other': 'Other Event'
     };
 

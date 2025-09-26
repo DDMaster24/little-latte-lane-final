@@ -98,7 +98,7 @@ export default function BookingsContactPage() {
         {/* Hero Section */}
         <div className="py-8 sm:py-12">
           <div className="max-w-4xl mx-auto px-6 text-center">
-            <h1 className="text-3xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-neonCyan via-neonPink to-neonBlue bg-clip-text text-transparent">
+            <h1 className="text-3xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-neonCyan to-neonPink bg-clip-text text-transparent">
               Book Your Table or Event
             </h1>
             <p className="text-lg sm:text-xl text-gray-200 mb-8">
@@ -182,7 +182,7 @@ export default function BookingsContactPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
                   <label className="block font-semibold mb-2 text-gray-200">
-                    Party Size
+                    Amount of People
                   </label>
                   <Input
                     type="number"
@@ -211,8 +211,6 @@ export default function BookingsContactPage() {
                     <option value="general">General Table Booking</option>
                     <option value="birthday">Birthday Party</option>
                     <option value="corporate">Corporate Event</option>
-                    <option value="wedding">Wedding Reception</option>
-                    <option value="private">Private Dining</option>
                     <option value="other">Other Event</option>
                   </select>
                 </div>
@@ -260,7 +258,7 @@ export default function BookingsContactPage() {
             <div className="mt-8 pt-8 border-t border-gray-600">
               <div className="text-center">
                 <h3 className="text-lg font-semibold text-white mb-4">
-                  Prefer to call us directly?
+                  Prefer to contact us directly?
                 </h3>
                 <div className="flex flex-col sm:flex-row justify-center items-center gap-4 text-gray-300">
                   <div className="flex items-center gap-2">
