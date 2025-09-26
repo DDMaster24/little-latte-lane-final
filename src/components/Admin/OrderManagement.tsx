@@ -49,7 +49,9 @@ export default function OrderManagement() {
   const [updating, setUpdating] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [timeFrame, setTimeFrame] = useState('daily'); // daily, weekly, monthly, 3months, 6months, 1year, all
+  const [timeFrame, setTimeFrame] = useState('daily'); // daily, weekly, monthly, 3months, 6months, 1year, custom
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [selectedYear, setSelectedYear] = useState<string>('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [stats, setStats] = useState<OrderStats>({
     dailyOrders: 0,
@@ -121,6 +123,19 @@ export default function OrderManagement() {
           new Date(order.created_at || '') >= yearAgo
         );
         break;
+      case 'custom':
+        // Custom month/year filtering for stats
+        if (selectedMonth && selectedYear) {
+          const monthNum = parseInt(selectedMonth);
+          const yearNum = parseInt(selectedYear);
+          timeFrameOrders = orderData.filter(order => {
+            const orderDate = new Date(order.created_at || '');
+            return orderDate.getMonth() === monthNum && orderDate.getFullYear() === yearNum;
+          });
+        } else {
+          timeFrameOrders = orderData;
+        }
+        break;
       case 'all':
       default:
         timeFrameOrders = orderData;
@@ -133,7 +148,7 @@ export default function OrderManagement() {
       completedOrders,
       totalOrdersForTimeFrame: timeFrameOrders.length
     });
-  }, [timeFrame]);
+  }, [timeFrame, selectedMonth, selectedYear]);
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -168,6 +183,71 @@ export default function OrderManagement() {
   useEffect(() => {
     let filtered = orders;
 
+    // Filter by timeframe first
+    const now = new Date();
+    switch (timeFrame) {
+      case 'daily':
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        filtered = filtered.filter(order => {
+          const orderDate = new Date(order.created_at || '');
+          return orderDate >= today && orderDate < tomorrow;
+        });
+        break;
+      case 'weekly':
+        const weekAgo = new Date();
+        weekAgo.setDate(now.getDate() - 7);
+        filtered = filtered.filter(order => 
+          new Date(order.created_at || '') >= weekAgo
+        );
+        break;
+      case 'monthly':
+        const monthAgo = new Date();
+        monthAgo.setMonth(now.getMonth() - 1);
+        filtered = filtered.filter(order => 
+          new Date(order.created_at || '') >= monthAgo
+        );
+        break;
+      case '3months':
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(now.getMonth() - 3);
+        filtered = filtered.filter(order => 
+          new Date(order.created_at || '') >= threeMonthsAgo
+        );
+        break;
+      case '6months':
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(now.getMonth() - 6);
+        filtered = filtered.filter(order => 
+          new Date(order.created_at || '') >= sixMonthsAgo
+        );
+        break;
+      case '1year':
+        const yearAgo = new Date();
+        yearAgo.setFullYear(now.getFullYear() - 1);
+        filtered = filtered.filter(order => 
+          new Date(order.created_at || '') >= yearAgo
+        );
+        break;
+      case 'custom':
+        // Custom month/year filtering
+        if (selectedMonth && selectedYear) {
+          const monthNum = parseInt(selectedMonth);
+          const yearNum = parseInt(selectedYear);
+          filtered = filtered.filter(order => {
+            const orderDate = new Date(order.created_at || '');
+            return orderDate.getMonth() === monthNum && orderDate.getFullYear() === yearNum;
+          });
+        }
+        break;
+      case 'all':
+      default:
+        // No timeframe filtering - show all orders
+        break;
+    }
+
     // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(order => 
@@ -190,7 +270,7 @@ export default function OrderManagement() {
     });
 
     setFilteredOrders(filtered);
-  }, [orders, searchTerm, statusFilter]);
+  }, [orders, searchTerm, statusFilter, timeFrame, selectedMonth, selectedYear]);
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     setUpdating(orderId);
@@ -266,7 +346,7 @@ export default function OrderManagement() {
           <h2 className="text-2xl font-bold text-white mb-2">Order Management</h2>
           <p className="text-gray-400">Manage and track all customer orders</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <div className="flex bg-gray-800/50 rounded-lg p-1">
             {[
               { value: 'daily', label: 'Daily' },
@@ -279,7 +359,13 @@ export default function OrderManagement() {
             ].map((option) => (
               <Button
                 key={option.value}
-                onClick={() => setTimeFrame(option.value)}
+                onClick={() => {
+                  setTimeFrame(option.value);
+                  if (option.value !== 'custom') {
+                    setSelectedMonth('');
+                    setSelectedYear('');
+                  }
+                }}
                 variant={timeFrame === option.value ? 'default' : 'ghost'}
                 size="sm"
                 className={`px-3 py-1 text-xs ${timeFrame === option.value ? 'bg-neonCyan text-black' : 'text-gray-300 hover:bg-gray-700'}`}
@@ -288,6 +374,62 @@ export default function OrderManagement() {
               </Button>
             ))}
           </div>
+          
+          {/* Custom Month/Year Selector */}
+          <div className="flex gap-2">
+            <Select value={selectedMonth} onValueChange={(value) => {
+              setSelectedMonth(value);
+              if (value && selectedYear) {
+                setTimeFrame('custom');
+              }
+            }}>
+              <SelectTrigger className="w-32 bg-gray-800/50 border-gray-700">
+                <SelectValue placeholder="Month" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-800 border-gray-700">
+                {[
+                  { value: '0', label: 'January' },
+                  { value: '1', label: 'February' },
+                  { value: '2', label: 'March' },
+                  { value: '3', label: 'April' },
+                  { value: '4', label: 'May' },
+                  { value: '5', label: 'June' },
+                  { value: '6', label: 'July' },
+                  { value: '7', label: 'August' },
+                  { value: '8', label: 'September' },
+                  { value: '9', label: 'October' },
+                  { value: '10', label: 'November' },
+                  { value: '11', label: 'December' }
+                ].map((month) => (
+                  <SelectItem key={month.value} value={month.value} className="text-white hover:bg-gray-700">
+                    {month.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={selectedYear} onValueChange={(value) => {
+              setSelectedYear(value);
+              if (value && selectedMonth) {
+                setTimeFrame('custom');
+              }
+            }}>
+              <SelectTrigger className="w-24 bg-gray-800/50 border-gray-700">
+                <SelectValue placeholder="Year" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-800 border-gray-700">
+                {Array.from({ length: 5 }, (_, i) => {
+                  const year = new Date().getFullYear() - i;
+                  return (
+                    <SelectItem key={year} value={year.toString()} className="text-white hover:bg-gray-700">
+                      {year}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+          
           <Button onClick={fetchOrders} disabled={loading} className="neon-button">
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh

@@ -196,7 +196,7 @@ export default function BookingManagement() {
 
                       {inquiry.message && (
                         <div className="bg-gray-800/50 rounded-lg p-3 mb-4">
-                          <p className="text-sm text-gray-300">
+                          <p className="text-sm text-gray-300 break-words overflow-wrap-anywhere max-w-full">
                             <strong className="text-white">Message:</strong> {inquiry.message}
                           </p>
                         </div>
