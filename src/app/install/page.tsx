@@ -9,6 +9,16 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 
+// BeforeInstallPrompt interface for native install
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed';
+    platform: string;
+  }>;
+  prompt(): Promise<void>;
+}
+
 // Detect device and browser with high accuracy
 const getDeviceInfo = () => {
   if (typeof window === 'undefined') return { platform: 'unknown', browser: 'unknown', isIOS: false };
@@ -45,26 +55,104 @@ const checkIfInstalled = () => {
 export default function PWAInstallPage() {
   const [isInstalled, setIsInstalled] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState({ platform: 'unknown', browser: 'unknown', isIOS: false });
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [canInstall, setCanInstall] = useState(false);
 
   useEffect(() => {
-    // Set device info only - NO PWA event handling
+    // Set device info
     const info = getDeviceInfo();
     setDeviceInfo(info);
     
     // Check if already installed
     setIsInstalled(checkIfInstalled());
+
+    // Add PWA install prompt event listener - ONLY for this page
+    const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('📱 PWA install prompt available on install page');
+      e.preventDefault(); // Prevent the default browser install prompt
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      setCanInstall(true);
+    };
+
+    // Listen for install success
+    const handleAppInstalled = () => {
+      console.log('✅ PWA installed successfully from install page');
+      setIsInstalled(true);
+      setCanInstall(false);
+      setDeferredPrompt(null);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
   }, []);
 
-  // Android install handler - NO native prompts, just show message
-  const handleAndroidInstall = () => {
-    console.log('📱 Android install button clicked - showing instructions');
-    alert('Please use Chrome browser on your Android device and look for the install icon in the address bar, or check your browser menu for "Install app" option.');
+  // Android install handler - Use native install if available
+  const handleAndroidInstall = async () => {
+    console.log('📱 Android install button clicked');
+    
+    if (deferredPrompt && canInstall) {
+      try {
+        // Show the native install prompt
+        await deferredPrompt.prompt();
+        
+        // Wait for the user's response
+        const choiceResult = await deferredPrompt.userChoice;
+        
+        if (choiceResult.outcome === 'accepted') {
+          console.log('✅ User accepted PWA install');
+        } else {
+          console.log('❌ User dismissed PWA install');
+        }
+        
+        // Clear the prompt
+        setDeferredPrompt(null);
+        setCanInstall(false);
+      } catch (error) {
+        console.error('❌ PWA install failed:', error);
+        // Fallback to manual instructions
+        alert('Please look for the install icon in your browser address bar, or check your browser menu for "Install app" option.');
+      }
+    } else {
+      // Fallback for browsers that don't support native install
+      alert('Please use Chrome browser on your Android device and look for the install icon in the address bar, or check your browser menu for "Install app" option.');
+    }
   };
 
-  // Desktop install handler - NO native prompts, just show message  
-  const handleDesktopInstall = () => {
-    console.log('💻 Desktop install button clicked - showing instructions');
-    alert('Please look for the install icon in your browser address bar (Chrome/Edge), or check your browser menu for "Install Little Latte Lane" option.');
+  // Desktop install handler - Use native install if available
+  const handleDesktopInstall = async () => {
+    console.log('💻 Desktop install button clicked');
+    
+    if (deferredPrompt && canInstall) {
+      try {
+        // Show the native install prompt
+        await deferredPrompt.prompt();
+        
+        // Wait for the user's response
+        const choiceResult = await deferredPrompt.userChoice;
+        
+        if (choiceResult.outcome === 'accepted') {
+          console.log('✅ User accepted PWA install');
+        } else {
+          console.log('❌ User dismissed PWA install');
+        }
+        
+        // Clear the prompt
+        setDeferredPrompt(null);
+        setCanInstall(false);
+      } catch (error) {
+        console.error('❌ PWA install failed:', error);
+        // Fallback to manual instructions
+        alert('Please look for the install icon in your browser address bar (Chrome/Edge), or check your browser menu for "Install Little Latte Lane" option.');
+      }
+    } else {
+      // Fallback for browsers that don't support native install
+      alert('Please look for the install icon in your browser address bar (Chrome/Edge), or check your browser menu for "Install Little Latte Lane" option.');
+    }
   };
 
   // iOS instruction handler - just a simple message
