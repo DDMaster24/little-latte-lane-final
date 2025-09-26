@@ -27,6 +27,8 @@ import {
   isValidSouthAfricanPhone,
   displaySouthAfricanPhone,
 } from '@/lib/phoneUtils';
+import AddressInput, { EnhancedAddress } from '@/components/AddressInput';
+import { parseAddressString, serializeAddress, validateDeliveryEligibility, formatAddressForDisplay } from '@/lib/addressUtils';
 
 interface CartSidebarProps {
   isOpen: boolean;
@@ -54,7 +56,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const [deliveryType, setDeliveryType] = useState<'delivery' | 'pickup'>(
     'delivery'
   );
-  const [address, setAddress] = useState('');
+  const [address, setAddress] = useState<EnhancedAddress>(parseAddressString(null));
   const [phone, setPhone] = useState('');
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -91,7 +93,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
 
       // Auto-populate address if available
       if (profile.address && profile.address.trim()) {
-        setAddress(profile.address);
+        setAddress(parseAddressString(profile.address));
         fieldsPopulated.push('delivery address');
         console.log('🏠 Auto-populated address:', profile.address);
       }
@@ -115,7 +117,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   // Reset form when user changes (e.g., logout/login)
   useEffect(() => {
     if (!profile) {
-      setAddress('');
+      setAddress(parseAddressString(null));
       setPhone('');
       setDeliveryType('delivery');
       setHasLoadedProfileData(false);
@@ -139,9 +141,20 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
       return;
     }
 
-    if (deliveryType === 'delivery' && !address.trim()) {
+    if (deliveryType === 'delivery' && !address.fullAddress.trim()) {
       toast.error('Please enter a delivery address');
       return;
+    }
+
+    // Add Roberts Estate validation
+    if (deliveryType === 'delivery') {
+      const deliveryEligibility = validateDeliveryEligibility(address);
+      if (!deliveryEligibility.eligible) {
+        toast.error(deliveryEligibility.reason || 'Delivery not available for this address', {
+          duration: 6000,
+        });
+        return;
+      }
     }
 
     if (!phone.trim()) {
@@ -204,7 +217,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         items: checkoutItems,
         total,
         deliveryType,
-        deliveryAddress: deliveryType === 'delivery' ? address : undefined,
+        deliveryAddress: deliveryType === 'delivery' ? serializeAddress(address) : undefined,
         specialInstructions: specialInstructions.trim() || undefined,
       });
 
@@ -499,10 +512,10 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                           <span className="text-gray-300">Type:</span>
                           <span className="text-white">{deliveryType === 'delivery' ? '🚚 Delivery' : '🏪 Pickup'}</span>
                         </div>
-                        {deliveryType === 'delivery' && address && (
+                        {deliveryType === 'delivery' && address.fullAddress && (
                           <div className="flex justify-between">
                             <span className="text-gray-300">Address:</span>
-                            <span className="text-white text-right flex-1 ml-2">{address}</span>
+                            <span className="text-white text-right flex-1 ml-2">{formatAddressForDisplay(address)}</span>
                           </div>
                         )}
                         <div className="flex justify-between">
@@ -548,7 +561,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                         phone: formatSouthAfricanPhone(phone) || phone,
                         deliveryType,
                         deliveryAddress:
-                          deliveryType === 'delivery' ? address : undefined,
+                          deliveryType === 'delivery' ? serializeAddress(address) : undefined,
                       }}
                       onPaymentInitiated={handlePaymentInitiated}
                     />
@@ -661,24 +674,12 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                                 </span>
                               )}
                             </Label>
-                            <Input
-                              id="delivery-address"
-                              name="delivery_location"
-                              value={address}
-                              onChange={(e) => setAddress(e.target.value)}
-                              className="bg-darkBg/80 backdrop-blur-md border-neonPink/50 text-white placeholder:text-gray-400 focus:border-neonCyan focus:ring-neonCyan/20"
-                              placeholder={
-                                profile?.address
-                                  ? 'Your saved delivery address'
-                                  : 'Enter your delivery address'
-                              }
-                              autoComplete="off"
-                              autoCorrect="off"
-                              autoCapitalize="off"
-                              spellCheck="false"
-                              data-form-type="other"
-                              data-lpignore="true"
-                              required
+                            <AddressInput
+                              address={address}
+                              onChange={setAddress}
+                              required={true}
+                              showRobertsEstateVerification={true}
+                              className="mt-2"
                             />
                           </div>
                         )}

@@ -53,6 +53,7 @@ import {
 
 // Import server action
 import { updateOrderStatus, getAdminOrders } from '../actions';
+import { parseAddressString, formatAddressForDisplay } from '@/lib/addressUtils';
 
 type Order = Database['public']['Tables']['orders']['Row'] & {
   profiles?: Database['public']['Tables']['profiles']['Row'] | null;
@@ -717,6 +718,7 @@ export default function ManageOrders() {
                     <div><span className="text-gray-400">Name:</span> {selectedOrder.profiles?.full_name || 'N/A'}</div>
                     <div><span className="text-gray-400">Phone:</span> {selectedOrder.profiles?.phone || 'N/A'}</div>
                     <div><span className="text-gray-400">Email:</span> {selectedOrder.profiles?.email || 'N/A'}</div>
+                    <div><span className="text-gray-400">Address:</span> {selectedOrder.profiles?.address ? formatAddressForDisplay(parseAddressString(selectedOrder.profiles.address)) : 'N/A'}</div>
                   </div>
                 </div>
                 <div>

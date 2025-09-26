@@ -16,6 +16,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import AddressInput, { EnhancedAddress } from '@/components/AddressInput';
+import { parseAddressString, serializeAddress, formatAddressForDisplay } from '@/lib/addressUtils';
 import { useCartStore } from '@/stores/cartStore';
 import toast from 'react-hot-toast';
 import {
@@ -29,6 +31,7 @@ import {
   Edit2,
   Save,
   X,
+  CheckCircle,
 } from 'lucide-react';
 import { 
   OrderStatusSkeleton
@@ -74,6 +77,11 @@ export default function AccountPage() {
     saving: false,
   });
 
+  // Address editing state
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [addressData, setAddressData] = useState<EnhancedAddress>(parseAddressString(null));
+  const [savingAddress, setSavingAddress] = useState(false);
+
   // Handle URL parameters for payment status and tab selection
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -112,6 +120,15 @@ export default function AccountPage() {
       }
     }
   }, []);
+
+  // Initialize address data from profile
+  useEffect(() => {
+    if (profile?.address) {
+      setAddressData(parseAddressString(profile.address));
+    } else {
+      setAddressData(parseAddressString(null));
+    }
+  }, [profile?.address]);
 
   const fetchData = useCallback(async () => {
     if (!session) return;
@@ -188,17 +205,68 @@ export default function AccountPage() {
     return;
   }, [session, fetchData]);
 
+  // Address management functions
+  const handleAddressSave = async () => {
+    if (!session) return;
+    
+    setSavingAddress(true);
+    try {
+      console.log('🔄 Saving enhanced address:', addressData);
+
+      const serializedAddress = serializeAddress(addressData);
+      
+      // Use server action to update profile with serialized address
+      const result = await updateUserProfile(
+        session.user.id,
+        'address',
+        serializedAddress
+      );
+
+      if (!result.success) {
+        throw new Error(result.error || 'Address update failed');
+      }
+
+      toast.success('Address updated successfully!');
+      
+      // Refresh profile and exit editing mode
+      await refreshProfile();
+      setIsEditingAddress(false);
+
+    } catch (error) {
+      console.error('❌ Address update error:', error);
+      toast.error('Failed to update address');
+    } finally {
+      setSavingAddress(false);
+    }
+  };
+
+  const cancelAddressEdit = () => {
+    // Reset to current profile address
+    if (profile?.address) {
+      setAddressData(parseAddressString(profile.address));
+    } else {
+      setAddressData(parseAddressString(null));
+    }
+    setIsEditingAddress(false);
+  };
+
   // Inline editing functions
   const startEditing = (field: 'full_name' | 'phone' | 'address') => {
-    const currentValue = field === 'full_name' ? profile?.full_name || '' :
-                        field === 'phone' ? profile?.phone || '' :
-                        profile?.address || '';
-    
-    setEditingField({
-      field,
-      value: currentValue,
-      saving: false,
-    });
+    if (field === 'address') {
+      // Use enhanced address editing
+      setIsEditingAddress(true);
+    } else {
+      // Use inline editing for other fields
+      const currentValue = field === 'full_name' ? profile?.full_name || '' :
+                          field === 'phone' ? profile?.phone || '' :
+                          '';
+      
+      setEditingField({
+        field,
+        value: currentValue,
+        saving: false,
+      });
+    }
   };
 
   const cancelEditing = () => {
@@ -791,47 +859,53 @@ export default function AccountPage() {
                   )}
                 </div>
 
-                {/* Address - Inline Editable */}
-                <div className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
-                  <div className="flex items-center gap-3 flex-1">
-                    <MapPin className="h-5 w-5 text-purple-400" />
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-400">Address</p>
-                      {editingField.field === 'address' ? (
-                        <div className="flex items-center gap-2 mt-1">
-                          <Input
-                            value={editingField.value}
-                            onChange={(e) => setEditingField(prev => ({ ...prev, value: e.target.value }))}
-                            className="bg-gray-600 border-gray-500 text-white focus:border-purple-400"
-                            placeholder="Enter your full address"
-                            disabled={editingField.saving}
-                          />
-                          <Button
-                            size="sm"
-                            onClick={saveField}
-                            disabled={editingField.saving}
-                            className="bg-green-600 hover:bg-green-700 text-white"
-                          >
-                            {editingField.saving ? <Clock className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={cancelEditing}
-                            disabled={editingField.saving}
-                            className="border-gray-500 text-gray-400 hover:bg-gray-600"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <p className="text-white font-medium">
-                          {profile?.address || 'Not set'}
-                        </p>
-                      )}
+                {/* Enhanced Address Management */}
+                {isEditingAddress ? (
+                  <div className="space-y-4">
+                    <AddressInput
+                      address={addressData}
+                      onChange={setAddressData}
+                      required={false}
+                      showRobertsEstateVerification={true}
+                      className="mb-4"
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        onClick={handleAddressSave}
+                        disabled={savingAddress}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        {savingAddress ? <Clock className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                        Save Address
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={cancelAddressEdit}
+                        disabled={savingAddress}
+                        className="border-gray-500 text-gray-400 hover:bg-gray-600"
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
                     </div>
                   </div>
-                  {editingField.field !== 'address' && (
+                ) : (
+                  <div className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
+                    <div className="flex items-center gap-3 flex-1">
+                      <MapPin className="h-5 w-5 text-purple-400" />
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-400">Delivery Address</p>
+                        <p className="text-white font-medium">
+                          {profile?.address ? formatAddressForDisplay(parseAddressString(profile.address)) : 'Not set'}
+                        </p>
+                        {addressData.isRobertsEstateResident && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <CheckCircle className="h-3 w-3 text-green-400" />
+                            <span className="text-xs text-green-400">Roberts Estate Verified</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     <Button
                       size="sm"
                       variant="outline"
@@ -840,8 +914,8 @@ export default function AccountPage() {
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 {/* Account Info (Read-only) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">

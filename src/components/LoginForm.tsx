@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'; // Shadcn UI for buttons
 import { Label } from '@/components/ui/label'; // Shadcn UI for labels
 import { Eye, EyeOff } from 'lucide-react'; // For show/hide icons
 import { checkEmailExists } from '@/app/actions'; // For server action
+import AddressInput, { EnhancedAddress } from '@/components/AddressInput';
+import { parseAddressString, serializeAddress } from '@/lib/addressUtils';
 
 interface LoginFormProps {
   setIsModalOpen: (open: boolean) => void; // Prop to close modal on success
@@ -19,7 +21,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState(''); // Optional username for signup
   const [phone, setPhone] = useState(''); // Phone number for signup
-  const [address, setAddress] = useState(''); // Optional address for signup
+  const [address, setAddress] = useState<EnhancedAddress>(parseAddressString(null)); // Enhanced address for signup
   const [isSignup, setIsSignup] = useState(false); // Toggle between login/signup
   const [isLoading, setIsLoading] = useState(false); // Loading state
   const [showPassword, setShowPassword] = useState(false); // For toggle
@@ -74,7 +76,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
         const signupMetadata = {
           full_name: username.trim() || null,
           phone: phone.trim() || null,
-          address: address.trim() || null,
+          address: serializeAddress(address) || null,
         };
         
         console.log('📋 Signup metadata being sent:', signupMetadata);
@@ -106,7 +108,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
             email: authData.user.email || trimmedEmail,
             full_name: username.trim() || null,
             phone: phone.trim() || null,
-            address: address.trim() || null,
+            address: serializeAddress(address) || null,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           };
@@ -130,7 +132,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
                   .update({
                     full_name: username.trim() || null,
                     phone: phone.trim() || null,
-                    address: address.trim() || null,
+                    address: serializeAddress(address) || null,
                     updated_at: new Date().toISOString(),
                   })
                   .eq('id', authData.user.id)
@@ -160,7 +162,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
         // Clear form fields
         setUsername('');
         setPhone('');
-        setAddress('');
+        setAddress(parseAddressString(null));
         
       } catch (signupError) {
         console.error('❌ Signup failed:', signupError);
@@ -262,14 +264,12 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
           </div>
           <div>
             <Label htmlFor="address">Address for Delivery</Label>
-            <Input
-              id="address"
-              type="text"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="border-neonCyan hover:shadow-[0_0_5px_rgba(255,165,0,0.5)]"
-              placeholder="Enter your delivery address"
-              autoComplete="off"
+            <AddressInput
+              address={address}
+              onChange={setAddress}
+              required={false}
+              showRobertsEstateVerification={true}
+              className="mt-2"
             />
           </div>
         </>
@@ -346,7 +346,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
           // Clear signup form fields when switching modes
           setUsername('');
           setPhone('');
-          setAddress('');
+          setAddress(parseAddressString(null));
         }}
         variant="link"
         className="w-full text-neonText"
