@@ -637,6 +637,7 @@ export default function KitchenView() {
         order={selectedOrder}
         isOpen={isOrderModalOpen}
         onClose={handleCloseOrderModal}
+        hideTechnicalDetails={true}
       />
     </div>
   );

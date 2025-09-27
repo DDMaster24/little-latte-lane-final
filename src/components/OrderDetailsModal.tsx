@@ -56,9 +56,10 @@ interface OrderDetailsModalProps {
   order: Order | null;
   isOpen: boolean;
   onClose: () => void;
+  hideTechnicalDetails?: boolean; // Hide technical details for kitchen staff
 }
 
-export default function OrderDetailsModal({ order, isOpen, onClose }: OrderDetailsModalProps) {
+export default function OrderDetailsModal({ order, isOpen, onClose, hideTechnicalDetails = false }: OrderDetailsModalProps) {
   if (!order) return null;
 
   // Parse delivery address to show only essential info for kitchen staff
@@ -342,43 +343,45 @@ export default function OrderDetailsModal({ order, isOpen, onClose }: OrderDetai
             )}
           </div>
 
-          {/* Technical Details */}
-          <div 
-            className="bg-black/40 backdrop-blur-sm border border-gray-400/30 rounded-lg p-4"
-            style={{
-              background: 'rgba(0, 0, 0, 0.4)',
-              backdropFilter: 'blur(10px)',
-            }}
-          >
-            <h3 className="text-lg font-semibold text-gray-400 mb-3 flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Technical Details
-            </h3>
-            <div className="grid md:grid-cols-2 gap-4 text-sm">
-              <div className="space-y-2">
-                <div>
-                  <span className="text-gray-400">Order ID:</span>
-                  <p className="text-neonText font-mono break-all">{order.id}</p>
-                </div>
-                <div>
-                  <span className="text-gray-400">Created:</span>
-                  <p className="text-neonText">{order.created_at ? formatDateTime(order.created_at) : 'N/A'}</p>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div>
-                  <span className="text-gray-400">User ID:</span>
-                  <p className="text-neonText font-mono break-all">{order.user_id || 'N/A'}</p>
-                </div>
-                {order.updated_at && (
+          {/* Technical Details - Only show for admin, not for kitchen staff */}
+          {!hideTechnicalDetails && (
+            <div 
+              className="bg-black/40 backdrop-blur-sm border border-gray-400/30 rounded-lg p-4"
+              style={{
+                background: 'rgba(0, 0, 0, 0.4)',
+                backdropFilter: 'blur(10px)',
+              }}
+            >
+              <h3 className="text-lg font-semibold text-gray-400 mb-3 flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Technical Details
+              </h3>
+              <div className="grid md:grid-cols-2 gap-4 text-sm">
+                <div className="space-y-2">
                   <div>
-                    <span className="text-gray-400">Last Updated:</span>
-                    <p className="text-neonText">{formatDateTime(order.updated_at)}</p>
+                    <span className="text-gray-400">Order ID:</span>
+                    <p className="text-neonText font-mono break-all">{order.id}</p>
                   </div>
-                )}
+                  <div>
+                    <span className="text-gray-400">Created:</span>
+                    <p className="text-neonText">{order.created_at ? formatDateTime(order.created_at) : 'N/A'}</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div>
+                    <span className="text-gray-400">User ID:</span>
+                    <p className="text-neonText font-mono break-all">{order.user_id || 'N/A'}</p>
+                  </div>
+                  {order.updated_at && (
+                    <div>
+                      <span className="text-gray-400">Last Updated:</span>
+                      <p className="text-neonText">{formatDateTime(order.updated_at)}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Close Button */}
           <div className="flex justify-end pt-4">
