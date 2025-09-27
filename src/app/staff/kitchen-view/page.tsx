@@ -179,10 +179,8 @@ export default function KitchenView() {
 
   const getStatusColor = (status: string | null) => {
     switch (status) {
-      case 'confirmed':
+      case 'draft':
         return 'bg-neonCyan/20 border-neonCyan/50 text-neonCyan';
-      case 'preparing':
-        return 'bg-neonPink/20 border-neonPink/50 text-neonPink';
       case 'ready':
         return 'bg-emerald-400/20 border-emerald-400/50 text-emerald-300';
       case 'completed':
@@ -194,10 +192,8 @@ export default function KitchenView() {
 
   const getStatusIcon = (status: string | null) => {
     switch (status) {
-      case 'confirmed':
+      case 'draft':
         return <Clock className="w-4 h-4" />;
-      case 'preparing':
-        return <ChefHat className="w-4 h-4" />;
       case 'ready':
         return <Package className="w-4 h-4" />;
       case 'completed':
@@ -226,20 +222,12 @@ export default function KitchenView() {
   const getProgressiveButtons = (currentStatus: string | null) => {
     const buttons = [
       { 
-        label: 'Confirmed', 
-        value: 'confirmed', 
-        icon: '⏱️',
+        label: 'New Order', 
+        value: 'draft', 
+        icon: '📝',
         bgColor: 'bg-neonCyan/20 border-neonCyan/50',
         textColor: 'text-neonCyan',
         hoverColor: 'hover:bg-neonCyan/30'
-      },
-      { 
-        label: 'Preparing', 
-        value: 'preparing', 
-        icon: '👨‍🍳',
-        bgColor: 'bg-neonPink/20 border-neonPink/50',
-        textColor: 'text-neonPink',
-        hoverColor: 'hover:bg-neonPink/30'
       },
       { 
         label: 'Ready', 
@@ -268,16 +256,14 @@ export default function KitchenView() {
 
   const getNextClickableStatuses = (currentStatus: string | null) => {
     switch (currentStatus) {
-      case 'confirmed':
-        return ['preparing'];
-      case 'preparing':
+      case 'draft':
         return ['ready'];
       case 'ready':
         return ['completed'];
       case 'completed':
         return []; // No further progression
       default:
-        return ['confirmed'];
+        return ['draft', 'ready']; // Allow setting initial status
     }
   };
 
@@ -302,9 +288,9 @@ export default function KitchenView() {
   };
 
   const getActiveOrders = () => {
-    // Orders that need kitchen work: confirmed, preparing (exclude ready to prevent duplicates)
+    // Orders that need kitchen work: draft orders (exclude ready to prevent duplicates)
     return getFilteredOrders().filter(order => 
-      ['confirmed', 'preparing'].includes(order.status || '')
+      ['draft'].includes(order.status || '')
     );
   };
 
@@ -762,23 +748,13 @@ export default function KitchenView() {
                       >
                         👁️
                       </Button>
-                      {order.delivery_method === 'delivery' ? (
-                        <Button
-                          onClick={() => handleUpdateStatus(order.id, 'delivered')}
-                          size="sm"
-                          className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 font-medium"
-                        >
-                          🚚
-                        </Button>
-                      ) : (
-                        <Button
-                          onClick={() => handleUpdateStatus(order.id, 'picked_up')}
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 font-medium"
-                        >
-                          📦
-                        </Button>
-                      )}
+                      <Button
+                        onClick={() => handleUpdateStatus(order.id, 'completed')}
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 font-medium"
+                      >
+                        {order.delivery_method === 'delivery' ? '✅ Complete' : '✅ Complete'}
+                      </Button>
                     </div>
                   </div>
                 </div>
