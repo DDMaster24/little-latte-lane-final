@@ -15,6 +15,9 @@ import {
   CheckCircle,
   Timer,
   Volume2,
+  ArrowLeft,
+  Calendar,
+  Search,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -171,9 +174,8 @@ export default function KitchenView() {
   };
 
   const handleViewAllOrders = () => {
-    // For now, just show a toast - we'll implement the full view later
-    toast.success('All Orders view coming soon!');
-    setShowAllOrdersView(true);
+    // Toggle the all orders view
+    setShowAllOrdersView(!showAllOrdersView);
   };
 
   const getStatusColor = (status: string | null) => {
@@ -319,6 +321,156 @@ export default function KitchenView() {
       });
   };
 
+  // Get all orders for the current day
+  const getAllOrdersToday = () => {
+    const today = new Date();
+    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+    
+    return orders
+      .filter(order => {
+        const orderDate = new Date(order.created_at || 0);
+        return orderDate >= startOfDay && orderDate <= endOfDay;
+      })
+      .sort((a, b) => {
+        const timeA = new Date(a.created_at || 0).getTime();
+        const timeB = new Date(b.created_at || 0).getTime();
+        return timeB - timeA; // Most recent first
+      });
+  };
+
+  // Render All Orders View
+  const renderAllOrdersView = () => {
+    const todaysOrders = getAllOrdersToday();
+    
+    return (
+      <div className="min-h-screen bg-darkBg text-neonText">
+        {/* All Orders Header */}
+        <div className="bg-gray-900/95 backdrop-blur-md border-b border-gray-700/50 sticky top-0 z-50">
+          <div className="max-w-full px-4 py-3">
+            <div className="flex justify-between items-center">
+              {/* Back to Kitchen View */}
+              <div className="flex items-center gap-3">
+                <Button
+                  onClick={() => setShowAllOrdersView(false)}
+                  variant="outline"
+                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Kitchen
+                </Button>
+                <h1 className="text-2xl font-bold text-white">
+                  📋 All Orders Today
+                </h1>
+                <Badge className="bg-purple-600/20 text-purple-300 border-purple-600/50">
+                  {todaysOrders.length} orders
+                </Badge>
+              </div>
+              
+              {/* Header Controls */}
+              <div className="flex items-center gap-3">
+                <div className="text-sm text-gray-400">
+                  {new Date().toLocaleDateString('en-ZA', { 
+                    weekday: 'long',
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </div>
+                <Button
+                  onClick={fetchOrders}
+                  disabled={loading}
+                  variant="outline"
+                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Orders List */}
+        <div className="p-6">
+          {todaysOrders.length === 0 ? (
+            <div className="text-center py-16">
+              <Calendar className="h-16 w-16 mx-auto mb-6 text-gray-400 opacity-50" />
+              <h3 className="text-xl text-gray-400 mb-2">No Orders Today</h3>
+              <p className="text-gray-500">Orders will appear here as they come in</p>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {todaysOrders.map((order) => (
+                <div
+                  key={order.id}
+                  className="bg-gray-800 border border-gray-600 rounded-lg p-4 hover:border-gray-500 transition-colors"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center gap-4">
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">
+                          Order #{order.order_number || order.id.slice(0, 8)}
+                        </h3>
+                        <p className="text-sm text-gray-400">
+                          {formatOrderTime(order.created_at)} • {order.profiles?.full_name || order.profiles?.email?.split('@')[0] || 'Walk-in'}
+                        </p>
+                      </div>
+                      <Badge className={`${getStatusColor(order.status)} px-3 py-1`}>
+                        {order.status || 'pending'}
+                      </Badge>
+                      <Badge className={`px-3 py-1 ${
+                        order.delivery_method === 'delivery' 
+                          ? 'bg-blue-600/20 border-blue-600/50 text-blue-300'
+                          : 'bg-green-600/20 border-green-600/50 text-green-300'
+                      }`}>
+                        {order.delivery_method === 'delivery' ? 'Delivery' : 'Pickup'}
+                      </Badge>
+                    </div>
+                    
+                    <div className="text-right">
+                      <p className="text-lg font-semibold text-white">
+                        R{order.total_amount?.toFixed(2) || '0.00'}
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        {order.order_items?.length || 0} items
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-300 mb-2">
+                        Items: {order.order_items?.slice(0, 3).map(item => 
+                          `${item.quantity}x ${item.menu_items?.name || 'Item'}`
+                        ).join(', ')}
+                        {order.order_items && order.order_items.length > 3 && ` +${order.order_items.length - 3} more`}
+                      </p>
+                      {order.special_instructions && (
+                        <p className="text-xs text-yellow-400 italic">
+                          Note: {order.special_instructions}
+                        </p>
+                      )}
+                    </div>
+                    
+                    <Button
+                      onClick={() => handleViewOrder(order)}
+                      variant="outline"
+                      size="sm"
+                      className="bg-transparent border border-blue-500 text-blue-400 hover:bg-blue-600 hover:text-white"
+                    >
+                      View Details
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-darkBg flex items-center justify-center">
@@ -339,6 +491,11 @@ export default function KitchenView() {
         </div>
       </div>
     );
+  }
+
+  // Show All Orders view if toggled
+  if (showAllOrdersView) {
+    return renderAllOrdersView();
   }
 
   return (
