@@ -17,7 +17,6 @@ import {
   Volume2,
   ArrowLeft,
   Calendar,
-  Search,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
