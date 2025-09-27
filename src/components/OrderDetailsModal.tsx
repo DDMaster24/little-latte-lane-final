@@ -115,7 +115,7 @@ export default function OrderDetailsModal({ order, isOpen, onClose }: OrderDetai
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="max-w-4xl max-h-[90vh] overflow-y-auto bg-darkBg/95 backdrop-blur-md border-2 border-neonCyan/50 text-neonText"
+        className="w-full max-w-4xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto bg-darkBg/95 backdrop-blur-md border-2 border-neonCyan/50 text-neonText mx-4"
         style={{
           background: 'rgba(0, 0, 0, 0.95)',
           backdropFilter: 'blur(15px)',
@@ -240,10 +240,10 @@ export default function OrderDetailsModal({ order, isOpen, onClose }: OrderDetai
             {order.delivery_method === 'delivery' && order.delivery_address && (
               <div className="mt-3 pt-3 border-t border-gray-600/50">
                 <div className="flex items-start gap-3">
-                  <MapPin className="h-4 w-4 text-gray-400 mt-1" />
-                  <div>
+                  <MapPin className="h-4 w-4 text-gray-400 mt-1 shrink-0" />
+                  <div className="min-w-0 flex-1">
                     <span className="text-gray-300">Delivery Address:</span>
-                    <p className="text-neonText mt-1">{order.delivery_address}</p>
+                    <p className="text-neonText mt-1 break-words whitespace-pre-wrap leading-relaxed">{order.delivery_address}</p>
                   </div>
                 </div>
               </div>
@@ -276,10 +276,10 @@ export default function OrderDetailsModal({ order, isOpen, onClose }: OrderDetai
                       {item.special_instructions && (
                         <div className="mt-2 p-2 bg-yellow-400/10 border border-yellow-400/30 rounded">
                           <div className="flex items-start gap-2">
-                            <MessageSquare className="h-4 w-4 text-yellow-400 mt-0.5" />
-                            <div>
+                            <MessageSquare className="h-4 w-4 text-yellow-400 mt-0.5 shrink-0" />
+                            <div className="min-w-0 flex-1">
                               <span className="text-yellow-400 text-sm font-medium">Special Instructions:</span>
-                              <p className="text-neonText text-sm">{item.special_instructions}</p>
+                              <p className="text-neonText text-sm break-words whitespace-pre-wrap leading-relaxed">{item.special_instructions}</p>
                             </div>
                           </div>
                         </div>
@@ -319,10 +319,10 @@ export default function OrderDetailsModal({ order, isOpen, onClose }: OrderDetai
             {order.special_instructions && (
               <div className="mt-4 pt-4 border-t border-gray-600/50">
                 <div className="flex items-start gap-2">
-                  <MessageSquare className="h-4 w-4 text-neonPink mt-0.5" />
-                  <div>
+                  <MessageSquare className="h-4 w-4 text-neonPink mt-0.5 shrink-0" />
+                  <div className="min-w-0 flex-1">
                     <span className="text-neonPink text-sm font-medium">Order Instructions:</span>
-                    <p className="text-neonText mt-1">{order.special_instructions}</p>
+                    <p className="text-neonText mt-1 break-words whitespace-pre-wrap leading-relaxed">{order.special_instructions}</p>
                   </div>
                 </div>
               </div>

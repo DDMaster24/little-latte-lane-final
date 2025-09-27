@@ -413,7 +413,15 @@ export default function KitchenView() {
               {getActiveOrders().map((order, index) => (
                 <div
                   key={order.id}
-                  className="group relative border rounded-lg p-3 sm:p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 bg-black border-gray-700 min-h-[200px] sm:min-h-[300px]"
+                  className="group relative border rounded-lg p-3 sm:p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 bg-black border-gray-700"
+                  style={{ 
+                    minHeight: `${
+                      200 + // Base height
+                      (order.order_items?.length > 3 ? (order.order_items.length - 3) * 15 : 0) + // Extra for items
+                      (order.special_instructions ? 30 : 0) + // Extra for special instructions
+                      ((order.profiles?.full_name || '').length > 20 ? 15 : 0) // Extra for long names
+                    }px` 
+                  }}
                 >
                   {/* Priority Indicator */}
                   {isOrderUrgent(order) && (
@@ -530,92 +538,76 @@ export default function KitchenView() {
               <p className="text-gray-500 text-xs">Ready orders appear here</p>
             </div>
           ) : (
-            <div className="space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto">
+            <div className="space-y-2 max-h-[calc(100vh-400px)] overflow-y-auto">
               {getReadyOrders().map((order) => (
                 <div
                   key={order.id}
-                  className="bg-gray-800 border border-gray-600 rounded-lg p-3 sm:p-4 hover:border-gray-500 transition-colors"
+                  className="bg-gray-800 border border-gray-600 rounded-lg p-3 hover:border-gray-500 transition-colors"
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="min-w-0 flex-1">
-                      <h4 className="font-bold text-white text-xs sm:text-sm truncate">
-                        Order #{order.order_number || order.id.slice(0, 8)}
-                      </h4>
-                      <p className="text-xs text-gray-400">
-                        Completed: {formatOrderTime(order.updated_at || order.created_at)}
-                      </p>
-                    </div>
-                    <Badge className="bg-green-600/20 border-green-600/50 text-green-300 text-xs ml-2 shrink-0">
-                      <CheckCircle className="w-3 h-3 mr-1" />
-                      Ready
-                    </Badge>
-                  </div>
-
-                  <div className="mb-3">
-                    <p className="text-xs sm:text-sm text-gray-200 font-medium truncate">
-                      {order.profiles?.full_name || order.profiles?.email?.split('@')[0] || 'Walk-in Customer'}
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <p className="text-xs text-gray-400">
-                        Total: R{order.total_amount?.toFixed(2) || '0.00'}
-                      </p>
-                      <Badge className={`text-xs px-2 py-1 ${
+                  {/* Compact Horizontal Layout */}
+                  <div className="flex items-center justify-between gap-3">
+                    {/* Order Info - Left Side */}
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="min-w-0">
+                        <h4 className="font-bold text-white text-sm truncate">
+                          #{order.order_number || order.id.slice(0, 8)}
+                        </h4>
+                        <p className="text-xs text-gray-400 truncate">
+                          {order.profiles?.full_name || order.profiles?.email?.split('@')[0] || 'Walk-in'}
+                        </p>
+                      </div>
+                      
+                      {/* Items Summary */}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs text-gray-300 truncate">
+                          {order.order_items.slice(0, 2).map(item => 
+                            `${item.quantity}x ${item.menu_items?.name || 'Item'}`
+                          ).join(', ')}
+                          {order.order_items.length > 2 && ` +${order.order_items.length - 2}`}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          R{order.total_amount?.toFixed(2) || '0.00'} • {formatOrderTime(order.updated_at || order.created_at)}
+                        </p>
+                      </div>
+                      
+                      {/* Delivery Method Badge */}
+                      <Badge className={`text-xs shrink-0 ${
                         order.delivery_method === 'delivery' 
                           ? 'bg-blue-600/20 border-blue-600/50 text-blue-300'
                           : 'bg-green-600/20 border-green-600/50 text-green-300'
                       }`}>
-                        {order.delivery_method === 'delivery' ? '🚚 Delivery' : '📦 Pickup'}
+                        {order.delivery_method === 'delivery' ? '🚚' : '📦'}
                       </Badge>
-                      
-                      {/* Display delivery address for delivery orders */}
-                      {order.delivery_method === 'delivery' && order.delivery_address && (
-                        <div className="mt-2 p-2 bg-blue-600/10 border border-blue-600/30 rounded text-xs">
-                          <div className="text-blue-300 font-medium">📍 Delivery Address:</div>
-                          <div className="text-gray-200 mt-1">{order.delivery_address}</div>
-                        </div>
+                    </div>
+                    
+                    {/* Action Buttons - Right Side */}
+                    <div className="flex gap-2 shrink-0">
+                      <Button
+                        onClick={() => handleViewOrder(order)}
+                        variant="outline"
+                        size="sm"
+                        className="bg-transparent border border-gray-600 text-gray-400 hover:bg-gray-700 hover:text-white text-xs px-3 py-1"
+                      >
+                        👁️
+                      </Button>
+                      {order.delivery_method === 'delivery' ? (
+                        <Button
+                          onClick={() => handleUpdateStatus(order.id, 'delivered')}
+                          size="sm"
+                          className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 font-medium"
+                        >
+                          🚚
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={() => handleUpdateStatus(order.id, 'picked_up')}
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 font-medium"
+                        >
+                          📦
+                        </Button>
                       )}
                     </div>
-                  </div>
-
-                  <div className="mb-3">
-                    <div className="text-xs text-gray-300 space-y-1">
-                      {order.order_items.slice(0, 3).map((item, idx) => (
-                        <div key={idx} className="truncate">
-                          {item.quantity}x {item.menu_items?.name || 'Unknown Item'}
-                        </div>
-                      ))}
-                      {order.order_items.length > 3 && (
-                        <div className="text-gray-500">
-                          +{order.order_items.length - 3} more items
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    {/* Different buttons based on delivery method */}
-                    {order.delivery_method === 'delivery' ? (
-                      <Button
-                        onClick={() => handleUpdateStatus(order.id, 'delivered')}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 font-medium transition-all duration-300"
-                      >
-                        🚚 <span className="hidden sm:inline">Mark as Delivered</span><span className="sm:hidden">Delivered</span>
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={() => handleUpdateStatus(order.id, 'picked_up')}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-2 font-medium transition-all duration-300"
-                      >
-                        📦 <span className="hidden sm:inline">Mark as Picked Up</span><span className="sm:hidden">Picked Up</span>
-                      </Button>
-                    )}
-                    <Button
-                      onClick={() => handleViewOrder(order)}
-                      variant="outline"
-                      className="w-full bg-transparent border border-gray-600 text-gray-400 hover:bg-gray-700 hover:text-white text-xs py-1.5 font-medium transition-all duration-300"
-                    >
-                      👁️ <span className="hidden sm:inline">View Details</span><span className="sm:hidden">Details</span>
-                    </Button>
                   </div>
                 </div>
               ))}
