@@ -28,10 +28,13 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
   const [isClient, setIsClient] = useState(false);
   const pathname = usePathname();
   
-  // Check if we're in React Bricks editor mode
+  // Check if we're in React Bricks editor mode or staff kitchen view
   const isEditorMode = pathname?.startsWith('/admin/editor') || 
                        pathname?.startsWith('/admin/playground') ||
                        pathname?.includes('/preview');
+  
+  const isKitchenView = pathname?.includes('/kitchen-view');
+  const shouldHideHeaderFooter = isEditorMode || isKitchenView;
 
   useEffect(() => {
     setIsClient(true);
@@ -88,17 +91,17 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
           </div>
         )}
         
-        {/* Conditional Layout - Hide Header/Footer in editor mode for more space */}
-        {!isEditorMode && <Header />}
+        {/* Conditional Layout - Hide Header/Footer in editor mode and kitchen view */}
+        {!shouldHideHeaderFooter && <Header />}
         
         {/* Editor Navigation - Only show in editor mode */}
         {isEditorMode && <EditorNavigation />}
         
-        <main className={isEditorMode ? 'min-h-screen relative pt-16' : 'flex-grow'}>
+        <main className={shouldHideHeaderFooter ? 'min-h-screen relative pt-16' : 'flex-grow'}>
           {children}
         </main>
         
-        {!isEditorMode && <FooterSection />}
+        {!shouldHideHeaderFooter && <FooterSection />}
         
         <Toaster
           position="top-right"

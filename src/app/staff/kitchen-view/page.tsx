@@ -54,6 +54,7 @@ export default function KitchenView() {
   const [previousOrderCount, setPreviousOrderCount] = useState(0);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [showAllOrdersView, setShowAllOrdersView] = useState(false);
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -167,6 +168,12 @@ export default function KitchenView() {
   const handleCloseOrderModal = () => {
     setIsOrderModalOpen(false);
     setSelectedOrder(null);
+  };
+
+  const handleViewAllOrders = () => {
+    // For now, just show a toast - we'll implement the full view later
+    toast.success('All Orders view coming soon!');
+    setShowAllOrdersView(true);
   };
 
   const getStatusColor = (status: string | null) => {
@@ -294,9 +301,9 @@ export default function KitchenView() {
   };
 
   const getActiveOrders = () => {
-    // Orders that need kitchen work: confirmed, preparing, ready
+    // Orders that need kitchen work: confirmed, preparing (exclude ready to prevent duplicates)
     return getFilteredOrders().filter(order => 
-      ['confirmed', 'preparing', 'ready'].includes(order.status || '')
+      ['confirmed', 'preparing'].includes(order.status || '')
     );
   };
 
@@ -360,6 +367,15 @@ export default function KitchenView() {
                   Last update: {lastUpdate.toLocaleTimeString()}
                 </div>
               )}
+              
+              {/* All Orders View Button */}
+              <Button
+                onClick={handleViewAllOrders}
+                variant="outline"
+                className="bg-transparent border border-purple-500 text-purple-400 hover:bg-purple-600 hover:text-white hover:border-purple-600 text-sm font-medium transition-all duration-300"
+              >
+                📋 All Orders
+              </Button>
               
               {/* Sound Button (Always On) */}
               <Button
@@ -571,12 +587,12 @@ export default function KitchenView() {
                       </div>
                       
                       {/* Delivery Method Badge */}
-                      <Badge className={`text-xs shrink-0 ${
+                      <Badge className={`text-xs shrink-0 px-2 py-1 ${
                         order.delivery_method === 'delivery' 
                           ? 'bg-blue-600/20 border-blue-600/50 text-blue-300'
                           : 'bg-green-600/20 border-green-600/50 text-green-300'
                       }`}>
-                        {order.delivery_method === 'delivery' ? '🚚' : '📦'}
+                        {order.delivery_method === 'delivery' ? 'Delivery' : 'Pickup'}
                       </Badge>
                     </div>
                     

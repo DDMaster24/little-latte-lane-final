@@ -8,14 +8,12 @@ import {
   User, 
   MapPin, 
   Phone, 
-  Mail, 
   Clock, 
   Package, 
   ChefHat,
   AlertCircle,
   Calendar,
   DollarSign,
-  Hash,
   MessageSquare
 } from 'lucide-react';
 
@@ -62,6 +60,20 @@ interface OrderDetailsModalProps {
 
 export default function OrderDetailsModal({ order, isOpen, onClose }: OrderDetailsModalProps) {
   if (!order) return null;
+
+  // Parse delivery address to show only essential info for kitchen staff
+  const parseDeliveryAddress = (address: string) => {
+    try {
+      const parsed = JSON.parse(address);
+      if (parsed.unitNumber && parsed.streetAddress) {
+        return `${parsed.unitNumber}, ${parsed.streetAddress}`;
+      }
+      return parsed.fullAddress || address;
+    } catch {
+      // If it's not JSON, return as-is
+      return address;
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -115,7 +127,7 @@ export default function OrderDetailsModal({ order, isOpen, onClose }: OrderDetai
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="w-full max-w-4xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto bg-darkBg/95 backdrop-blur-md border-2 border-neonCyan/50 text-neonText mx-4"
+        className="w-full max-w-5xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto bg-darkBg/95 backdrop-blur-md border-2 border-neonCyan/50 text-neonText mx-2 sm:mx-4"
         style={{
           background: 'rgba(0, 0, 0, 0.95)',
           backdropFilter: 'blur(15px)',
@@ -199,7 +211,7 @@ export default function OrderDetailsModal({ order, isOpen, onClose }: OrderDetai
             </div>
           </div>
 
-          {/* Customer Information */}
+          {/* Customer Information - Simplified for Kitchen Staff */}
           <div 
             className="bg-black/40 backdrop-blur-sm border border-green-400/30 rounded-lg p-4"
             style={{
@@ -209,48 +221,49 @@ export default function OrderDetailsModal({ order, isOpen, onClose }: OrderDetai
           >
             <h3 className="text-lg font-semibold text-green-400 mb-3 flex items-center gap-2">
               <User className="h-5 w-5" />
-              Customer Information
+              Customer & Delivery Info
             </h3>
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <User className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-300">Name:</span>
-                  <span className="text-neonText">{order.profiles?.full_name || 'Not provided'}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Mail className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-300">Email:</span>
-                  <span className="text-neonText">{order.profiles?.email || 'Not provided'}</span>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <Phone className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-300">Phone:</span>
-                  <span className="text-neonText">{order.profiles?.phone || 'Not provided'}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Hash className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-300">User ID:</span>
-                  <span className="text-neonText text-sm">{order.user_id?.slice(0, 8) || 'N/A'}...</span>
-                </div>
-              </div>
-            </div>
-            {order.delivery_method === 'delivery' && order.delivery_address && (
-              <div className="mt-3 pt-3 border-t border-gray-600/50">
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-4 w-4 text-gray-400 mt-1 shrink-0" />
+                  <User className="h-4 w-4 text-gray-400 shrink-0" />
                   <div className="min-w-0 flex-1">
-                    <span className="text-gray-300">Delivery Address:</span>
-                    <p className="text-neonText mt-1 break-words whitespace-pre-wrap leading-relaxed">{order.delivery_address}</p>
+                    <span className="text-gray-300">Customer:</span>
+                    <p className="text-neonText break-words">{order.profiles?.full_name || order.profiles?.email?.split('@')[0] || 'Walk-in Customer'}</p>
                   </div>
                 </div>
+                {order.profiles?.phone && (
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-4 w-4 text-gray-400 shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <span className="text-gray-300">Phone:</span>
+                      <p className="text-neonText break-words">{order.profiles.phone}</p>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Package className="h-4 w-4 text-gray-400 shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <span className="text-gray-300">Method:</span>
+                    <p className="text-neonText">{order.delivery_method === 'delivery' ? 'Delivery' : order.delivery_method === 'pickup' ? 'Pickup' : 'Not specified'}</p>
+                  </div>
+                </div>
+                {order.delivery_method === 'delivery' && order.delivery_address && (
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-4 w-4 text-gray-400 mt-1 shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <span className="text-gray-300">Delivery Address:</span>
+                      <p className="text-neonText mt-1 break-words whitespace-pre-wrap leading-relaxed">{parseDeliveryAddress(order.delivery_address)}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Order Items */}
+          {/* Order Items - Kitchen Focus */}
           <div 
             className="bg-black/40 backdrop-blur-sm border border-orange-400/30 rounded-lg p-4"
             style={{
@@ -262,33 +275,33 @@ export default function OrderDetailsModal({ order, isOpen, onClose }: OrderDetai
               <ChefHat className="h-5 w-5" />
               Order Items ({order.order_items?.length || 0} items)
             </h3>
-            <div className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-2">
               {order.order_items?.map((item) => (
                 <div key={item.id} className="border border-gray-600/50 rounded-lg p-3">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <h4 className="text-neonText font-medium">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-neonText font-medium break-words">
                         {item.menu_items?.name || 'Unknown Item'}
                       </h4>
                       <p className="text-sm text-gray-400">
-                        Quantity: {item.quantity} × R{item.price?.toFixed(2) || '0.00'} = R{((item.quantity || 0) * (item.price || 0)).toFixed(2)}
+                        Qty: {item.quantity} × R{item.price?.toFixed(2) || '0.00'} = R{((item.quantity || 0) * (item.price || 0)).toFixed(2)}
                       </p>
-                      {item.special_instructions && (
-                        <div className="mt-2 p-2 bg-yellow-400/10 border border-yellow-400/30 rounded">
-                          <div className="flex items-start gap-2">
-                            <MessageSquare className="h-4 w-4 text-yellow-400 mt-0.5 shrink-0" />
-                            <div className="min-w-0 flex-1">
-                              <span className="text-yellow-400 text-sm font-medium">Special Instructions:</span>
-                              <p className="text-neonText text-sm break-words whitespace-pre-wrap leading-relaxed">{item.special_instructions}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
+                  {item.special_instructions && (
+                    <div className="mt-2 p-2 bg-yellow-400/10 border border-yellow-400/30 rounded">
+                      <div className="flex items-start gap-2">
+                        <MessageSquare className="h-4 w-4 text-yellow-400 mt-0.5 shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <span className="text-yellow-400 text-sm font-medium">Special Instructions:</span>
+                          <p className="text-neonText text-sm break-words whitespace-pre-wrap leading-relaxed mt-1">{item.special_instructions}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )) || (
-                <p className="text-gray-400 italic">No items found</p>
+                <p className="text-gray-400 italic col-span-full">No items found</p>
               )}
             </div>
           </div>
