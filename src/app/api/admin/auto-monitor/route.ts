@@ -8,6 +8,16 @@ import { getSupabaseServer } from '@/lib/supabase-server';
  */
 export async function POST(_request: NextRequest) {
   try {
+    // Skip execution during build time or when using placeholder environment
+    if (process.env.NEXT_PHASE === 'phase-production-build' || 
+        process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://build-placeholder.supabase.co') {
+      return NextResponse.json({
+        success: false,
+        message: 'Auto monitor not available during build time',
+        checkedAt: new Date().toISOString()
+      });
+    }
+
     console.log('🔄 Auto order status monitor triggered');
     
     const supabase = await getSupabaseServer();
@@ -115,6 +125,15 @@ export async function POST(_request: NextRequest) {
 }
 
 export async function GET() {
+  // Skip execution during build time or when using placeholder environment
+  if (process.env.NEXT_PHASE === 'phase-production-build' || 
+      process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://build-placeholder.supabase.co') {
+    return NextResponse.json({
+      status: 'Auto order monitor not available during build time',
+      timestamp: new Date().toISOString()
+    });
+  }
+
   return NextResponse.json({
     status: 'Auto order monitor is active',
     description: 'POST to trigger automatic order status checking',

@@ -14,11 +14,13 @@ const envSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z
     .string()
     .url('Invalid Supabase URL format')
-    .min(1, 'Supabase URL is required'),
+    .min(1, 'Supabase URL is required')
+    .optional(), // Make optional for build-time
 
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z
     .string()
-    .min(1, 'Supabase anonymous key is required'),
+    .min(1, 'Supabase anonymous key is required')
+    .optional(), // Make optional for build-time
 
   SUPABASE_SERVICE_ROLE_KEY: z
     .string()
@@ -39,13 +41,24 @@ const envSchema = z.object({
 });
 
 /**
- * Validated environment variables
- * This will throw at build time if validation fails
+ * Check if we're in a build context where env vars might not be available
+ */
+const isBuildTime = () => {
+  return (
+    process.env.NEXT_PHASE === 'phase-production-build' ||
+    process.env.NEXT_PHASE === 'phase-export' ||
+    process.env.NODE_ENV === undefined ||
+    !process.env.NEXT_PUBLIC_SUPABASE_URL
+  );
+};
+
+/**
+ * Validated environment variables with build-time fallbacks
  */
 export const env = envSchema.parse({
   NODE_ENV: process.env['NODE_ENV'],
-  NEXT_PUBLIC_SUPABASE_URL: process.env['NEXT_PUBLIC_SUPABASE_URL'],
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'],
+  NEXT_PUBLIC_SUPABASE_URL: process.env['NEXT_PUBLIC_SUPABASE_URL'] || (isBuildTime() ? 'https://build-placeholder.supabase.co' : undefined),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] || (isBuildTime() ? 'build-placeholder-key' : undefined),
   SUPABASE_SERVICE_ROLE_KEY: process.env['SUPABASE_SERVICE_ROLE_KEY'],
   NEXT_PUBLIC_YOCO_TEST_MODE: process.env['NEXT_PUBLIC_YOCO_TEST_MODE'],
   YOCO_SECRET_KEY: process.env['YOCO_SECRET_KEY'],
@@ -59,14 +72,20 @@ export const env = envSchema.parse({
  * Throws descriptive errors for missing configuration
  */
 export function validateEnvironment(): void {
+  // Skip validation during build time
+  if (isBuildTime()) {
+    console.log('⚙️ Skipping environment validation during build time');
+    return;
+  }
+
   const errors: string[] = [];
 
   // Critical checks that should fail fast
-  if (!env.NEXT_PUBLIC_SUPABASE_URL) {
+  if (!env.NEXT_PUBLIC_SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL === 'https://build-placeholder.supabase.co') {
     errors.push('NEXT_PUBLIC_SUPABASE_URL is required');
   }
 
-  if (!env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  if (!env.NEXT_PUBLIC_SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'build-placeholder-key') {
     errors.push('NEXT_PUBLIC_SUPABASE_ANON_KEY is required');
   }
 

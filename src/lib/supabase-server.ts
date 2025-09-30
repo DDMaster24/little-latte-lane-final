@@ -11,9 +11,17 @@ import { env } from '@/lib/env';
 
 // Admin client with service key for elevated permissions
 export function getSupabaseAdmin() {
+  const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL || 'https://build-placeholder.supabase.co';
+  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY || 'build-placeholder-key';
+
+  // During build time, return a placeholder that won't actually be used
+  if (supabaseUrl === 'https://build-placeholder.supabase.co') {
+    console.warn('⚙️ Using build-time placeholder for Supabase admin client');
+  }
+
   return createClient<Database>(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.SUPABASE_SERVICE_ROLE_KEY!,
+    supabaseUrl,
+    serviceKey,
     {
       auth: {
         autoRefreshToken: false,
@@ -26,10 +34,17 @@ export function getSupabaseAdmin() {
 // Server client for SSR with user context
 export async function getSupabaseServer() {
   const cookieStore = await cookies();
+  const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL || 'https://build-placeholder.supabase.co';
+  const anonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'build-placeholder-key';
+
+  // During build time, provide a minimal client
+  if (supabaseUrl === 'https://build-placeholder.supabase.co') {
+    console.warn('⚙️ Using build-time placeholder for Supabase server client');
+  }
   
   return createServerClient<Database>(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    supabaseUrl,
+    anonKey,
     {
       cookies: {
         get(name: string) {

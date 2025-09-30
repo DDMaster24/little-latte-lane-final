@@ -13,6 +13,15 @@ import {
 
 export async function GET(request: NextRequest) {
   try {
+    // Skip execution during build time or when using placeholder environment
+    if (process.env.NEXT_PHASE === 'phase-production-build' || 
+        process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://build-placeholder.supabase.co') {
+      return NextResponse.json({
+        status: 'Webhook management not available during build time',
+        timestamp: new Date().toISOString()
+      });
+    }
+
     const url = new URL(request.url);
     const action = url.searchParams.get('action') || 'list';
     

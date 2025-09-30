@@ -7,6 +7,15 @@ import { getSupabaseServer } from '@/lib/supabase-server';
  */
 export async function GET() {
   try {
+    // Skip execution during build time or when using placeholder environment
+    if (process.env.NEXT_PHASE === 'phase-production-build' || 
+        process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://build-placeholder.supabase.co') {
+      return NextResponse.json({
+        status: 'Webhook status checker not available during build time',
+        timestamp: new Date().toISOString()
+      });
+    }
+
     console.log('🔍 Checking for orders that might need webhook updates...');
     
     const supabase = await getSupabaseServer();
