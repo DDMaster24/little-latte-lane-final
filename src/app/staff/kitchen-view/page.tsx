@@ -675,21 +675,24 @@ export default function KitchenView() {
       </div>
 
       {/* Split Layout: Active Orders (Left) + Completed Orders (Right) */}
-      <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 p-4 sm:p-6 pt-20">{/* Added pt-20 for fixed header space */}
+      <div className="flex flex-col xl:flex-row h-[calc(100vh-80px)] pt-4">{/* Fixed height to prevent scrolling */}
         {/* Left Side - Active Orders */}
-        <div className="flex-1 xl:w-2/3">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-white">Orders</h2>
+        <div className="flex-1 xl:w-2/3 flex flex-col px-4">
+          {/* Static Header with Neon Line */}
+          <div className="text-center pb-4 mb-6 border-b-2 border-neonCyan shadow-[0_2px_10px_rgba(6,182,212,0.3)] bg-darkBg sticky top-20 z-40">
+            <h2 className="text-2xl font-bold text-white">New Orders</h2>
           </div>
           
-          {getActiveOrders().length === 0 ? (
-            <div className="text-center py-12 sm:py-16">
-              <ChefHat className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-4 sm:mb-6 text-gray-400 opacity-50" />
-              <h3 className="text-lg sm:text-xl text-gray-400 mb-2">No Active Orders</h3>
-              <p className="text-gray-500 text-sm">Orders will appear here as they come in</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3 gap-3 sm:gap-4">
+          {/* Scrollable Content Area with Custom Scrollbar */}
+          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+            {getActiveOrders().length === 0 ? (
+              <div className="text-center py-12 sm:py-16">
+                <ChefHat className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-4 sm:mb-6 text-gray-400 opacity-50" />
+                <h3 className="text-lg sm:text-xl text-gray-400 mb-2">No Active Orders</h3>
+                <p className="text-gray-500 text-sm">Orders will appear here as they come in</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3 gap-3 sm:gap-4 pb-4">
               {getActiveOrders().map((order, index) => (
                 <div
                   key={order.id}
@@ -803,22 +806,31 @@ export default function KitchenView() {
               ))}
             </div>
           )}
+          </div>
         </div>
 
-        {/* Right Side - Completed Orders */}
-        <div className="xl:w-1/3 xl:border-l xl:border-gray-700 xl:pl-6">
-          <div className="text-center mb-4">
+        {/* Vertical Divider with Scroll Indicator */}
+        <div className="hidden xl:block w-px bg-gradient-to-b from-gray-700 via-neonCyan to-gray-700 mx-6 relative">
+          {/* Center divider glow effect */}
+          <div className="absolute inset-0 w-px bg-neonCyan shadow-[0_0_10px_rgba(6,182,212,0.5)]" />
+        </div>
+
+        {/* Right Side - Ready Orders */}
+        <div className="xl:w-1/3 flex flex-col px-4">
+          {/* Static Header with Neon Line */}
+          <div className="text-center pb-4 mb-4 border-b-2 border-neonPink shadow-[0_2px_10px_rgba(236,72,153,0.3)] bg-darkBg sticky top-20 z-40">
             <h2 className="text-xl font-bold text-white">Ready Orders</h2>
           </div>
-
-          {getReadyOrders().length === 0 ? (
-            <div className="text-center py-6 sm:py-8">
-              <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 text-gray-500" />
-              <p className="text-gray-400 text-sm">No orders ready</p>
-              <p className="text-gray-500 text-xs">Ready orders appear here</p>
-            </div>
-          ) : (
-            <div className="space-y-2 max-h-[calc(100vh-400px)] overflow-y-auto">
+          {/* Scrollable Content Area with Custom Scrollbar */}
+          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+            {getReadyOrders().length === 0 ? (
+              <div className="text-center py-6 sm:py-8">
+                <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 text-gray-500" />
+                <p className="text-gray-400 text-sm">No orders ready</p>
+                <p className="text-gray-500 text-xs">Ready orders appear here</p>
+              </div>
+            ) : (
+              <div className="space-y-2 pb-4">
               {getReadyOrders().map((order) => (
                 <div
                   key={order.id}
@@ -883,6 +895,7 @@ export default function KitchenView() {
               ))}
             </div>
           )}
+          </div>
         </div>
       </div>
 
