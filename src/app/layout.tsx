@@ -216,7 +216,18 @@ export default function RootLayout({
                     });
                   });
                 });
-                observer.observe(document.body, { childList: true, subtree: true });
+                
+                // Safely observe document.body when it's available
+                if (document.body) {
+                  observer.observe(document.body, { childList: true, subtree: true });
+                } else {
+                  // Wait for body to be available
+                  document.addEventListener('DOMContentLoaded', function() {
+                    if (document.body) {
+                      observer.observe(document.body, { childList: true, subtree: true });
+                    }
+                  });
+                }
               })();
             `,
           }}

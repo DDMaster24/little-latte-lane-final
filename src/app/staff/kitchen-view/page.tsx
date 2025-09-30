@@ -18,6 +18,8 @@ import {
   ArrowLeft,
   Calendar,
 } from 'lucide-react';
+import { OrderCardSkeleton } from '@/components/ui/loading-skeleton';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import toast from 'react-hot-toast';
 
 interface Order {
@@ -57,6 +59,7 @@ export default function KitchenView() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [showAllOrdersView, setShowAllOrdersView] = useState(false);
+  const [timeFrame, setTimeFrame] = useState<'today' | 'week'>('today');
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -324,9 +327,31 @@ export default function KitchenView() {
       });
   };
 
+  // Get all orders for the previous week
+  const getAllOrdersThisWeek = () => {
+    const today = new Date();
+    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    return orders
+      .filter(order => {
+        const orderDate = new Date(order.created_at || 0);
+        return orderDate >= weekAgo;
+      })
+      .sort((a, b) => {
+        const timeA = new Date(a.created_at || 0).getTime();
+        const timeB = new Date(b.created_at || 0).getTime();
+        return timeB - timeA; // Most recent first
+      });
+  };
+
+  // Get orders based on selected timeframe
+  const getOrdersByTimeFrame = () => {
+    return timeFrame === 'today' ? getAllOrdersToday() : getAllOrdersThisWeek();
+  };
+
   // Render All Orders View
   const renderAllOrdersView = () => {
-    const todaysOrders = getAllOrdersToday();
+    const filteredOrders = getOrdersByTimeFrame();
     
     return (
       <div className="min-h-screen bg-darkBg text-neonText">
@@ -345,22 +370,53 @@ export default function KitchenView() {
                   Back to Kitchen
                 </Button>
                 <h1 className="text-2xl font-bold text-white">
-                  📋 All Orders Today
+                  📋 All Orders {timeFrame === 'today' ? 'Today' : 'This Week'}
                 </h1>
                 <Badge className="bg-purple-600/20 text-purple-300 border-purple-600/50">
-                  {todaysOrders.length} orders
+                  {filteredOrders.length} orders
                 </Badge>
               </div>
               
               {/* Header Controls */}
               <div className="flex items-center gap-3">
+                {/* Time Frame Selector */}
+                <div className="flex bg-gray-800 rounded-lg p-1">
+                  <Button
+                    onClick={() => setTimeFrame('today')}
+                    variant={timeFrame === 'today' ? 'default' : 'ghost'}
+                    size="sm"
+                    className={`text-xs px-3 py-1 ${
+                      timeFrame === 'today' 
+                        ? 'bg-blue-600 text-white' 
+                        : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                    }`}
+                  >
+                    Today
+                  </Button>
+                  <Button
+                    onClick={() => setTimeFrame('week')}
+                    variant={timeFrame === 'week' ? 'default' : 'ghost'}
+                    size="sm"
+                    className={`text-xs px-3 py-1 ${
+                      timeFrame === 'week' 
+                        ? 'bg-blue-600 text-white' 
+                        : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                    }`}
+                  >
+                    This Week
+                  </Button>
+                </div>
+                
                 <div className="text-sm text-gray-400">
-                  {new Date().toLocaleDateString('en-ZA', { 
-                    weekday: 'long',
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}
+                  {timeFrame === 'today' 
+                    ? new Date().toLocaleDateString('en-ZA', { 
+                        weekday: 'long',
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })
+                    : `Past 7 days`
+                  }
                 </div>
                 <Button
                   onClick={fetchOrders}
@@ -378,15 +434,15 @@ export default function KitchenView() {
 
         {/* Orders List */}
         <div className="p-6">
-          {todaysOrders.length === 0 ? (
+          {filteredOrders.length === 0 ? (
             <div className="text-center py-16">
               <Calendar className="h-16 w-16 mx-auto mb-6 text-gray-400 opacity-50" />
-              <h3 className="text-xl text-gray-400 mb-2">No Orders Today</h3>
+              <h3 className="text-xl text-gray-400 mb-2">No Orders {timeFrame === 'today' ? 'Today' : 'This Week'}</h3>
               <p className="text-gray-500">Orders will appear here as they come in</p>
             </div>
           ) : (
             <div className="grid gap-4">
-              {todaysOrders.map((order) => (
+              {filteredOrders.map((order: Order) => (
                 <div
                   key={order.id}
                   className="bg-gray-800 border border-gray-600 rounded-lg p-4 hover:border-gray-500 transition-colors"
@@ -458,10 +514,49 @@ export default function KitchenView() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-darkBg flex items-center justify-center">
-        <div className="text-center">
-          <RefreshCw className="h-8 w-8 animate-spin text-neonCyan mx-auto mb-4" />
-          <p className="text-neonText">Loading kitchen view...</p>
+      <div className="h-screen bg-darkBg text-neonText overflow-hidden">
+        {/* Header Skeleton */}
+        <div className="bg-gray-900/95 backdrop-blur-md border-b border-gray-700/50 fixed top-0 left-0 right-0 z-50">
+          <div className="max-w-full px-4 py-3">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gray-700 rounded animate-pulse"></div>
+                <div className="w-32 h-6 bg-gray-700 rounded animate-pulse"></div>
+              </div>
+              <div className="flex gap-3">
+                <div className="w-20 h-8 bg-gray-700 rounded animate-pulse"></div>
+                <div className="w-20 h-8 bg-gray-700 rounded animate-pulse"></div>
+                <div className="w-16 h-8 bg-gray-700 rounded animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Content Skeletons */}
+        <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 p-4 sm:p-6 pt-20">
+          <div className="flex-1 xl:w-2/3">
+            <div className="text-center mb-6">
+              <div className="w-32 h-8 bg-gray-700 rounded animate-pulse mx-auto"></div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3 gap-3 sm:gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <OrderCardSkeleton key={i} />
+              ))}
+            </div>
+          </div>
+          
+          <div className="xl:w-1/3 xl:border-l xl:border-gray-700 xl:pl-6">
+            <div className="text-center mb-4">
+              <div className="w-32 h-6 bg-gray-700 rounded animate-pulse mx-auto"></div>
+            </div>
+            <div className="space-y-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="bg-gray-800 border border-gray-600 rounded-lg p-3">
+                  <div className="w-full h-16 bg-gray-700 rounded animate-pulse"></div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -480,13 +575,18 @@ export default function KitchenView() {
 
   // Show All Orders view if toggled
   if (showAllOrdersView) {
-    return renderAllOrdersView();
+    return (
+      <ErrorBoundary>
+        {renderAllOrdersView()}
+      </ErrorBoundary>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-darkBg text-neonText overflow-x-hidden">
-      {/* Streamlined Kitchen Header */}
-      <div className="bg-gray-900/95 backdrop-blur-md border-b border-gray-700/50 sticky top-0 z-50">
+    <ErrorBoundary showDetails={process.env.NODE_ENV === 'development'}>
+      <div className="h-screen bg-darkBg text-neonText overflow-hidden">
+      {/* Streamlined Kitchen Header - Fixed to top */}
+      <div className="bg-gray-900/95 backdrop-blur-md border-b border-gray-700/50 fixed top-0 left-0 right-0 z-50">
         <div className="max-w-full px-4 py-3">
           <div className="flex justify-between items-center">
             {/* Kitchen Title */}
@@ -541,7 +641,29 @@ export default function KitchenView() {
 
               {/* Logout Button */}
               <Button
-                onClick={() => router.push('/auth/callback?logout=true')}
+                onClick={async () => {
+                  try {
+                    const { getSupabaseClient } = await import('@/lib/supabase-client');
+                    const supabase = getSupabaseClient();
+                    
+                    // Sign out the user
+                    await supabase.auth.signOut();
+                    
+                    // Clear any local storage
+                    if (typeof window !== 'undefined') {
+                      localStorage.clear();
+                      sessionStorage.clear();
+                    }
+                    
+                    // Redirect to home page
+                    router.push('/');
+                    
+                    toast.success('Logged out successfully');
+                  } catch (error) {
+                    console.error('Logout error:', error);
+                    toast.error('Failed to logout');
+                  }
+                }}
                 variant="outline"
                 className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
               >
@@ -553,7 +675,7 @@ export default function KitchenView() {
       </div>
 
       {/* Split Layout: Active Orders (Left) + Completed Orders (Right) */}
-      <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 p-4 sm:p-6">
+      <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 p-4 sm:p-6 pt-20">{/* Added pt-20 for fixed header space */}
         {/* Left Side - Active Orders */}
         <div className="flex-1 xl:w-2/3">
           <div className="text-center mb-6">
@@ -772,5 +894,6 @@ export default function KitchenView() {
         hideTechnicalDetails={true}
       />
     </div>
+    </ErrorBoundary>
   );
 }
