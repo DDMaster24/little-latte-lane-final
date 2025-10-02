@@ -10,8 +10,8 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
   {
+    // Global ignores - must be first
     ignores: [
       '**/_*/**',
       '**/_*',
@@ -20,12 +20,19 @@ const eslintConfig = [
       '**/*.test.*',
       '**/*.spec.*',
       'public/sw.js',
+      'public/sw.js.map',
       'public/workbox-*',
       '.next/**',
       'node_modules/**',
-      'src/types/supabase.ts',
+      'src/types/supabase.ts', // Auto-generated, causes ESLint binary parse error
       'scripts/**',
+      'build/**',
+      'dist/**',
+      'out/**',
     ],
+  },
+  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+  {
     rules: {
       // Remove unused imports
       '@typescript-eslint/no-unused-vars': [

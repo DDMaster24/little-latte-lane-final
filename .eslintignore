@@ -1,0 +1,36 @@
+# Auto-generated files
+src/types/supabase.ts
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Dependencies
+node_modules/
+
+# PWA files
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/workbox-*.js.map
+
+# Test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+
+# Debug/temp files
+debug-*.js
+test-*.js
+**/debug-*/**
+**/test-*/**
+
+# Scripts
+scripts/**
+
+# Config files
+.eslintrc.js
+next.config.ts

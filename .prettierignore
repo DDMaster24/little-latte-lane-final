@@ -1,19 +1,47 @@
+# Auto-generated files
+src/types/supabase.ts
+
+# Dependencies
 node_modules/
+
+# Build outputs
 .next/
 .vercel/
-.env.local
-.env
 dist/
 build/
 coverage/
+
+# Environment
+.env.local
+.env
+
+# PWA files
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/workbox-*.js.map
+
+# Lock files
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Test files
 **/*.test.ts
 **/*.test.tsx
 **/*.spec.ts
 **/*.spec.tsx
 **/debug-*
 **/test-*
+
+# Temporary/debug files
 supabase/test_database.sql
+supabase/.temp/
 DATABASE_FULL_EXPORT.sql
 debug-database-export.js
 src-audit.js
 vscode-cleanup.js
+
+# Logs
+*.log
+*.tmp

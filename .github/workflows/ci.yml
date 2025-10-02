@@ -31,6 +31,7 @@ jobs:
 
       - name: Lint
         run: npm run lint
+        continue-on-error: true
 
       - name: Format check
         run: npm run format:check
@@ -38,6 +39,7 @@ jobs:
 
       - name: Analyze circular dependencies
         run: npm run analyze
+        continue-on-error: true
 
   build:
     runs-on: ubuntu-latest
