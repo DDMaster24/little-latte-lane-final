@@ -2,51 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom Scrollbar Styles for Kitchen View */
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: #06b6d4 #374151;
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #374151;
-  border-radius: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #06b6d4, #0891b2);
-  border-radius: 4px;
-  box-shadow: 0 0 6px rgba(6, 182, 212, 0.3);
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #0891b2, #0e7490);
-  box-shadow: 0 0 8px rgba(6, 182, 212, 0.5);
-}
-
-/* Kitchen Scroll Indicator */
-.scroll-indicator {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 2px;
-  height: 60px;
-  background: linear-gradient(to bottom, transparent, #06b6d4, transparent);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.scroll-indicator.visible {
-  opacity: 1;
-}
-
 /* Safe Area Support for iOS */
 @supports (padding-top: env(safe-area-inset-top)) {
   html {

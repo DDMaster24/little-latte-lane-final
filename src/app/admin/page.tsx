@@ -15,7 +15,7 @@ import AnalyticsDashboard from '@/components/Admin/AnalyticsDashboard';
 import UserManagement from '@/components/Admin/UserManagement';
 import BookingManagement from '@/components/Admin/BookingManagement';
 import AdminOverview from '@/components/Admin/AdminOverview';
-import RestaurantClosureManagement from '@/components/Admin/RestaurantClosureManagement';
+import RestaurantClosureManagement from '@/components/Admin/RestaurantClosureManagementV2';
 import { QRCodeGenerator } from '@/components/QRCodeGenerator';
 
 const tabs = [

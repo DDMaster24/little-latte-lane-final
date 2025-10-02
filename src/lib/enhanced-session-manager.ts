@@ -56,7 +56,10 @@ class SessionPersistenceManager {
                   }
                 }
                 
-                console.log(`📦 Getting storage key "${key}":`, value ? 'Found' : 'Not found');
+                // Reduced logging for performance
+                if (process.env.NODE_ENV === 'development' && key.includes('auth-token')) {
+                  console.log(`📦 Getting storage key "${key}":`, value ? 'Found' : 'Not found');
+                }
                 return value;
               } catch (error) {
                 console.warn('Storage getItem error:', error);
@@ -69,7 +72,11 @@ class SessionPersistenceManager {
                 // Store in both localStorage and sessionStorage for redundancy
                 window.localStorage.setItem(key, value);
                 window.sessionStorage.setItem(key, value);
-                console.log(`💾 Stored key "${key}" in both storage types`);
+                
+                // Reduced logging for performance
+                if (process.env.NODE_ENV === 'development' && key.includes('auth-token')) {
+                  console.log(`💾 Stored key "${key}" in both storage types`);
+                }
                 
                 // Also store our custom session backup - but avoid infinite loops
                 if (!key.includes('lll-')) {
@@ -154,28 +161,32 @@ class SessionPersistenceManager {
   private initializeSessionMonitoring() {
     if (typeof window === 'undefined') return;
 
-    // Wait a bit before starting aggressive monitoring to avoid conflicts
+    // Only monitor session, don't force recovery on startup
+    // This prevents conflicts with normal auth flow
     setTimeout(() => {
-      // Check session every 30 seconds (less aggressive than before)
+      // Check session every 5 minutes (much less aggressive)
       this.sessionCheckInterval = setInterval(() => {
         this.validateAndRecoverSession();
-      }, 30000);
+      }, 5 * 60 * 1000); // 5 minutes
 
-      // Check on visibility change (tab focus) - but only after initial load
+      // Check on visibility change (tab focus) after significant idle time
+      let lastCheck = Date.now();
       document.addEventListener('visibilitychange', () => {
         if (!document.hidden) {
-          // Add delay to avoid conflicts with other initialization
-          setTimeout(() => {
-            this.validateAndRecoverSession();
-          }, 1000);
+          // Only check if tab was hidden for more than 10 minutes
+          const timeSinceLastCheck = Date.now() - lastCheck;
+          if (timeSinceLastCheck > 10 * 60 * 1000) {
+            setTimeout(() => {
+              this.validateAndRecoverSession();
+              lastCheck = Date.now();
+            }, 1000);
+          }
         }
       });
-    }, 2000); // Wait 2 seconds after construction
+    }, 5000); // Wait 5 seconds for auth system to fully initialize
 
-    // Initial session recovery attempt - but delayed to avoid conflicts
-    setTimeout(() => {
-      this.attemptSessionRecovery();
-    }, 3000); // Wait 3 seconds for other systems to initialize
+    // Don't attempt recovery on startup - let normal auth flow handle it
+    // Recovery is only needed when session is truly lost, not on every page load
   }
 
   /**
