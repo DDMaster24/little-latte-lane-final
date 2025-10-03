@@ -27,7 +27,9 @@ import {
   isValidSouthAfricanPhone,
   displaySouthAfricanPhone,
 } from '@/lib/phoneUtils';
-import AddressInput, { EnhancedAddress } from '@/components/AddressInput';
+import AddressInput from '@/components/AddressInput';
+import { type ValidatedAddress } from '@/lib/addressValidation';
+import { type EnhancedAddress, validatedToEnhanced } from '@/lib/addressCompat';
 import { parseAddressString, serializeAddress, formatAddressForDisplay } from '@/lib/addressUtils';
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -58,6 +60,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
     'delivery'
   );
   const [address, setAddress] = useState<EnhancedAddress>(parseAddressString(null));
+  const [validatedAddress, setValidatedAddress] = useState<ValidatedAddress | null>(null);
   const [phone, setPhone] = useState('');
   const [specialInstructions, setSpecialInstructions] = useState('');
   
@@ -65,6 +68,12 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [isRobertsEstateResident, setIsRobertsEstateResident] = useState(false);
   const [confirmAddressCorrect, setConfirmAddressCorrect] = useState(false);
+  
+  // Calculate delivery fee from validated address (new system) or fallback to old system
+  const deliveryFee = validatedAddress?.isDeliveryAvailable 
+    ? validatedAddress.deliveryFee 
+    : (isRobertsEstateResident ? 10 : 30);
+  const totalWithDelivery = total + (deliveryType === 'delivery' ? deliveryFee : 0);
   
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderData, setOrderData] = useState<{
@@ -230,9 +239,21 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
       const result = await createOrderServerAction({
         userId: profile.id,
         items: checkoutItems,
-        total,
+        total: totalWithDelivery,
         deliveryType,
-        deliveryAddress: deliveryType === 'delivery' ? serializeAddress(address) : undefined,
+        deliveryAddress: deliveryType === 'delivery' 
+          ? (validatedAddress?.fullAddress || serializeAddress(address))
+          : undefined,
+        delivery_fee: deliveryType === 'delivery' ? deliveryFee : null,
+        delivery_zone: deliveryType === 'delivery' && validatedAddress 
+          ? validatedAddress.deliveryZone 
+          : null,
+        delivery_coordinates: deliveryType === 'delivery' && validatedAddress?.coordinates 
+          ? validatedAddress.coordinates 
+          : null,
+        address_verified: deliveryType === 'delivery' && validatedAddress 
+          ? validatedAddress.isAddressVerified 
+          : null,
         specialInstructions: specialInstructions.trim() || undefined,
       });
 
@@ -470,13 +491,23 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
 
                     {/* Total */}
                     <div className="border-t border-neonCyan/30 pt-4">
-                      <div className="flex justify-between items-center mb-4">
-                        <span className="text-lg font-semibold text-white">
-                          Total:
-                        </span>
-                        <span className="text-xl font-bold text-neonCyan">
-                          R{total.toFixed(2)}
-                        </span>
+                      <div className="space-y-2 mb-4">
+                        <div className="flex justify-between items-center">
+                          <span className="text-white">Subtotal:</span>
+                          <span className="text-white">R{total.toFixed(2)}</span>
+                        </div>
+                        {deliveryType === 'delivery' && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-300">
+                              Delivery Fee {validatedAddress && `(${validatedAddress.deliveryZone === 'roberts_estate' ? 'Roberts Estate' : 'Middleburg'})`}:
+                            </span>
+                            <span className="text-neonCyan">R{deliveryFee.toFixed(2)}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between items-center border-t border-gray-600 pt-2">
+                          <span className="text-lg font-semibold text-white">Total:</span>
+                          <span className="text-xl font-bold text-neonCyan">R{totalWithDelivery.toFixed(2)}</span>
+                        </div>
                       </div>
 
                       {/* Restaurant closure notice */}
@@ -614,8 +645,20 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                           <span className="text-white">{cart.length} item{cart.length > 1 ? 's' : ''}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-300">Total:</span>
-                          <span className="text-neonPink font-bold text-lg">R{total.toFixed(2)}</span>
+                          <span className="text-gray-300">Subtotal:</span>
+                          <span className="text-white">R{total.toFixed(2)}</span>
+                        </div>
+                        {deliveryType === 'delivery' && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-300">
+                              Delivery Fee {validatedAddress && `(${validatedAddress.deliveryZone === 'roberts_estate' ? 'Roberts Estate' : 'Middleburg'})`}:
+                            </span>
+                            <span className="text-neonCyan">R{deliveryFee.toFixed(2)}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between border-t border-gray-600 pt-2">
+                          <span className="text-gray-300 font-semibold">Total:</span>
+                          <span className="text-neonPink font-bold text-lg">R{totalWithDelivery.toFixed(2)}</span>
                         </div>
                       </div>
                       
@@ -804,13 +847,18 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                               // Expanded Address Edit Form
                               <div className="space-y-4">
                                 <AddressInput
-                                  address={address}
-                                  onChange={(newAddress) => {
-                                    setAddress(newAddress);
-                                    setIsRobertsEstateResident(newAddress.isRobertsEstateResident);
+                                  address={validatedAddress}
+                                  onChange={(newValidatedAddress) => {
+                                    setValidatedAddress(newValidatedAddress);
+                                    if (newValidatedAddress) {
+                                      const enhancedAddr = validatedToEnhanced(newValidatedAddress);
+                                      setAddress(enhancedAddr);
+                                      setIsRobertsEstateResident(newValidatedAddress.deliveryZone === 'roberts_estate');
+                                    } else {
+                                      setIsRobertsEstateResident(false);
+                                    }
                                   }}
                                   required={true}
-                                  showRobertsEstateVerification={true}
                                   className="mt-2"
                                 />
                                 <div className="flex gap-2 justify-end">

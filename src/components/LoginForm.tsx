@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/button'; // Shadcn UI for buttons
 import { Label } from '@/components/ui/label'; // Shadcn UI for labels
 import { Eye, EyeOff } from 'lucide-react'; // For show/hide icons
 import { checkEmailExists } from '@/app/actions'; // For server action
-import AddressInput, { EnhancedAddress } from '@/components/AddressInput';
+import AddressInput from '@/components/AddressInput';
+import { type EnhancedAddress, validatedToEnhanced } from '@/lib/addressCompat';
+import { type ValidatedAddress } from '@/lib/addressValidation';
 import { parseAddressString, serializeAddress } from '@/lib/addressUtils';
 
 interface LoginFormProps {
@@ -22,6 +24,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
   const [username, setUsername] = useState(''); // Optional username for signup
   const [phone, setPhone] = useState(''); // Phone number for signup
   const [address, setAddress] = useState<EnhancedAddress>(parseAddressString(null)); // Enhanced address for signup
+  const [validatedAddress, setValidatedAddress] = useState<ValidatedAddress | null>(null); // New validated address system
   const [isSignup, setIsSignup] = useState(false); // Toggle between login/signup
   const [isLoading, setIsLoading] = useState(false); // Loading state
   const [showPassword, setShowPassword] = useState(false); // For toggle
@@ -210,10 +213,14 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
           <div>
             <Label htmlFor="address">Address for Delivery</Label>
             <AddressInput
-              address={address}
-              onChange={setAddress}
+              address={validatedAddress}
+              onChange={(newValidatedAddress) => {
+                setValidatedAddress(newValidatedAddress);
+                if (newValidatedAddress) {
+                  setAddress(validatedToEnhanced(newValidatedAddress));
+                }
+              }}
               required={false}
-              showRobertsEstateVerification={true}
               className="mt-2"
             />
           </div>

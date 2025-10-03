@@ -1088,6 +1088,10 @@ export async function createOrderServerAction(orderData: {
   total: number;
   deliveryType: string;
   deliveryAddress?: string;
+  delivery_fee?: number | null;
+  delivery_zone?: string | null;
+  delivery_coordinates?: { lat: number; lng: number } | null;
+  address_verified?: boolean | null;
   specialInstructions?: string;
 }) {
   try {
@@ -1118,6 +1122,10 @@ export async function createOrderServerAction(orderData: {
         payment_status: 'awaiting_payment',
         delivery_method: orderData.deliveryType,
         delivery_address: orderData.deliveryAddress || null,
+        delivery_fee: orderData.delivery_fee || null,
+        delivery_zone: orderData.delivery_zone || null,
+        delivery_coordinates: orderData.delivery_coordinates || null,
+        address_verified: orderData.address_verified || null,
         special_instructions: orderData.specialInstructions || null,
         created_at: new Date().toISOString(),
       })

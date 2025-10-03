@@ -1,4 +1,4 @@
-import { EnhancedAddress } from '@/components/AddressInput';
+import { EnhancedAddress } from '@/lib/addressCompat';
 
 /**
  * Address utilities for parsing, validation, and storage

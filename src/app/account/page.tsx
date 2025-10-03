@@ -16,7 +16,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import AddressInput, { EnhancedAddress } from '@/components/AddressInput';
+import AddressInput from '@/components/AddressInput';
+import { type EnhancedAddress, validatedToEnhanced } from '@/lib/addressCompat';
+import { type ValidatedAddress } from '@/lib/addressValidation';
 import { parseAddressString, serializeAddress, formatAddressForDisplay } from '@/lib/addressUtils';
 import { useCartStore } from '@/stores/cartStore';
 import toast from 'react-hot-toast';
@@ -80,6 +82,7 @@ export default function AccountPage() {
   // Address editing state
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [addressData, setAddressData] = useState<EnhancedAddress>(parseAddressString(null));
+  const [validatedAddressData, setValidatedAddressData] = useState<ValidatedAddress | null>(null);
   const [savingAddress, setSavingAddress] = useState(false);
 
   // Handle URL parameters for payment status and tab selection
@@ -863,10 +866,14 @@ export default function AccountPage() {
                 {isEditingAddress ? (
                   <div className="space-y-4">
                     <AddressInput
-                      address={addressData}
-                      onChange={setAddressData}
+                      address={validatedAddressData}
+                      onChange={(newValidatedAddress) => {
+                        setValidatedAddressData(newValidatedAddress);
+                        if (newValidatedAddress) {
+                          setAddressData(validatedToEnhanced(newValidatedAddress));
+                        }
+                      }}
                       required={false}
-                      showRobertsEstateVerification={true}
                       className="mb-4"
                     />
                     <div className="flex gap-2 justify-end">
