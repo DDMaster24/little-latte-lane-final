@@ -122,13 +122,21 @@ export default function AddressInputSignup({
   }, [streetName]);
 
   // Update validated address whenever fields change
+  // Using useRef to avoid recreating the function on every render
   useEffect(() => {
-    if (streetName && unitNumber) {
-      const validateAddress = async () => {
+    // Don't validate on every keystroke - only when we have complete info
+    if (!streetName || !unitNumber) {
+      onChange(null);
+      return;
+    }
+
+    // Debounce to avoid excessive validation calls
+    const timeoutId = setTimeout(async () => {
+      try {
         const fullAddress = `${unitNumber} ${streetName}`;
         const result = await addressValidation.validateManualAddress({
           streetAddress: fullAddress,
-          suburb: 'Roberts Estate',
+          suburb: isRobertsEstate ? 'Roberts Estate' : 'Middleburg',
           unitNumber,
           postalCode,
           city,
@@ -151,12 +159,14 @@ export default function AddressInputSignup({
           };
           onChange(updatedAddress);
         }
-      };
-      validateAddress();
-    } else {
-      onChange(null);
-    }
-  }, [unitNumber, streetName, postalCode, city, province, isRobertsEstate, onChange]);
+      } catch (error) {
+        console.error('Address validation error:', error);
+        onChange(null);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [unitNumber, streetName, postalCode, isRobertsEstate, city, province, onChange]);
 
   return (
     <div className="space-y-4">
