@@ -41,6 +41,7 @@ import {
 } from '@/components/LoadingComponents';
 import { NotificationPermissionPrompt } from '@/components/NotificationPermissionPrompt';
 import NotificationSettingsPanel from '@/components/NotificationSettingsPanel';
+import NotificationHistoryList from '@/components/NotificationHistoryList';
 
 interface OrderItem {
   menu_item_id?: string | null;
@@ -975,8 +976,23 @@ export default function AccountPage() {
                 Manage your notification preferences and subscriptions
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <NotificationSettingsPanel />
+            <CardContent className="space-y-8">
+              {/* Settings Section */}
+              <div>
+                <NotificationSettingsPanel />
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-gray-700" />
+
+              {/* History Section */}
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <Bell className="h-5 w-5 text-neonPink" />
+                  Notification History
+                </h3>
+                <NotificationHistoryList />
+              </div>
             </CardContent>
           </Card>
         )}
