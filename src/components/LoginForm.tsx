@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'; // Shadcn UI for buttons
 import { Label } from '@/components/ui/label'; // Shadcn UI for labels
 import { Eye, EyeOff } from 'lucide-react'; // For show/hide icons
 import { checkEmailExists } from '@/app/actions'; // For server action
-import AddressInputSimple from '@/components/AddressInputSimple';
+import AddressInputSignup from '@/components/AddressInputSignup';
 import { type EnhancedAddress, validatedToEnhanced } from '@/lib/addressCompat';
 import { type ValidatedAddress } from '@/lib/addressValidation';
 import { parseAddressString, serializeAddress } from '@/lib/addressUtils';
@@ -243,7 +243,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
             </p>
           </div>
           <div>
-            <AddressInputSimple
+            <AddressInputSignup
               address={validatedAddress}
               onChange={(newValidatedAddress) => {
                 setValidatedAddress(newValidatedAddress);
