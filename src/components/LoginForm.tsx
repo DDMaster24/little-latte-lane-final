@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'; // Shadcn UI for buttons
 import { Label } from '@/components/ui/label'; // Shadcn UI for labels
 import { Eye, EyeOff } from 'lucide-react'; // For show/hide icons
 import { checkEmailExists } from '@/app/actions'; // For server action
-import AddressInput from '@/components/AddressInput';
+import AddressInputSimple from '@/components/AddressInputSimple';
 import { type EnhancedAddress, validatedToEnhanced } from '@/lib/addressCompat';
 import { type ValidatedAddress } from '@/lib/addressValidation';
 import { parseAddressString, serializeAddress } from '@/lib/addressUtils';
@@ -26,6 +26,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
   const [address, setAddress] = useState<EnhancedAddress>(parseAddressString(null)); // Enhanced address for signup
   const [validatedAddress, setValidatedAddress] = useState<ValidatedAddress | null>(null); // New validated address system
   const [isSignup, setIsSignup] = useState(false); // Toggle between login/signup
+  const [signupStep, setSignupStep] = useState<1 | 2>(1); // Two-step signup: 1=personal details, 2=address
   const [isLoading, setIsLoading] = useState(false); // Loading state
   const [showPassword, setShowPassword] = useState(false); // For toggle
   const [step, setStep] = useState('email'); // 'email' or 'password' for login; signup shows all
@@ -105,12 +106,14 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
         
         toast.success('Signup successful! Please check your email to confirm your account.');
         setIsSignup(false); // Switch to login mode
+        setSignupStep(1); // Reset to step 1
         setStep('email'); // Reset to email for login
         
         // Clear form fields
         setUsername('');
         setPhone('');
         setAddress(parseAddressString(null));
+        setValidatedAddress(null);
         
       } catch (signupError) {
         console.error('❌ Signup failed:', signupError);
@@ -174,20 +177,35 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
   return (
     <form
       onSubmit={
-        isSignup
-          ? handleSubmit
-          : step === 'password'
-            ? handleSubmit
-            : (e) => {
-                e.preventDefault();
-                handleContinue();
+        isSignup && signupStep === 1
+          ? (e) => {
+              e.preventDefault();
+              // Validate step 1 fields
+              if (!username.trim() || !phone.trim() || !email.trim() || !password.trim()) {
+                toast.error('Please fill in all required fields');
+                return;
               }
+              setSignupStep(2); // Move to address step
+            }
+          : isSignup && signupStep === 2
+            ? handleSubmit // Complete signup
+            : step === 'password'
+              ? handleSubmit // Login with password
+              : (e) => {
+                  e.preventDefault();
+                  handleContinue(); // Check email exists
+                }
       }
       className="space-y-4"
       autoComplete="off"
     >
-      {isSignup && (
+      {isSignup && signupStep === 1 && (
         <>
+          <div className="mb-4">
+            <p className="text-sm text-gray-400 mb-4">
+              📝 Step 1 of 2: Personal Details
+            </p>
+          </div>
           <div>
             <Label htmlFor="username">Full Name</Label>
             <Input
@@ -197,6 +215,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
               onChange={(e) => setUsername(e.target.value)}
               className="border-neonCyan hover:shadow-[0_0_5px_rgba(255,165,0,0.5)]"
               placeholder="Enter your full name"
+              required
             />
           </div>
           <div>
@@ -208,11 +227,23 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
               onChange={(e) => setPhone(e.target.value)}
               className="border-neonCyan hover:shadow-[0_0_5px_rgba(255,165,0,0.5)]"
               placeholder="+27123456789"
+              required
             />
           </div>
+        </>
+      )}
+      {isSignup && signupStep === 2 && (
+        <>
+          <div className="mb-4">
+            <p className="text-sm text-gray-400 mb-2">
+              📍 Step 2 of 2: Delivery Address (Optional)
+            </p>
+            <p className="text-xs text-gray-500">
+              You can skip this and add your address later in your profile
+            </p>
+          </div>
           <div>
-            <Label htmlFor="address">Address for Delivery</Label>
-            <AddressInput
+            <AddressInputSimple
               address={validatedAddress}
               onChange={(newValidatedAddress) => {
                 setValidatedAddress(newValidatedAddress);
@@ -221,28 +252,29 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
                 }
               }}
               required={false}
-              className="mt-2"
             />
           </div>
         </>
       )}
-      <div>
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="border-neonCyan hover:shadow-[0_0_5px_rgba(255,165,0,0.5)]"
-        />
-        {emailError && (
-          <p className="text-sm text-red-500 mt-1 shadow-[0_0_5px_rgba(255,0,0,0.5)]">
-            {emailError}
-          </p>
-        )}
-      </div>
-      {(step === 'password' || isSignup) && (
+      {(!isSignup || signupStep === 1) && (
+        <div>
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="border-neonCyan hover:shadow-[0_0_5px_rgba(255,165,0,0.5)]"
+          />
+          {emailError && (
+            <p className="text-sm text-red-500 mt-1 shadow-[0_0_5px_rgba(255,0,0,0.5)]">
+              {emailError}
+            </p>
+          )}
+        </div>
+      )}
+      {(step === 'password' || (isSignup && signupStep === 1)) && (
         <div>
           <Label htmlFor="password">Password</Label>
           <div className="relative">
@@ -279,32 +311,70 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
           )}
         </div>
       )}
-      <Button type="submit" className="neon-button w-full" disabled={isLoading}>
-        {isLoading
-          ? 'Loading...'
-          : isSignup
-            ? 'Signup'
-            : step === 'email'
-              ? 'Continue'
-              : 'Login'}
-      </Button>
-      <Button
-        type="button"
-        onClick={() => {
-          setIsSignup(!isSignup);
-          setStep('email'); // Reset step for toggle
-          setEmailError('');
-          setPasswordError('');
-          // Clear signup form fields when switching modes
-          setUsername('');
-          setPhone('');
-          setAddress(parseAddressString(null));
-        }}
-        variant="link"
-        className="w-full text-neonText"
-      >
-        {isSignup ? 'Already have an account? Login' : 'No account? Signup'}
-      </Button>
+      {/* Step navigation buttons for signup */}
+      {isSignup && signupStep === 2 && (
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            variant="outline"
+            className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700"
+            disabled={isLoading}
+          >
+            Skip for Now
+          </Button>
+          <Button
+            type="submit"
+            className="neon-button flex-1"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Creating Account...' : 'Complete Signup'}
+          </Button>
+        </div>
+      )}
+      
+      {/* Primary button for step 1 and login */}
+      {(!isSignup || signupStep === 1) && (
+        <Button type="submit" className="neon-button w-full" disabled={isLoading}>
+          {isLoading
+            ? 'Loading...'
+            : isSignup && signupStep === 1
+              ? 'Continue to Address'
+              : step === 'email'
+                ? 'Continue'
+                : 'Login'}
+        </Button>
+      )}
+      
+      {/* Back button for step 2 */}
+      {isSignup && signupStep === 2 && (
+        <Button
+          type="button"
+          onClick={() => setSignupStep(1)}
+          variant="link"
+          className="w-full text-gray-400 hover:text-neonCyan"
+        >
+          ← Back to Personal Details
+        </Button>
+      )}
+      
+      {/* Toggle between login and signup - only show on step 1 */}
+      {(!isSignup || signupStep === 1) && (
+        <Button
+          type="button"
+          onClick={() => {
+            setIsSignup(!isSignup);
+            setSignupStep(1); // Reset to step 1 when toggling
+            setStep('email');
+            setEmailError('');
+            setPasswordError('');
+          }}
+          variant="outline"
+          className="w-full border-neonText text-neonText"
+        >
+          {isSignup ? 'Already have an account? Login' : 'Don\'t have an account? Signup'}
+        </Button>
+      )}
     </form>
   );
 }
