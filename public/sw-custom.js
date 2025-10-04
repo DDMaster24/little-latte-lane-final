@@ -140,40 +140,204 @@ self.addEventListener('sync', (event) => {
   }
 });
 
-// Push notification support
+// Push notification support with structured payload handling
 self.addEventListener('push', (event) => {
-  console.log('📬 Push message received:', event);
+  console.log('📬 Push notification received:', event);
   
-  const options = {
-    body: event.data ? event.data.text() : 'New notification from Little Latte Lane',
+  let notificationData = {
+    title: 'Little Latte Lane',
+    body: 'You have a new notification',
     icon: '/icon-192x192.png',
     badge: '/icon-192x192.png',
-    vibrate: [200, 100, 200],
+    image: null,
     data: {
-      url: '/'
-    },
-    actions: [
-      {
-        action: 'open',
-        title: 'Open App',
-        icon: '/icon-192x192.png'
-      }
-    ]
+      url: '/account',
+      notification_type: 'general',
+      timestamp: Date.now()
+    }
   };
   
+  // Parse notification payload
+  if (event.data) {
+    try {
+      const payload = event.data.json();
+      console.log('📦 Notification payload:', payload);
+      
+      notificationData = {
+        title: payload.title || notificationData.title,
+        body: payload.body || notificationData.body,
+        icon: payload.icon || notificationData.icon,
+        badge: payload.badge || notificationData.badge,
+        image: payload.image || null,
+        data: {
+          url: payload.data?.action_url || payload.action_url || '/account',
+          notification_type: payload.data?.notification_type || payload.notification_type || 'general',
+          category: payload.data?.category || payload.category,
+          order_id: payload.data?.order_id,
+          order_number: payload.data?.order_number,
+          timestamp: Date.now()
+        }
+      };
+    } catch (error) {
+      console.error('❌ Failed to parse notification payload:', error);
+      // Use text fallback if JSON parsing fails
+      notificationData.body = event.data.text();
+    }
+  }
+  
+  // Configure notification options based on type
+  const options = {
+    body: notificationData.body,
+    icon: notificationData.icon,
+    badge: notificationData.badge,
+    image: notificationData.image,
+    vibrate: getVibrationPattern(notificationData.data.notification_type),
+    data: notificationData.data,
+    requireInteraction: isUrgentNotification(notificationData.data.notification_type),
+    tag: getNotificationTag(notificationData.data),
+    renotify: notificationData.data.notification_type === 'order_status',
+    silent: false,
+    actions: getNotificationActions(notificationData.data.notification_type)
+  };
+  
+  console.log('🔔 Displaying notification:', notificationData.title, options);
+  
   event.waitUntil(
-    self.registration.showNotification('Little Latte Lane', options)
+    self.registration.showNotification(notificationData.title, options)
   );
 });
 
-// Notification click handling
+// Helper function to get vibration pattern based on notification type
+function getVibrationPattern(notificationType) {
+  switch (notificationType) {
+    case 'order_status':
+      return [200, 100, 200, 100, 200]; // Urgent pattern
+    case 'promotional':
+      return [100, 50, 100]; // Gentle pattern
+    case 'event_announcement':
+      return [150, 75, 150, 75, 150]; // Medium pattern
+    default:
+      return [200, 100, 200]; // Default pattern
+  }
+}
+
+// Helper function to determine if notification requires interaction
+function isUrgentNotification(notificationType) {
+  // Order status notifications require user interaction
+  return notificationType === 'order_status';
+}
+
+// Helper function to generate notification tag for grouping
+function getNotificationTag(data) {
+  if (data.order_id) {
+    return `order-${data.order_id}`;
+  }
+  if (data.category) {
+    return `${data.notification_type}-${data.category}`;
+  }
+  return data.notification_type || 'general';
+}
+
+// Helper function to get notification actions based on type
+function getNotificationActions(notificationType) {
+  switch (notificationType) {
+    case 'order_status':
+      return [
+        {
+          action: 'view_order',
+          title: 'View Order',
+          icon: '/icon-192x192.png'
+        },
+        {
+          action: 'dismiss',
+          title: 'Dismiss'
+        }
+      ];
+    case 'promotional':
+      return [
+        {
+          action: 'view_offer',
+          title: 'View Offer',
+          icon: '/icon-192x192.png'
+        },
+        {
+          action: 'dismiss',
+          title: 'Not Now'
+        }
+      ];
+    case 'event_announcement':
+      return [
+        {
+          action: 'learn_more',
+          title: 'Learn More',
+          icon: '/icon-192x192.png'
+        },
+        {
+          action: 'dismiss',
+          title: 'Dismiss'
+        }
+      ];
+    default:
+      return [
+        {
+          action: 'open',
+          title: 'Open App',
+          icon: '/icon-192x192.png'
+        }
+      ];
+  }
+}
+
+// Enhanced notification click handling with action support
 self.addEventListener('notificationclick', (event) => {
-  console.log('🔔 Notification clicked:', event);
+  console.log('🔔 Notification clicked:', event.action, event.notification.data);
   
   event.notification.close();
   
+  // Handle different actions
+  if (event.action === 'dismiss') {
+    console.log('❌ Notification dismissed');
+    return;
+  }
+  
+  // Determine target URL based on action and data
+  let targetUrl = event.notification.data?.url || '/account';
+  
+  if (event.action === 'view_order' || event.notification.data?.order_id) {
+    targetUrl = '/account'; // Account page shows order history
+  } else if (event.action === 'view_offer') {
+    targetUrl = '/menu'; // Promotional offers go to menu
+  } else if (event.action === 'learn_more') {
+    targetUrl = '/'; // Events go to homepage
+  }
+  
+  console.log('🚀 Opening URL:', targetUrl);
+  
   event.waitUntil(
-    self.clients.openWindow(event.notification.data?.url || '/')
+    (async () => {
+      try {
+        // Try to focus existing window first
+        const windowClients = await self.clients.matchAll({
+          type: 'window',
+          includeUncontrolled: true
+        });
+        
+        for (const client of windowClients) {
+          if (client.url.includes(targetUrl) && 'focus' in client) {
+            console.log('🔍 Focusing existing window');
+            return client.focus();
+          }
+        }
+        
+        // If no matching window found, open new one
+        if (self.clients.openWindow) {
+          console.log('🆕 Opening new window');
+          return self.clients.openWindow(targetUrl);
+        }
+      } catch (error) {
+        console.error('❌ Failed to handle notification click:', error);
+      }
+    })()
   );
 });
 
