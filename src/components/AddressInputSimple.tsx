@@ -28,12 +28,35 @@ export default function AddressInputSimple({
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<google.maps.places.AutocompletePrediction[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [isManualEntry, setIsManualEntry] = useState(false);
+  const [googleApiLoaded, setGoogleApiLoaded] = useState(false);
+  const [manualAddress, setManualAddress] = useState({
+    streetAddress: '',
+    suburb: '',
+    postalCode: '',
+    city: 'Middleburg',
+    province: 'Mpumalanga'
+  });
   const searchInputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  // Initialize Google Maps API
+  // Initialize Google Maps API with proper loading check
   useEffect(() => {
-    addressValidation.initializeGoogleMaps();
+    const initGoogle = async () => {
+      try {
+        const loaded = await addressValidation.initializeGoogleMaps();
+        setGoogleApiLoaded(loaded);
+        if (!loaded) {
+          console.warn('Google Places API failed to load - manual entry available');
+          setIsManualEntry(true); // Fallback to manual if API fails
+        }
+      } catch (error) {
+        console.error('Error initializing Google Maps:', error);
+        setGoogleApiLoaded(false);
+        setIsManualEntry(true);
+      }
+    };
+    initGoogle();
   }, []);
 
   // Click outside to close results
@@ -61,47 +84,51 @@ export default function AddressInputSimple({
     if (!query || query.length < 3) {
       setSearchResults([]);
       setShowResults(false);
+      setIsSearching(false);
       return;
     }
 
     setIsSearching(true);
     
     try {
-      if (!window.google?.maps?.places) {
-        console.warn('Google Places API not loaded');
+      // Check if Google API is available
+      if (!googleApiLoaded || !window.google?.maps?.places) {
+        console.warn('Google Places API not available');
+        setIsSearching(false);
+        setSearchResults([]);
+        setShowResults(false);
         return;
       }
 
       const autocompleteService = new google.maps.places.AutocompleteService();
       
       const request: google.maps.places.AutocompletionRequest = {
-        input: query,
+        input: query + ', Middleburg, Mpumalanga', // Add location context
         componentRestrictions: { country: 'ZA' },
         types: ['address'],
-        locationBias: {
-          center: { lat: -25.775, lng: 29.464 }, // Middleburg center
-          radius: 20000 // 20km radius
-        } as google.maps.places.LocationBias
       };
 
       autocompleteService.getPlacePredictions(request, (predictions, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
-          // Filter for Middleburg addresses
-          const middleburgResults = predictions.filter(p => 
-            p.description.toLowerCase().includes('middleburg') || 
-            p.description.toLowerCase().includes('middelburg')
-          );
-          setSearchResults(middleburgResults);
+        console.log('Google Places predictions:', predictions, 'Status:', status);
+        
+        if (status === google.maps.places.PlacesServiceStatus.OK && predictions && predictions.length > 0) {
+          // Show all results, user can filter
+          setSearchResults(predictions);
           setShowResults(true);
         } else {
           setSearchResults([]);
           setShowResults(false);
+          if (status !== google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+            console.warn('Places API status:', status);
+          }
         }
         setIsSearching(false);
       });
     } catch (error) {
       console.error('Address search error:', error);
       setIsSearching(false);
+      setSearchResults([]);
+      setShowResults(false);
     }
   };
 
@@ -130,6 +157,43 @@ export default function AddressInputSimple({
   };
 
   /**
+   * Handle manual address entry validation
+   */
+  const handleManualValidation = async () => {
+    if (!manualAddress.streetAddress || !manualAddress.city) {
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const result = await addressValidation.validateManualAddress({
+        streetAddress: manualAddress.streetAddress,
+        suburb: manualAddress.suburb,
+        unitNumber: '',
+        postalCode: manualAddress.postalCode,
+        city: manualAddress.city,
+        province: manualAddress.province,
+        country: 'South Africa'
+      });
+      
+      if (result.success && result.address) {
+        onChange(result.address);
+      }
+    } catch (error) {
+      console.error('Manual validation error:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  /**
+   * Update manual address field
+   */
+  const updateManualField = (field: keyof typeof manualAddress, value: string) => {
+    setManualAddress(prev => ({ ...prev, [field]: value }));
+  };
+
+  /**
    * Get zone badge color
    */
   const getZoneBadgeColor = (zone: string) => {
@@ -147,101 +211,226 @@ export default function AddressInputSimple({
 
   return (
     <div className="space-y-4">
-      {/* Street Address Search */}
-      <div className="relative">
-        <Label htmlFor="street-search" className="text-white mb-2 block">
-          Street Address {required && <span className="text-red-400">*</span>}
-        </Label>
-        <div className="relative">
-          <Input
-            id="street-search"
-            ref={searchInputRef}
-            value={searchValue}
-            onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Start typing your street address..."
-            className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 pr-10"
-            autoComplete="off"
-          />
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            {isSearching ? (
-              <div className="animate-spin h-4 w-4 border-2 border-neonCyan border-t-transparent rounded-full" />
-            ) : (
-              <Search className="h-4 w-4 text-gray-400" />
-            )}
-          </div>
-        </div>
-        
-        {/* Search Results Dropdown */}
-        {showResults && searchResults.length > 0 && (
-          <div
-            ref={resultsRef}
-            className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto"
-          >
-            {searchResults.map((result) => (
-              <button
-                key={result.place_id}
-                type="button"
-                onClick={() => handleSelectAddress(result.place_id, result.description)}
-                className="w-full text-left px-4 py-3 hover:bg-gray-700 border-b border-gray-700 last:border-b-0 transition-colors"
-              >
-                <div className="flex items-start gap-2">
-                  <MapPin className="h-4 w-4 text-neonCyan mt-1 flex-shrink-0" />
-                  <div className="flex-1">
-                    <p className="text-white text-sm">{result.structured_formatting.main_text}</p>
-                    <p className="text-gray-400 text-xs">{result.structured_formatting.secondary_text}</p>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-        
-        <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-          <MapPin className="h-3 w-3" />
-          Powered by Google Maps • Searching in Middleburg, Mpumalanga
-        </p>
+      {/* Toggle between Google Search and Manual Entry */}
+      <div className="flex gap-2 mb-4">
+        <button
+          type="button"
+          onClick={() => setIsManualEntry(false)}
+          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+            !isManualEntry
+              ? 'bg-neonCyan text-black'
+              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+          }`}
+        >
+          <Search className="inline-block w-4 h-4 mr-1" />
+          Google Search
+        </button>
+        <button
+          type="button"
+          onClick={() => setIsManualEntry(true)}
+          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+            isManualEntry
+              ? 'bg-neonCyan text-black'
+              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+          }`}
+        >
+          Manual Entry
+        </button>
       </div>
 
-      {/* Auto-filled fields - only show when address is validated */}
-      {address && (
+      {!isManualEntry ? (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label className="text-gray-300 text-sm mb-2 block">Suburb / Area</Label>
+          {/* Google Places Search */}
+          <div className="relative">
+            <Label htmlFor="street-search" className="text-white mb-2 block">
+              Street Address {required && <span className="text-red-400">*</span>}
+            </Label>
+            <div className="relative">
               <Input
-                value={address.suburb}
-                readOnly
-                className="bg-gray-800/50 border-gray-700 text-gray-300 cursor-not-allowed"
+                id="street-search"
+                ref={searchInputRef}
+                value={searchValue}
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder="Start typing your street address in Middleburg..."
+                className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 pr-10"
+                autoComplete="off"
+                disabled={!googleApiLoaded}
               />
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                {isSearching ? (
+                  <div className="animate-spin h-4 w-4 border-2 border-neonCyan border-t-transparent rounded-full" />
+                ) : (
+                  <Search className="h-4 w-4 text-gray-400" />
+                )}
+              </div>
             </div>
             
+            {/* Google API Status */}
+            {!googleApiLoaded && (
+              <p className="text-xs text-yellow-400 mt-1">
+                ⚠️ Google Maps loading... Please try manual entry if this persists.
+              </p>
+            )}
+            
+            {/* Search Results Dropdown */}
+            {showResults && searchResults.length > 0 && (
+              <div
+                ref={resultsRef}
+                className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+              >
+                {searchResults.map((result) => (
+                  <button
+                    key={result.place_id}
+                    type="button"
+                    onClick={() => handleSelectAddress(result.place_id, result.description)}
+                    className="w-full text-left px-4 py-3 hover:bg-gray-700 border-b border-gray-700 last:border-b-0 transition-colors"
+                  >
+                    <div className="flex items-start gap-2">
+                      <MapPin className="h-4 w-4 text-neonCyan mt-1 flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-white text-sm">{result.structured_formatting.main_text}</p>
+                        <p className="text-gray-400 text-xs">{result.structured_formatting.secondary_text}</p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+            
+            <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+              <MapPin className="h-3 w-3" />
+              Powered by Google Maps • Searching in Middleburg, Mpumalanga
+            </p>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Manual Entry Fields */}
+          <div className="space-y-4">
             <div>
-              <Label className="text-gray-300 text-sm mb-2 block">Postal Code</Label>
+              <Label htmlFor="manual-street" className="text-white mb-2 block">
+                Street Address {required && <span className="text-red-400">*</span>}
+              </Label>
               <Input
-                value={address.postalCode}
-                readOnly
-                className="bg-gray-800/50 border-gray-700 text-gray-300 cursor-not-allowed"
+                id="manual-street"
+                value={manualAddress.streetAddress}
+                onChange={(e) => updateManualField('streetAddress', e.target.value)}
+                onBlur={handleManualValidation}
+                placeholder="e.g., 123 Main Street"
+                className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                required={required}
               />
             </div>
 
-            <div>
-              <Label className="text-gray-300 text-sm mb-2 block">City</Label>
-              <Input
-                value={address.city}
-                readOnly
-                className="bg-gray-800/50 border-gray-700 text-gray-300 cursor-not-allowed"
-              />
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="manual-suburb" className="text-white mb-2 block">
+                  Suburb / Area
+                </Label>
+                <Input
+                  id="manual-suburb"
+                  value={manualAddress.suburb}
+                  onChange={(e) => updateManualField('suburb', e.target.value)}
+                  onBlur={handleManualValidation}
+                  placeholder="e.g., Roberts Estate"
+                  className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                />
+              </div>
 
-            <div>
-              <Label className="text-gray-300 text-sm mb-2 block">Province</Label>
-              <Input
-                value={address.province}
-                readOnly
-                className="bg-gray-800/50 border-gray-700 text-gray-300 cursor-not-allowed"
-              />
+              <div>
+                <Label htmlFor="manual-postal" className="text-white mb-2 block">
+                  Postal Code
+                </Label>
+                <Input
+                  id="manual-postal"
+                  value={manualAddress.postalCode}
+                  onChange={(e) => updateManualField('postalCode', e.target.value)}
+                  onBlur={handleManualValidation}
+                  placeholder="1050 or 1055"
+                  className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="manual-city" className="text-white mb-2 block">
+                  City
+                </Label>
+                <Input
+                  id="manual-city"
+                  value={manualAddress.city}
+                  onChange={(e) => updateManualField('city', e.target.value)}
+                  onBlur={handleManualValidation}
+                  placeholder="Middleburg"
+                  className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="manual-province" className="text-white mb-2 block">
+                  Province
+                </Label>
+                <Input
+                  id="manual-province"
+                  value={manualAddress.province}
+                  onChange={(e) => updateManualField('province', e.target.value)}
+                  onBlur={handleManualValidation}
+                  placeholder="Mpumalanga"
+                  className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                />
+              </div>
             </div>
           </div>
+        </>
+      )}
+
+      {/* Auto-filled fields preview - always visible when using Google search */}
+      {!isManualEntry && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label className="text-gray-300 text-sm mb-2 block">Suburb / Area</Label>
+            <Input
+              value={address?.suburb || ''}
+              readOnly
+              placeholder="Will be filled automatically"
+              className="bg-gray-800/50 border-gray-700 text-gray-300 cursor-not-allowed"
+            />
+          </div>
+          
+          <div>
+            <Label className="text-gray-300 text-sm mb-2 block">Postal Code</Label>
+            <Input
+              value={address?.postalCode || ''}
+              readOnly
+              placeholder="Will be filled automatically"
+              className="bg-gray-800/50 border-gray-700 text-gray-300 cursor-not-allowed"
+            />
+          </div>
+
+          <div>
+            <Label className="text-gray-300 text-sm mb-2 block">City</Label>
+            <Input
+              value={address?.city || ''}
+              readOnly
+              placeholder="Will be filled automatically"
+              className="bg-gray-800/50 border-gray-700 text-gray-300 cursor-not-allowed"
+            />
+          </div>
+
+          <div>
+            <Label className="text-gray-300 text-sm mb-2 block">Province</Label>
+            <Input
+              value={address?.province || ''}
+              readOnly
+              placeholder="Will be filled automatically"
+              className="bg-gray-800/50 border-gray-700 text-gray-300 cursor-not-allowed"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Validation success and delivery info - only show when address is validated */}
+      {address && (
+        <>
 
           {/* Validation Success */}
           <Alert className="border-green-600 bg-green-600/10">
