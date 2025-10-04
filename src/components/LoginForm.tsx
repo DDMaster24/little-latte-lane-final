@@ -235,10 +235,10 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       {isSignup && signupStep === 2 && (
         <>
           <div className="mb-4">
-            <p className="text-sm text-gray-400 mb-2">
+            <p className="text-sm text-gray-200 font-medium mb-2">
               📍 Step 2 of 2: Delivery Address (Optional)
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-400">
               You can skip this and add your address later in your profile
             </p>
           </div>

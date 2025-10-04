@@ -68,7 +68,9 @@ export default function AddressInputSignup({
   // Validate city input
   const handleCityChange = (value: string) => {
     setCity(value);
-    const isMiddleburg = value.trim().toLowerCase() === 'middleburg';
+    const normalized = value.trim().toLowerCase();
+    // Accept both "Middleburg" and "Middelburg" (South African spelling)
+    const isMiddleburg = normalized === 'middleburg' || normalized === 'middelburg';
     setCityValid(value.trim() === '' ? null : isMiddleburg);
   };
 
@@ -222,10 +224,6 @@ export default function AddressInputSignup({
             ))}
           </div>
         )}
-        
-        <p className="text-xs text-gray-400 mt-1">
-          💡 Type to see Roberts Estate streets
-        </p>
       </div>
 
       {/* City and Postal Code */}
@@ -309,7 +307,7 @@ export default function AddressInputSignup({
             htmlFor="middleburg-delivery"
             className="text-sm text-gray-200 cursor-pointer flex-1"
           >
-            I understand that Roberts Estate only delivers inside of Middleburg {required && <span className="text-red-400">*</span>}
+            I understand that Little Latte Lane only delivers inside of Middleburg {required && <span className="text-red-400">*</span>}
           </label>
         </div>
       </div>
