@@ -1,95 +1,99 @@
 /**
  * Roberts Estate Street Validation
- * Simple list of all streets within Roberts Estate for delivery fee validation
+ * Complete list of all streets within Roberts Estate for delivery fee validation
  * R10 delivery if address matches any of these streets, R30 otherwise
  */
 
 export const ROBERTS_ESTATE_STREETS = [
-  // Main streets in Roberts Estate
-  'rstr crescent',
-  'hypoxis street',
-  'hypoxis',
-  'strelitzia street',
-  'strelitzia',
-  'protea street',
-  'protea',
-  'erica street',
-  'erica',
-  
-  // Common variations and abbreviations
-  'rstr',
-  'rstr cres',
-  
-  // Add more as discovered
+  'Sparaxis St',
+  'Aristea Cres',
+  'Clivia Cres',
+  'Amaryllis St',
+  'Freesia Street',
+  'Hypoxis Street',
+  'Ixia Street',
+  'Lillium St',
+  'Begonia St',
+  'Nerine Cres',
 ] as const;
 
 /**
- * Check if an address is within Roberts Estate based on street name
- * Case-insensitive partial matching
+ * Check if a street name is within Roberts Estate
+ * Case-insensitive exact or partial matching
  */
-export function isRobertsEstateAddress(address: string): boolean {
-  if (!address) return false;
+export function isRobertsEstateAddress(streetName: string): boolean {
+  if (!streetName) return false;
   
-  const normalizedAddress = address.toLowerCase().trim();
+  const normalized = streetName.toLowerCase().trim();
   
-  // Check if any of the Roberts Estate streets are mentioned in the address
-  return ROBERTS_ESTATE_STREETS.some(street => 
-    normalizedAddress.includes(street)
+  // Check if it matches any Roberts Estate street
+  return ROBERTS_ESTATE_STREETS.some(street => {
+    const streetLower = street.toLowerCase();
+    return normalized === streetLower || normalized.includes(streetLower) || streetLower.includes(normalized);
+  });
+}
+
+/**
+ * Search for matching Roberts Estate streets based on user input
+ * Returns filtered list for autocomplete dropdown
+ */
+export function searchRobertsEstateStreets(query: string): string[] {
+  if (!query || query.length < 2) return [];
+  
+  const normalizedQuery = query.toLowerCase().trim();
+  
+  return ROBERTS_ESTATE_STREETS.filter(street => 
+    street.toLowerCase().includes(normalizedQuery)
   );
 }
 
 /**
- * Get a friendly list of Roberts Estate streets for display
+ * Get complete list of Roberts Estate streets for display
  */
 export function getRobertsEstateStreetsList(): string[] {
-  return [
-    'RSTR Crescent',
-    'Hypoxis Street',
-    'Strelitzia Street',
-    'Protea Street',
-    'Erica Street',
-  ];
+  return [...ROBERTS_ESTATE_STREETS];
 }
 
 /**
- * Validate and suggest if address might be Roberts Estate
+ * Validate if street name is in Roberts Estate
+ * Returns exact match from the list if found
  */
-export function validateAddressForRobertsEstate(streetAddress: string, suburb?: string): {
+export function validateAddressForRobertsEstate(streetName: string): {
   isRobertsEstate: boolean;
-  confidence: 'high' | 'medium' | 'low';
-  suggestion?: string;
+  matchedStreet?: string;
+  confidence: 'high' | 'low';
 } {
-  const normalizedSuburb = suburb?.toLowerCase().trim() || '';
+  if (!streetName) {
+    return { isRobertsEstate: false, confidence: 'low' };
+  }
   
-  // High confidence: Street name matches AND suburb mentions "roberts estate"
-  if (isRobertsEstateAddress(streetAddress) && normalizedSuburb.includes('roberts')) {
+  const normalized = streetName.toLowerCase().trim();
+  
+  // Find exact match
+  const matchedStreet = ROBERTS_ESTATE_STREETS.find(street => 
+    street.toLowerCase() === normalized
+  );
+  
+  if (matchedStreet) {
     return {
       isRobertsEstate: true,
+      matchedStreet,
       confidence: 'high',
     };
   }
   
-  // Medium confidence: Only street name matches
-  if (isRobertsEstateAddress(streetAddress)) {
+  // Check partial match
+  const partialMatch = ROBERTS_ESTATE_STREETS.find(street => 
+    street.toLowerCase().includes(normalized) || normalized.includes(street.toLowerCase())
+  );
+  
+  if (partialMatch) {
     return {
       isRobertsEstate: true,
-      confidence: 'medium',
-      suggestion: 'This appears to be a Roberts Estate address. Please confirm if you live in Roberts Estate.',
+      matchedStreet: partialMatch,
+      confidence: 'high',
     };
   }
   
-  // Low confidence: Suburb mentions Roberts Estate but street doesn't match
-  if (normalizedSuburb.includes('roberts')) {
-    return {
-      isRobertsEstate: false,
-      confidence: 'low',
-      suggestion: 'You mentioned Roberts Estate, but the street name doesn\'t match our records. Please verify your address.',
-    };
-  }
-  
-  // Not Roberts Estate
-  return {
-    isRobertsEstate: false,
-    confidence: 'high',
-  };
+  return { isRobertsEstate: false, confidence: 'low' };
 }

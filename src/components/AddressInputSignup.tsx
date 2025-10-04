@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Home, AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { Home, AlertCircle, CheckCircle, MapPin } from 'lucide-react';
 import { addressValidation, type ValidatedAddress } from '@/lib/addressValidation';
-import { validateAddressForRobertsEstate, getRobertsEstateStreetsList } from '@/lib/robertsEstateStreets';
+import { validateAddressForRobertsEstate, searchRobertsEstateStreets } from '@/lib/robertsEstateStreets';
 
 interface AddressInputSignupProps {
   address: ValidatedAddress | null;
@@ -16,55 +16,116 @@ interface AddressInputSignupProps {
 }
 
 /**
- * Simple manual address entry for signup
- * Automatically detects Roberts Estate based on street name validation
- * No Google Maps, no GPS, no complications
+ * Smart address entry with autocomplete for Roberts Estate streets
+ * Separate fields: Unit Number, Street Name (with autocomplete), City, Postal Code
+ * Auto-detects Roberts Estate and adjusts delivery fee accordingly
  */
 export default function AddressInputSignup({
   address: _address,
   onChange,
   required = false
 }: AddressInputSignupProps) {
-  const [streetAddress, setStreetAddress] = useState('');
-  const [suburb, setSuburb] = useState('');
+  const [unitNumber, setUnitNumber] = useState('');
+  const [streetName, setStreetName] = useState('');
   const [postalCode, setPostalCode] = useState('');
-  const [city, setCity] = useState('Middleburg');
-  const [province, setProvince] = useState('Mpumalanga');
   const [isRobertsEstate, setIsRobertsEstate] = useState(false);
   const [autoDetectedRoberts, setAutoDetectedRoberts] = useState(false);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
+  
+  // Autocomplete state
+  const [streetSuggestions, setStreetSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const streetInputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+  
+  // Fixed values
+  const city = 'Middleburg';
+  const province = 'Mpumalanga';
 
-  // Auto-detect Roberts Estate based on street name
+  // Click outside to close suggestions
   useEffect(() => {
-    if (streetAddress) {
-      const validation = validateAddressForRobertsEstate(streetAddress, suburb);
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target as Node) &&
+        streetInputRef.current &&
+        !streetInputRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Handle street name input and show autocomplete
+  const handleStreetNameChange = (value: string) => {
+    setStreetName(value);
+    
+    // Search for matching streets
+    const matches = searchRobertsEstateStreets(value);
+    setStreetSuggestions(matches);
+    setShowSuggestions(matches.length > 0 && value.length >= 2);
+    setSelectedIndex(-1);
+  };
+
+  // Handle suggestion selection
+  const handleSelectStreet = (street: string) => {
+    setStreetName(street);
+    setShowSuggestions(false);
+    setStreetSuggestions([]);
+    
+    // Auto-check Roberts Estate checkbox
+    setIsRobertsEstate(true);
+    setAutoDetectedRoberts(true);
+    setValidationMessage(`✓ Roberts Estate detected: ${street}`);
+  };
+
+  // Keyboard navigation for autocomplete
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!showSuggestions || streetSuggestions.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev < streetSuggestions.length - 1 ? prev + 1 : prev));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev > 0 ? prev - 1 : -1));
+    } else if (e.key === 'Enter' && selectedIndex >= 0) {
+      e.preventDefault();
+      handleSelectStreet(streetSuggestions[selectedIndex]);
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+    }
+  };
+
+  // Auto-detect Roberts Estate when street name changes
+  useEffect(() => {
+    if (streetName) {
+      const validation = validateAddressForRobertsEstate(streetName);
       
       if (validation.isRobertsEstate && !isRobertsEstate) {
-        // Auto-check the checkbox if street name matches
         setIsRobertsEstate(true);
         setAutoDetectedRoberts(true);
-        setValidationMessage(`✓ Roberts Estate detected: ${streetAddress}`);
+        setValidationMessage(`✓ Roberts Estate detected: ${validation.matchedStreet || streetName}`);
       } else if (!validation.isRobertsEstate && isRobertsEstate && autoDetectedRoberts) {
-        // Uncheck if they change street and it no longer matches
         setIsRobertsEstate(false);
         setAutoDetectedRoberts(false);
         setValidationMessage(null);
       }
-      
-      if (validation.suggestion) {
-        setValidationMessage(validation.suggestion);
-      }
     }
-  }, [streetAddress, suburb, isRobertsEstate, autoDetectedRoberts]);
+  }, [streetName, isRobertsEstate, autoDetectedRoberts]);
 
   // Update validated address whenever fields change
   useEffect(() => {
-    if (streetAddress && city) {
+    if (streetName && unitNumber) {
       const validateAddress = async () => {
+        const fullAddress = `${unitNumber} ${streetName}`;
         const result = await addressValidation.validateManualAddress({
-          streetAddress,
-          suburb,
-          unitNumber: '',
+          streetAddress: fullAddress,
+          suburb: 'Roberts Estate',
+          unitNumber,
           postalCode,
           city,
           province,
@@ -72,14 +133,14 @@ export default function AddressInputSignup({
         });
 
         if (result.success && result.address) {
-          // Override delivery zone based on user's declaration OR auto-detection
           const updatedAddress: ValidatedAddress = {
             ...result.address,
+            streetAddress: fullAddress,
             deliveryZone: isRobertsEstate ? 'roberts_estate' : 'middleburg',
             deliveryFee: isRobertsEstate ? 10 : 30,
             isDeliveryAvailable: true,
-            isAddressVerified: false, // Manual entry is not GPS verified
-            confidenceScore: 0.5,
+            isAddressVerified: false,
+            confidenceScore: isRobertsEstate ? 0.9 : 0.5,
             validationWarnings: [
               `Manual entry: ${isRobertsEstate ? 'R10' : 'R30'} delivery fee will apply`
             ]
@@ -91,37 +152,80 @@ export default function AddressInputSignup({
     } else {
       onChange(null);
     }
-  }, [streetAddress, suburb, postalCode, city, province, isRobertsEstate, onChange]);
+  }, [unitNumber, streetName, postalCode, city, province, isRobertsEstate, onChange]);
 
   return (
     <div className="space-y-4">
-      {/* Street Address */}
+      {/* Unit/House Number */}
       <div>
-        <Label htmlFor="street-address" className="text-white mb-2 block">
-          Street Address {required && <span className="text-red-400">*</span>}
+        <Label htmlFor="unit-number" className="text-white mb-2 block">
+          Unit / House Number {required && <span className="text-red-400">*</span>}
         </Label>
         <Input
-          id="street-address"
-          value={streetAddress}
-          onChange={(e) => setStreetAddress(e.target.value)}
-          placeholder="e.g., 123 Main Street"
+          id="unit-number"
+          value={unitNumber}
+          onChange={(e) => setUnitNumber(e.target.value)}
+          placeholder="e.g., 123, 45A, Unit 12"
           className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
           required={required}
         />
       </div>
 
-      {/* Suburb and Postal Code */}
+      {/* Street Name with Autocomplete */}
+      <div className="relative">
+        <Label htmlFor="street-name" className="text-white mb-2 block">
+          Street Name {required && <span className="text-red-400">*</span>}
+        </Label>
+        <Input
+          id="street-name"
+          ref={streetInputRef}
+          value={streetName}
+          onChange={(e) => handleStreetNameChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Start typing street name..."
+          className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+          required={required}
+          autoComplete="off"
+        />
+        
+        {/* Autocomplete Dropdown */}
+        {showSuggestions && streetSuggestions.length > 0 && (
+          <div
+            ref={suggestionsRef}
+            className="absolute z-50 w-full mt-1 bg-gray-800 border border-neonCyan/30 rounded-lg shadow-xl max-h-60 overflow-y-auto"
+          >
+            {streetSuggestions.map((street, index) => (
+              <button
+                key={street}
+                type="button"
+                onClick={() => handleSelectStreet(street)}
+                className={`w-full text-left px-4 py-3 hover:bg-gray-700 transition-colors border-b border-gray-700 last:border-b-0 flex items-center gap-2 ${
+                  index === selectedIndex ? 'bg-gray-700' : ''
+                }`}
+              >
+                <MapPin className="h-4 w-4 text-neonCyan flex-shrink-0" />
+                <span className="text-white text-sm">{street}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        
+        <p className="text-xs text-gray-400 mt-1">
+          💡 Type to see Roberts Estate streets
+        </p>
+      </div>
+
+      {/* City and Postal Code */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="suburb" className="text-white mb-2 block">
-            Suburb / Area
+          <Label htmlFor="city" className="text-white mb-2 block">
+            City
           </Label>
           <Input
-            id="suburb"
-            value={suburb}
-            onChange={(e) => setSuburb(e.target.value)}
-            placeholder="e.g., Roberts Estate, Central"
-            className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+            id="city"
+            value={city}
+            readOnly
+            className="bg-gray-800/50 border-gray-700 text-gray-300 cursor-not-allowed"
           />
         </div>
 
@@ -139,44 +243,11 @@ export default function AddressInputSignup({
         </div>
       </div>
 
-      {/* City and Province */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="city" className="text-white mb-2 block">
-            City
-          </Label>
-          <Input
-            id="city"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            placeholder="Middleburg"
-            className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="province" className="text-white mb-2 block">
-            Province
-          </Label>
-          <Input
-            id="province"
-            value={province}
-            onChange={(e) => setProvince(e.target.value)}
-            placeholder="Mpumalanga"
-            className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-          />
-        </div>
-      </div>
-
       {/* Auto-detection Message */}
       {validationMessage && (
-        <Alert className={`${autoDetectedRoberts ? 'border-green-600 bg-green-600/10' : 'border-blue-600 bg-blue-600/10'}`}>
-          {autoDetectedRoberts ? (
-            <CheckCircle className="h-4 w-4 text-green-400" />
-          ) : (
-            <Info className="h-4 w-4 text-blue-400" />
-          )}
-          <AlertDescription className={`${autoDetectedRoberts ? 'text-green-200' : 'text-blue-200'} text-sm`}>
+        <Alert className="border-green-600 bg-green-600/10">
+          <CheckCircle className="h-4 w-4 text-green-400" />
+          <AlertDescription className="text-green-200 text-sm">
             {validationMessage}
           </AlertDescription>
         </Alert>
@@ -195,7 +266,7 @@ export default function AddressInputSignup({
             checked={isRobertsEstate}
             onCheckedChange={(checked) => {
               setIsRobertsEstate(checked as boolean);
-              setAutoDetectedRoberts(false); // Manual override
+              setAutoDetectedRoberts(false);
               setValidationMessage(null);
             }}
             className="mt-1"
@@ -209,25 +280,10 @@ export default function AddressInputSignup({
             </label>
             <p className="text-xs text-gray-400 mt-1">
               {autoDetectedRoberts 
-                ? 'Auto-detected based on your street address' 
-                : 'Check this if you live inside Roberts Estate'}
+                ? 'Auto-detected based on your street name' 
+                : 'Select your street from the dropdown above'}
             </p>
           </div>
-        </div>
-
-        {/* Roberts Estate Streets Info */}
-        <div className="mt-3 p-3 bg-gray-800/50 rounded border border-gray-700">
-          <p className="text-xs font-medium text-gray-300 mb-2">
-            📍 Roberts Estate includes these streets:
-          </p>
-          <ul className="text-xs text-gray-400 space-y-1">
-            {getRobertsEstateStreetsList().map((street) => (
-              <li key={street}>• {street}</li>
-            ))}
-          </ul>
-          <p className="text-xs text-gray-500 mt-2 italic">
-            If your street is listed above, the checkbox will be automatically checked
-          </p>
         </div>
 
         {/* Delivery Fee Info */}
