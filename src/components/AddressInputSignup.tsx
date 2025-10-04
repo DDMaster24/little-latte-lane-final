@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Home, AlertCircle } from 'lucide-react';
+import { Home, AlertCircle, CheckCircle, Info } from 'lucide-react';
 import { addressValidation, type ValidatedAddress } from '@/lib/addressValidation';
+import { validateAddressForRobertsEstate, getRobertsEstateStreetsList } from '@/lib/robertsEstateStreets';
 
 interface AddressInputSignupProps {
   address: ValidatedAddress | null;
@@ -16,7 +17,7 @@ interface AddressInputSignupProps {
 
 /**
  * Simple manual address entry for signup
- * User declares if they're in Roberts Estate or not
+ * Automatically detects Roberts Estate based on street name validation
  * No Google Maps, no GPS, no complications
  */
 export default function AddressInputSignup({
@@ -30,6 +31,31 @@ export default function AddressInputSignup({
   const [city, setCity] = useState('Middleburg');
   const [province, setProvince] = useState('Mpumalanga');
   const [isRobertsEstate, setIsRobertsEstate] = useState(false);
+  const [autoDetectedRoberts, setAutoDetectedRoberts] = useState(false);
+  const [validationMessage, setValidationMessage] = useState<string | null>(null);
+
+  // Auto-detect Roberts Estate based on street name
+  useEffect(() => {
+    if (streetAddress) {
+      const validation = validateAddressForRobertsEstate(streetAddress, suburb);
+      
+      if (validation.isRobertsEstate && !isRobertsEstate) {
+        // Auto-check the checkbox if street name matches
+        setIsRobertsEstate(true);
+        setAutoDetectedRoberts(true);
+        setValidationMessage(`✓ Roberts Estate detected: ${streetAddress}`);
+      } else if (!validation.isRobertsEstate && isRobertsEstate && autoDetectedRoberts) {
+        // Uncheck if they change street and it no longer matches
+        setIsRobertsEstate(false);
+        setAutoDetectedRoberts(false);
+        setValidationMessage(null);
+      }
+      
+      if (validation.suggestion) {
+        setValidationMessage(validation.suggestion);
+      }
+    }
+  }, [streetAddress, suburb, isRobertsEstate, autoDetectedRoberts]);
 
   // Update validated address whenever fields change
   useEffect(() => {
@@ -46,7 +72,7 @@ export default function AddressInputSignup({
         });
 
         if (result.success && result.address) {
-          // Override delivery zone based on user's declaration
+          // Override delivery zone based on user's declaration OR auto-detection
           const updatedAddress: ValidatedAddress = {
             ...result.address,
             deliveryZone: isRobertsEstate ? 'roberts_estate' : 'middleburg',
@@ -142,6 +168,20 @@ export default function AddressInputSignup({
         </div>
       </div>
 
+      {/* Auto-detection Message */}
+      {validationMessage && (
+        <Alert className={`${autoDetectedRoberts ? 'border-green-600 bg-green-600/10' : 'border-blue-600 bg-blue-600/10'}`}>
+          {autoDetectedRoberts ? (
+            <CheckCircle className="h-4 w-4 text-green-400" />
+          ) : (
+            <Info className="h-4 w-4 text-blue-400" />
+          )}
+          <AlertDescription className={`${autoDetectedRoberts ? 'text-green-200' : 'text-blue-200'} text-sm`}>
+            {validationMessage}
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Roberts Estate Checkbox */}
       <div className="p-4 bg-gray-900/50 rounded-lg border border-gray-600">
         <Label className="text-white font-medium flex items-center gap-2 mb-3">
@@ -153,7 +193,11 @@ export default function AddressInputSignup({
           <Checkbox
             id="roberts-estate"
             checked={isRobertsEstate}
-            onCheckedChange={(checked) => setIsRobertsEstate(checked as boolean)}
+            onCheckedChange={(checked) => {
+              setIsRobertsEstate(checked as boolean);
+              setAutoDetectedRoberts(false); // Manual override
+              setValidationMessage(null);
+            }}
             className="mt-1"
           />
           <div className="flex-1">
@@ -164,9 +208,26 @@ export default function AddressInputSignup({
               🏡 I am a Roberts Estate resident
             </label>
             <p className="text-xs text-gray-400 mt-1">
-              Check this if you live inside Roberts Estate
+              {autoDetectedRoberts 
+                ? 'Auto-detected based on your street address' 
+                : 'Check this if you live inside Roberts Estate'}
             </p>
           </div>
+        </div>
+
+        {/* Roberts Estate Streets Info */}
+        <div className="mt-3 p-3 bg-gray-800/50 rounded border border-gray-700">
+          <p className="text-xs font-medium text-gray-300 mb-2">
+            📍 Roberts Estate includes these streets:
+          </p>
+          <ul className="text-xs text-gray-400 space-y-1">
+            {getRobertsEstateStreetsList().map((street) => (
+              <li key={street}>• {street}</li>
+            ))}
+          </ul>
+          <p className="text-xs text-gray-500 mt-2 italic">
+            If your street is listed above, the checkbox will be automatically checked
+          </p>
         </div>
 
         {/* Delivery Fee Info */}
