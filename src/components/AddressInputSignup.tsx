@@ -5,9 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Home, AlertCircle, CheckCircle, MapPin } from 'lucide-react';
+import { AlertCircle, CheckCircle, MapPin } from 'lucide-react';
 import { addressValidation, type ValidatedAddress } from '@/lib/addressValidation';
-import { validateAddressForRobertsEstate, searchRobertsEstateStreets } from '@/lib/robertsEstateStreets';
+import { searchRobertsEstateStreets } from '@/lib/robertsEstateStreets';
 
 interface AddressInputSignupProps {
   address: ValidatedAddress | null;
@@ -27,10 +27,14 @@ export default function AddressInputSignup({
 }: AddressInputSignupProps) {
   const [unitNumber, setUnitNumber] = useState('');
   const [streetName, setStreetName] = useState('');
+  const [city, setCity] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [isRobertsEstate, setIsRobertsEstate] = useState(false);
-  const [autoDetectedRoberts, setAutoDetectedRoberts] = useState(false);
-  const [validationMessage, setValidationMessage] = useState<string | null>(null);
+  const [confirmMiddleburgDelivery, setConfirmMiddleburgDelivery] = useState(false);
+  
+  // Validation states
+  const [cityValid, setCityValid] = useState<boolean | null>(null);
+  const [postalCodeValid, setPostalCodeValid] = useState<boolean | null>(null);
   
   // Autocomplete state
   const [streetSuggestions, setStreetSuggestions] = useState<string[]>([]);
@@ -39,9 +43,11 @@ export default function AddressInputSignup({
   const streetInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   
-  // Fixed values
-  const city = 'Middleburg';
+  // Fixed value
   const province = 'Mpumalanga';
+  
+  // Valid postal codes for Middleburg
+  const VALID_POSTAL_CODES = ['1050', '1055', '1079', '1054'];
 
   // Click outside to close suggestions
   useEffect(() => {
@@ -59,6 +65,20 @@ export default function AddressInputSignup({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Validate city input
+  const handleCityChange = (value: string) => {
+    setCity(value);
+    const isMiddleburg = value.trim().toLowerCase() === 'middleburg';
+    setCityValid(value.trim() === '' ? null : isMiddleburg);
+  };
+
+  // Validate postal code input
+  const handlePostalCodeChange = (value: string) => {
+    setPostalCode(value);
+    const isValid = VALID_POSTAL_CODES.includes(value.trim());
+    setPostalCodeValid(value.trim() === '' ? null : isValid);
+  };
+
   // Handle street name input and show autocomplete
   const handleStreetNameChange = (value: string) => {
     setStreetName(value);
@@ -75,11 +95,6 @@ export default function AddressInputSignup({
     setStreetName(street);
     setShowSuggestions(false);
     setStreetSuggestions([]);
-    
-    // Auto-check Roberts Estate checkbox
-    setIsRobertsEstate(true);
-    setAutoDetectedRoberts(true);
-    setValidationMessage(`✓ Roberts Estate detected: ${street}`);
   };
 
   // Keyboard navigation for autocomplete
@@ -100,32 +115,18 @@ export default function AddressInputSignup({
     }
   };
 
-  // Auto-detect Roberts Estate when street name changes
-  useEffect(() => {
-    if (streetName) {
-      const validation = validateAddressForRobertsEstate(streetName);
-      
-      if (validation.isRobertsEstate) {
-        setIsRobertsEstate(true);
-        setAutoDetectedRoberts(true);
-        setValidationMessage(`✓ Roberts Estate detected: ${validation.matchedStreet || streetName}`);
-      } else {
-        // Only reset if it was auto-detected (don't override manual selection)
-        setAutoDetectedRoberts(false);
-        setValidationMessage(null);
-      }
-    } else {
-      // Clear when street name is empty
-      setValidationMessage(null);
-    }
-    // Only depend on streetName - don't include state we're updating!
-  }, [streetName]);
+  // No auto-detection - user must manually confirm Roberts Estate
 
   // Update validated address whenever fields change
-  // Using useRef to avoid recreating the function on every render
   useEffect(() => {
-    // Don't validate on every keystroke - only when we have complete info
-    if (!streetName || !unitNumber) {
+    // Don't validate until all required fields are filled
+    if (!streetName || !unitNumber || !city || !postalCode) {
+      onChange(null);
+      return;
+    }
+
+    // Only validate if city is Middleburg and postal code is valid
+    if (!cityValid || !postalCodeValid) {
       onChange(null);
       return;
     }
@@ -153,9 +154,7 @@ export default function AddressInputSignup({
             isDeliveryAvailable: true,
             isAddressVerified: false,
             confidenceScore: isRobertsEstate ? 0.9 : 0.5,
-            validationWarnings: [
-              `Manual entry: ${isRobertsEstate ? 'R10' : 'R30'} delivery fee will apply`
-            ]
+            validationWarnings: []
           };
           onChange(updatedAddress);
         }
@@ -166,7 +165,7 @@ export default function AddressInputSignup({
     }, 500); // 500ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [unitNumber, streetName, postalCode, isRobertsEstate, city, province, onChange]);
+  }, [unitNumber, streetName, postalCode, isRobertsEstate, city, province, onChange, cityValid, postalCodeValid]);
 
   return (
     <div className="space-y-4">
@@ -231,97 +230,88 @@ export default function AddressInputSignup({
 
       {/* City and Postal Code */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
+        <div className="relative">
           <Label htmlFor="city" className="text-white mb-2 block">
-            City
+            City {required && <span className="text-red-400">*</span>}
           </Label>
           <Input
             id="city"
             value={city}
-            readOnly
-            className="bg-gray-800/50 border-gray-700 text-gray-300 cursor-not-allowed"
+            onChange={(e) => handleCityChange(e.target.value)}
+            placeholder="Enter your city"
+            className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+            required={required}
           />
+          {cityValid === true && (
+            <CheckCircle className="absolute right-3 top-10 h-5 w-5 text-green-400" />
+          )}
+          {cityValid === false && (
+            <div className="mt-1">
+              <Alert className="border-red-600 bg-red-600/10">
+                <AlertCircle className="h-4 w-4 text-red-400" />
+                <AlertDescription className="text-red-200 text-xs">
+                  Unfortunately we do not deliver outside of Middleburg
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
         </div>
 
-        <div>
+        <div className="relative">
           <Label htmlFor="postal-code" className="text-white mb-2 block">
-            Postal Code
+            Postal Code {required && <span className="text-red-400">*</span>}
           </Label>
           <Input
             id="postal-code"
             value={postalCode}
-            onChange={(e) => setPostalCode(e.target.value)}
-            placeholder="e.g., 1050, 1055"
+            onChange={(e) => handlePostalCodeChange(e.target.value)}
+            placeholder="Enter postal code"
             className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+            required={required}
           />
+          {postalCodeValid === true && (
+            <CheckCircle className="absolute right-3 top-10 h-5 w-5 text-green-400" />
+          )}
+          {postalCodeValid === false && (
+            <p className="text-xs text-red-400 mt-1">
+              Invalid postal code. Valid codes: 1050, 1055, 1079, 1054
+            </p>
+          )}
         </div>
       </div>
 
-      {/* Auto-detection Message */}
-      {validationMessage && (
-        <Alert className="border-green-600 bg-green-600/10">
-          <CheckCircle className="h-4 w-4 text-green-400" />
-          <AlertDescription className="text-green-200 text-sm">
-            {validationMessage}
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Roberts Estate Checkbox */}
-      <div className="p-4 bg-gray-900/50 rounded-lg border border-gray-600">
-        <Label className="text-white font-medium flex items-center gap-2 mb-3">
-          <Home className="h-4 w-4 text-neonCyan" />
-          Delivery Location
-        </Label>
-
+      {/* Confirmation Checkboxes */}
+      <div className="space-y-3 p-4 bg-gray-900/30 rounded-lg border border-gray-600">
         <div className="flex items-start gap-3">
           <Checkbox
             id="roberts-estate"
             checked={isRobertsEstate}
-            onCheckedChange={(checked) => {
-              setIsRobertsEstate(checked as boolean);
-              setAutoDetectedRoberts(false);
-              setValidationMessage(null);
-            }}
+            onCheckedChange={(checked) => setIsRobertsEstate(checked as boolean)}
             className="mt-1"
           />
-          <div className="flex-1">
-            <label
-              htmlFor="roberts-estate"
-              className="text-sm text-gray-200 font-medium cursor-pointer"
-            >
-              🏡 I am a Roberts Estate resident
-            </label>
-            <p className="text-xs text-gray-400 mt-1">
-              {autoDetectedRoberts 
-                ? 'Auto-detected based on your street name' 
-                : 'Select your street from the dropdown above'}
-            </p>
-          </div>
+          <label
+            htmlFor="roberts-estate"
+            className="text-sm text-gray-200 cursor-pointer flex-1"
+          >
+            I am inside Roberts Estate
+          </label>
         </div>
 
-        {/* Delivery Fee Info */}
-        <div className="mt-4 pt-4 border-t border-gray-700">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-300">Delivery Fee:</span>
-            <span className="text-lg font-semibold text-neonCyan">
-              {isRobertsEstate ? 'R10.00' : 'R30.00'}
-            </span>
-          </div>
-          <p className="text-xs text-gray-400 mt-2">
-            {isRobertsEstate 
-              ? '🏡 Roberts Estate resident rate' 
-              : '🏘️ Standard Middleburg delivery rate'}
-          </p>
+        <div className="flex items-start gap-3">
+          <Checkbox
+            id="middleburg-delivery"
+            checked={confirmMiddleburgDelivery}
+            onCheckedChange={(checked) => setConfirmMiddleburgDelivery(checked as boolean)}
+            className="mt-1"
+            required={required}
+          />
+          <label
+            htmlFor="middleburg-delivery"
+            className="text-sm text-gray-200 cursor-pointer flex-1"
+          >
+            I understand that Roberts Estate only delivers inside of Middleburg {required && <span className="text-red-400">*</span>}
+          </label>
         </div>
-
-        {/* Important Notice */}
-        <Alert className="mt-4 border-yellow-600 bg-yellow-600/10">
-          <AlertCircle className="h-4 w-4 text-yellow-400" />
-          <AlertDescription className="text-yellow-200 text-xs">
-            ⚠️ Please ensure your address is accurate. Incorrect addresses may result in delivery delays or additional charges.
-          </AlertDescription>
-        </Alert>
       </div>
     </div>
   );
