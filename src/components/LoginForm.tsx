@@ -58,6 +58,13 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
     }
   }
 
+  // Validate South African phone number (10 digits starting with 0)
+  function validatePhoneNumber(phoneNum: string): boolean {
+    const cleaned = phoneNum.replace(/\s+/g, '').replace(/^\+27/, '0');
+    const phoneRegex = /^0\d{9}$/; // 0 followed by 9 digits
+    return phoneRegex.test(cleaned);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (blockedUntil > Date.now()) {
@@ -66,6 +73,27 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       );
       return;
     }
+    
+    // Validate phone number for signup
+    if (isSignup && signupStep === 1) {
+      if (!validatePhoneNumber(phone)) {
+        toast.error('Please enter a valid South African phone number (e.g., 0123456789)');
+        return;
+      }
+      
+      // Check if email already exists
+      const trimmedEmail = email.trim().toLowerCase();
+      const emailExists = await checkEmailExists(trimmedEmail);
+      if (emailExists) {
+        toast.error('This email is already registered. Please login instead.');
+        return;
+      }
+      
+      // Proceed to step 2
+      setSignupStep(2);
+      return;
+    }
+    
     setIsLoading(true);
     setPasswordError('');
     const trimmedEmail = email.trim().toLowerCase();
@@ -214,7 +242,6 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="border-neonCyan hover:shadow-[0_0_5px_rgba(255,165,0,0.5)]"
-              placeholder="Enter your full name"
               required
             />
           </div>
@@ -226,7 +253,6 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className="border-neonCyan hover:shadow-[0_0_5px_rgba(255,165,0,0.5)]"
-              placeholder="+27123456789"
               required
             />
           </div>

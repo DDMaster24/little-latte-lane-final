@@ -109,12 +109,25 @@ export default function AddressInputSignup({
     setShowSuggestions(matches.length > 0 && streetOnly.length >= 2);
     setSelectedIndex(-1);
     
-    // Auto-detect Roberts Estate based on street name match
-    if (streetOnly.length >= 2) {
-      const isMatch = matches.length > 0;
-      setAutoDetectedRobertsEstate(isMatch);
-      if (isMatch) {
+    // Auto-detect ONLY if EXACT full street name matches (case-insensitive)
+    // This prevents false positives like "Johannes Street" being detected as Roberts Estate
+    const ROBERTS_ESTATE_STREETS = [
+      'Sparaxis St', 'Aristea Cres', 'Clivia Cres', 'Amaryllis St',
+      'Freesia Street', 'Hypoxis Street', 'Ixia Street', 'Lillium St',
+      'Begonia St', 'Nerine Cres'
+    ];
+    
+    const normalizedInput = streetOnly.trim().toLowerCase();
+    const exactMatch = ROBERTS_ESTATE_STREETS.some(
+      street => street.toLowerCase() === normalizedInput
+    );
+    
+    if (normalizedInput.length >= 3) {
+      setAutoDetectedRobertsEstate(exactMatch);
+      if (exactMatch) {
         setIsRobertsEstate(true);
+      } else {
+        setIsRobertsEstate(false);
       }
     }
   };
@@ -133,6 +146,12 @@ export default function AddressInputSignup({
     setStreetName(street);
     setShowSuggestions(false);
     setStreetSuggestions([]);
+    
+    // AUTO-FILL City and Postal Code for Roberts Estate
+    setCity('Middelburg');
+    setPostalCode('1050');
+    setCityValid(true);
+    setPostalCodeValid(true);
     
     // Confirm Roberts Estate detection
     setAutoDetectedRobertsEstate(true);
@@ -220,7 +239,6 @@ export default function AddressInputSignup({
           id="unit-number"
           value={unitNumber}
           onChange={(e) => setUnitNumber(e.target.value)}
-          placeholder="e.g., 11"
           maxLength={6}
           className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
           required={required}
@@ -238,7 +256,6 @@ export default function AddressInputSignup({
           value={streetName}
           onChange={(e) => handleStreetNameChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Start typing street name..."
           className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
           required={required}
           autoComplete="off"
@@ -277,7 +294,6 @@ export default function AddressInputSignup({
             id="city"
             value={city}
             onChange={(e) => handleCityChange(e.target.value)}
-            placeholder="Enter your city"
             className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
             required={required}
           />
@@ -304,7 +320,6 @@ export default function AddressInputSignup({
             id="postal-code"
             value={postalCode}
             onChange={(e) => handlePostalCodeChange(e.target.value)}
-            placeholder="Enter postal code"
             className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
             required={required}
           />
