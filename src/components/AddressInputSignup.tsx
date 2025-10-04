@@ -105,17 +105,21 @@ export default function AddressInputSignup({
     if (streetName) {
       const validation = validateAddressForRobertsEstate(streetName);
       
-      if (validation.isRobertsEstate && !isRobertsEstate) {
+      if (validation.isRobertsEstate) {
         setIsRobertsEstate(true);
         setAutoDetectedRoberts(true);
         setValidationMessage(`✓ Roberts Estate detected: ${validation.matchedStreet || streetName}`);
-      } else if (!validation.isRobertsEstate && isRobertsEstate && autoDetectedRoberts) {
-        setIsRobertsEstate(false);
+      } else {
+        // Only reset if it was auto-detected (don't override manual selection)
         setAutoDetectedRoberts(false);
         setValidationMessage(null);
       }
+    } else {
+      // Clear when street name is empty
+      setValidationMessage(null);
     }
-  }, [streetName, isRobertsEstate, autoDetectedRoberts]);
+    // Only depend on streetName - don't include state we're updating!
+  }, [streetName]);
 
   // Update validated address whenever fields change
   useEffect(() => {
