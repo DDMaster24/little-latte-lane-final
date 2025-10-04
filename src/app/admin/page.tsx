@@ -5,7 +5,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Menu, Users, BarChart3, ShoppingBag,
-  Shield, Activity, CheckCircle, CreditCard, QrCode, Power
+  Shield, Activity, CheckCircle, CreditCard, QrCode, Power, Bell
 } from 'lucide-react';
 
 // Tab Components
@@ -17,12 +17,14 @@ import BookingManagement from '@/components/Admin/BookingManagement';
 import AdminOverview from '@/components/Admin/AdminOverview';
 import RestaurantClosureManagement from '@/components/Admin/RestaurantClosureManagementV2';
 import { QRCodeGenerator } from '@/components/QRCodeGenerator';
+import AdminNotificationsTab from '@/components/Admin/AdminNotificationsTab';
 
 const tabs = [
   { id: 'analytics', label: 'Analytics', icon: BarChart3, color: 'green-500' },
   { id: 'bookings', label: 'Booking Management', icon: Activity, color: 'green-500' },
   { id: 'content', label: 'Content Management', icon: CheckCircle, color: 'neonPink' },
   { id: 'menu', label: 'Menu Management', icon: Menu, color: 'neonCyan' },
+  { id: 'notifications', label: 'Notifications', icon: Bell, color: 'blue-500' },
   { id: 'orders', label: 'Order Management', icon: ShoppingBag, color: 'neonPink' },
   { id: 'overview', label: 'Overview', icon: BarChart3, color: 'neonCyan' },
   { id: 'qrcode', label: 'QR Code & App', icon: QrCode, color: 'orange-500' },
@@ -128,6 +130,8 @@ export default function AdminPage() {
         );
       case 'menu':
         return <MenuManagementThreeTier />;
+      case 'notifications':
+        return <AdminNotificationsTab />;
       case 'orders':
         return <OrderManagement />;
       case 'bookings':
