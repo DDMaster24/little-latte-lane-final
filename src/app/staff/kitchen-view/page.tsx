@@ -7,6 +7,7 @@ import { getStaffOrders, updateOrderStatus } from '@/app/actions';
 import OrderDetailsModal from '@/components/OrderDetailsModal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { sendOrderStatusNotification } from '@/lib/sendOrderStatusNotification';
 import {
   RefreshCw,
   Clock,
@@ -149,6 +150,9 @@ export default function KitchenView() {
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
     try {
+      // Find the order to get customer details
+      const order = orders.find(o => o.id === id);
+      
       const result = await updateOrderStatus(id, newStatus);
       
       if (!result.success) {
@@ -158,6 +162,42 @@ export default function KitchenView() {
       }
 
       toast.success(`Order moved to ${newStatus}`);
+      
+      // Send push notification when order is ready
+      if (newStatus === 'ready' && order?.user_id) {
+        console.log('📬 Sending notification for order ready:', order.order_number);
+        
+        // Send notification asynchronously (don't block UI)
+        sendOrderStatusNotification({
+          user_id: order.user_id,
+          order_id: order.id,
+          order_number: order.order_number || order.id.slice(0, 8),
+          status: 'ready',
+          customer_name: order.profiles?.full_name || undefined,
+          total_amount: order.total_amount || undefined,
+        })
+          .then((notificationResult) => {
+            if (notificationResult.success) {
+              console.log('✅ Notification sent successfully');
+              // Show subtle success indicator
+              toast.success('📲 Customer notified!', {
+                duration: 3000,
+                style: {
+                  background: '#10b981',
+                  color: 'white',
+                },
+              });
+            } else {
+              console.warn('⚠️ Notification failed:', notificationResult.message);
+              // Don't show error to kitchen staff - notification failure shouldn't block workflow
+            }
+          })
+          .catch((error) => {
+            console.error('💥 Notification error:', error);
+            // Silent fail - don't interrupt kitchen workflow
+          });
+      }
+      
       fetchOrders(); // Refresh immediately
     } catch (error) {
       toast.error('Failed to update order status');

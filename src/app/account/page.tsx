@@ -38,6 +38,7 @@ import {
 import { 
   OrderStatusSkeleton
 } from '@/components/LoadingComponents';
+import { NotificationPermissionPrompt } from '@/components/NotificationPermissionPrompt';
 
 interface OrderItem {
   menu_item_id?: string | null;
@@ -1048,6 +1049,26 @@ export default function AccountPage() {
           </Card>
         )}
       </div>
+
+      {/* Notification Permission Prompt - Auto-show for users with orders */}
+      {orders.length > 0 && (
+        <NotificationPermissionPrompt
+          autoShow={true}
+          onPermissionGranted={() => {
+            console.log('✅ User enabled notifications');
+            toast.success('Notifications enabled! You\'ll be notified when your orders are ready.', {
+              duration: 5000,
+              style: {
+                background: '#10b981',
+                color: 'white',
+              },
+            });
+          }}
+          onDismiss={() => {
+            console.log('ℹ️ User dismissed notification prompt');
+          }}
+        />
+      )}
     </div>
   );
 }
