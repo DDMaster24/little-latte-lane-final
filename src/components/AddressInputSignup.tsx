@@ -31,10 +31,14 @@ export default function AddressInputSignup({
   const [postalCode, setPostalCode] = useState('');
   const [isRobertsEstate, setIsRobertsEstate] = useState(false);
   const [confirmMiddleburgDelivery, setConfirmMiddleburgDelivery] = useState(false);
+  const [confirmDetection, setConfirmDetection] = useState(false);
   
   // Validation states
   const [cityValid, setCityValid] = useState<boolean | null>(null);
   const [postalCodeValid, setPostalCodeValid] = useState<boolean | null>(null);
+  
+  // Auto-detection state
+  const [autoDetectedRobertsEstate, setAutoDetectedRobertsEstate] = useState<boolean | null>(null);
   
   // Autocomplete state
   const [streetSuggestions, setStreetSuggestions] = useState<string[]>([]);
@@ -81,22 +85,58 @@ export default function AddressInputSignup({
     setPostalCodeValid(value.trim() === '' ? null : isValid);
   };
 
+  // Extract potential unit number from street input (e.g., "11 Aristea Street" -> unit: "11", street: "Aristea Street")
+  const parseStreetInput = (input: string): { unitNum: string; streetOnly: string } => {
+    const trimmed = input.trim();
+    // Match leading numbers/letters followed by space (e.g., "11 ", "45A ", "Unit 12 ")
+    const match = trimmed.match(/^([\dA-Za-z]+)\s+(.+)$/);
+    if (match) {
+      return { unitNum: match[1], streetOnly: match[2] };
+    }
+    return { unitNum: '', streetOnly: trimmed };
+  };
+
   // Handle street name input and show autocomplete
   const handleStreetNameChange = (value: string) => {
     setStreetName(value);
     
-    // Search for matching streets
-    const matches = searchRobertsEstateStreets(value);
+    // Parse input to extract potential unit number
+    const { streetOnly } = parseStreetInput(value);
+    
+    // Search for matching streets using ONLY the street name part (ignore unit number)
+    const matches = searchRobertsEstateStreets(streetOnly);
     setStreetSuggestions(matches);
-    setShowSuggestions(matches.length > 0 && value.length >= 2);
+    setShowSuggestions(matches.length > 0 && streetOnly.length >= 2);
     setSelectedIndex(-1);
+    
+    // Auto-detect Roberts Estate based on street name match
+    if (streetOnly.length >= 2) {
+      const isMatch = matches.length > 0;
+      setAutoDetectedRobertsEstate(isMatch);
+      if (isMatch) {
+        setIsRobertsEstate(true);
+      }
+    }
   };
 
-  // Handle suggestion selection
+  // Handle suggestion selection - auto-fill unit number if present
   const handleSelectStreet = (street: string) => {
+    // Parse current input to extract unit number
+    const { unitNum } = parseStreetInput(streetName);
+    
+    // If unit number was typed in street field, move it to unit field
+    if (unitNum && !unitNumber) {
+      setUnitNumber(unitNum);
+    }
+    
+    // Set clean street name
     setStreetName(street);
     setShowSuggestions(false);
     setStreetSuggestions([]);
+    
+    // Confirm Roberts Estate detection
+    setAutoDetectedRobertsEstate(true);
+    setIsRobertsEstate(true);
   };
 
   // Keyboard navigation for autocomplete
@@ -172,7 +212,7 @@ export default function AddressInputSignup({
   return (
     <div className="space-y-4">
       {/* Unit/House Number */}
-      <div>
+      <div className="max-w-[200px]">
         <Label htmlFor="unit-number" className="text-white mb-2 block">
           Unit / House Number {required && <span className="text-red-400">*</span>}
         </Label>
@@ -180,7 +220,8 @@ export default function AddressInputSignup({
           id="unit-number"
           value={unitNumber}
           onChange={(e) => setUnitNumber(e.target.value)}
-          placeholder="e.g., 123, 45A, Unit 12"
+          placeholder="e.g., 11"
+          maxLength={6}
           className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
           required={required}
         />
@@ -278,38 +319,108 @@ export default function AddressInputSignup({
         </div>
       </div>
 
-      {/* Confirmation Checkboxes */}
-      <div className="space-y-3 p-4 bg-gray-900/30 rounded-lg border border-gray-600">
-        <div className="flex items-start gap-3">
-          <Checkbox
-            id="roberts-estate"
-            checked={isRobertsEstate}
-            onCheckedChange={(checked) => setIsRobertsEstate(checked as boolean)}
-            className="mt-1"
-          />
-          <label
-            htmlFor="roberts-estate"
-            className="text-sm text-gray-200 cursor-pointer flex-1"
-          >
-            I am inside Roberts Estate
-          </label>
-        </div>
+      {/* Auto-Detection Panel */}
+      {autoDetectedRobertsEstate !== null && streetName && (
+        <Alert className={autoDetectedRobertsEstate ? "border-green-600 bg-green-600/10" : "border-orange-600 bg-orange-600/10"}>
+          <CheckCircle className={`h-4 w-4 ${autoDetectedRobertsEstate ? 'text-green-400' : 'text-orange-400'}`} />
+          <AlertDescription className={`${autoDetectedRobertsEstate ? 'text-green-200' : 'text-orange-200'} text-sm`}>
+            {autoDetectedRobertsEstate 
+              ? '✓ We have detected that you are a resident of Roberts Estate' 
+              : '⚠ We have detected you are not inside Roberts Estate'}
+          </AlertDescription>
+        </Alert>
+      )}
 
-        <div className="flex items-start gap-3">
-          <Checkbox
-            id="middleburg-delivery"
-            checked={confirmMiddleburgDelivery}
-            onCheckedChange={(checked) => setConfirmMiddleburgDelivery(checked as boolean)}
-            className="mt-1"
-            required={required}
-          />
-          <label
-            htmlFor="middleburg-delivery"
-            className="text-sm text-gray-200 cursor-pointer flex-1"
-          >
-            I understand that Little Latte Lane only delivers inside of Middleburg {required && <span className="text-red-400">*</span>}
-          </label>
-        </div>
+      {/* Confirmation Checkboxes - Dynamic based on detection */}
+      <div className="space-y-3 p-4 bg-gray-900/30 rounded-lg border border-gray-600">
+        {autoDetectedRobertsEstate === true && (
+          <>
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="confirm-detection"
+                checked={confirmDetection}
+                onCheckedChange={(checked) => setConfirmDetection(checked as boolean)}
+                className="mt-1"
+                required={required}
+              />
+              <label
+                htmlFor="confirm-detection"
+                className="text-sm text-gray-200 cursor-pointer flex-1"
+              >
+                I confirm the above information is correct {required && <span className="text-red-400">*</span>}
+              </label>
+            </div>
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="roberts-estate-confirm"
+                checked={isRobertsEstate}
+                onCheckedChange={(checked) => setIsRobertsEstate(checked as boolean)}
+                className="mt-1"
+                required={required}
+              />
+              <label
+                htmlFor="roberts-estate-confirm"
+                className="text-sm text-gray-200 cursor-pointer flex-1"
+              >
+                My delivery address is inside Roberts Estate {required && <span className="text-red-400">*</span>}
+              </label>
+            </div>
+          </>
+        )}
+        
+        {autoDetectedRobertsEstate === false && (
+          <>
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="confirm-detection"
+                checked={confirmDetection}
+                onCheckedChange={(checked) => setConfirmDetection(checked as boolean)}
+                className="mt-1"
+                required={required}
+              />
+              <label
+                htmlFor="confirm-detection"
+                className="text-sm text-gray-200 cursor-pointer flex-1"
+              >
+                I confirm the above information is correct {required && <span className="text-red-400">*</span>}
+              </label>
+            </div>
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="middleburg-delivery"
+                checked={confirmMiddleburgDelivery}
+                onCheckedChange={(checked) => setConfirmMiddleburgDelivery(checked as boolean)}
+                className="mt-1"
+                required={required}
+              />
+              <label
+                htmlFor="middleburg-delivery"
+                className="text-sm text-gray-200 cursor-pointer flex-1"
+              >
+                I understand that Little Latte Lane only delivers inside of Middleburg {required && <span className="text-red-400">*</span>}
+              </label>
+            </div>
+          </>
+        )}
+        
+        {/* Fallback if no detection yet */}
+        {autoDetectedRobertsEstate === null && (
+          <div className="flex items-start gap-3">
+            <Checkbox
+              id="middleburg-delivery"
+              checked={confirmMiddleburgDelivery}
+              onCheckedChange={(checked) => setConfirmMiddleburgDelivery(checked as boolean)}
+              className="mt-1"
+              required={required}
+            />
+            <label
+              htmlFor="middleburg-delivery"
+              className="text-sm text-gray-200 cursor-pointer flex-1"
+            >
+              I understand that Little Latte Lane only delivers inside of Middleburg {required && <span className="text-red-400">*</span>}
+            </label>
+          </div>
+        )}
       </div>
     </div>
   );
