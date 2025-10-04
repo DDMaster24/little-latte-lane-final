@@ -32,6 +32,8 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
   const [step, setStep] = useState('email'); // 'email' or 'password' for login; signup shows all
   const [emailError, setEmailError] = useState(''); // For email errors
   const [passwordError, setPasswordError] = useState(''); // For password errors
+  const [usernameError, setUsernameError] = useState(''); // For username errors
+  const [phoneError, setPhoneError] = useState(''); // For phone errors
   const [attempts, setAttempts] = useState(0); // Track attempts
   const maxAttempts = 5;
   const blockTime = 5 * 60 * 1000; // 5 min in ms
@@ -58,11 +60,75 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
     }
   }
 
+  // Validate password strength (min 8 chars, 1 uppercase, 1 number, 1 special char)
+  function validatePassword(pwd: string): { valid: boolean; errors: string[] } {
+    const errors: string[] = [];
+    
+    if (pwd.length < 8) {
+      errors.push('At least 8 characters');
+    }
+    if (!/[A-Z]/.test(pwd)) {
+      errors.push('One uppercase letter');
+    }
+    if (!/[0-9]/.test(pwd)) {
+      errors.push('One number');
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) {
+      errors.push('One special character (!@#$%^&*)');
+    }
+    
+    return { valid: errors.length === 0, errors };
+  }
+  
+  // Validate email format
+  function validateEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+  
   // Validate South African phone number (10 digits starting with 0)
   function validatePhoneNumber(phoneNum: string): boolean {
     const cleaned = phoneNum.replace(/\s+/g, '').replace(/^\+27/, '0');
     const phoneRegex = /^0\d{9}$/; // 0 followed by 9 digits
     return phoneRegex.test(cleaned);
+  }
+  
+  // Real-time validation on blur
+  function handlePasswordBlur() {
+    if (password) {
+      const validation = validatePassword(password);
+      if (!validation.valid) {
+        setPasswordError(validation.errors.join(', '));
+      } else {
+        setPasswordError('');
+      }
+    }
+  }
+  
+  function handleEmailBlur() {
+    if (email && !validateEmail(email)) {
+      setEmailError('Please enter a valid email address');
+    } else {
+      setEmailError('');
+    }
+  }
+  
+  function handleUsernameBlur() {
+    if (!username.trim()) {
+      setUsernameError('Full name is required');
+    } else {
+      setUsernameError('');
+    }
+  }
+  
+  function handlePhoneBlur() {
+    if (phone && !validatePhoneNumber(phone)) {
+      setPhoneError('Enter valid SA number (e.g., 0123456789)');
+    } else if (!phone.trim()) {
+      setPhoneError('Phone number is required');
+    } else {
+      setPhoneError('');
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -74,10 +140,49 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       return;
     }
     
-    // Validate phone number for signup
+    // Comprehensive validation for signup Step 1
     if (isSignup && signupStep === 1) {
+      // Validate all required fields
+      if (!username.trim()) {
+        setUsernameError('Full name is required');
+        toast.error('Please enter your full name');
+        return;
+      }
+      
+      if (!phone.trim()) {
+        setPhoneError('Phone number is required');
+        toast.error('Please enter your phone number');
+        return;
+      }
+      
       if (!validatePhoneNumber(phone)) {
-        toast.error('Please enter a valid South African phone number (e.g., 0123456789)');
+        setPhoneError('Enter valid SA number (e.g., 0123456789)');
+        toast.error('Please enter a valid South African phone number');
+        return;
+      }
+      
+      if (!email.trim()) {
+        setEmailError('Email is required');
+        toast.error('Please enter your email address');
+        return;
+      }
+      
+      if (!validateEmail(email)) {
+        setEmailError('Please enter a valid email address');
+        toast.error('Please enter a valid email address');
+        return;
+      }
+      
+      if (!password) {
+        setPasswordError('Password is required');
+        toast.error('Please enter a password');
+        return;
+      }
+      
+      const passwordValidation = validatePassword(password);
+      if (!passwordValidation.valid) {
+        setPasswordError(passwordValidation.errors.join(', '));
+        toast.error('Password must be stronger: ' + passwordValidation.errors.join(', '));
         return;
       }
       
@@ -85,11 +190,12 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       const trimmedEmail = email.trim().toLowerCase();
       const emailExists = await checkEmailExists(trimmedEmail);
       if (emailExists) {
+        setEmailError('This email is already registered');
         toast.error('This email is already registered. Please login instead.');
         return;
       }
       
-      // Proceed to step 2
+      // All validation passed - proceed to step 2
       setSignupStep(2);
       return;
     }
@@ -241,9 +347,15 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="border-neonCyan hover:shadow-[0_0_5px_rgba(255,165,0,0.5)]"
+              onBlur={handleUsernameBlur}
+              className={`hover:shadow-[0_0_5px_rgba(255,165,0,0.5)] ${usernameError ? 'border-red-500' : 'border-neonCyan'}`}
               required
             />
+            {usernameError && (
+              <p className="text-sm text-red-500 mt-1 shadow-[0_0_5px_rgba(255,0,0,0.5)]">
+                {usernameError}
+              </p>
+            )}
           </div>
           <div>
             <Label htmlFor="phone">Phone Number</Label>
@@ -252,9 +364,15 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="border-neonCyan hover:shadow-[0_0_5px_rgba(255,165,0,0.5)]"
+              onBlur={handlePhoneBlur}
+              className={`hover:shadow-[0_0_5px_rgba(255,165,0,0.5)] ${phoneError ? 'border-red-500' : 'border-neonCyan'}`}
               required
             />
+            {phoneError && (
+              <p className="text-sm text-red-500 mt-1 shadow-[0_0_5px_rgba(255,0,0,0.5)]">
+                {phoneError}
+              </p>
+            )}
           </div>
         </>
       )}
@@ -290,8 +408,9 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onBlur={handleEmailBlur}
             required
-            className="border-neonCyan hover:shadow-[0_0_5px_rgba(255,165,0,0.5)]"
+            className={`hover:shadow-[0_0_5px_rgba(255,165,0,0.5)] ${emailError ? 'border-red-500' : 'border-neonCyan'}`}
           />
           {emailError && (
             <p className="text-sm text-red-500 mt-1 shadow-[0_0_5px_rgba(255,0,0,0.5)]">
@@ -309,8 +428,9 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onBlur={handlePasswordBlur}
               required
-              className="border-neonCyan hover:shadow-[0_0_5px_rgba(255,165,0,0.5)] pr-10"
+              className={`hover:shadow-[0_0_5px_rgba(255,165,0,0.5)] pr-10 ${passwordError ? 'border-red-500' : 'border-neonCyan'}`}
             />
             <button
               type="button"
@@ -325,14 +445,24 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
               <p className="text-sm text-red-500 mt-1 shadow-[0_0_5px_rgba(255,0,0,0.5)]">
                 {passwordError}
               </p>
-              <Button
-                type="button"
-                onClick={handleForgotPassword}
-                variant="link"
-                className="text-neonText underline p-0"
-              >
-                Forgot Password?
-              </Button>
+              {isSignup && passwordError.includes('requirement') && (
+                <ul className="text-xs text-gray-400 mt-2 ml-4 list-disc">
+                  <li>At least 8 characters</li>
+                  <li>One uppercase letter (A-Z)</li>
+                  <li>One number (0-9)</li>
+                  <li>One special character (!@#$%^&*)</li>
+                </ul>
+              )}
+              {!isSignup && (
+                <Button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  variant="link"
+                  className="text-neonText underline p-0"
+                >
+                  Forgot Password?
+                </Button>
+              )}
             </div>
           )}
         </div>
