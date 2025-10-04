@@ -34,11 +34,13 @@ import {
   Save,
   X,
   CheckCircle,
+  Bell,
 } from 'lucide-react';
 import { 
   OrderStatusSkeleton
 } from '@/components/LoadingComponents';
 import { NotificationPermissionPrompt } from '@/components/NotificationPermissionPrompt';
+import NotificationSettingsPanel from '@/components/NotificationSettingsPanel';
 
 interface OrderItem {
   menu_item_id?: string | null;
@@ -427,6 +429,7 @@ export default function AccountPage() {
             { id: 'active', label: 'Active Orders', icon: Clock },
             { id: 'drafts', label: 'Draft Orders', icon: Edit2 },
             { id: 'profile', label: 'My Profile', icon: User },
+            { id: 'notifications', label: 'Notifications', icon: Bell },
             { id: 'orders', label: 'Order History', icon: Receipt },
           ].map(({ id, label, icon: Icon }) => (
             <button
@@ -957,6 +960,23 @@ export default function AccountPage() {
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === 'notifications' && (
+          <Card className="bg-gray-800 border-gray-600">
+            <CardHeader>
+              <CardTitle className="text-neonCyan flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                Notification Settings
+              </CardTitle>
+              <CardDescription>
+                Manage your notification preferences and subscriptions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <NotificationSettingsPanel />
             </CardContent>
           </Card>
         )}
