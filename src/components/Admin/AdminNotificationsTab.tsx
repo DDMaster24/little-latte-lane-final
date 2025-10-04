@@ -13,9 +13,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Bell, Send, Clock, Users, Image as ImageIcon, X, CheckCircle, AlertCircle } from 'lucide-react'
+import { Bell, Send, Clock, Users, Image as ImageIcon, X, CheckCircle, AlertCircle, History } from 'lucide-react'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
+import NotificationHistoryView from './NotificationHistoryView'
 
 interface BroadcastPayload {
   title: string
@@ -37,6 +38,7 @@ export default function AdminNotificationsTab() {
     message: string
     recipientCount?: number
   } | null>(null)
+  const [activeTab, setActiveTab] = useState<'compose' | 'history'>('compose')
 
   const handleSendNow = async () => {
     if (!title.trim() || !body.trim()) {
@@ -190,7 +192,29 @@ export default function AdminNotificationsTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Tab Navigation */}
+      <div className="flex gap-2 border-b border-gray-700 pb-2">
+        <Button
+          onClick={() => setActiveTab('compose')}
+          variant={activeTab === 'compose' ? 'default' : 'ghost'}
+          className={activeTab === 'compose' ? 'bg-neonCyan text-black hover:bg-cyan-400' : 'text-gray-400 hover:text-white'}
+        >
+          <Send className="h-4 w-4 mr-2" />
+          Compose Broadcast
+        </Button>
+        <Button
+          onClick={() => setActiveTab('history')}
+          variant={activeTab === 'history' ? 'default' : 'ghost'}
+          className={activeTab === 'history' ? 'bg-neonPink text-black hover:bg-pink-400' : 'text-gray-400 hover:text-white'}
+        >
+          <History className="h-4 w-4 mr-2" />
+          Broadcast History
+        </Button>
+      </div>
+
+      {/* Compose Tab Content */}
+      {activeTab === 'compose' && (
+        <>\n      {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-white mb-2">Send Broadcast Notification</h2>
         <p className="text-gray-400">
@@ -475,6 +499,13 @@ export default function AdminNotificationsTab() {
           <p>• Failed deliveries are logged and can be reviewed in the history</p>
         </CardContent>
       </Card>
+        </>
+      )}
+
+      {/* History Tab Content */}
+      {activeTab === 'history' && (
+        <NotificationHistoryView />
+      )}
     </div>
   )
 }
