@@ -271,11 +271,91 @@ export default function AdminNotificationsTab() {
             </p>
           </div>
 
-          {/* Image URL Input */}
+          {/* Image Upload */}
+          <div className="space-y-2">
+            <Label htmlFor="imageUpload" className="text-white flex items-center gap-2">
+              <ImageIcon className="h-4 w-4" />
+              Upload Image (Optional)
+            </Label>
+            <div className="flex gap-2">
+              <Input
+                id="imageUpload"
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (!file) return
+
+                  // Validate file size (max 5MB)
+                  if (file.size > 5 * 1024 * 1024) {
+                    toast.error('Image must be less than 5MB')
+                    e.target.value = ''
+                    return
+                  }
+
+                  // Validate file type
+                  if (!file.type.startsWith('image/')) {
+                    toast.error('Please select an image file')
+                    e.target.value = ''
+                    return
+                  }
+
+                  try {
+                    toast.loading('Uploading image...')
+                    
+                    // Create a unique filename
+                    const fileExt = file.name.split('.').pop()
+                    const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`
+                    const filePath = `notification-images/${fileName}`
+
+                    // Upload to Supabase storage
+                    const { getSupabaseClient } = await import('@/lib/supabase-client')
+                    const supabase = getSupabaseClient()
+                    
+                    const { data, error } = await supabase.storage
+                      .from('public-assets')
+                      .upload(filePath, file, {
+                        cacheControl: '3600',
+                        upsert: false
+                      })
+
+                    if (error) {
+                      console.error('Upload error:', error)
+                      toast.dismiss()
+                      toast.error('Failed to upload image: ' + error.message)
+                      e.target.value = ''
+                      return
+                    }
+
+                    // Get public URL
+                    const { data: { publicUrl } } = supabase.storage
+                      .from('public-assets')
+                      .getPublicUrl(data.path)
+
+                    setImageUrl(publicUrl)
+                    toast.dismiss()
+                    toast.success('Image uploaded successfully!')
+                    e.target.value = '' // Reset file input
+                  } catch (error) {
+                    console.error('Upload exception:', error)
+                    toast.dismiss()
+                    toast.error('Failed to upload image')
+                    e.target.value = ''
+                  }
+                }}
+                className="bg-gray-700 border-gray-600 text-white file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-neonCyan file:text-black hover:file:bg-cyan-400"
+              />
+            </div>
+            <p className="text-xs text-gray-400">
+              Upload an image (max 5MB, JPG/PNG/GIF/WebP)
+            </p>
+          </div>
+
+          {/* Image URL Input (Alternative) */}
           <div className="space-y-2">
             <Label htmlFor="imageUrl" className="text-white flex items-center gap-2">
               <ImageIcon className="h-4 w-4" />
-              Image URL (Optional)
+              Or Enter Image URL
             </Label>
             <div className="flex gap-2">
               <Input
@@ -494,7 +574,8 @@ export default function AdminNotificationsTab() {
           <p>• Notifications are sent only to users who have enabled push notifications</p>
           <p>• Keep titles concise and engaging (max 100 characters)</p>
           <p>• Messages should be clear and actionable (max 500 characters)</p>
-          <p>• Image URLs must be publicly accessible (HTTPS recommended)</p>
+          <p>• Upload images directly (max 5MB) or provide a public URL (HTTPS recommended)</p>
+          <p>• Uploaded images are stored in Supabase storage</p>
           <p>• Scheduled notifications will be sent at the specified time</p>
           <p>• Failed deliveries are logged and can be reviewed in the history</p>
         </CardContent>
