@@ -28,7 +28,7 @@ export default function AddressInputSimple({
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<google.maps.places.AutocompletePrediction[]>([]);
   const [showResults, setShowResults] = useState(false);
-  const [isManualEntry, setIsManualEntry] = useState(false);
+  const [isManualEntry, setIsManualEntry] = useState(true); // Default to manual entry
   const [googleApiLoaded, setGoogleApiLoaded] = useState(false);
   const [manualAddress, setManualAddress] = useState({
     streetAddress: '',
@@ -211,32 +211,34 @@ export default function AddressInputSimple({
 
   return (
     <div className="space-y-4">
-      {/* Toggle between Google Search and Manual Entry */}
-      <div className="flex gap-2 mb-4">
-        <button
-          type="button"
-          onClick={() => setIsManualEntry(false)}
-          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-            !isManualEntry
-              ? 'bg-neonCyan text-black'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-          }`}
-        >
-          <Search className="inline-block w-4 h-4 mr-1" />
-          Google Search
-        </button>
-        <button
-          type="button"
-          onClick={() => setIsManualEntry(true)}
-          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-            isManualEntry
-              ? 'bg-neonCyan text-black'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-          }`}
-        >
-          Manual Entry
-        </button>
-      </div>
+      {/* Toggle between Google Search and Manual Entry - only show if Google API is configured */}
+      {googleApiLoaded && (
+        <div className="flex gap-2 mb-4">
+          <button
+            type="button"
+            onClick={() => setIsManualEntry(false)}
+            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+              !isManualEntry
+                ? 'bg-neonCyan text-black'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            <Search className="inline-block w-4 h-4 mr-1" />
+            Google Search
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsManualEntry(true)}
+            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+              isManualEntry
+                ? 'bg-neonCyan text-black'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            Manual Entry
+          </button>
+        </div>
+      )}
 
       {!isManualEntry ? (
         <>
