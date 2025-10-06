@@ -13,12 +13,18 @@ import {
   useEffect,
   useState,
   useCallback,
+  useRef,
   type ReactNode,
 } from 'react';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { sessionManager } from '@/lib/enhanced-session-manager';
 import { User, Session } from '@supabase/supabase-js';
 import { getOrCreateUserProfile } from '@/app/actions';
+
+// Constants for profile fetching
+const PROFILE_FETCH_DELAY_MS = 200; // Delay to ensure database consistency
+const PROFILE_FETCH_MAX_RETRIES = 3;
+const PROFILE_FETCH_RETRY_DELAY_MS = 500;
 
 interface Profile {
   id: string;
@@ -64,29 +70,62 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
 
+  // Use ref to prevent race conditions in profile fetching
+  const profileFetchInProgress = useRef<string | null>(null);
+  const isCancelled = useRef(false);
+
   const supabase = getSupabaseClient();
 
   // Ensure component is mounted (prevents hydration issues)
   useEffect(() => {
     setMounted(true);
+    return () => {
+      isCancelled.current = true;
+    };
   }, []);
 
-  // Fetch user profile using server action
+  // Fetch user profile using server action with retry logic
   const fetchProfile = useCallback(
-    async (userId: string): Promise<Profile | null> => {
+    async (userId: string, retryCount = 0): Promise<Profile | null> => {
+      // Prevent duplicate fetches for same user
+      if (profileFetchInProgress.current === userId) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('⏭️ AuthProvider: Profile fetch already in progress for user:', userId);
+        }
+        return null;
+      }
+
+      profileFetchInProgress.current = userId;
+
       try {
-        console.log('🔍 AuthProvider: Fetching profile for user:', userId);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔍 AuthProvider: Fetching profile for user:', userId);
+        }
         
         // Use server action to get or create profile
         const result = await getOrCreateUserProfile(userId);
 
         if (!result.success) {
-          console.error('❌ AuthProvider: Profile fetch error:', result.error);
+          if (process.env.NODE_ENV === 'development') {
+            console.error('❌ AuthProvider: Profile fetch error:', result.error);
+          }
+          
+          // Retry logic for transient failures
+          if (retryCount < PROFILE_FETCH_MAX_RETRIES) {
+            if (process.env.NODE_ENV === 'development') {
+              console.log(`🔄 AuthProvider: Retrying profile fetch (${retryCount + 1}/${PROFILE_FETCH_MAX_RETRIES})...`);
+            }
+            await new Promise(resolve => setTimeout(resolve, PROFILE_FETCH_RETRY_DELAY_MS));
+            return fetchProfile(userId, retryCount + 1);
+          }
+          
           return null;
         }
 
         if (result.profile) {
-          console.log('✅ AuthProvider: Profile fetched successfully');
+          if (process.env.NODE_ENV === 'development') {
+            console.log('✅ AuthProvider: Profile fetched successfully');
+          }
           return {
             id: result.profile.id,
             full_name: result.profile.full_name,
@@ -101,8 +140,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         return null;
       } catch (err) {
-        console.error('❌ AuthProvider: Unexpected error:', err);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('❌ AuthProvider: Unexpected error:', err);
+        }
+        
+        // Retry on unexpected errors
+        if (retryCount < PROFILE_FETCH_MAX_RETRIES) {
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`🔄 AuthProvider: Retrying after error (${retryCount + 1}/${PROFILE_FETCH_MAX_RETRIES})...`);
+          }
+          await new Promise(resolve => setTimeout(resolve, PROFILE_FETCH_RETRY_DELAY_MS));
+          return fetchProfile(userId, retryCount + 1);
+        }
+        
         return null;
+      } finally {
+        profileFetchInProgress.current = null;
       }
     },
     [] // Remove profile dependency to prevent infinite loop
@@ -113,78 +166,85 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (!mounted) return;
 
     let cancelled = false;
-    let profileFetchInProgress = false;
 
-    // Don't force save session on startup - let Supabase handle it naturally
-    // This prevents conflicts during sign-up and login flows
-
-    // Get initial session with retry logic
+    // Get initial session with recovery logic
     const getInitialSession = async () => {
       try {
-        console.log('🔍 AuthProvider: Getting initial session...');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔍 AuthProvider: Getting initial session...');
+        }
+        
         const {
           data: { session: initialSession },
         } = await supabase.auth.getSession();
 
-        if (cancelled) return;
+        if (cancelled || isCancelled.current) return;
 
-        console.log('📧 AuthProvider: Initial session:', initialSession?.user?.email || 'none');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('📧 AuthProvider: Initial session:', initialSession?.user?.email || 'none');
+        }
         
         // If no session found, try to recover from backup storage
         if (!initialSession) {
-          console.log('🔄 AuthProvider: No session found, attempting recovery...');
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔄 AuthProvider: No session found, attempting recovery...');
+          }
+          
           try {
             const recoveryResult = await sessionManager.attemptSessionRecovery();
-            if (recoveryResult) {
-              console.log('✅ AuthProvider: Session recovered, re-fetching...');
+            if (recoveryResult && !cancelled) {
+              if (process.env.NODE_ENV === 'development') {
+                console.log('✅ AuthProvider: Session recovered, re-fetching...');
+              }
+              
               // Re-fetch session after recovery
               const { data: { session: recoveredSession } } = await supabase.auth.getSession();
-              if (recoveredSession) {
+              if (recoveredSession && !cancelled) {
                 setSession(recoveredSession);
-                console.log('🎉 AuthProvider: Successfully restored session for:', recoveredSession.user?.email);
                 
-                // Fetch profile for recovered session
-                if (!profileFetchInProgress) {
-                  profileFetchInProgress = true;
-                  
-                  // Add delay for database consistency
-                  await new Promise(resolve => setTimeout(resolve, 200));
-                  
-                  const userProfile = await fetchProfile(recoveredSession.user.id);
-                  if (!cancelled) {
-                    console.log('✅ AuthProvider: Profile set:', userProfile ? 'found' : 'not found');
-                    setProfile(userProfile);
-                  }
-                  profileFetchInProgress = false;
+                if (process.env.NODE_ENV === 'development') {
+                  console.log('🎉 AuthProvider: Successfully restored session for:', recoveredSession.user?.email);
+                }
+                
+                // Fetch profile for recovered session with delay for database consistency
+                await new Promise(resolve => setTimeout(resolve, PROFILE_FETCH_DELAY_MS));
+                const userProfile = await fetchProfile(recoveredSession.user.id);
+                
+                if (!cancelled && !isCancelled.current) {
+                  setProfile(userProfile);
                 }
                 return; // Exit early since we handled the recovered session
               }
             }
           } catch (recoveryError) {
-            console.warn('⚠️ AuthProvider: Session recovery failed:', recoveryError);
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('⚠️ AuthProvider: Session recovery failed:', recoveryError);
+            }
           }
         } else {
           setSession(initialSession);
         }
 
-        if (initialSession?.user && !profileFetchInProgress) {
-          profileFetchInProgress = true;
-          console.log('👤 AuthProvider: Fetching profile for initial session...');
+        // Fetch profile for initial session
+        if (initialSession?.user && !cancelled) {
+          if (process.env.NODE_ENV === 'development') {
+            console.log('👤 AuthProvider: Fetching profile for initial session...');
+          }
           
-          // Add small delay to ensure database is ready
-          await new Promise(resolve => setTimeout(resolve, 100));
-          
+          // Add delay to ensure database is ready
+          await new Promise(resolve => setTimeout(resolve, PROFILE_FETCH_DELAY_MS));
           const userProfile = await fetchProfile(initialSession.user.id);
-          if (!cancelled) {
-            console.log('✅ AuthProvider: Profile set:', userProfile ? 'found' : 'not found');
+          
+          if (!cancelled && !isCancelled.current) {
             setProfile(userProfile);
           }
-          profileFetchInProgress = false;
         }
       } catch (error) {
-        console.error('❌ AuthProvider: Error getting initial session:', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('❌ AuthProvider: Error getting initial session:', error);
+        }
       } finally {
-        if (!cancelled) {
+        if (!cancelled && !isCancelled.current) {
           setLoading(false);
         }
       }
@@ -196,33 +256,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event: string, newSession: Session | null) => {
-      if (cancelled) return;
+      if (cancelled || isCancelled.current) return;
 
-      console.log('🔄 AuthProvider: Auth state change:', event, newSession?.user?.email || 'none');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔄 AuthProvider: Auth state change:', event, newSession?.user?.email || 'none');
+      }
+      
       setSession(newSession);
 
-      if (newSession?.user && !profileFetchInProgress) {
+      if (newSession?.user) {
         // Only fetch profile if we don't have one or if it's a different user
         if (!profile || profile.id !== newSession.user.id) {
-          profileFetchInProgress = true;
-          console.log('👤 AuthProvider: Fetching profile for auth change...');
+          if (process.env.NODE_ENV === 'development') {
+            console.log('👤 AuthProvider: Fetching profile for auth change...');
+          }
           
           // Add delay for database consistency
-          await new Promise(resolve => setTimeout(resolve, 200));
-          
+          await new Promise(resolve => setTimeout(resolve, PROFILE_FETCH_DELAY_MS));
           const userProfile = await fetchProfile(newSession.user.id);
-          if (!cancelled) {
-            console.log('✅ AuthProvider: Profile updated:', userProfile ? 'found' : 'not found');
+          
+          if (!cancelled && !isCancelled.current) {
             setProfile(userProfile);
           }
-          profileFetchInProgress = false;
         }
-      } else if (!newSession?.user) {
-        console.log('🚪 AuthProvider: User signed out, clearing profile');
+      } else {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🚪 AuthProvider: User signed out, clearing profile');
+        }
         setProfile(null);
       }
 
-      if (!cancelled) {
+      if (!cancelled && !isCancelled.current) {
         setLoading(false);
       }
     });
@@ -231,7 +295,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       cancelled = true;
       subscription.unsubscribe();
     };
-  }, [mounted, fetchProfile, supabase.auth]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mounted, fetchProfile, profile, supabase.auth]);
 
   // Sign out function
   const signOut = useCallback(async () => {
@@ -244,12 +308,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Manual refresh profile method
   const refreshProfile = useCallback(async () => {
     if (session?.user?.id) {
-      console.log('🔄 AuthProvider: Refreshing profile for user:', session.user.id);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔄 AuthProvider: Refreshing profile for user:', session.user.id);
+      }
       const userProfile = await fetchProfile(session.user.id);
-      console.log('✅ AuthProvider: New profile data:', userProfile);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ AuthProvider: New profile data:', userProfile);
+      }
       setProfile(userProfile);
     } else {
-      console.log('❌ AuthProvider: No session or user ID for refresh');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('❌ AuthProvider: No session or user ID for refresh');
+      }
     }
   }, [session, fetchProfile]);
 

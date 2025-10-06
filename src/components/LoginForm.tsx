@@ -6,12 +6,18 @@ import toast from 'react-hot-toast'; // For feedback
 import { Input } from '@/components/ui/input'; // Shadcn UI for inputs
 import { Button } from '@/components/ui/button'; // Shadcn UI for buttons
 import { Label } from '@/components/ui/label'; // Shadcn UI for labels
-import { Eye, EyeOff } from 'lucide-react'; // For show/hide icons
+import { Eye, EyeOff, Loader2 } from 'lucide-react'; // For show/hide icons and loading
 import { checkEmailExists } from '@/app/actions'; // For server action
 import AddressInputSignup from '@/components/AddressInputSignup';
 import { type EnhancedAddress, validatedToEnhanced } from '@/lib/addressCompat';
 import { type ValidatedAddress } from '@/types/address';
 import { parseAddressString, serializeAddress } from '@/lib/addressUtils';
+
+// Constants for security and timing
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 5 * 60 * 1000; // 5 minutes
+const MODAL_CLOSE_DELAY_MS = 500; // Delay before closing modal after login
+const PASSWORD_MIN_LENGTH = 8;
 
 interface LoginFormProps {
   setIsModalOpen: (open: boolean) => void; // Prop to close modal on success
@@ -35,9 +41,8 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
   const [usernameError, setUsernameError] = useState(''); // For username errors
   const [phoneError, setPhoneError] = useState(''); // For phone errors
   const [attempts, setAttempts] = useState(0); // Track attempts
-  const maxAttempts = 5;
-  const blockTime = 5 * 60 * 1000; // 5 min in ms
   const [blockedUntil, setBlockedUntil] = useState(0); // Timestamp for block
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false); // Email verification loading state
 
   async function handleContinue() {
     if (blockedUntil > Date.now()) {
@@ -46,17 +51,27 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       );
       return;
     }
-    setIsLoading(true);
+    
+    setIsCheckingEmail(true);
     setEmailError('');
-    const trimmedEmail = email.trim().toLowerCase();
-    const exists = await checkEmailExists(trimmedEmail);
-    setIsLoading(false);
-    if (exists) {
-      setStep('password');
-    } else {
-      setEmailError(
-        'This email address is not registered. Please sign up for a new account.'
-      );
+    
+    try {
+      const trimmedEmail = email.trim().toLowerCase();
+      const exists = await checkEmailExists(trimmedEmail);
+      
+      if (exists) {
+        setStep('password');
+      } else {
+        setEmailError(
+          'This email address is not registered. Please sign up for a new account.'
+        );
+      }
+    } catch (error) {
+      console.error('Error checking email:', error);
+      toast.error('Failed to verify email. Please check your connection and try again.');
+      setEmailError('Network error. Please try again.');
+    } finally {
+      setIsCheckingEmail(false);
     }
   }
 
@@ -64,8 +79,8 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
   function validatePassword(pwd: string): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
     
-    if (pwd.length < 8) {
-      errors.push('At least 8 characters');
+    if (pwd.length < PASSWORD_MIN_LENGTH) {
+      errors.push(`At least ${PASSWORD_MIN_LENGTH} characters`);
     }
     if (!/[A-Z]/.test(pwd)) {
       errors.push('One uppercase letter');
@@ -80,9 +95,9 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
     return { valid: errors.length === 0, errors };
   }
   
-  // Validate email format
+  // Validate email format (RFC 5322 compliant)
   function validateEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
     return emailRegex.test(email);
   }
   
@@ -187,12 +202,21 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       }
       
       // Check if email already exists
-      const trimmedEmail = email.trim().toLowerCase();
-      const emailExists = await checkEmailExists(trimmedEmail);
-      if (emailExists) {
-        setEmailError('This email is already registered');
-        toast.error('This email is already registered. Please login instead.');
+      try {
+        setIsLoading(true);
+        const trimmedEmail = email.trim().toLowerCase();
+        const emailExists = await checkEmailExists(trimmedEmail);
+        if (emailExists) {
+          setEmailError('This email is already registered');
+          toast.error('This email is already registered. Please login instead.');
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking email:', error);
+        toast.error('Failed to verify email. Please try again.');
         return;
+      } finally {
+        setIsLoading(false);
       }
       
       // All validation passed - proceed to step 2
@@ -263,7 +287,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
         // Add a small delay to allow auth state to update
         setTimeout(() => {
           setIsModalOpen(false); // Close modal
-        }, 500);
+        }, MODAL_CLOSE_DELAY_MS);
       }
     }
     setIsLoading(false);
@@ -274,8 +298,8 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
           'Incorrect password. Please try again or reset your password.'
         );
         setAttempts(attempts + 1);
-        if (attempts + 1 >= maxAttempts) {
-          setBlockedUntil(Date.now() + blockTime);
+        if (attempts + 1 >= MAX_LOGIN_ATTEMPTS) {
+          setBlockedUntil(Date.now() + LOCKOUT_DURATION_MS);
           toast.error(
             'Too many failed attempts. Please try again later or reset your password.'
           );
@@ -289,7 +313,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
         // Add a small delay to allow auth state to update before closing modal
         setTimeout(() => {
           setIsModalOpen(false);
-        }, 500);
+        }, MODAL_CLOSE_DELAY_MS);
       }
     }
   }
@@ -299,12 +323,22 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       toast.error('Please enter your email first.');
       return;
     }
-    const trimmedEmail = email.trim().toLowerCase();
-    const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail);
-    if (error) {
-      toast.error(error.message || 'Failed to send reset email.');
-    } else {
-      toast.success('Password reset email sent! Check your inbox.');
+    
+    try {
+      setIsLoading(true);
+      const trimmedEmail = email.trim().toLowerCase();
+      const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail);
+      
+      if (error) {
+        toast.error(error.message || 'Failed to send reset email.');
+      } else {
+        toast.success('Password reset email sent! Check your inbox.');
+      }
+    } catch (error) {
+      console.error('Error sending password reset:', error);
+      toast.error('Failed to send reset email. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -348,11 +382,14 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               onBlur={handleUsernameBlur}
+              disabled={isLoading}
+              aria-invalid={!!usernameError}
+              aria-describedby={usernameError ? 'username-error' : undefined}
               className={`hover:shadow-[0_0_5px_rgba(255,165,0,0.5)] ${usernameError ? 'border-red-500' : 'border-neonCyan'}`}
               required
             />
             {usernameError && (
-              <p className="text-sm text-red-500 mt-1 shadow-[0_0_5px_rgba(255,0,0,0.5)]">
+              <p id="username-error" role="alert" className="text-sm text-red-500 mt-1 shadow-[0_0_5px_rgba(255,0,0,0.5)]">
                 {usernameError}
               </p>
             )}
@@ -365,11 +402,14 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               onBlur={handlePhoneBlur}
+              disabled={isLoading}
+              aria-invalid={!!phoneError}
+              aria-describedby={phoneError ? 'phone-error' : undefined}
               className={`hover:shadow-[0_0_5px_rgba(255,165,0,0.5)] ${phoneError ? 'border-red-500' : 'border-neonCyan'}`}
               required
             />
             {phoneError && (
-              <p className="text-sm text-red-500 mt-1 shadow-[0_0_5px_rgba(255,0,0,0.5)]">
+              <p id="phone-error" role="alert" className="text-sm text-red-500 mt-1 shadow-[0_0_5px_rgba(255,0,0,0.5)]">
                 {phoneError}
               </p>
             )}
@@ -410,10 +450,13 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
             onChange={(e) => setEmail(e.target.value)}
             onBlur={handleEmailBlur}
             required
+            disabled={isCheckingEmail || isLoading}
+            aria-invalid={!!emailError}
+            aria-describedby={emailError ? 'email-error' : undefined}
             className={`hover:shadow-[0_0_5px_rgba(255,165,0,0.5)] ${emailError ? 'border-red-500' : 'border-neonCyan'}`}
           />
           {emailError && (
-            <p className="text-sm text-red-500 mt-1 shadow-[0_0_5px_rgba(255,0,0,0.5)]">
+            <p id="email-error" role="alert" className="text-sm text-red-500 mt-1 shadow-[0_0_5px_rgba(255,0,0,0.5)]">
               {emailError}
             </p>
           )}
@@ -430,11 +473,15 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
               onChange={(e) => setPassword(e.target.value)}
               onBlur={handlePasswordBlur}
               required
+              disabled={isLoading}
+              aria-invalid={!!passwordError}
+              aria-describedby={passwordError ? 'password-error' : undefined}
               className={`hover:shadow-[0_0_5px_rgba(255,165,0,0.5)] pr-10 ${passwordError ? 'border-red-500' : 'border-neonCyan'}`}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-neonText"
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -442,7 +489,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
           </div>
           {passwordError && (
             <div>
-              <p className="text-sm text-red-500 mt-1 shadow-[0_0_5px_rgba(255,0,0,0.5)]">
+              <p id="password-error" role="alert" className="text-sm text-red-500 mt-1 shadow-[0_0_5px_rgba(255,0,0,0.5)]">
                 {passwordError}
               </p>
               {isSignup && passwordError.includes('requirement') && (
@@ -491,14 +538,17 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       
       {/* Primary button for step 1 and login */}
       {(!isSignup || signupStep === 1) && (
-        <Button type="submit" className="neon-button w-full" disabled={isLoading}>
-          {isLoading
-            ? 'Loading...'
-            : isSignup && signupStep === 1
-              ? 'Continue to Address'
-              : step === 'email'
-                ? 'Continue'
-                : 'Login'}
+        <Button type="submit" className="neon-button w-full" disabled={isLoading || isCheckingEmail}>
+          {(isLoading || isCheckingEmail) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isCheckingEmail
+            ? 'Checking email...'
+            : isLoading
+              ? 'Loading...'
+              : isSignup && signupStep === 1
+                ? 'Continue to Address'
+                : step === 'email'
+                  ? 'Continue'
+                  : 'Login'}
         </Button>
       )}
       
