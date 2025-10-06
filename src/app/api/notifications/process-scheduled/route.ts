@@ -5,21 +5,34 @@
  */
 
 import { NextResponse } from 'next/server'
-import { getSupabaseServer } from '@/lib/supabase-server'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
 import webpush from 'web-push'
 
-// Configure web-push with VAPID details
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT || 'mailto:support@littlelattelane.co.za',
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '',
-  process.env.VAPID_PRIVATE_KEY || ''
-)
+// Configure web-push with VAPID details only if keys are available
+if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    process.env.VAPID_SUBJECT || 'mailto:support@littlelattelane.co.za',
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  )
+}
 
 export async function POST() {
   try {
-    const supabase = await getSupabaseServer()
+    // Use admin client for cron jobs (no cookies/auth needed)
+    const supabase = getSupabaseAdmin()
     
     console.log('🕒 Starting scheduled notification processor...')
+
+    // Check if VAPID keys are configured
+    if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+      console.warn('⚠️ VAPID keys not configured - push notifications disabled')
+      return NextResponse.json({
+        success: true,
+        message: 'Push notifications not configured',
+        processedCount: 0,
+      })
+    }
 
     // Get all scheduled broadcasts that are due
     const { data: scheduledBroadcasts, error: queryError } = await supabase
