@@ -36,15 +36,27 @@ export function isRobertsEstateAddress(streetName: string): boolean {
 /**
  * Search for matching Roberts Estate streets based on user input
  * Returns filtered list for autocomplete dropdown
+ * ONLY matches the street NAME part (e.g., "Freesia" in "Freesia Street")
+ * Prevents false positives like "Test Street" matching any street with "Street" in it
  */
 export function searchRobertsEstateStreets(query: string): string[] {
   if (!query || query.length < 2) return [];
   
   const normalizedQuery = query.toLowerCase().trim();
   
-  return ROBERTS_ESTATE_STREETS.filter(street => 
-    street.toLowerCase().includes(normalizedQuery)
-  );
+  return ROBERTS_ESTATE_STREETS.filter(street => {
+    const streetLower = street.toLowerCase();
+    
+    // Extract the street NAME part (before "street", "st", "cres", "crescent")
+    const streetNamePart = streetLower
+      .replace(/\s+(street|st|cres|crescent)$/i, '')
+      .trim();
+    
+    // Match if query matches the street name part OR the full street name
+    // This ensures "Freesia" matches "Freesia Street"
+    // But "Test Street" does NOT match "Freesia Street" (only "Test" would match if there was a "Test Street")
+    return streetNamePart.includes(normalizedQuery) || streetLower === normalizedQuery;
+  });
 }
 
 /**
