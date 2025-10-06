@@ -350,7 +350,7 @@ export default function AddressInputSignup({
           <AlertDescription className={`${autoDetectedRobertsEstate ? 'text-green-200' : 'text-orange-200'} text-sm`}>
             {autoDetectedRobertsEstate 
               ? '✓ We have detected that you are a resident of Roberts Estate' 
-              : '⚠ We have detected you are not inside Roberts Estate'}
+              : '⚠ We have detected that you are not a resident of Roberts Estate'}
           </AlertDescription>
         </Alert>
       )}
