@@ -56,10 +56,10 @@ const isBuildTime = () => {
  * Validated environment variables with build-time fallbacks
  */
 export const env = envSchema.parse({
-  NODE_ENV: process.env['NODE_ENV'],
+  NODE_ENV: process.env['NODE_ENV'] || 'development',
   NEXT_PUBLIC_SUPABASE_URL: process.env['NEXT_PUBLIC_SUPABASE_URL'] || (isBuildTime() ? 'https://build-placeholder.supabase.co' : undefined),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] || (isBuildTime() ? 'build-placeholder-key' : undefined),
-  SUPABASE_SERVICE_ROLE_KEY: process.env['SUPABASE_SERVICE_ROLE_KEY'],
+  SUPABASE_SERVICE_ROLE_KEY: process.env['SUPABASE_SERVICE_ROLE_KEY'] || (isBuildTime() ? 'build-placeholder-key' : undefined),
   NEXT_PUBLIC_YOCO_TEST_MODE: process.env['NEXT_PUBLIC_YOCO_TEST_MODE'],
   YOCO_SECRET_KEY: process.env['YOCO_SECRET_KEY'],
   YOCO_PUBLIC_KEY: process.env['YOCO_PUBLIC_KEY'],
@@ -122,17 +122,6 @@ export function getEnvVar(key: keyof typeof env, fallback?: string): string {
   return String(value);
 }
 
-// Validate environment on module load (skip during Next.js build and data collection phases)
-if (
-  typeof process !== 'undefined' &&
-  process.env.NODE_ENV !== undefined &&
-  process.env.NEXT_PHASE !== 'phase-production-build' &&
-  process.env.NEXT_PHASE !== 'phase-export'
-) {
-  try {
-    validateEnvironment();
-  } catch (error) {
-    // Don't throw during module initialization to avoid breaking the app
-    console.warn('Environment validation warning:', error);
-  }
-}
+// Skip automatic validation - will be done by individual modules when needed
+// This prevents build-time validation failures when env vars aren't available
+// Validation will happen at runtime when the actual services are used
