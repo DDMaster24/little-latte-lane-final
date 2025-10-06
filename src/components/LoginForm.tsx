@@ -6,9 +6,10 @@ import toast from 'react-hot-toast'; // For feedback
 import { Input } from '@/components/ui/input'; // Shadcn UI for inputs
 import { Button } from '@/components/ui/button'; // Shadcn UI for buttons
 import { Label } from '@/components/ui/label'; // Shadcn UI for labels
-import { Eye, EyeOff, Loader2 } from 'lucide-react'; // For show/hide icons and loading
+import { Eye, EyeOff, Loader2, Mail, RefreshCw } from 'lucide-react'; // For show/hide icons and loading
 import { checkEmailExists } from '@/app/actions'; // For server action
 import AddressInputSignup from '@/components/AddressInputSignup';
+import OTPInput from '@/components/OTPInput';
 import { type EnhancedAddress, validatedToEnhanced } from '@/lib/addressCompat';
 import { type ValidatedAddress } from '@/types/address';
 import { parseAddressString, serializeAddress } from '@/lib/addressUtils';
@@ -18,6 +19,8 @@ const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 const MODAL_CLOSE_DELAY_MS = 500; // Delay before closing modal after login
 const PASSWORD_MIN_LENGTH = 8;
+const OTP_LENGTH = 6;
+const OTP_RESEND_DELAY_MS = 60 * 1000; // 1 minute between resend attempts
 
 interface LoginFormProps {
   setIsModalOpen: (open: boolean) => void; // Prop to close modal on success
@@ -43,6 +46,15 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
   const [attempts, setAttempts] = useState(0); // Track attempts
   const [blockedUntil, setBlockedUntil] = useState(0); // Timestamp for block
   const [isCheckingEmail, setIsCheckingEmail] = useState(false); // Email verification loading state
+  
+  // OTP verification states
+  const [isAwaitingOTP, setIsAwaitingOTP] = useState(false); // User needs to enter OTP
+  const [otpCode, setOtpCode] = useState(''); // 6-digit OTP code
+  const [isVerifyingOTP, setIsVerifyingOTP] = useState(false); // Verifying OTP loading state
+  const [otpError, setOtpError] = useState(''); // OTP error message
+  const [canResendOTP, setCanResendOTP] = useState(true); // Can user resend OTP
+  const [resendCountdown, setResendCountdown] = useState(0); // Countdown timer for resend
+  const [pendingEmail, setPendingEmail] = useState(''); // Store email for OTP verification
 
   async function handleContinue() {
     if (blockedUntil > Date.now()) {
@@ -143,6 +155,93 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       setPhoneError('Phone number is required');
     } else {
       setPhoneError('');
+    }
+  }
+
+  // Handle OTP verification
+  async function handleVerifyOTP() {
+    if (otpCode.length !== OTP_LENGTH) {
+      setOtpError('Please enter the complete 6-digit code');
+      toast.error('Please enter the complete verification code');
+      return;
+    }
+
+    try {
+      setIsVerifyingOTP(true);
+      setOtpError('');
+
+      // Verify the OTP code
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: pendingEmail,
+        token: otpCode,
+        type: 'email'
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        toast.success('Email verified successfully! Logging you in...');
+        
+        // User is now logged in automatically after OTP verification
+        // Wait a moment for auth state to update
+        setTimeout(() => {
+          setIsAwaitingOTP(false);
+          setOtpCode('');
+          setPendingEmail('');
+          setIsModalOpen(false); // Close the modal
+        }, MODAL_CLOSE_DELAY_MS);
+      }
+    } catch (error) {
+      console.error('OTP verification error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Invalid verification code';
+      setOtpError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsVerifyingOTP(false);
+    }
+  }
+
+  // Handle resending OTP
+  async function handleResendOTP() {
+    if (!canResendOTP) {
+      toast.error(`Please wait ${resendCountdown} seconds before requesting a new code`);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setOtpError('');
+
+      // Resend OTP using Supabase
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: pendingEmail,
+      });
+
+      if (error) throw error;
+
+      toast.success('Verification code resent! Please check your email.');
+      
+      // Start resend cooldown
+      setCanResendOTP(false);
+      setResendCountdown(OTP_RESEND_DELAY_MS / 1000);
+      
+      const interval = setInterval(() => {
+        setResendCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            setCanResendOTP(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (error) {
+      console.error('Resend OTP error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to resend code';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -247,6 +346,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
           email: trimmedEmail,
           password,
           options: {
+            emailRedirectTo: undefined, // Disable email redirect - we're using OTP
             data: signupMetadata,
           },
         });
@@ -259,19 +359,17 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
         console.log('📋 User metadata saved:', authData.user?.user_metadata);
 
         // Database trigger 'handle_new_user()' automatically creates the profile
-        // The AuthProvider will fetch it once the user confirms their email and logs in
+        // The AuthProvider will fetch it once the user verifies OTP and logs in
         // No manual profile creation needed here - prevents race conditions
         
-        toast.success('Signup successful! Please check your email to confirm your account.');
-        setIsSignup(false); // Switch to login mode
-        setSignupStep(1); // Reset to step 1
-        setStep('email'); // Reset to email for login
+        // Switch to OTP verification mode
+        setPendingEmail(trimmedEmail);
+        setIsAwaitingOTP(true);
+        setOtpCode('');
+        setCanResendOTP(true);
+        setResendCountdown(0);
         
-        // Clear form fields
-        setUsername('');
-        setPhone('');
-        setAddress(parseAddressString(null));
-        setValidatedAddress(null);
+        toast.success('Verification code sent! Please check your email and enter the 6-digit code below.');
         
       } catch (signupError) {
         console.error('❌ Signup failed:', signupError);
@@ -367,7 +465,103 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       className="space-y-4"
       autoComplete="off"
     >
-      {isSignup && signupStep === 1 && (
+      {/* OTP Verification Screen */}
+      {isAwaitingOTP ? (
+        <div className="space-y-6">
+          <div className="text-center">
+            <div className="mx-auto w-16 h-16 bg-gradient-to-r from-neonCyan to-neonPink rounded-full flex items-center justify-center mb-4">
+              <Mail className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">
+              Check Your Email
+            </h2>
+            <p className="text-gray-400 mb-1">
+              We sent a 6-digit verification code to:
+            </p>
+            <p className="text-white font-medium mb-4">{pendingEmail}</p>
+            <p className="text-sm text-gray-500">
+              Enter the code below to verify your email and complete signup
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="otp" className="text-center block mb-3">
+              Verification Code
+            </Label>
+            <OTPInput
+              value={otpCode}
+              onChange={setOtpCode}
+              disabled={isVerifyingOTP}
+              autoFocus
+            />
+            {otpError && (
+              <p role="alert" className="text-sm text-red-500 mt-3 text-center">
+                {otpError}
+              </p>
+            )}
+          </div>
+
+          <Button
+            type="button"
+            onClick={handleVerifyOTP}
+            disabled={isVerifyingOTP || otpCode.length !== OTP_LENGTH}
+            className="w-full neon-button"
+          >
+            {isVerifyingOTP ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Verifying...
+              </>
+            ) : (
+              'Verify Email'
+            )}
+          </Button>
+
+          <div className="text-center space-y-2">
+            <p className="text-sm text-gray-400">
+              Didn&apos;t receive the code?
+            </p>
+            <Button
+              type="button"
+              onClick={handleResendOTP}
+              disabled={!canResendOTP || isLoading}
+              variant="outline"
+              className="border-gray-600 text-gray-300 hover:bg-gray-700/50"
+            >
+              {!canResendOTP ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Resend in {resendCountdown}s
+                </>
+              ) : isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Resend Code
+                </>
+              )}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                setIsAwaitingOTP(false);
+                setOtpCode('');
+                setPendingEmail('');
+                setOtpError('');
+                toast('Verification cancelled. You can try signing up again.');
+              }}
+              variant="ghost"
+              className="text-gray-400 hover:text-white"
+            >
+              Cancel and go back
+            </Button>
+          </div>
+        </div>
+      ) : isSignup && signupStep === 1 && (
         <>
           <div className="mb-4">
             <p className="text-sm text-gray-400 mb-4">
