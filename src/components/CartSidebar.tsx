@@ -28,7 +28,7 @@ import {
   displaySouthAfricanPhone,
 } from '@/lib/phoneUtils';
 import AddressInput from '@/components/AddressInput';
-import { type ValidatedAddress } from '@/lib/addressValidation';
+import { type ValidatedAddress } from '@/types/address';
 import { type EnhancedAddress, validatedToEnhanced } from '@/lib/addressCompat';
 import { parseAddressString, serializeAddress, formatAddressForDisplay } from '@/lib/addressUtils';
 import { Checkbox } from '@/components/ui/checkbox';

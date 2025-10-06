@@ -10,7 +10,7 @@ import { Eye, EyeOff } from 'lucide-react'; // For show/hide icons
 import { checkEmailExists } from '@/app/actions'; // For server action
 import AddressInputSignup from '@/components/AddressInputSignup';
 import { type EnhancedAddress, validatedToEnhanced } from '@/lib/addressCompat';
-import { type ValidatedAddress } from '@/lib/addressValidation';
+import { type ValidatedAddress } from '@/types/address';
 import { parseAddressString, serializeAddress } from '@/lib/addressUtils';
 
 interface LoginFormProps {

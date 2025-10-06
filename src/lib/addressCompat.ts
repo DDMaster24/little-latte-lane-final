@@ -1,4 +1,4 @@
-import { type ValidatedAddress } from '@/lib/addressValidation';
+import { type ValidatedAddress } from '@/types/address';
 import { type DeliveryZone } from '@/lib/deliveryZones';
 
 /**

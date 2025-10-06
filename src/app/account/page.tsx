@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import AddressInput from '@/components/AddressInput';
 import { type EnhancedAddress, validatedToEnhanced } from '@/lib/addressCompat';
-import { type ValidatedAddress } from '@/lib/addressValidation';
+import { type ValidatedAddress } from '@/types/address';
 import { parseAddressString, serializeAddress, formatAddressForDisplay } from '@/lib/addressUtils';
 import { useCartStore } from '@/stores/cartStore';
 import toast from 'react-hot-toast';
