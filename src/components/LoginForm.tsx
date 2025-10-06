@@ -20,7 +20,8 @@ const LOCKOUT_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 const MODAL_CLOSE_DELAY_MS = 500; // Delay before closing modal after login
 const PASSWORD_MIN_LENGTH = 8;
 const OTP_LENGTH = 6;
-const OTP_RESEND_DELAY_MS = 60 * 1000; // 1 minute between resend attempts
+const OTP_RESEND_DELAY_MS = 60 * 1000; // 60 seconds between resend attempts (prevent spam)
+const OTP_EXPIRY_TIME_MINUTES = 60; // OTP codes expire after 60 minutes (configured in Supabase)
 
 interface LoginFormProps {
   setIsModalOpen: (open: boolean) => void; // Prop to close modal on success
@@ -193,7 +194,15 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       }
     } catch (error) {
       console.error('OTP verification error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Invalid verification code';
+      let errorMessage = error instanceof Error ? error.message : 'Invalid verification code';
+      
+      // Provide helpful messages for common errors
+      if (errorMessage.includes('expired') || errorMessage.includes('token')) {
+        errorMessage = `Verification code has expired (codes are valid for ${OTP_EXPIRY_TIME_MINUTES} minutes). Please click "Resend Code" to get a new one.`;
+      } else if (errorMessage.includes('invalid')) {
+        errorMessage = 'Invalid verification code. Please check the code and try again.';
+      }
+      
       setOtpError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -201,7 +210,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
     }
   }
 
-  // Handle resending OTP
+  // Handle resending OTP with 60-second cooldown to prevent abuse
   async function handleResendOTP() {
     if (!canResendOTP) {
       toast.error(`Please wait ${resendCountdown} seconds before requesting a new code`);
@@ -211,6 +220,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
     try {
       setIsLoading(true);
       setOtpError('');
+      setOtpCode(''); // Clear the old code
 
       // Resend OTP using Supabase
       const { error } = await supabase.auth.resend({
@@ -220,9 +230,9 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
 
       if (error) throw error;
 
-      toast.success('Verification code resent! Please check your email.');
+      toast.success(`New verification code sent! Valid for ${OTP_EXPIRY_TIME_MINUTES} minutes. Please check your email.`);
       
-      // Start resend cooldown
+      // Start 60-second resend cooldown to prevent spam
       setCanResendOTP(false);
       setResendCountdown(OTP_RESEND_DELAY_MS / 1000);
       
@@ -238,7 +248,13 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       }, 1000);
     } catch (error) {
       console.error('Resend OTP error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to resend code';
+      let errorMessage = error instanceof Error ? error.message : 'Failed to resend code';
+      
+      // Provide helpful error messages
+      if (errorMessage.includes('rate') || errorMessage.includes('too many')) {
+        errorMessage = 'Too many resend requests. Please wait a moment before trying again.';
+      }
+      
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -366,10 +382,24 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
         setPendingEmail(trimmedEmail);
         setIsAwaitingOTP(true);
         setOtpCode('');
-        setCanResendOTP(true);
-        setResendCountdown(0);
         
-        toast.success('Verification code sent! Please check your email and enter the 6-digit code below.');
+        // Initialize resend cooldown (60 seconds to prevent immediate spam)
+        setCanResendOTP(false);
+        setResendCountdown(OTP_RESEND_DELAY_MS / 1000);
+        
+        // Start countdown timer for resend button
+        const interval = setInterval(() => {
+          setResendCountdown((prev) => {
+            if (prev <= 1) {
+              clearInterval(interval);
+              setCanResendOTP(true);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+        
+        toast.success(`Verification code sent! Valid for ${OTP_EXPIRY_TIME_MINUTES} minutes. Please check your email and enter the 6-digit code below.`);
         
       } catch (signupError) {
         console.error('❌ Signup failed:', signupError);
@@ -478,10 +508,15 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
             <p className="text-gray-400 mb-1">
               We sent a 6-digit verification code to:
             </p>
-            <p className="text-white font-medium mb-4">{pendingEmail}</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-white font-medium mb-2">{pendingEmail}</p>
+            <p className="text-sm text-gray-500 mb-3">
               Enter the code below to verify your email and complete signup
             </p>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600/20 border border-blue-500/30 rounded-lg">
+              <span className="text-xs text-blue-300">
+                ⏱️ Code expires in {OTP_EXPIRY_TIME_MINUTES} minutes
+              </span>
+            </div>
           </div>
 
           <div>
