@@ -30,12 +30,12 @@ export function detectDeliveryZone(suburb: string): {
 } {
   const suburbLower = suburb.toLowerCase().trim();
 
-  // Roberts Estate - Special rate (R15)
+  // Roberts Estate - Special rate (R10)
   if (suburbLower.includes('roberts') || suburbLower.includes('estate')) {
-    return { zone: 'roberts_estate', fee: 15, available: true };
+    return { zone: 'roberts_estate', fee: 10, available: true };
   }
 
-  // Middleburg suburbs - Standard rate (R25)
+  // Middleburg suburbs - Standard rate (R30)
   const middleburgSuburbs = [
     'central',
     'east',
@@ -49,7 +49,7 @@ export function detectDeliveryZone(suburb: string): {
   ];
 
   if (middleburgSuburbs.some((s) => suburbLower.includes(s))) {
-    return { zone: 'middleburg', fee: 25, available: true };
+    return { zone: 'middleburg', fee: 30, available: true };
   }
 
   // Outside delivery area
