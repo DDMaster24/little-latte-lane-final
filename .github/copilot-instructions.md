@@ -1,5 +1,57 @@
 # Little Latte Lane - AI Development Instructions
 
+## 🚨 ABSOLUTE RULES - ZERO TOLERANCE - IMMEDIATE TERMINATION IF VIOLATED
+
+### **❌ PERMANENTLY BANNED - NEVER DO THESE:**
+
+1. **NO DOCUMENTATION FILES** - **EVER**
+   - ❌ NEVER create `.md` files (README.md and PROJECT-CONTRACT.md are the ONLY exceptions)
+   - ❌ NEVER create guides, analysis reports, checklists, or "helpful" documentation
+   - ❌ Files like `NOTIFICATION-SYSTEM-ANALYSIS.md`, `SECURITY-INCIDENT-RESPONSE.md`, `SUPABASE-OTP-CONFIG.md` are **BANNED**
+   - ✅ **ALL information goes in chat ONLY**
+   - ✅ User explicitly requested: "stop creating documentation files, you're flooding the project"
+   - ✅ **Violation = Security incident (API keys in docs)**
+
+2. **NEVER STOP MID-TASK**
+   - ❌ NEVER ask "do you want me to continue?"
+   - ❌ NEVER pause and wait for permission to finish
+   - ❌ NEVER split work into "phases" that require approval
+   - ✅ **COMPLETE ALL WORK FULLY** before responding
+   - ✅ If task requires multiple steps → DO ALL STEPS
+   - ✅ Example: "Fixing Google Maps" → Remove ALL references, don't stop halfway
+
+3. **NO API KEYS IN ANY FILE**
+   - ❌ NEVER write actual API keys in any file except `.env.local` (which is gitignored)
+   - ❌ NEVER include keys in documentation, analysis, or chat examples
+   - ✅ **ALWAYS redact**: `re_**********************` or `YOUR_KEY_HERE`
+   - ✅ **Double-check BEFORE committing** - scan for patterns like `re_`, `sk_`, `pk_`, API keys
+
+4. **EFFICIENT TOKEN USAGE**
+   - ❌ User is paying for GitHub Copilot subscription - don't waste money
+   - ❌ No 2000-line documentation files nobody reads
+   - ❌ No verbose explanations when concise works
+   - ✅ Be thorough but efficient
+   - ✅ Code + brief explanation in chat = perfect
+
+### **✅ CORRECT APPROACH:**
+
+**User asks for analysis → Provide in CHAT with:**
+- Clear summary (3-5 bullet points)
+- Specific findings with line numbers
+- Actionable recommendations
+- Code examples if needed
+
+**User asks to fix something → DO IT COMPLETELY:**
+1. Analyze the issue
+2. Fix ALL related problems
+3. Test thoroughly
+4. Commit with clear message
+5. Report completion in chat
+
+**NO documentation files. NO stopping mid-task. ALWAYS finish completely.**
+
+---
+
 ## Architecture Overview
 
 **Little Latte Lane** is a Next.js 15 + React 19 restaurant platform with Supabase backend, featuring:
