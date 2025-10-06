@@ -92,8 +92,8 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const [draftOrders, setDraftOrders] = useState<Array<{
     id: string;
     order_number: string | null;
-    total_amount: number;
-    created_at: string;
+    total_amount: number | null;
+    created_at: string | null;
     order_items: OrderItemWithMenu[];
   }>>([]);
 
@@ -486,7 +486,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                                   Order #{order.order_number || order.id.slice(-6)}
                                 </p>
                                 <p className="text-xs text-gray-400">
-                                  R{order.total_amount.toFixed(2)} • {new Date(order.created_at).toLocaleDateString()}
+                                  R{(order.total_amount || 0).toFixed(2)} • {order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}
                                 </p>
                               </div>
                               <div className="flex gap-2">
