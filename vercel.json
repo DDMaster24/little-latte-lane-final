@@ -14,10 +14,6 @@
     {
       "path": "/api/orders/cleanup-drafts",
       "schedule": "0 2 * * *"
-    },
-    {
-      "path": "/api/notifications/process-scheduled",
-      "schedule": "*/5 * * * *"
     }
   ],
   "headers": [
