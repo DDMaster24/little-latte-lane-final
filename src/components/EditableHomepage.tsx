@@ -1,14 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { PageViewer, fetchPage, ReactBricks, types } from 'react-bricks/frontend';
+import { useEffect, useState, lazy, Suspense } from 'react';
+import { fetchPage, ReactBricks, types } from 'react-bricks/frontend';
 import config from '../../react-bricks/config';
 
-interface EditableHomepageProps {
-  enableEditing?: boolean;
-}
+// Lazy load PageViewer to reduce initial bundle size
+const PageViewer = lazy(() => 
+  import('react-bricks/frontend').then(module => ({ default: module.PageViewer }))
+);
 
-export default function EditableHomepage({ enableEditing: _enableEditing = false }: EditableHomepageProps) {
+export default function EditableHomepage() {
   const [page, setPage] = useState<types.Page | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,12 +30,6 @@ export default function EditableHomepage({ enableEditing: _enableEditing = false
         setLoading(true);
         setError(null);
 
-        // Debug API key from config
-        console.log('=== REACT BRICKS DEBUG ===');
-        console.log('Config API Key available:', !!config.apiKey);
-        console.log('Config API Key length:', config.apiKey?.length || 0);
-        console.log('Config API Key starts with:', config.apiKey?.substring(0, 8) + '...');
-
         if (!config.apiKey) {
           setError('React Bricks API key is missing');
           return;
@@ -46,20 +41,27 @@ export default function EditableHomepage({ enableEditing: _enableEditing = false
 
         for (const slug of slugsToTry) {
           try {
-            console.log(`Trying to fetch React Bricks page with slug: "${slug}"`);
+            if (process.env.NODE_ENV === 'development') {
+              console.log(`[React Bricks] Trying to fetch page with slug: "${slug}"`);
+            }
+            
             // Correct fetchPage usage for frontend package
             pageData = await fetchPage({
               slug,
               language: '',
               config
             });
+            
             if (pageData) {
-              console.log(`✅ Successfully fetched page with slug: "${slug}"`);
-              console.log('Page data:', pageData);
+              if (process.env.NODE_ENV === 'development') {
+                console.log(`[React Bricks] ✅ Successfully fetched page with slug: "${slug}"`);
+              }
               break;
             }
           } catch (err) {
-            console.log(`❌ Failed to fetch with slug "${slug}":`, err);
+            if (process.env.NODE_ENV === 'development') {
+              console.warn(`[React Bricks] Failed to fetch with slug "${slug}":`, err);
+            }
           }
         }
 
@@ -111,8 +113,19 @@ export default function EditableHomepage({ enableEditing: _enableEditing = false
   return (
     <ReactBricks {...reactBricksConfig}>
       <main className="min-h-screen animate-fade-in relative">
-        {/* Render the React Bricks page content */}
-        <PageViewer page={page} />
+        {/* Render the React Bricks page content with lazy loading */}
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center min-h-screen">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-neonCyan mx-auto mb-4"></div>
+                <p className="text-gray-300">Loading page content...</p>
+              </div>
+            </div>
+          }
+        >
+          <PageViewer page={page} />
+        </Suspense>
       </main>
     </ReactBricks>
   );
