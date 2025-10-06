@@ -62,7 +62,6 @@ export const serializeAddress = (address: EnhancedAddress): string => {
     province: address.province,
     country: address.country,
     isRobertsEstateResident: address.isRobertsEstateResident,
-    googlePlaceId: address.googlePlaceId,
     formattedAddress: address.formattedAddress,
     fullAddress: address.fullAddress
   });

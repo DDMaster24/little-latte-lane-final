@@ -1,14 +1,14 @@
-'use client';
+﻿'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Search, AlertTriangle, CheckCircle, Clock, AlertCircle } from 'lucide-react';
-import { addressValidation, type ValidatedAddress, type AddressValidationResult } from '@/lib/addressValidation';
+import { MapPin, AlertTriangle, CheckCircle } from 'lucide-react';
+import { type ValidatedAddress, detectDeliveryZone, buildFullAddress, validateAddress } from '@/types/address';
 
 interface AddressInputProps {
   address: ValidatedAddress | null;
@@ -25,28 +25,24 @@ export default function AddressInput({
   className = '',
   showDeliveryInfo = true
 }: AddressInputProps) {
-  const [isManualEntry, setIsManualEntry] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
-  const [isValidating, setIsValidating] = useState(false);
-  const [validationResult, setValidationResult] = useState<AddressValidationResult | null>(null);
+  const [validationMessage, setValidationMessage] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
+  
   const [manualAddress, setManualAddress] = useState({
-    streetAddress: '',
-    suburb: '',
-    unitNumber: '',
-    postalCode: '',
-    city: 'Middleburg',
-    province: 'Mpumalanga',
-    country: 'South Africa'
+    streetAddress: address?.streetAddress || '',
+    suburb: address?.suburb || '',
+    unitNumber: address?.unitNumber || '',
+    postalCode: address?.postalCode || '',
+    city: address?.city || 'Middleburg',
+    province: address?.province || 'Mpumalanga',
+    country: address?.country || 'South Africa'
   });
 
-  const autocompleteRef = useRef<HTMLInputElement>(null);
-
-  // Initialize address display
+  // Initialize address from props
   useEffect(() => {
     if (address) {
-      if (address.formattedAddress) {
-        setSearchValue(address.formattedAddress);
-      }
       setManualAddress({
         streetAddress: address.streetAddress,
         suburb: address.suburb,
@@ -60,65 +56,43 @@ export default function AddressInput({
   }, [address]);
 
   /**
-   * Handle Google Places search
-   */
-  const handleGoogleSearch = async () => {
-    if (!searchValue.trim()) return;
-
-    setIsValidating(true);
-    setValidationResult(null);
-
-    try {
-      const result = await addressValidation.validateWithGooglePlaces(searchValue);
-      setValidationResult(result);
-
-      if (result.success && result.address) {
-        onChange(result.address);
-      } else {
-        onChange(null);
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      console.error('Address validation error:', error);
-      setValidationResult({
-        success: false,
-        error: `Validation failed: ${errorMessage}`,
-        warnings: ['Please try manual entry or contact support if the issue persists']
-      });
-      onChange(null);
-    } finally {
-      setIsValidating(false);
-    }
-  };
-
-  /**
    * Handle manual address validation
    */
-  const handleManualValidation = async () => {
-    setIsValidating(true);
-    setValidationResult(null);
-
-    try {
-      const result = await addressValidation.validateManualAddress(manualAddress);
-      setValidationResult(result);
-
-      if (result.success && result.address) {
-        onChange(result.address);
-      } else {
-        onChange(null);
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      console.error('Manual address validation error:', error);
-      setValidationResult({
-        success: false,
-        error: `Manual validation failed: ${errorMessage}`,
-        warnings: ['Please check your address details and try again']
+  const handleValidation = () => {
+    setValidationMessage(null);
+    
+    // Validate required fields
+    const validation = validateAddress(manualAddress);
+    if (!validation.valid) {
+      setValidationMessage({ 
+        type: 'error', 
+        message: validation.errors[0] 
       });
-      onChange(null);
-    } finally {
-      setIsValidating(false);
+      return;
     }
+    
+    // Build full address and detect delivery zone
+    const fullAddress = buildFullAddress(manualAddress);
+    const { zone, fee, available } = detectDeliveryZone(manualAddress.suburb);
+    
+    // Create validated address object
+    const validatedAddress: ValidatedAddress = {
+      ...manualAddress,
+      deliveryZone: zone,
+      deliveryFee: fee,
+      isDeliveryAvailable: available,
+      fullAddress,
+      coordinates: null,
+      isAddressVerified: false,
+      formattedAddress: fullAddress
+    };
+    
+    // Notify parent component
+    onChange(validatedAddress);
+    setValidationMessage({ 
+      type: 'success', 
+      message: 'Address validated successfully!' 
+    });
   };
 
   /**
@@ -169,93 +143,10 @@ export default function AddressInput({
               <MapPin className="w-4 h-4 text-neonCyan" />
               Delivery Address {required && <span className="text-red-400">*</span>}
             </Label>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                onClick={() => setIsManualEntry(false)}
-                variant={!isManualEntry ? 'default' : 'outline'}
-                size="sm"
-                className={`text-xs ${!isManualEntry ? 'bg-neonCyan text-black' : 'text-gray-300 hover:bg-gray-700'}`}
-                aria-label="Use Google address search"
-                aria-pressed={!isManualEntry}
-              >
-                <Search className="w-3 h-3 mr-1" />
-                Google Search
-              </Button>
-              <Button
-                type="button"
-                onClick={() => setIsManualEntry(true)}
-                variant={isManualEntry ? 'default' : 'outline'}
-                size="sm"
-                className={`text-xs ${isManualEntry ? 'bg-neonCyan text-black' : 'text-gray-300 hover:bg-gray-700'}`}
-                aria-label="Enter address manually"
-                aria-pressed={isManualEntry}
-              >
-                Manual Entry
-              </Button>
-            </div>
           </div>
 
-          {!isManualEntry ? (
-            // Google Places Search
-            <div className="space-y-4">
-              <div>
-                <Label className="text-gray-300 text-sm mb-2 block">
-                  Search for your address in Middleburg
-                </Label>
-                <div className="flex gap-2">
-                  <Input
-                    ref={autocompleteRef}
-                    value={searchValue}
-                    onChange={(e) => setSearchValue(e.target.value)}
-                    placeholder="Start typing your address in Middleburg..."
-                    className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 flex-1"
-                    onKeyPress={(e) => e.key === 'Enter' && !isValidating && handleGoogleSearch()}
-                    aria-label="Search for address using Google"
-                    aria-describedby="google-search-help"
-                  />
-                  <Button
-                    type="button"
-                    onClick={handleGoogleSearch}
-                    disabled={!searchValue.trim() || isValidating}
-                    className="bg-neonCyan text-black hover:bg-neonCyan/80"
-                    aria-label={isValidating ? 'Validating address...' : 'Search address'}
-                  >
-                    {isValidating ? (
-                      <Clock className="w-4 h-4 animate-spin" aria-hidden="true" />
-                    ) : (
-                      <Search className="w-4 h-4" aria-hidden="true" />
-                    )}
-                  </Button>
-                </div>
-                <p id="google-search-help" className="text-xs text-gray-400 mt-1">
-                  🎯 Powered by Google Maps • Searching in Middleburg, Mpumalanga
-                </p>
-              </div>
-
-              {/* Unit Number for Google Search */}
-              {address && (
-                <div>
-                  <Label className="text-gray-300 text-sm mb-2 block">
-                    Unit/Apartment Number (Optional)
-                  </Label>
-                  <Input
-                    value={address.unitNumber}
-                    onChange={(e) => {
-                      if (address) {
-                        const updated = { ...address, unitNumber: e.target.value };
-                        onChange(updated);
-                      }
-                    }}
-                    placeholder="e.g., Unit 5, Apt 12A"
-                    className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                  />
-                </div>
-              )}
-            </div>
-          ) : (
-            // Manual Entry Fields
-            <div className="space-y-4">
+          {/* Manual Entry Fields */}
+          <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-gray-300 text-sm mb-2 block">
@@ -334,58 +225,27 @@ export default function AddressInput({
 
               <Button
                 type="button"
-                onClick={handleManualValidation}
-                disabled={!manualAddress.streetAddress || !manualAddress.city || isValidating}
+                onClick={handleValidation}
+                disabled={!manualAddress.streetAddress || !manualAddress.city}
                 className="w-full bg-neonCyan text-black hover:bg-neonCyan/80"
               >
-                {isValidating ? (
-                  <>
-                    <Clock className="w-4 h-4 mr-2 animate-spin" />
-                    Validating Address...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Validate Address
-                  </>
-                )}
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Validate Address
               </Button>
             </div>
-          )}
 
-          {/* Validation Results */}
-          {validationResult && (
-            <div className="mt-4 space-y-2">
-              {validationResult.success ? (
-                <Alert className="border-green-600 bg-green-600/10">
-                  <CheckCircle className="h-4 w-4 text-green-400" />
-                  <AlertDescription className="text-green-200">
-                    ✅ Address validated successfully!
-                  </AlertDescription>
-                </Alert>
+          {/* Validation Message */}
+          {validationMessage && (
+            <Alert className={validationMessage.type === 'success' ? 'border-green-600 bg-green-600/10' : 'border-red-600 bg-red-600/10'}>
+              {validationMessage.type === 'success' ? (
+                <CheckCircle className="h-4 w-4 text-green-400" />
               ) : (
-                <Alert className="border-red-600 bg-red-600/10">
-                  <AlertTriangle className="h-4 w-4 text-red-400" />
-                  <AlertDescription className="text-red-200">
-                    ❌ {validationResult.error}
-                  </AlertDescription>
-                </Alert>
+                <AlertTriangle className="h-4 w-4 text-red-400" />
               )}
-
-              {/* Warnings */}
-              {validationResult.warnings.length > 0 && (
-                <div className="space-y-1">
-                  {validationResult.warnings.map((warning, index) => (
-                    <Alert key={index} className="border-yellow-600 bg-yellow-600/10">
-                      <AlertCircle className="h-4 w-4 text-yellow-400" />
-                      <AlertDescription className="text-yellow-200">
-                        ⚠️ {warning}
-                      </AlertDescription>
-                    </Alert>
-                  ))}
-                </div>
-              )}
-            </div>
+              <AlertDescription className={validationMessage.type === 'success' ? 'text-green-200' : 'text-red-200'}>
+                {validationMessage.type === 'success' ? '✅' : '❌'} {validationMessage.message}
+              </AlertDescription>
+            </Alert>
           )}
 
           {/* Delivery Zone Information */}

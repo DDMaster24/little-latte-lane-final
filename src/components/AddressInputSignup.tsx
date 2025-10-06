@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, CheckCircle, MapPin } from 'lucide-react';
-import { addressValidation, type ValidatedAddress } from '@/lib/addressValidation';
+import { type ValidatedAddress, detectDeliveryZone, buildFullAddress, validateAddress } from '@/types/address';
 import { searchRobertsEstateStreets } from '@/lib/robertsEstateStreets';
 
 interface AddressInputSignupProps {
@@ -193,10 +193,10 @@ export default function AddressInputSignup({
     }
 
     // Debounce to avoid excessive validation calls
-    const timeoutId = setTimeout(async () => {
+    const timeoutId = setTimeout(() => {
       try {
         const fullAddress = `${unitNumber} ${streetName}`;
-        const result = await addressValidation.validateManualAddress({
+        const addressData = {
           streetAddress: fullAddress,
           suburb: isRobertsEstate ? 'Roberts Estate' : 'Middleburg',
           unitNumber,
@@ -204,21 +204,30 @@ export default function AddressInputSignup({
           city,
           province,
           country: 'South Africa'
-        });
+        };
 
-        if (result.success && result.address) {
-          const updatedAddress: ValidatedAddress = {
-            ...result.address,
-            streetAddress: fullAddress,
-            deliveryZone: isRobertsEstate ? 'roberts_estate' : 'middleburg',
-            deliveryFee: isRobertsEstate ? 10 : 30,
-            isDeliveryAvailable: true,
-            isAddressVerified: false,
-            confidenceScore: isRobertsEstate ? 0.9 : 0.5,
-            validationWarnings: []
-          };
-          onChange(updatedAddress);
+        // Validate required fields
+        const validation = validateAddress(addressData);
+        if (!validation.valid) {
+          onChange(null);
+          return;
         }
+
+        // Build full address and detect delivery zone
+        const fullAddressString = buildFullAddress(addressData);
+        const { zone, fee, available } = detectDeliveryZone(addressData.suburb);
+
+        const updatedAddress: ValidatedAddress = {
+          ...addressData,
+          deliveryZone: zone,
+          deliveryFee: fee,
+          isDeliveryAvailable: available,
+          fullAddress: fullAddressString,
+          coordinates: null,
+          isAddressVerified: false,
+          formattedAddress: fullAddressString
+        };
+        onChange(updatedAddress);
       } catch (error) {
         console.error('Address validation error:', error);
         onChange(null);

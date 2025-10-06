@@ -17,7 +17,6 @@ export interface EnhancedAddress {
   province: string;
   country: string;
   isRobertsEstateResident: boolean;
-  googlePlaceId?: string;
   formattedAddress?: string;
   fullAddress: string; // Combined address for storage
 }
@@ -41,7 +40,6 @@ export const validatedToEnhanced = (validated: ValidatedAddress): EnhancedAddres
     province: validated.province ?? 'Mpumalanga',
     country: validated.country ?? 'South Africa',
     isRobertsEstateResident: validated.deliveryZone === 'roberts_estate',
-    googlePlaceId: validated.googlePlaceId,
     formattedAddress: validated.formattedAddress,
     fullAddress: validated.fullAddress
   };
@@ -71,16 +69,10 @@ export const enhancedToValidated = (enhanced: EnhancedAddress): ValidatedAddress
     country: enhanced.country ?? 'South Africa',
     formattedAddress: enhanced.formattedAddress,
     fullAddress: enhanced.fullAddress,
-    googlePlaceId: enhanced.googlePlaceId,
-    coordinates: undefined, // Not available from EnhancedAddress
+    coordinates: null, // Not available from EnhancedAddress
     deliveryZone,
     deliveryFee,
     isDeliveryAvailable: true, // Conservative: assume available for backward compatibility
-    isAddressVerified: false, // Conservative: mark as unverified
-    confidenceScore: 0.5, // Medium confidence for legacy data
-    validationWarnings: [
-      '⚠️ Address converted from legacy system - GPS verification recommended',
-      `Delivery fee calculated as ${deliveryZone === 'roberts_estate' ? 'Roberts Estate (R10)' : 'Middleburg (R30)'}`
-    ]
+    isAddressVerified: false // Conservative: mark as unverified
   };
 };
