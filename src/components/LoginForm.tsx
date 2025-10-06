@@ -610,7 +610,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
           </div>
         </>
       )}
-      {isSignup && signupStep === 2 && (
+      {!isAwaitingOTP && isSignup && signupStep === 2 && (
         <>
           <div className="mb-4">
             <p className="text-sm text-gray-200 font-medium mb-2">
@@ -634,7 +634,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
           </div>
         </>
       )}
-      {(!isSignup || signupStep === 1) && (
+      {!isAwaitingOTP && (!isSignup || signupStep === 1) && (
         <div>
           <Label htmlFor="email">Email</Label>
           <Input
@@ -656,7 +656,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
           )}
         </div>
       )}
-      {(step === 'password' || (isSignup && signupStep === 1)) && (
+      {!isAwaitingOTP && (step === 'password' || (isSignup && signupStep === 1)) && (
         <div>
           <Label htmlFor="password">Password</Label>
           <div className="relative">
@@ -709,7 +709,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
         </div>
       )}
       {/* Step navigation buttons for signup */}
-      {isSignup && signupStep === 2 && (
+      {!isAwaitingOTP && isSignup && signupStep === 2 && (
         <div className="flex gap-2">
           <Button
             type="button"
@@ -731,7 +731,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       )}
       
       {/* Primary button for step 1 and login */}
-      {(!isSignup || signupStep === 1) && (
+      {!isAwaitingOTP && (!isSignup || signupStep === 1) && (
         <Button type="submit" className="neon-button w-full" disabled={isLoading || isCheckingEmail}>
           {(isLoading || isCheckingEmail) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isCheckingEmail
@@ -747,7 +747,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       )}
       
       {/* Back button for step 2 */}
-      {isSignup && signupStep === 2 && (
+      {!isAwaitingOTP && isSignup && signupStep === 2 && (
         <Button
           type="button"
           onClick={() => setSignupStep(1)}
@@ -759,7 +759,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       )}
       
       {/* Toggle between login and signup - only show on step 1 */}
-      {(!isSignup || signupStep === 1) && (
+      {!isAwaitingOTP && (!isSignup || signupStep === 1) && (
         <Button
           type="button"
           onClick={() => {
