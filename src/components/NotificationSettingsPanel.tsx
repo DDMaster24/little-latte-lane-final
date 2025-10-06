@@ -114,7 +114,7 @@ export default function NotificationSettingsPanel() {
       } else {
         toast.success('Preference updated')
       }
-    } catch (error) {
+    } catch (_error) {
       // Revert on error
       setPreferences(preferences)
       toast.error('Failed to update preference')

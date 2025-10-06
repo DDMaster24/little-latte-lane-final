@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { getSupabaseClient } from '@/lib/supabase-client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -48,11 +48,7 @@ export default function NotificationHistoryView() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [audienceFilter, setAudienceFilter] = useState<AudienceFilter>('all')
 
-  useEffect(() => {
-    loadBroadcasts()
-  }, [statusFilter, audienceFilter])
-
-  const loadBroadcasts = async () => {
+  const loadBroadcasts = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -94,7 +90,11 @@ export default function NotificationHistoryView() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [statusFilter, audienceFilter])
+
+  useEffect(() => {
+    loadBroadcasts()
+  }, [loadBroadcasts])
 
   const toggleExpanded = (id: string) => {
     setExpandedIds(prev => {
