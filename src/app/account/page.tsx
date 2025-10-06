@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
 import AuthRequiredPrompt from '@/components/AuthRequiredPrompt';
@@ -88,6 +88,7 @@ export default function AccountPage() {
   const [addressData, setAddressData] = useState<EnhancedAddress>(parseAddressString(null));
   const [validatedAddressData, setValidatedAddressData] = useState<ValidatedAddress | null>(null);
   const [savingAddress, setSavingAddress] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Handle URL parameters for payment status and tab selection
   useEffect(() => {
@@ -137,82 +138,76 @@ export default function AccountPage() {
     }
   }, [profile?.address]);
 
-  const fetchData = useCallback(async () => {
-    if (!session) return;
-    setLoading(true);
-
-    try {
-      console.log('🔄 Account Page: Fetching orders for user:', session.user.id);
-      
-      const supabase = getSupabaseClient();
-      
-      // Fetch orders with menu item details
-      const { data: orderData, error } = await supabase
-        .from('orders')
-        .select(
-          `
-          *,
-          order_items (
-            menu_item_id,
-            quantity,
-            price,
-            menu_items (name)
-          )
-        `
-        )
-        .eq('user_id', session.user.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) {
-        console.error('❌ Account Page: Error fetching orders:', error);
-        toast.error('Failed to load orders');
-        return;
-      }
-
-      console.log('✅ Account Page: Orders fetched:', orderData?.length || 0);
-      console.log('📋 Account Page: Order details:', orderData?.slice(0, 3));
-      
-      setOrders((orderData as unknown as Order[]) || []);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      toast.error('Failed to load account data');
-    } finally {
-      setLoading(false);
-    }
-  }, [session]);
-
   useEffect(() => {
-    if (session) {
-      fetchData();
+    if (!session?.user?.id) return;
 
-      const supabase = getSupabaseClient();
-      
-      // Set up real-time subscriptions
-      const orderSub = supabase
-        .channel('user-orders')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'orders',
-            filter: `user_id=eq.${session.user.id}`,
-          },
-          fetchData
-        )
-        .subscribe();
+    const fetchData = async () => {
+      setLoading(true);
+
+      try {
+        console.log('🔄 Account Page: Fetching orders for user:', session.user.id);
+        
+        const supabase = getSupabaseClient();
+        
+        // Fetch orders with menu item details
+        const { data: orderData, error } = await supabase
+          .from('orders')
+          .select(
+            `
+            *,
+            order_items (
+              menu_item_id,
+              quantity,
+              price,
+              menu_items (name)
+            )
+          `
+          )
+          .eq('user_id', session.user.id)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (error) {
+          console.error('❌ Account Page: Error fetching orders:', error);
+          toast.error('Failed to load orders');
+          return;
+        }
+
+        console.log('✅ Account Page: Orders fetched:', orderData?.length || 0);
+        console.log('📋 Account Page: Order details:', orderData?.slice(0, 3));
+        
+        setOrders((orderData as unknown as Order[]) || []);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        toast.error('Failed to load account data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Initial fetch
+    fetchData();
+
+    // Set up real-time subscriptions
+    const supabase = getSupabaseClient();
+    const orderSub = supabase
+      .channel('user-orders')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `user_id=eq.${session.user.id}`,
+        },
+        fetchData
+      )
+      .subscribe();
 
       return () => {
         orderSub.unsubscribe();
       };
-    }
-
-    // Return undefined for no cleanup needed
-    return;
-  }, [session, fetchData]);
-
-  // Address management functions
+    }, [session?.user?.id, refreshTrigger]); // Re-run when user ID changes or manual refresh triggered  // Address management functions
   const handleAddressSave = async () => {
     if (!session) return;
     
@@ -700,7 +695,7 @@ export default function AccountPage() {
                                   if (result.success) {
                                     toast.success(`Order #${order.order_number || order.id.slice(-8)} canceled successfully`);
                                     // Refresh the orders list
-                                    await fetchData();
+                                    setRefreshTrigger(prev => prev + 1);
                                   } else {
                                     toast.error(result.error || 'Failed to cancel order');
                                   }
