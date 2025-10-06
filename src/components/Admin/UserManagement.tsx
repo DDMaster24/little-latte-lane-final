@@ -5,12 +5,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { getSupabaseClient } from '@/lib/supabase-client';
+import { useAuth } from '@/components/AuthProvider';
 import { 
   Users, Search, User, Mail, Calendar,
-  RefreshCw, Crown, Briefcase
+  RefreshCw, Crown, Briefcase, Trash2, AlertTriangle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { deleteUserCompletely } from '@/app/admin/actions';
 
 interface UserProfile {
   id: string;
@@ -23,10 +33,14 @@ interface UserProfile {
 }
 
 export default function UserManagement() {
+  const { profile, user } = useAuth();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all'); // all, admin, staff, customer
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<UserProfile | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const supabase = getSupabaseClient();
 
@@ -53,6 +67,50 @@ export default function UserManagement() {
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  const handleDeleteClick = (userProfile: UserProfile) => {
+    // Prevent deleting yourself
+    if (userProfile.id === profile?.id || userProfile.email === user?.email) {
+      toast.error('You cannot delete your own account');
+      return;
+    }
+    
+    setUserToDelete(userProfile);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!userToDelete?.email) {
+      toast.error('No user email found');
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      
+      const result = await deleteUserCompletely(userToDelete.email);
+      
+      if (result.success) {
+        toast.success(result.message || 'User deleted successfully');
+        setDeleteDialogOpen(false);
+        setUserToDelete(null);
+        // Refresh user list
+        await fetchUsers();
+      } else {
+        toast.error(result.error || 'Failed to delete user');
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast.error('Failed to delete user. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setUserToDelete(null);
+  };
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = !searchTerm || 
@@ -255,7 +313,7 @@ export default function UserManagement() {
                         </div>
                       </div>
 
-                      {/* Role Display - Read Only for Security */}
+                      {/* Role Display and Actions */}
                       <div className="flex flex-col gap-2 lg:w-64">
                         <div className="bg-gray-800/30 rounded-lg p-3 border border-gray-700/50">
                           <div className="text-center">
@@ -291,6 +349,17 @@ export default function UserManagement() {
                             )}
                           </div>
                         </div>
+
+                        {/* Delete Button */}
+                        <Button
+                          onClick={() => handleDeleteClick(user)}
+                          disabled={user.id === profile?.id}
+                          variant="outline"
+                          className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete User
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -305,6 +374,96 @@ export default function UserManagement() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="bg-gray-900 border-red-500/30">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-400" />
+              Confirm User Deletion
+            </DialogTitle>
+            <DialogDescription className="text-gray-300">
+              This action cannot be undone. This will permanently delete the user account
+              and all associated data including:
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* User Info */}
+            {userToDelete && (
+              <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-red-700 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">
+                      {userToDelete.full_name?.charAt(0) || userToDelete.email?.charAt(0)?.toUpperCase() || 'U'}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-medium">
+                      {userToDelete.full_name || 'No name'}
+                    </h3>
+                    <p className="text-gray-400 text-sm">
+                      {userToDelete.email || 'No email'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {getRoleBadge(userToDelete)}
+                </div>
+              </div>
+            )}
+
+            {/* Warning List */}
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+              <p className="text-red-400 font-medium mb-2 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                The following data will be permanently deleted:
+              </p>
+              <ul className="text-gray-300 text-sm space-y-1 ml-6 list-disc">
+                <li>User profile and account information</li>
+                <li>Order history and items</li>
+                <li>Booking records</li>
+                <li>Notifications and notification history</li>
+                <li>Staff requests (if any)</li>
+                <li>Contact form submissions</li>
+              </ul>
+            </div>
+
+            <p className="text-gray-400 text-sm">
+              Type the user&apos;s email to confirm: <span className="text-white font-mono">{userToDelete?.email}</span>
+            </p>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              onClick={handleDeleteCancel}
+              disabled={isDeleting}
+              variant="outline"
+              className="border-gray-600 text-gray-300 hover:bg-gray-700/50"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              className="bg-red-500 text-white hover:bg-red-600 border-red-500"
+            >
+              {isDeleting ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete User
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
