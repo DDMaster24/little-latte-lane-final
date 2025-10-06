@@ -73,12 +73,19 @@ export const formatAddressForDisplay = (address: EnhancedAddress): string => {
     return 'No address provided';
   }
   
-  return address.fullAddress || [
-    address.unitNumber ? `Unit ${address.unitNumber}` : '',
+  // If fullAddress exists and looks complete, use it directly
+  // (fullAddress already has all components formatted correctly)
+  if (address.fullAddress && address.fullAddress.includes(',')) {
+    return address.fullAddress;
+  }
+  
+  // Otherwise build from components
+  return [
+    address.unitNumber,
     address.streetAddress,
     address.suburb,
-    address.postalCode,
     address.city,
+    address.postalCode,
     address.province
   ].filter(Boolean).join(', ');
 };

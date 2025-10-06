@@ -89,6 +89,13 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [step, setStep] = useState<'cart' | 'checkout'>('cart');
   const [hasLoadedProfileData, setHasLoadedProfileData] = useState(false);
+  const [draftOrders, setDraftOrders] = useState<Array<{
+    id: string;
+    order_number: string | null;
+    total_amount: number;
+    created_at: string;
+    order_items: OrderItemWithMenu[];
+  }>>([]);
 
   // ✨ Auto-populate checkout form when profile data is available
   useEffect(() => {
@@ -145,6 +152,41 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
       setHasLoadedProfileData(false);
     }
   }, [profile]);
+
+  // Fetch draft orders when cart is empty and sidebar opens
+  useEffect(() => {
+    const fetchDraftOrders = async () => {
+      if (!user || !isOpen || cart.length > 0) return;
+
+      try {
+        const supabase = getSupabaseClient();
+        const { data, error } = await supabase
+          .from('orders')
+          .select(`
+            id,
+            order_number,
+            total_amount,
+            created_at,
+            order_items (
+              quantity,
+              price,
+              menu_items (name)
+            )
+          `)
+          .eq('user_id', user.id)
+          .in('status', ['draft', 'pending'])
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (error) throw error;
+        setDraftOrders(data || []);
+      } catch (error) {
+        console.error('Failed to fetch draft orders:', error);
+      }
+    };
+
+    fetchDraftOrders();
+  }, [user, isOpen, cart.length]);
 
   const handleCreateOrder = async () => {
     // Check if restaurant is closed
@@ -423,6 +465,77 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                     <p className="text-sm text-gray-500 mt-2">
                       Add items from the menu to get started
                     </p>
+
+                    {/* Draft Orders Detection */}
+                    {draftOrders.length > 0 && (
+                      <div className="mt-6 p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                        <p className="text-yellow-400 font-medium mb-3">
+                          📋 You have {draftOrders.length} draft order{draftOrders.length > 1 ? 's' : ''}
+                        </p>
+                        <p className="text-sm text-gray-300 mb-4">
+                          Would you like to continue with a previous order?
+                        </p>
+                        <div className="space-y-2">
+                          {draftOrders.map((order) => (
+                            <div
+                              key={order.id}
+                              className="flex items-center justify-between p-3 bg-gray-800 rounded-lg"
+                            >
+                              <div className="text-left">
+                                <p className="text-white text-sm font-medium">
+                                  Order #{order.order_number || order.id.slice(-6)}
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                  R{order.total_amount.toFixed(2)} • {new Date(order.created_at).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={async () => {
+                                    try {
+                                      const response = await fetch('/api/orders/retry', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                          orderId: order.id,
+                                          userId: user?.id,
+                                        }),
+                                      });
+                                      const result = await response.json();
+                                      if (result.success && result.orderItems) {
+                                        useCartStore.getState().loadOrderToCart(result.orderItems);
+                                        toast.success('Draft order loaded!');
+                                        setDraftOrders([]); // Clear draft orders
+                                      } else {
+                                        toast.error('Failed to load order');
+                                      }
+                                    } catch (error) {
+                                      console.error('Load order error:', error);
+                                      toast.error('Failed to load order');
+                                    }
+                                  }}
+                                  className="bg-green-600 hover:bg-green-700 text-white text-xs"
+                                >
+                                  Continue
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    router.push('/account?tab=drafts');
+                                    onClose();
+                                  }}
+                                  className="border-gray-500 text-gray-300 text-xs"
+                                >
+                                  View All
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <>
@@ -795,6 +908,19 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                                             : address.fullAddress || 'No address set'
                                           }
                                         </p>
+                                        <Button
+                                          type="button"
+                                          size="sm"
+                                          variant="link"
+                                          onClick={() => {
+                                            toast.info('Redirecting to profile...');
+                                            onClose();
+                                            router.push('/account?tab=profile');
+                                          }}
+                                          className="text-neonCyan hover:text-neonCyan/80 p-0 h-auto text-xs mt-1"
+                                        >
+                                          Need to update your address? Click here
+                                        </Button>
                                       </div>
                                     </div>
                                     <Button

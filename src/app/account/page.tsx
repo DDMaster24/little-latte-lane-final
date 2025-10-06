@@ -16,7 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import AddressInput from '@/components/AddressInput';
+import AddressInputSignup from '@/components/AddressInputSignup';
 import { type EnhancedAddress, validatedToEnhanced } from '@/lib/addressCompat';
 import { type ValidatedAddress } from '@/types/address';
 import { parseAddressString, serializeAddress, formatAddressForDisplay } from '@/lib/addressUtils';
@@ -864,8 +864,12 @@ export default function AccountPage() {
 
                 {/* Enhanced Address Management */}
                 {isEditingAddress ? (
-                  <div className="space-y-4">
-                    <AddressInput
+                  <div className="space-y-4 p-4 bg-gray-900/30 rounded-lg border border-purple-400/30">
+                    <div className="flex items-center gap-2 mb-4">
+                      <MapPin className="h-5 w-5 text-purple-400" />
+                      <h3 className="text-white font-medium">Update Delivery Address</h3>
+                    </div>
+                    <AddressInputSignup
                       address={validatedAddressData}
                       onChange={(newValidatedAddress) => {
                         setValidatedAddressData(newValidatedAddress);
@@ -874,12 +878,11 @@ export default function AccountPage() {
                         }
                       }}
                       required={false}
-                      className="mb-4"
                     />
-                    <div className="flex gap-2 justify-end">
+                    <div className="flex gap-2 justify-end pt-4 border-t border-gray-700">
                       <Button
                         onClick={handleAddressSave}
-                        disabled={savingAddress}
+                        disabled={savingAddress || !validatedAddressData}
                         className="bg-green-600 hover:bg-green-700 text-white"
                       >
                         {savingAddress ? <Clock className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
