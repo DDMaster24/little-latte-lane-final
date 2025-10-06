@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { getSupabaseAdmin } from '@/lib/supabase-server';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 interface BookingContactData {
   name: string;
   email: string;
@@ -194,16 +192,22 @@ Reply to: ${data.email}
       // Continue with email sending even if database save fails
     }
 
-    // Send email using Resend
+    // Send email using Resend (only if API key is configured)
     if (process.env.RESEND_API_KEY) {
-      await resend.emails.send({
-        from: 'Little Latte Lane <bookings@littlelattelane.co.za>',
-        to: ['admin@littlelattelane.co.za'],
-        replyTo: data.email,
-        subject: `🍽️ New Booking Inquiry from ${data.name} - ${eventTypeDisplay}`,
-        html: emailHtml,
-        text: emailText,
-      });
+      try {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        await resend.emails.send({
+          from: 'Little Latte Lane <bookings@littlelattelane.co.za>',
+          to: ['admin@littlelattelane.co.za'],
+          replyTo: data.email,
+          subject: `🍽️ New Booking Inquiry from ${data.name} - ${eventTypeDisplay}`,
+          html: emailHtml,
+          text: emailText,
+        });
+      } catch (emailError) {
+        console.error('Failed to send email via Resend:', emailError);
+        // Don't fail the request if email fails - booking is already saved to DB
+      }
     } else {
       console.warn('RESEND_API_KEY not configured - email not sent');
       console.log('Booking inquiry received:', {
