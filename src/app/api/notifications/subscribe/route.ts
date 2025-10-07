@@ -22,31 +22,41 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json();
-    const { subscription, deviceType = 'web' } = body;
+    const { subscription, fcm_token, apns_token, deviceType = 'web' } = body;
 
-    if (!subscription) {
+    // Validate that at least one subscription method is provided
+    if (!subscription && !fcm_token && !apns_token) {
       return NextResponse.json(
-        { success: false, error: 'Push subscription data is required' },
+        { success: false, error: 'At least one subscription method (web push, FCM token, or APNS token) is required' },
         { status: 400 }
       );
     }
 
-    console.log('📱 Saving push subscription for user:', user.id);
+    console.log('📱 Saving push subscription for user:', user.id, '- Device:', deviceType);
+
+    // Build update object dynamically based on what was provided
+    const updateData: {
+      user_id: string;
+      push_enabled: boolean;
+      updated_at: string;
+      push_subscription?: typeof subscription;
+      fcm_token?: string;
+      apns_token?: string;
+    } = {
+      user_id: user.id,
+      push_enabled: true,
+      updated_at: new Date().toISOString(),
+    };
+
+    // Add subscription data based on device type
+    if (subscription) updateData.push_subscription = subscription;
+    if (fcm_token) updateData.fcm_token = fcm_token;
+    if (apns_token) updateData.apns_token = apns_token;
 
     // Save or update push subscription in database
     const { error: upsertError } = await supabase
       .from('notifications')
-      .upsert(
-        {
-          user_id: user.id,
-          push_subscription: subscription,
-          push_enabled: true,
-          updated_at: new Date().toISOString(),
-        },
-        {
-          onConflict: 'user_id',
-        }
-      )
+      .upsert(updateData, { onConflict: 'user_id' })
       .select()
       .single();
 
