@@ -696,7 +696,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                     <YocoPayment
                       orderId={orderId!}
                       userId={profile?.id || ''}
-                      amount={total}
+                      amount={totalWithDelivery}
                       itemName={getOrderTitle()}
                       itemDescription={getItemDescription()}
                       userDetails={{
