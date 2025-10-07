@@ -18,6 +18,7 @@ module.exports = {
     extend: {
       colors: {
         darkBg: '#1A1A1A', // Dark background from your summary, matches the images' blackish base
+        darkerBg: '#0D0D0D', // Even darker background for header/footer - removes grayish tint
         neonCyan: '#00FFFF', // Bright cyan blue for glows, like in the logo and buttons
         neonPink: '#FF00FF', // Magenta pink for accents, matching the logo's edges
         neonText: '#FFFFFF', // White text for contrast on dark bg

@@ -39,7 +39,7 @@ export default function Header() {
   if (!mounted) {
     return (
       <header
-        className="bg-darkBg text-neonText py-2 xs:py-3 shadow-neon relative z-40"
+        className="bg-darkerBg text-neonText py-2 xs:py-3 shadow-neon relative z-40"
         suppressHydrationWarning={true}
       >
         <div className="container-full flex items-center justify-between">

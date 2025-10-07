@@ -5,7 +5,7 @@ import { FileText } from 'lucide-react';
 
 export default function FooterSection() {
   return (
-    <footer className="bg-darkBg text-neonText border-t-4 border-neonCyan shadow-neon">
+    <footer className="bg-darkerBg text-neonText border-t-4 border-neonCyan shadow-neon">
       <div className="container-responsive section-padding-sm">
         <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-6 xs:gap-8">
           {/* Contact - Responsive Layout */}

@@ -27,6 +27,7 @@ export default function AddressInputSignup({
 }: AddressInputSignupProps) {
   const [unitNumber, setUnitNumber] = useState('');
   const [streetName, setStreetName] = useState('');
+  const [suburb, setSuburb] = useState('');
   const [city, setCity] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [isRobertsEstate, setIsRobertsEstate] = useState(false);
@@ -147,9 +148,10 @@ export default function AddressInputSignup({
     setShowSuggestions(false);
     setStreetSuggestions([]);
     
-    // AUTO-FILL City and Postal Code for Roberts Estate
+    // AUTO-FILL City, Postal Code, and Suburb for Roberts Estate
     setCity('Middelburg');
     setPostalCode('1050');
+    setSuburb('Roberts Estate');
     setCityValid(true);
     setPostalCodeValid(true);
     
@@ -195,10 +197,10 @@ export default function AddressInputSignup({
     // Debounce to avoid excessive validation calls
     const timeoutId = setTimeout(() => {
       try {
-        const fullAddress = `${unitNumber} ${streetName}`;
+        // Keep street name and unit number separate - buildFullAddress will combine them
         const addressData = {
-          streetAddress: fullAddress,
-          suburb: isRobertsEstate ? 'Roberts Estate' : 'Middleburg',
+          streetAddress: streetName,
+          suburb: suburb || (isRobertsEstate ? 'Roberts Estate' : 'Middleburg'),
           unitNumber,
           postalCode,
           city,
@@ -235,7 +237,7 @@ export default function AddressInputSignup({
     }, 500); // 500ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [unitNumber, streetName, postalCode, isRobertsEstate, city, province, onChange, cityValid, postalCodeValid]);
+  }, [unitNumber, streetName, suburb, postalCode, isRobertsEstate, city, province, onChange, cityValid, postalCodeValid]);
 
   return (
     <div className="space-y-4">
@@ -290,6 +292,25 @@ export default function AddressInputSignup({
               </button>
             ))}
           </div>
+        )}
+      </div>
+
+      {/* Suburb/Area - Optional field with auto-fill */}
+      <div>
+        <Label htmlFor="suburb" className="text-white mb-2 block">
+          Suburb / Area <span className="text-gray-400 text-xs">(Optional)</span>
+        </Label>
+        <Input
+          id="suburb"
+          value={suburb}
+          onChange={(e) => setSuburb(e.target.value)}
+          placeholder="Auto-filled for Roberts Estate residents"
+          className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+        />
+        {suburb === 'Roberts Estate' && (
+          <p className="text-xs text-neonCyan mt-1">
+            ✓ Auto-filled based on your street selection
+          </p>
         )}
       </div>
 
