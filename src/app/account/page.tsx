@@ -233,6 +233,9 @@ export default function AccountPage() {
       // Refresh profile and exit editing mode
       await refreshProfile();
       setIsEditingAddress(false);
+      
+      // Trigger a refresh of the orders list to ensure all data is current
+      setRefreshTrigger(prev => prev + 1);
 
     } catch (error) {
       console.error('❌ Address update error:', error);
