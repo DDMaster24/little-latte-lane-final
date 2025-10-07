@@ -11,6 +11,7 @@ import FooterSection from '@/components/FooterSection';
 import StaffRedirect from '@/components/StaffRedirect';
 import EditorNavigation from '@/components/EditorNavigation';
 import { initializeSessionTracking } from '@/lib/session-storage';
+import { useNativePushNotifications } from '@/hooks/useNativePushNotifications';
 
 // Create a client instance for React Query
 const queryClient = new QueryClient({
@@ -27,6 +28,9 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
   const [isOnline, setIsOnline] = useState(true);
   const [isClient, setIsClient] = useState(false);
   const pathname = usePathname();
+  
+  // Initialize native push notifications for Capacitor apps (Android/iOS)
+  useNativePushNotifications();
   
   // Check if we're in React Bricks editor mode or staff kitchen view
   const isEditorMode = pathname?.startsWith('/admin/editor') || 
