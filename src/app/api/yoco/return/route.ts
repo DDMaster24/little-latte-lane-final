@@ -1,10 +1,12 @@
 /**
  * Yoco Return Handler
  * Handles user return from Yoco payment gateway
+ * CRITICAL: Preserves user session by using proper redirect with cookies
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServer } from '@/lib/supabase-server';
+import { cookies } from 'next/headers';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,9 +16,12 @@ export async function GET(request: NextRequest) {
 
     if (!orderId) {
       // Redirect to cart with error message
-      return NextResponse.redirect(
+      const response = NextResponse.redirect(
         new URL('/cart?error=missing_order_id', request.url)
       );
+      // Preserve cookies
+      await preserveAuthCookies(request, response);
+      return response;
     }
 
     // Check order status in database
@@ -28,41 +33,78 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (error || !order) {
-      return NextResponse.redirect(
+      const response = NextResponse.redirect(
         new URL('/cart?error=order_not_found', request.url)
       );
+      await preserveAuthCookies(request, response);
+      return response;
     }
 
-    // Redirect based on payment status
+    // Determine redirect URL based on payment status
+    let redirectUrl: string;
+    
     if (order.payment_status === 'completed' && order.status === 'confirmed') {
       // Success - redirect to success page
-      return NextResponse.redirect(
-        new URL(`/cart/payment/success?orderId=${orderId}`, request.url)
-      );
+      redirectUrl = `/cart/payment/success?orderId=${orderId}`;
     } else if (order.payment_status === 'failed' || order.status === 'cancelled') {
       // Failed - redirect to failure page
-      return NextResponse.redirect(
-        new URL(`/cart/payment/failed?orderId=${orderId}`, request.url)
-      );
+      redirectUrl = `/cart/payment/failed?orderId=${orderId}`;
     } else if (status === 'cancelled') {
       // Cancelled by user
-      return NextResponse.redirect(
-        new URL(`/cart/payment/cancelled?orderId=${orderId}`, request.url)
-      );
+      redirectUrl = `/cart/payment/cancelled?orderId=${orderId}`;
     } else {
       // Payment pending or unknown status
-      return NextResponse.redirect(
-        new URL(`/cart/payment/pending?orderId=${orderId}`, request.url)
-      );
+      redirectUrl = `/cart/payment/pending?orderId=${orderId}`;
     }
+
+    // Create response with preserved auth cookies
+    const response = NextResponse.redirect(new URL(redirectUrl, request.url));
+    await preserveAuthCookies(request, response);
+    return response;
 
   } catch (error) {
     console.error('Payment return handling failed:', error);
     
     // Redirect to cart with generic error
-    return NextResponse.redirect(
+    const response = NextResponse.redirect(
       new URL('/cart?error=payment_error', request.url)
     );
+    await preserveAuthCookies(request, response);
+    return response;
+  }
+}
+
+/**
+ * Preserve authentication cookies during redirect
+ * This ensures the user stays logged in after returning from Yoco
+ */
+async function preserveAuthCookies(request: NextRequest, response: NextResponse) {
+  try {
+    // Get all cookies from the request
+    const cookieStore = await cookies();
+    
+    // Copy Supabase auth cookies to response
+    const authCookies = [
+      'sb-access-token',
+      'sb-refresh-token', 
+      'sb-auth-token',
+      'supabase-auth-token'
+    ];
+    
+    authCookies.forEach((cookieName) => {
+      const cookie = cookieStore.get(cookieName);
+      if (cookie) {
+        response.cookies.set(cookieName, cookie.value, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+        });
+      }
+    });
+  } catch (error) {
+    console.error('Failed to preserve auth cookies:', error);
   }
 }
 
