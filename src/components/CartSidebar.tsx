@@ -27,9 +27,7 @@ import {
   isValidSouthAfricanPhone,
   displaySouthAfricanPhone,
 } from '@/lib/phoneUtils';
-import AddressInput from '@/components/AddressInput';
-import { type ValidatedAddress } from '@/types/address';
-import { type EnhancedAddress, validatedToEnhanced } from '@/lib/addressCompat';
+import { type EnhancedAddress } from '@/lib/addressCompat';
 import { parseAddressString, serializeAddress, formatAddressForDisplay } from '@/lib/addressUtils';
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -60,20 +58,12 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
     'delivery'
   );
   const [address, setAddress] = useState<EnhancedAddress>(parseAddressString(null));
-  const [validatedAddress, setValidatedAddress] = useState<ValidatedAddress | null>(null);
   const [phone, setPhone] = useState('');
   const [specialInstructions, setSpecialInstructions] = useState('');
   
   // New state for streamlined checkout
-  const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [isRobertsEstateResident, setIsRobertsEstateResident] = useState(false);
   const [confirmAddressCorrect, setConfirmAddressCorrect] = useState(false);
-  
-  // Calculate delivery fee from validated address (new system) or fallback to old system
-  const deliveryFee = validatedAddress?.isDeliveryAvailable 
-    ? validatedAddress.deliveryFee 
-    : (isRobertsEstateResident ? 10 : 30);
-  const totalWithDelivery = total + (deliveryType === 'delivery' ? deliveryFee : 0);
   
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderData, setOrderData] = useState<{
@@ -148,10 +138,13 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
       setDeliveryType('delivery');
       setIsRobertsEstateResident(false);
       setConfirmAddressCorrect(false);
-      setIsEditingAddress(false);
       setHasLoadedProfileData(false);
     }
   }, [profile]);
+
+  // Calculate delivery fee from profile address
+  const deliveryFee = isRobertsEstateResident ? 10 : 30;
+  const totalWithDelivery = total + (deliveryType === 'delivery' ? deliveryFee : 0);
 
   // Fetch draft orders when cart is empty and sidebar opens
   useEffect(() => {
@@ -284,18 +277,14 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         total: totalWithDelivery,
         deliveryType,
         deliveryAddress: deliveryType === 'delivery' 
-          ? (validatedAddress?.fullAddress || serializeAddress(address))
+          ? serializeAddress(address)
           : undefined,
         delivery_fee: deliveryType === 'delivery' ? deliveryFee : null,
-        delivery_zone: deliveryType === 'delivery' && validatedAddress 
-          ? validatedAddress.deliveryZone 
-          : null,
-        delivery_coordinates: deliveryType === 'delivery' && validatedAddress?.coordinates 
-          ? validatedAddress.coordinates 
-          : null,
-        address_verified: deliveryType === 'delivery' && validatedAddress 
-          ? validatedAddress.isAddressVerified 
-          : null,
+        delivery_zone: deliveryType === 'delivery' && isRobertsEstateResident 
+          ? 'roberts_estate' 
+          : 'middleburg',
+        delivery_coordinates: null,
+        address_verified: false,
         specialInstructions: specialInstructions.trim() || undefined,
       });
 
@@ -612,7 +601,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                         {deliveryType === 'delivery' && (
                           <div className="flex justify-between items-center">
                             <span className="text-gray-300">
-                              Delivery Fee {validatedAddress && `(${validatedAddress.deliveryZone === 'roberts_estate' ? 'Roberts Estate' : 'Middleburg'})`}:
+                              Delivery Fee {isRobertsEstateResident ? '(Roberts Estate)' : '(Middleburg)'}:
                             </span>
                             <span className="text-neonCyan">R{deliveryFee.toFixed(2)}</span>
                           </div>
@@ -764,7 +753,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                         {deliveryType === 'delivery' && (
                           <div className="flex justify-between">
                             <span className="text-gray-300">
-                              Delivery Fee {validatedAddress && `(${validatedAddress.deliveryZone === 'roberts_estate' ? 'Roberts Estate' : 'Middleburg'})`}:
+                              Delivery Fee {isRobertsEstateResident ? '(Roberts Estate)' : '(Middleburg)'}:
                             </span>
                             <span className="text-neonCyan">R{deliveryFee.toFixed(2)}</span>
                           </div>
@@ -892,130 +881,74 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                           <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 space-y-4">
                             <h3 className="text-white font-medium text-sm">Delivery Address</h3>
 
-                            {!isEditingAddress ? (
-                              // Simplified Address Preview
-                              <div className="space-y-4">
-                                {/* Address Preview */}
-                                <div className="bg-gray-700/30 rounded-lg p-4">
-                                  <div className="flex items-start justify-between">
-                                    <div className="flex items-start gap-3 flex-1">
-                                      <CheckCircle2 className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
-                                      <div className="flex-1">
-                                        <p className="text-sm text-gray-400 mb-1">Address Preview</p>
-                                        <p className="text-white font-medium leading-relaxed text-sm">
-                                          {profile?.address 
-                                            ? formatAddressForDisplay(parseAddressString(profile.address))
-                                            : address.fullAddress || 'No address set'
-                                          }
-                                        </p>
-                                        <Button
-                                          type="button"
-                                          size="sm"
-                                          variant="link"
-                                          onClick={() => {
-                                            toast.info('Redirecting to profile...');
-                                            onClose();
-                                            router.push('/account?tab=profile');
-                                          }}
-                                          className="text-neonCyan hover:text-neonCyan/80 p-0 h-auto text-xs mt-1"
-                                        >
-                                          Need to update your address? Click here
-                                        </Button>
-                                      </div>
+                            {/* Address Preview - Redirects to profile page for editing */}
+                            <div className="space-y-4">
+                              {/* Address Preview */}
+                              <div className="bg-gray-700/30 rounded-lg p-4">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex items-start gap-3 flex-1">
+                                    <CheckCircle2 className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
+                                    <div className="flex-1">
+                                      <p className="text-sm text-gray-400 mb-1">Address Preview</p>
+                                      <p className="text-white font-medium leading-relaxed text-sm">
+                                        {profile?.address 
+                                          ? formatAddressForDisplay(parseAddressString(profile.address))
+                                          : address.fullAddress || 'No address set'
+                                        }
+                                      </p>
                                     </div>
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => setIsEditingAddress(true)}
-                                      className="border-gray-600 text-gray-300 hover:bg-gray-600/50 hover:border-gray-500 ml-3 text-xs"
-                                    >
-                                      <Edit2 className="h-3 w-3 mr-1" />
-                                      Edit
-                                    </Button>
                                   </div>
-                                </div>
-
-                                {/* Confirmation Checkboxes */}
-                                <div className="space-y-3">
-                                  <div className="flex items-center space-x-3">
-                                    <Checkbox
-                                      id="roberts-estate-resident"
-                                      checked={isRobertsEstateResident}
-                                      onCheckedChange={(checked) => setIsRobertsEstateResident(checked === true)}
-                                      className="border-gray-500 data-[state=checked]:bg-neonCyan data-[state=checked]:border-neonCyan"
-                                    />
-                                    <Label 
-                                      htmlFor="roberts-estate-resident" 
-                                      className="text-gray-300 text-sm cursor-pointer"
-                                    >
-                                      I confirm I am a Roberts Estate resident
-                                    </Label>
-                                  </div>
-
-                                  <div className="flex items-center space-x-3">
-                                    <Checkbox
-                                      id="address-correct"
-                                      checked={confirmAddressCorrect}
-                                      onCheckedChange={(checked) => setConfirmAddressCorrect(checked === true)}
-                                      className="border-gray-500 data-[state=checked]:bg-neonCyan data-[state=checked]:border-neonCyan"
-                                    />
-                                    <Label 
-                                      htmlFor="address-correct" 
-                                      className="text-gray-300 text-sm cursor-pointer"
-                                    >
-                                      I confirm my address is correct
-                                    </Label>
-                                  </div>
-                                </div>
-                              </div>
-                            ) : (
-                              // Expanded Address Edit Form
-                              <div className="space-y-4">
-                                <AddressInput
-                                  address={validatedAddress}
-                                  onChange={(newValidatedAddress) => {
-                                    setValidatedAddress(newValidatedAddress);
-                                    if (newValidatedAddress) {
-                                      const enhancedAddr = validatedToEnhanced(newValidatedAddress);
-                                      setAddress(enhancedAddr);
-                                      setIsRobertsEstateResident(newValidatedAddress.deliveryZone === 'roberts_estate');
-                                    } else {
-                                      setIsRobertsEstateResident(false);
-                                    }
-                                  }}
-                                  required={true}
-                                  className="mt-2"
-                                />
-                                <div className="flex gap-2 justify-end">
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    onClick={() => setIsEditingAddress(false)}
-                                    className="bg-green-600 hover:bg-green-700 text-white text-xs"
-                                  >
-                                    Save & Close
-                                  </Button>
                                   <Button
                                     type="button"
                                     size="sm"
                                     variant="outline"
                                     onClick={() => {
-                                      setIsEditingAddress(false);
-                                      // Reset to profile address if available
-                                      if (profile?.address) {
-                                        const profileAddress = parseAddressString(profile.address);
-                                        setAddress(profileAddress);
-                                        setIsRobertsEstateResident(profileAddress.isRobertsEstateResident);
-                                      }
+                                      toast.info('Redirecting to profile to update address...');
+                                      onClose();
+                                      router.push('/account?tab=profile');
                                     }}
-                                    className="border-gray-500 text-gray-400 hover:bg-gray-600/50 text-xs"
+                                    className="border-gray-600 text-gray-300 hover:bg-gray-600/50 hover:border-gray-500 ml-3 text-xs"
+                                    title="Update address on profile page"
                                   >
-                                    Cancel
+                                    <Edit2 className="h-3 w-3 mr-1" />
+                                    Edit
                                   </Button>
                                 </div>
                               </div>
-                            )}
+
+                              {/* Confirmation Checkboxes */}
+                              <div className="space-y-3">
+                                <div className="flex items-center space-x-3">
+                                  <Checkbox
+                                    id="roberts-estate-resident"
+                                    checked={isRobertsEstateResident}
+                                    onCheckedChange={(checked) => setIsRobertsEstateResident(checked === true)}
+                                    className="border-gray-500 data-[state=checked]:bg-neonCyan data-[state=checked]:border-neonCyan"
+                                  />
+                                  <Label 
+                                    htmlFor="roberts-estate-resident" 
+                                    className="text-gray-300 text-sm cursor-pointer"
+                                  >
+                                    I confirm I am a Roberts Estate resident
+                                  </Label>
+                                </div>
+
+                                <div className="flex items-center space-x-3">
+                                  <Checkbox
+                                    id="address-correct"
+                                    checked={confirmAddressCorrect}
+                                    onCheckedChange={(checked) => setConfirmAddressCorrect(checked === true)}
+                                    className="border-gray-500 data-[state=checked]:bg-neonCyan data-[state=checked]:border-neonCyan"
+                                  />
+                                  <Label 
+                                    htmlFor="address-correct" 
+                                    className="text-gray-300 text-sm cursor-pointer"
+                                  >
+                                    I confirm my address is correct
+                                  </Label>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         )}
 
