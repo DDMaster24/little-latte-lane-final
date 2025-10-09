@@ -39,7 +39,7 @@ export default function Header() {
   if (!mounted) {
     return (
       <header
-        className="bg-darkBg text-neonText relative z-40"
+        className="bg-darkBg text-neonText shadow-neon relative z-40"
         style={{
           paddingTop: 'max(env(safe-area-inset-top), 0.5rem)',
         }}
@@ -75,7 +75,7 @@ export default function Header() {
 
   return (
     <header 
-      className="bg-darkBg text-neonText relative z-40"
+      className="bg-darkBg text-neonText shadow-neon relative z-40"
       style={{
         paddingTop: 'max(env(safe-area-inset-top), 0.5rem)',
       }}
