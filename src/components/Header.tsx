@@ -39,10 +39,14 @@ export default function Header() {
   if (!mounted) {
     return (
       <header
-        className="bg-darkerBg text-neonText py-2 xs:py-3 shadow-neon relative z-40"
+        className="bg-black text-neonText relative z-40"
+        style={{
+          paddingTop: 'max(env(safe-area-inset-top), 0px)',
+          paddingBottom: '0.5rem',
+        }}
         suppressHydrationWarning={true}
       >
-        <div className="container-full flex items-center justify-between">
+        <div className="container-full flex items-center justify-between" style={{ paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>
           <div className="flex items-center min-w-0">
             <Image
               src="/images/logo.svg"
@@ -72,9 +76,13 @@ export default function Header() {
 
   return (
     <header 
-      className="bg-darkBg text-neonText py-2 xs:py-3 shadow-neon relative z-40"
+      className="bg-black text-neonText relative z-40"
+      style={{
+        paddingTop: 'max(env(safe-area-inset-top), 0px)',
+        paddingBottom: '0.5rem',
+      }}
     >
-      <div className="container-full flex items-center justify-between">
+      <div className="container-full flex items-center justify-between" style={{ paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>
         
         {/* Left Section - Little Latte Lane Logo */}
         <div className="flex items-center min-w-0">
@@ -211,7 +219,7 @@ export default function Header() {
 
       {/* Mobile Menu Dropdown - Enhanced Responsive */}
       {isMobileMenuOpen && (
-        <nav className="absolute top-full left-0 right-0 bg-darkBg/95 backdrop-blur-md shadow-neon lg:hidden border-t border-neonCyan/30 animate-slide-up z-50">
+        <nav className="absolute top-full left-0 right-0 bg-black/95 backdrop-blur-md lg:hidden border-t border-gray-800/50 animate-slide-up z-50">
           <div className="container-wide py-4 space-y-1">
             <Link
               href="/"
