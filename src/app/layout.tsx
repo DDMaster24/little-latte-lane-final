@@ -120,7 +120,7 @@ export default function RootLayout({
         
         {/* iOS PWA Support - Comprehensive */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Little Latte Lane" />
         <meta name="apple-mobile-web-app-orientations" content="portrait" />
         
@@ -236,6 +236,12 @@ export default function RootLayout({
       <body
         id="app-root"
         className={`${inter.className} bg-gradient-to-br from-gray-900 to-black text-white min-h-screen flex flex-col`}
+        style={{
+          paddingTop: 'env(safe-area-inset-top)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
+          paddingLeft: 'env(safe-area-inset-left)',
+          paddingRight: 'env(safe-area-inset-right)',
+        }}
         suppressHydrationWarning
       >
         <ClientWrapper>

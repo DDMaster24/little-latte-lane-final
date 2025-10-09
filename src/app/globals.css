@@ -2,20 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Safe Area Support for iOS */
+/* Safe Area Support for iOS and Android */
 @supports (padding-top: env(safe-area-inset-top)) {
   html {
-    padding-top: env(safe-area-inset-top);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-    padding-bottom: env(safe-area-inset-bottom);
+    /* Don't add padding to html, only to body */
+    padding: 0;
   }
   
   body {
-    padding-top: 0;
-    padding-left: 0;
-    padding-right: 0;
-    padding-bottom: 0;
+    /* Body will receive safe area padding via inline styles */
+    /* This ensures no overlap with status bar */
   }
   
   /* Ensure content doesn't get hidden behind status bar */
@@ -25,6 +21,13 @@
   
   .safe-area-bottom {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Fallback for devices that don't support env() - Add minimum padding */
+@supports not (padding-top: env(safe-area-inset-top)) {
+  body {
+    padding-top: 24px !important; /* Standard Android status bar height */
   }
 }
 
