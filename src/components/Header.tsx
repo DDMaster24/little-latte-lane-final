@@ -39,14 +39,13 @@ export default function Header() {
   if (!mounted) {
     return (
       <header
-        className="bg-black text-neonText relative z-40"
+        className="bg-darkBg text-neonText relative z-40"
         style={{
-          paddingTop: 'max(env(safe-area-inset-top), 0px)',
-          paddingBottom: '0.5rem',
+          paddingTop: 'max(env(safe-area-inset-top), 0.5rem)',
         }}
         suppressHydrationWarning={true}
       >
-        <div className="container-full flex items-center justify-between" style={{ paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>
+        <div className="container-full flex items-center justify-between py-2 xs:py-3">
           <div className="flex items-center min-w-0">
             <Image
               src="/images/logo.svg"
@@ -76,13 +75,12 @@ export default function Header() {
 
   return (
     <header 
-      className="bg-black text-neonText relative z-40"
+      className="bg-darkBg text-neonText relative z-40"
       style={{
-        paddingTop: 'max(env(safe-area-inset-top), 0px)',
-        paddingBottom: '0.5rem',
+        paddingTop: 'max(env(safe-area-inset-top), 0.5rem)',
       }}
     >
-      <div className="container-full flex items-center justify-between" style={{ paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>
+      <div className="container-full flex items-center justify-between py-2 xs:py-3">
         
         {/* Left Section - Little Latte Lane Logo */}
         <div className="flex items-center min-w-0">
@@ -219,7 +217,7 @@ export default function Header() {
 
       {/* Mobile Menu Dropdown - Enhanced Responsive */}
       {isMobileMenuOpen && (
-        <nav className="absolute top-full left-0 right-0 bg-black/95 backdrop-blur-md lg:hidden border-t border-gray-800/50 animate-slide-up z-50">
+        <nav className="absolute top-full left-0 right-0 bg-darkBg/95 backdrop-blur-md lg:hidden border-t border-gray-700/30 animate-slide-up z-50">
           <div className="container-wide py-4 space-y-1">
             <Link
               href="/"
