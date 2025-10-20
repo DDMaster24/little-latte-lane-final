@@ -961,6 +961,90 @@ export default function AccountPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Delete Account Section */}
+                <div className="mt-12 p-6 bg-red-900/20 border-2 border-red-500/30 rounded-lg">
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="p-2 bg-red-500/20 rounded-full">
+                      <X className="h-5 w-5 text-red-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-red-400 mb-2">
+                        Delete Account
+                      </h3>
+                      <p className="text-sm text-gray-300 mb-4">
+                        Permanently delete your account and all associated data. This action cannot be undone.
+                      </p>
+                      <ul className="text-sm text-gray-400 space-y-1 mb-4 list-disc list-inside">
+                        <li>All personal information will be deleted</li>
+                        <li>Order history will be removed</li>
+                        <li>You will be immediately signed out</li>
+                        <li>Active orders will be cancelled</li>
+                      </ul>
+                      <Button
+                        variant="outline"
+                        className="border-red-500 text-red-400 hover:bg-red-500 hover:text-white"
+                        onClick={async () => {
+                          const confirmed = window.confirm(
+                            '⚠️ Are you absolutely sure you want to delete your account?\n\n' +
+                            'This will permanently delete:\n' +
+                            '• All your personal information\n' +
+                            '• Your order history\n' +
+                            '• Your saved addresses\n' +
+                            '• Your notification preferences\n\n' +
+                            'This action CANNOT be undone!\n\n' +
+                            'Type "DELETE" to confirm.'
+                          );
+
+                          if (confirmed) {
+                            const finalConfirm = window.prompt(
+                              'Type "DELETE" to permanently delete your account:'
+                            );
+
+                            if (finalConfirm === 'DELETE') {
+                              try {
+                                const supabase = getSupabaseClient();
+                                
+                                // First, try to delete via API endpoint
+                                const response = await fetch('/api/account/delete', {
+                                  method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                  },
+                                  body: JSON.stringify({
+                                    userId: session.user.id,
+                                  }),
+                                });
+
+                                const result = await response.json();
+
+                                if (!result.success) {
+                                  throw new Error(result.error || 'Failed to delete account');
+                                }
+
+                                // Sign out
+                                await supabase.auth.signOut();
+
+                                toast.success('Account deleted successfully. You have been signed out.');
+                                
+                                // Redirect to home
+                                router.push('/');
+                              } catch (error) {
+                                console.error('❌ Delete account error:', error);
+                                toast.error('Failed to delete account. Please contact support at privacy@littlelattelane.co.za');
+                              }
+                            } else {
+                              toast.error('Account deletion cancelled. You must type "DELETE" to confirm.');
+                            }
+                          }
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Delete My Account
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

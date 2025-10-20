@@ -90,5 +90,6 @@
   // Disable PHP validation completely (not needed for this Node.js project)
   "php.validate.enable": false,
   "php.suggest.basic": false,
-  "php.validate.executablePath": null
+  "php.validate.executablePath": null,
+  "java.configuration.updateBuildConfiguration": "automatic"
 }
