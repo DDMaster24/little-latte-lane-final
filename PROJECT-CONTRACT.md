@@ -81,10 +81,12 @@
 - ✅ **CONFIGURATION FIXED:** Ready to build new AAB file
 
 **Next Steps:**
-1. Build signed AAB file in Android Studio (Build → Generate Signed Bundle/APK)
+1. Build signed AAB file in Android Studio
 2. Upload new AAB to Google Play Console (Internal Testing track)
-3. Test on 3 devices again
+3. Test on 3 devices to verify crash is fixed
 4. If successful, promote to production track
+
+**Note:** Step-by-step instructions provided in chat - no separate guide files created.
 
 ### Apple App Store Deployment
 **Status:** Not yet started (pending Google Play fix)

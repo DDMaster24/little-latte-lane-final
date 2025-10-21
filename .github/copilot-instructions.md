@@ -5,11 +5,13 @@
 ### **❌ PERMANENTLY BANNED - NEVER DO THESE:**
 
 1. **NO DOCUMENTATION FILES** - **EVER**
-   - ❌ NEVER create `.md` files (README.md and PROJECT-CONTRACT.md are the ONLY exceptions)
-   - ❌ NEVER create guides, analysis reports, checklists, or "helpful" documentation
-   - ❌ Files like `NOTIFICATION-SYSTEM-ANALYSIS.md`, `SECURITY-INCIDENT-RESPONSE.md`, `SUPABASE-OTP-CONFIG.md` are **BANNED**
-   - ✅ **ALL information goes in chat ONLY**
+   - ❌ NEVER create `.md` files (README.md, PROJECT-CONTRACT.md, and TECHNICAL-INFO.md are the ONLY exceptions)
+   - ❌ NEVER create guides, analysis reports, checklists, build guides, deployment guides, or "helpful" documentation
+   - ❌ Files like `BUILD-GUIDE.md`, `NOTIFICATION-SYSTEM-ANALYSIS.md`, `SECURITY-INCIDENT-RESPONSE.md`, `DEPLOYMENT-STEPS.md` are **PERMANENTLY BANNED**
+   - ✅ **ALL step-by-step guides go in CHAT ONLY**
+   - ✅ **ALL analysis goes in CHAT ONLY**
    - ✅ User explicitly requested: "stop creating documentation files, you're flooding the project"
+   - ✅ **GOLDEN RULE: If user needs guidance, provide step-by-step instructions IN CHAT, not in a new .md file**
    - ✅ **Violation = Security incident (API keys in docs)**
 
 2. **NEVER STOP MID-TASK**
@@ -41,6 +43,13 @@
 - Actionable recommendations
 - Code examples if needed
 
+**User asks for step-by-step guide → Provide in CHAT with:**
+- Numbered steps with clear instructions
+- Screenshots or code examples inline
+- Expected results for each step
+- Troubleshooting tips
+- **NEVER create a separate .md guide file**
+
 **User asks to fix something → DO IT COMPLETELY:**
 1. Analyze the issue
 2. Fix ALL related problems
@@ -48,7 +57,7 @@
 4. Commit with clear message
 5. Report completion in chat
 
-**NO documentation files. NO stopping mid-task. ALWAYS finish completely.**
+**NO documentation files. NO stopping mid-task. ALWAYS finish completely. ALL guides go in chat.**
 
 ---
 
