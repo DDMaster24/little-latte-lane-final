@@ -1,12 +1,12 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.littlelattelane.app',
+  appId: 'co.za.littlelattelane.app',
   appName: 'Little Latte Lane',
-  webDir: 'public',
+  webDir: 'www', // Temporary folder for Capacitor assets
   server: {
-    url: 'https://www.littlelattelane.co.za',
-    cleartext: true,
+    url: 'https://www.littlelattelane.co.za', // Point to live backend
+    cleartext: false, // Use HTTPS only
     androidScheme: 'https'
   },
   plugins: {

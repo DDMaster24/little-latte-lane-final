@@ -83,7 +83,7 @@ export async function sendPasswordResetEmail(data: PasswordResetEmailData): Prom
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: `Little Latte Lane <${process.env.SUPPORT_EMAIL || 'support@littlelattelane.co.za'}>`,
+        from: `Little Latte Lane <${process.env.ADMIN_EMAIL || 'admin@littlelattelane.co.za'}>`,
         to: data.userEmail,
         subject: '🔐 Password Reset Request - Little Latte Lane',
         html: generatePasswordResetHTML({ 
@@ -178,7 +178,7 @@ function generateSignupConfirmationHTML(data: ConfirmationEmailData & { confirma
     <!-- Footer -->
     <div style="background: #111111; padding: 30px; text-align: center; border-top: 1px solid #333333;">
       <p style="color: #888888; font-size: 14px; margin: 0 0 10px 0;">
-        Need help? Contact us at <a href="mailto:support@littlelattelane.co.za" style="color: #00ffff;">support@littlelattelane.co.za</a>
+        Need help? Contact us at <a href="mailto:admin@littlelattelane.co.za" style="color: #00ffff;">admin@littlelattelane.co.za</a>
       </p>
       <p style="color: #666666; font-size: 12px; margin: 0;">
         © 2025 Little Latte Lane. All rights reserved.

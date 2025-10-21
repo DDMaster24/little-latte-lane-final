@@ -2,30 +2,7 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { withSentryConfig } = require('@sentry/nextjs');
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const withPWA = require('next-pwa')({
-  dest: 'public',
-  register: true,
-  skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development', // Disable PWA in development
-  sw: 'sw.js', // Use auto-generated service worker for now - custom one caused build issues
-  scope: '/',
-  reloadOnOnline: true,
-  runtimeCaching: [
-    {
-      urlPattern: /^https?.*/,
-      handler: 'NetworkFirst',
-      options: {
-        cacheName: 'offlineCache',
-        expiration: {
-          maxEntries: 200,
-        },
-      },
-    },
-  ],
-  buildExcludes: [/middleware-manifest\.json$/],
-  maximumFileSizeToCacheInBytes: 5000000, // 5MB
-});
+// PWA disabled for native app build (Capacitor handles offline functionality)
 
 // Content Security Policy - extracted to reduce bundle size
 const CSP_DIRECTIVES = [
@@ -46,6 +23,9 @@ const CSP_DIRECTIVES = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false, // ESSENTIAL: React Bricks requires this to be false
+  // Note: output: 'export' disabled - causes issues with API routes
+  // Capacitor will point to live backend instead
+  trailingSlash: true, // Required for better Capacitor compatibility
   // Disable Vercel toolbar
   env: {
     VERCEL_TOOLBAR: 'false',
@@ -66,7 +46,7 @@ const nextConfig = {
     ignoreDuringBuilds: true, // Temporarily disabled due to React Hook dependency warnings
     dirs: ['src'], // Only lint src directory
   },
-  // Image optimization for better performance
+  // Image optimization - allow remote optimization for native app
   images: {
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -239,8 +219,8 @@ const nextConfig = {
   },
 };
 
-// Combine PWA and Sentry configurations
-const configWithPWA = withPWA(nextConfig);
+// Skip PWA wrapper for native app build
+// const configWithPWA = withPWA(nextConfig);
 
 // Sentry configuration options
 const sentryWebpackPluginOptions = {
@@ -261,5 +241,5 @@ const sentryWebpackPluginOptions = {
   authToken: process.env.SENTRY_AUTH_TOKEN,
 };
 
-// Export configuration with Sentry
-module.exports = withSentryConfig(configWithPWA, sentryWebpackPluginOptions);
+// Export configuration with Sentry (without PWA wrapper)
+module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);

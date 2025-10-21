@@ -9,7 +9,7 @@ import webpush from 'web-push'
 
 // Configure web-push with VAPID details
 webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT || 'mailto:support@littlelattelane.co.za',
+  process.env.VAPID_SUBJECT || 'mailto:admin@littlelattelane.co.za',
   process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '',
   process.env.VAPID_PRIVATE_KEY || ''
 )

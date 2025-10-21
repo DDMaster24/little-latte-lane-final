@@ -141,10 +141,10 @@ export default function ConfirmEmailPage() {
           <p className="text-gray-500 text-sm">
             Need help? Contact us at{' '}
             <a 
-              href="mailto:support@littlelattelane.co.za" 
+              href="mailto:admin@littlelattelane.co.za" 
               className="text-neonCyan hover:underline"
             >
-              support@littlelattelane.co.za
+              admin@littlelattelane.co.za
             </a>
           </p>
         </div>

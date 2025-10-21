@@ -77,7 +77,7 @@ export default function ConfirmSignupPage() {
               <p className="text-xs text-gray-500 leading-relaxed">
                 <strong>Didn&apos;t get the email?</strong><br/>
                 Check your spam folder or contact us at{' '}
-                <span className="text-neonPink">support@littlelattelane.co.za</span>
+                <span className="text-neonPink">admin@littlelattelane.co.za</span>
               </p>
             </div>
           </div>
