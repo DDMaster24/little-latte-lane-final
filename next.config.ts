@@ -23,9 +23,9 @@ const CSP_DIRECTIVES = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false, // ESSENTIAL: React Bricks requires this to be false
-  // Note: output: 'export' disabled - causes issues with API routes
-  // Capacitor will point to live backend instead
-  trailingSlash: true, // Required for better Capacitor compatibility
+  output: 'export', // Enable static export for Capacitor native apps
+  distDir: 'out', // Output directory
+  trailingSlash: true, // Required for static export
   // Disable Vercel toolbar
   env: {
     VERCEL_TOOLBAR: 'false',

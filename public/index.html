@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src *;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' *;
+        style-src 'self' 'unsafe-inline' *;
+        img-src 'self' data: blob: *;
+        connect-src *;
+        frame-src *;
+    ">
+    <title>Little Latte Lane</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #app-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0D0D0D;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(0, 217, 255, 0.1);
+            border-top-color: #00D9FF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div class="loader"></div>
+    </div>
+    <iframe 
+        id="app-frame" 
+        src="https://www.littlelattelane.co.za"
+        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals allow-top-navigation"
+        allow="geolocation; microphone; camera; payment"
+    ></iframe>
+    
+    <script>
+        const iframe = document.getElementById('app-frame');
+        const loading = document.getElementById('loading');
+        
+        // Hide loading when iframe loads
+        iframe.onload = function() {
+            setTimeout(() => {
+                loading.style.display = 'none';
+            }, 500);
+        };
+        
+        // Handle errors
+        iframe.onerror = function() {
+            loading.innerHTML = '<div style="color: #ff0000; text-align: center;"><h2>Connection Error</h2><p>Unable to load app. Please check your internet connection.</p></div>';
+        };
+    </script>
+</body>
+</html>
