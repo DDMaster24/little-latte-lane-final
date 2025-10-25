@@ -39,13 +39,13 @@ export default function Header() {
   if (!mounted) {
     return (
       <header
-        className="bg-darkBg text-neonText shadow-neon relative z-40"
+        className="bg-darkBg text-neonText relative z-40 border-b border-neonCyan/30"
         style={{
-          paddingTop: 'max(env(safe-area-inset-top), 0.5rem)',
+          paddingTop: 'env(safe-area-inset-top)',
         }}
         suppressHydrationWarning={true}
       >
-        <div className="container-full flex items-center justify-between py-2 xs:py-3">
+        <div className="container-full flex items-center justify-between py-1">
           <div className="flex items-center min-w-0">
             <Image
               src="/images/logo.svg"
@@ -75,12 +75,12 @@ export default function Header() {
 
   return (
     <header 
-      className="bg-darkBg text-neonText shadow-neon relative z-40"
+      className="bg-darkBg text-neonText relative z-40 border-b border-neonCyan/30"
       style={{
-        paddingTop: 'max(env(safe-area-inset-top), 0.5rem)',
+        paddingTop: 'env(safe-area-inset-top)',
       }}
     >
-      <div className="container-full flex items-center justify-between py-2 xs:py-3">
+      <div className="container-full flex items-center justify-between py-1">
         
         {/* Left Section - Little Latte Lane Logo */}
         <div className="flex items-center min-w-0">
