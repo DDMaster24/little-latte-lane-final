@@ -6,7 +6,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Dialog,
   DialogContent,
@@ -23,6 +23,7 @@ export default function Header() {
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   // Fix hydration mismatch
   useEffect(() => {
@@ -182,13 +183,13 @@ export default function Header() {
                 </button>
               </div>
 
-              {/* Logout Button - Same exact height, less horizontal padding */}
-              <Button 
+              {/* Logout Button - Regular button (not Button component) to match exact height */}
+              <button 
                 onClick={signOut} 
-                className="neon-button bg-neonPink text-xs px-2.5 py-2 xs:px-3 xs:py-2 whitespace-nowrap rounded-lg"
+                className="neon-button bg-neonPink text-white text-xs px-2.5 py-2 xs:px-3 xs:py-2 whitespace-nowrap rounded-lg border-2 border-neonPink/50 hover:border-neonPink hover:shadow-[0_0_10px_rgba(255,0,255,0.5)] transition-all duration-300 font-medium"
               >
                 Logout
-              </Button>
+              </button>
             </div>
           </>
         )}
@@ -198,10 +199,12 @@ export default function Header() {
           <div className="fixed left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:w-64 top-[calc(env(safe-area-inset-top)+5rem)] sm:top-[calc(env(safe-area-inset-top)+6rem)] bg-darkBg/95 backdrop-blur-md border-2 border-neonCyan/50 rounded-lg shadow-[0_0_20px_rgba(0,217,255,0.3)] z-50 animate-slide-up lg:hidden">
             <div className="p-2 space-y-1">
               {getNavItems().map((item) => (
-                <Link
+                <button
                   key={item.href}
-                  href={item.href}
-                  onClick={() => setIsNavDropdownOpen(false)}
+                  onClick={() => {
+                    router.push(item.href);
+                    setIsNavDropdownOpen(false);
+                  }}
                   className={`w-full px-4 py-3 rounded-lg transition-all duration-300 flex items-center gap-3 ${
                     pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href))
                       ? 'bg-neonCyan/20 text-neonCyan border border-neonCyan/50'
@@ -210,7 +213,7 @@ export default function Header() {
                 >
                   <span className="text-lg">{item.emoji}</span>
                   <span className="text-sm font-medium">{item.label}</span>
-                </Link>
+                </button>
               ))}
             </div>
           </div>
