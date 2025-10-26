@@ -186,7 +186,7 @@ export default function Header() {
               {/* Logout Button - Regular button (not Button component) to match exact height */}
               <button 
                 onClick={signOut} 
-                className="neon-button bg-neonPink text-white text-xs px-2.5 py-2 xs:px-3 xs:py-2 whitespace-nowrap rounded-lg border-2 border-neonPink/50 hover:border-neonPink hover:shadow-[0_0_10px_rgba(255,0,255,0.5)] transition-all duration-300 font-medium"
+                className="neon-button bg-neonPink text-white text-xs px-2.5 py-1 xs:px-3 xs:py-1.5 whitespace-nowrap rounded-lg border-2 border-neonPink/50 hover:border-neonPink hover:shadow-[0_0_10px_rgba(255,0,255,0.5)] transition-all duration-300 font-medium"
               >
                 Logout
               </button>
