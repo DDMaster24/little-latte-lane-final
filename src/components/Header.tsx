@@ -168,16 +168,27 @@ export default function Header() {
             </div>
 
             {/* Mobile: Dropdown Navigation */}
-            <div className="flex-1 mx-4 max-w-xs sm:max-w-sm lg:hidden nav-dropdown-container relative">
-              <button
-                onClick={() => setIsNavDropdownOpen(!isNavDropdownOpen)}
-                className="w-full px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg border-2 border-neonCyan/50 bg-darkBg/80 backdrop-blur-sm hover:border-neonPink/70 hover:shadow-[0_0_10px_rgba(0,217,255,0.3)] transition-all duration-300 flex items-center justify-between group"
+            <div className="flex-1 mx-2 xs:mx-4 flex items-center gap-2 lg:hidden">
+              {/* Navigation Dropdown - Shorter width */}
+              <div className="flex-1 max-w-[180px] xs:max-w-[200px] nav-dropdown-container relative">
+                <button
+                  onClick={() => setIsNavDropdownOpen(!isNavDropdownOpen)}
+                  className="w-full px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg border-2 border-neonCyan/50 bg-darkBg/80 backdrop-blur-sm hover:border-neonPink/70 hover:shadow-[0_0_10px_rgba(0,217,255,0.3)] transition-all duration-300 flex items-center justify-between group"
+                >
+                  <span className="text-neonCyan text-xs sm:text-sm font-semibold group-hover:text-neonPink transition-colors truncate">
+                    {getCurrentPageName()}
+                  </span>
+                  <ChevronDown className={`h-4 w-4 sm:h-5 sm:w-5 text-neonCyan group-hover:text-neonPink transition-all duration-300 flex-shrink-0 ml-2 ${isNavDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
+
+              {/* Logout Button - Same height as dropdown */}
+              <Button 
+                onClick={signOut} 
+                className="neon-button bg-neonPink text-xs px-3 py-2 sm:px-4 sm:py-2.5 whitespace-nowrap rounded-lg"
               >
-                <span className="text-neonCyan text-xs sm:text-sm font-semibold group-hover:text-neonPink transition-colors truncate">
-                  {getCurrentPageName()}
-                </span>
-                <ChevronDown className={`h-4 w-4 sm:h-5 sm:w-5 text-neonCyan group-hover:text-neonPink transition-all duration-300 flex-shrink-0 ml-2 ${isNavDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
+                Logout
+              </Button>
             </div>
           </>
         )}
@@ -235,8 +246,8 @@ export default function Header() {
         <div className="flex items-center justify-end space-x-2 xs:space-x-3 min-w-0">
           {user ? (
             <>
-              {/* Mobile: Horizontal layout - Profile icon only */}
-              <div className="sm:hidden">
+              {/* Mobile: Profile icon only */}
+              <div className="lg:hidden">
                 <div className="w-8 h-8 xs:w-9 xs:h-9 rounded-full bg-gradient-to-br from-neonCyan to-neonPink flex items-center justify-center border-2 border-neonCyan shadow-neon">
                   <span className="text-black font-bold text-xs xs:text-sm">
                     {(profile?.full_name || user.email || 'U')
@@ -247,7 +258,7 @@ export default function Header() {
               </div>
 
               {/* Desktop: Stacked layout - Profile on top, Logout below */}
-              <div className="hidden sm:flex flex-col items-center gap-1.5">
+              <div className="hidden lg:flex flex-col items-center gap-1.5">
                 {/* Profile Picture - On top */}
                 <div className="relative">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neonCyan to-neonPink flex items-center justify-center border-2 border-neonCyan shadow-neon">
