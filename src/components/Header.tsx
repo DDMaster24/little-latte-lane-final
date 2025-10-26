@@ -149,42 +149,60 @@ export default function Header() {
           </Link>
         </div>
 
-        {/* Center Section - Current Page Navigation (when logged in) */}
+        {/* Center Section - Desktop Navigation (when logged in) */}
         {user && (
-          <div className="flex-1 mx-4 max-w-xs sm:max-w-sm nav-dropdown-container relative">
-            <button
-              onClick={() => setIsNavDropdownOpen(!isNavDropdownOpen)}
-              className="w-full px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg border-2 border-neonCyan/50 bg-darkBg/80 backdrop-blur-sm hover:border-neonPink/70 hover:shadow-[0_0_10px_rgba(0,217,255,0.3)] transition-all duration-300 flex items-center justify-between group"
-            >
-              <span className="text-neonCyan text-xs sm:text-sm font-semibold group-hover:text-neonPink transition-colors truncate">
-                {getCurrentPageName()}
-              </span>
-              <ChevronDown className={`h-4 w-4 sm:h-5 sm:w-5 text-neonCyan group-hover:text-neonPink transition-all duration-300 flex-shrink-0 ml-2 ${isNavDropdownOpen ? 'rotate-180' : ''}`} />
-            </button>
+          <>
+            {/* Desktop: Traditional Navigation Buttons */}
+            <div className="hidden lg:flex items-center">
+              <nav className="flex items-center space-x-3 xl:space-x-4">
+                {getNavItems().map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="neon-button text-sm px-3 py-2"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
 
-            {/* Navigation Dropdown */}
-            {isNavDropdownOpen && (
-              <div className="absolute left-0 right-0 sm:left-auto sm:right-auto sm:w-64 mt-2 bg-darkBg/95 backdrop-blur-md border-2 border-neonCyan/50 rounded-lg shadow-[0_0_20px_rgba(0,217,255,0.3)] z-50 animate-slide-up">
-                <div className="p-2 space-y-1">
-                  {getNavItems().map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setIsNavDropdownOpen(false)}
-                      className={`w-full px-4 py-3 rounded-lg transition-all duration-300 flex items-center gap-3 ${
-                        pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href))
-                          ? 'bg-neonCyan/20 text-neonCyan border border-neonCyan/50'
-                          : 'hover:bg-neonCyan/10 text-gray-300 hover:text-neonCyan'
-                      }`}
-                    >
-                      <span className="text-lg">{item.emoji}</span>
-                      <span className="text-sm font-medium">{item.label}</span>
-                    </Link>
-                  ))}
+            {/* Mobile: Dropdown Navigation */}
+            <div className="flex-1 mx-4 max-w-xs sm:max-w-sm lg:hidden nav-dropdown-container relative">
+              <button
+                onClick={() => setIsNavDropdownOpen(!isNavDropdownOpen)}
+                className="w-full px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg border-2 border-neonCyan/50 bg-darkBg/80 backdrop-blur-sm hover:border-neonPink/70 hover:shadow-[0_0_10px_rgba(0,217,255,0.3)] transition-all duration-300 flex items-center justify-between group"
+              >
+                <span className="text-neonCyan text-xs sm:text-sm font-semibold group-hover:text-neonPink transition-colors truncate">
+                  {getCurrentPageName()}
+                </span>
+                <ChevronDown className={`h-4 w-4 sm:h-5 sm:w-5 text-neonCyan group-hover:text-neonPink transition-all duration-300 flex-shrink-0 ml-2 ${isNavDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Navigation Dropdown */}
+              {isNavDropdownOpen && (
+                <div className="absolute left-0 right-0 sm:left-auto sm:right-auto sm:w-64 mt-2 bg-darkBg/95 backdrop-blur-md border-2 border-neonCyan/50 rounded-lg shadow-[0_0_20px_rgba(0,217,255,0.3)] z-50 animate-slide-up">
+                  <div className="p-2 space-y-1">
+                    {getNavItems().map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setIsNavDropdownOpen(false)}
+                        className={`w-full px-4 py-3 rounded-lg transition-all duration-300 flex items-center gap-3 ${
+                          pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href))
+                            ? 'bg-neonCyan/20 text-neonCyan border border-neonCyan/50'
+                            : 'hover:bg-neonCyan/10 text-gray-300 hover:text-neonCyan'
+                        }`}
+                      >
+                        <span className="text-lg">{item.emoji}</span>
+                        <span className="text-sm font-medium">{item.label}</span>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          </>
         )}
 
         {/* Center Section - Navigation Links (Desktop - when not logged in) */}
