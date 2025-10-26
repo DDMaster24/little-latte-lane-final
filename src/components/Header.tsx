@@ -202,8 +202,9 @@ export default function Header() {
                 <button
                   key={item.href}
                   onClick={() => {
+                    // Navigate first, then close dropdown after a brief delay
                     router.push(item.href);
-                    setIsNavDropdownOpen(false);
+                    setTimeout(() => setIsNavDropdownOpen(false), 100);
                   }}
                   className={`w-full px-4 py-3 rounded-lg transition-all duration-300 flex items-center gap-3 ${
                     pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href))
