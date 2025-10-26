@@ -190,7 +190,7 @@ export default function Header() {
                 </Button>
               </DialogTrigger>
               <DialogOverlay className="fixed inset-0 backdrop-blur-md bg-black/60" />
-              <DialogContent className="bg-darkBg/95 backdrop-blur-sm border-2 border-neonCyan/50 rounded-2xl shadow-[0_0_20px_rgba(0,217,255,0.5)] max-w-sm xs:max-w-md sm:max-w-lg mx-4">
+              <DialogContent className="bg-darkBg/95 backdrop-blur-sm border-2 border-neonCyan/50 rounded-2xl shadow-[0_0_20px_rgba(0,217,255,0.5)] w-[calc(100%-2rem)] max-w-[400px] sm:max-w-[450px]">
                 <DialogHeader>
                   <DialogTitle className="text-neonCyan text-fluid-lg font-bold">
                     Login or Signup
