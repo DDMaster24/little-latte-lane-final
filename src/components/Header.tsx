@@ -234,10 +234,10 @@ export default function Header() {
         {/* Right Section - Auth Area */}
         <div className="flex items-center justify-end space-x-2 xs:space-x-3 min-w-0">
           {user ? (
-            <div className="flex flex-col items-center gap-1.5">
-              {/* Profile Picture - On top */}
-              <div className="relative">
-                <div className="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-neonCyan to-neonPink flex items-center justify-center border-2 border-neonCyan shadow-neon">
+            <>
+              {/* Mobile: Horizontal layout - Profile icon only */}
+              <div className="sm:hidden">
+                <div className="w-8 h-8 xs:w-9 xs:h-9 rounded-full bg-gradient-to-br from-neonCyan to-neonPink flex items-center justify-center border-2 border-neonCyan shadow-neon">
                   <span className="text-black font-bold text-xs xs:text-sm">
                     {(profile?.full_name || user.email || 'U')
                       .charAt(0)
@@ -245,15 +245,29 @@ export default function Header() {
                   </span>
                 </div>
               </div>
-              
-              {/* Logout Button - Below profile, matching dropdown height */}
-              <Button 
-                onClick={signOut} 
-                className="neon-button bg-neonPink text-xs px-3 py-2 sm:py-2.5 hidden sm:block whitespace-nowrap"
-              >
-                Logout
-              </Button>
-            </div>
+
+              {/* Desktop: Stacked layout - Profile on top, Logout below */}
+              <div className="hidden sm:flex flex-col items-center gap-1.5">
+                {/* Profile Picture - On top */}
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neonCyan to-neonPink flex items-center justify-center border-2 border-neonCyan shadow-neon">
+                    <span className="text-black font-bold text-sm">
+                      {(profile?.full_name || user.email || 'U')
+                        .charAt(0)
+                        .toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Logout Button - Below profile, matching dropdown height */}
+                <Button 
+                  onClick={signOut} 
+                  className="neon-button bg-neonPink text-xs px-3 py-2.5 whitespace-nowrap"
+                >
+                  Logout
+                </Button>
+              </div>
+            </>
           ) : (
             <>
               {/* Login Button */}
