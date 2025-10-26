@@ -40,6 +40,10 @@ interface MenuCategoryCardProps {
   // Image Effects
   imageOpacity: number
   imageBlur: 'none' | 'sm' | 'md' | 'lg'
+  
+  // Image Sizing Controls (NEW)
+  imageObjectFit: 'cover' | 'contain' | 'fill'
+  containerAspectRatio: 'auto' | '1:1' | '4:3' | '16:9' | '3:2'
 }
 
 const MenuCategoryCard: types.Brick<MenuCategoryCardProps> = ({
@@ -75,7 +79,11 @@ const MenuCategoryCard: types.Brick<MenuCategoryCardProps> = ({
   
   // Image Effects
   imageOpacity = 0.3,
-  imageBlur = 'none'
+  imageBlur = 'none',
+  
+  // Image Sizing (NEW)
+  imageObjectFit = 'cover',
+  containerAspectRatio = 'auto',
 }) => {
   
   const getPaddingClass = () => {
@@ -86,6 +94,17 @@ const MenuCategoryCard: types.Brick<MenuCategoryCardProps> = ({
       case 'xl': return 'p-8 sm:p-10'
       default: return 'p-4 sm:p-6'
     }
+  }
+
+  const getAspectRatioStyle = () => {
+    const ratioMap = {
+      'auto': undefined,
+      '1:1': '1 / 1',
+      '4:3': '4 / 3',
+      '16:9': '16 / 9',
+      '3:2': '3 / 2',
+    }
+    return ratioMap[containerAspectRatio]
   }
 
   const getBorderRadiusClass = () => {
@@ -175,7 +194,12 @@ const MenuCategoryCard: types.Brick<MenuCategoryCardProps> = ({
   }
 
   return (
-    <div className="category-card flex-none w-72 sm:w-80">
+    <div 
+      className="category-card flex-none w-72 sm:w-80"
+      style={{
+        aspectRatio: getAspectRatioStyle()
+      }}
+    >
       <Link
         href={categoryLink}
         className={`group relative ${getCardStyleClass()} ${getPaddingClass()} ${getBorderRadiusClass()} ${getShadowClass()} transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in w-full h-full block`}
@@ -192,7 +216,7 @@ const MenuCategoryCard: types.Brick<MenuCategoryCardProps> = ({
               imageStyle={{
                 width: '100%',
                 height: '100%',
-                objectFit: 'cover',
+                objectFit: imageObjectFit,
                 ...getImageStyle()
               }}
             />
@@ -212,7 +236,7 @@ const MenuCategoryCard: types.Brick<MenuCategoryCardProps> = ({
                 imageStyle={{
                   width: '100%',
                   height: '120px',
-                  objectFit: 'cover',
+                  objectFit: imageObjectFit,
                   borderRadius: '8px',
                   ...getImageStyle()
                 }}
@@ -309,7 +333,9 @@ MenuCategoryCard.schema = {
     borderWidth: 'thin',
     shadowIntensity: 'medium',
     imageOpacity: 0.3,
-    imageBlur: 'none'
+    imageBlur: 'none',
+    imageObjectFit: 'cover',
+    containerAspectRatio: 'auto'
   }),
 
   sideEditProps: [
@@ -426,6 +452,35 @@ MenuCategoryCard.schema = {
       groupName: 'Image Effects',
       defaultOpen: false,
       props: [
+        {
+          name: 'imageObjectFit',
+          label: 'Image Fit',
+          type: types.SideEditPropType.Select,
+          selectOptions: {
+            display: types.OptionsDisplay.Select,
+            options: [
+              { value: 'cover', label: 'Cover (fill container, may crop)' },
+              { value: 'contain', label: 'Contain (fit within container)' },
+              { value: 'fill', label: 'Fill (stretch to fit)' },
+            ],
+          },
+          show: (props) => props.showImage,
+        },
+        {
+          name: 'containerAspectRatio',
+          label: 'Card Aspect Ratio',
+          type: types.SideEditPropType.Select,
+          selectOptions: {
+            display: types.OptionsDisplay.Select,
+            options: [
+              { value: 'auto', label: 'Auto (flexible height)' },
+              { value: '1:1', label: 'Square (1:1)' },
+              { value: '4:3', label: 'Standard (4:3)' },
+              { value: '3:2', label: 'Photo (3:2)' },
+              { value: '16:9', label: 'Widescreen (16:9)' },
+            ],
+          },
+        },
         {
           name: 'imageOpacity',
           label: 'Image Opacity',

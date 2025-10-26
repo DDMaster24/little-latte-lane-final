@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FileText } from 'lucide-react';
+import { FileText, Facebook, Instagram, Globe, Mail } from 'lucide-react';
 
 export default function FooterSection() {
   return (
@@ -47,8 +47,8 @@ export default function FooterSection() {
                   className="hover:text-neonCyan hover:shadow-neon transition-all duration-300 touch-target flex items-center gap-3 text-fluid-sm xs:text-fluid-base group"
                   aria-label="Facebook"
                 >
-                  <div className="w-6 h-6 flex items-center justify-center bg-blue-600 rounded text-white text-sm group-hover:bg-neonCyan group-hover:text-black transition-all">
-                    <span>📘</span>
+                  <div className="w-6 h-6 flex items-center justify-center bg-blue-600 rounded text-white group-hover:bg-neonCyan group-hover:text-black transition-all">
+                    <Facebook className="h-4 w-4" />
                   </div>
                   <span>Facebook</span>
                 </a>
@@ -61,8 +61,8 @@ export default function FooterSection() {
                   className="hover:text-neonPink hover:shadow-neon transition-all duration-300 touch-target flex items-center gap-3 text-fluid-sm xs:text-fluid-base group"
                   aria-label="Instagram"
                 >
-                  <div className="w-6 h-6 flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500 rounded text-white text-sm group-hover:from-neonPink group-hover:to-neonCyan transition-all">
-                    <span>�</span>
+                  <div className="w-6 h-6 flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500 rounded text-white group-hover:from-neonPink group-hover:to-neonCyan transition-all">
+                    <Instagram className="h-4 w-4" />
                   </div>
                   <span>Instagram</span>
                 </a>
@@ -75,8 +75,8 @@ export default function FooterSection() {
                   className="hover:text-neonBlue hover:shadow-neon transition-all duration-300 touch-target flex items-center gap-3 text-fluid-sm xs:text-fluid-base group"
                   aria-label="Website"
                 >
-                  <div className="w-6 h-6 flex items-center justify-center bg-gray-600 rounded text-white text-sm group-hover:bg-neonBlue group-hover:text-black transition-all">
-                    <span>🌐</span>
+                  <div className="w-6 h-6 flex items-center justify-center bg-gray-600 rounded text-white group-hover:bg-neonBlue group-hover:text-black transition-all">
+                    <Globe className="h-4 w-4" />
                   </div>
                   <span>Website</span>
                 </a>
@@ -87,8 +87,8 @@ export default function FooterSection() {
                   className="hover:text-neonGreen hover:shadow-neon transition-all duration-300 touch-target flex items-center gap-3 text-fluid-sm xs:text-fluid-base group"
                   aria-label="Email"
                 >
-                  <div className="w-6 h-6 flex items-center justify-center bg-green-600 rounded text-white text-sm group-hover:bg-neonGreen group-hover:text-black transition-all">
-                    <span>✉️</span>
+                  <div className="w-6 h-6 flex items-center justify-center bg-green-600 rounded text-white group-hover:bg-neonGreen group-hover:text-black transition-all">
+                    <Mail className="h-4 w-4" />
                   </div>
                   <span>Email Us</span>
                 </a>

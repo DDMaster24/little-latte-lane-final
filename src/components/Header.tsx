@@ -39,13 +39,14 @@ export default function Header() {
   if (!mounted) {
     return (
       <header
-        className="bg-darkBg text-neonText relative z-40 border-b border-neonCyan/30"
+        className="bg-darkBg text-neonText fixed top-0 left-0 right-0 z-50 border-b border-neonCyan/30"
         style={{
           paddingTop: 'env(safe-area-inset-top)',
+          backgroundColor: '#0D0D0D', // Extends into status bar area
         }}
         suppressHydrationWarning={true}
       >
-        <div className="container-full flex items-center justify-between py-1">
+        <div className="container-full flex items-center justify-between">
           <div className="flex items-center min-w-0">
             <Image
               src="/images/logo.svg"
@@ -75,12 +76,13 @@ export default function Header() {
 
   return (
     <header 
-      className="bg-darkBg text-neonText relative z-40 border-b border-neonCyan/30"
+      className="bg-darkBg text-neonText fixed top-0 left-0 right-0 z-50 border-b border-neonCyan/30"
       style={{
         paddingTop: 'env(safe-area-inset-top)',
+        backgroundColor: '#0D0D0D', // Extends into status bar area
       }}
     >
-      <div className="container-full flex items-center justify-between py-1">
+      <div className="container-full flex items-center justify-between">
         
         {/* Left Section - Little Latte Lane Logo */}
         <div className="flex items-center min-w-0">
@@ -187,10 +189,10 @@ export default function Header() {
                   Login
                 </Button>
               </DialogTrigger>
-              <DialogOverlay className="fixed inset-0 backdrop-blur-md bg-black/30" />
-              <DialogContent className="bg-white/40 backdrop-blur-sm border border-orange-500/50 rounded-2xl shadow-[0_0_15px_rgba(255,165,0,0.7)] max-w-sm xs:max-w-md sm:max-w-lg mx-4">
+              <DialogOverlay className="fixed inset-0 backdrop-blur-md bg-black/60" />
+              <DialogContent className="bg-darkBg/95 backdrop-blur-sm border-2 border-neonCyan/50 rounded-2xl shadow-[0_0_20px_rgba(0,217,255,0.5)] max-w-sm xs:max-w-md sm:max-w-lg mx-4">
                 <DialogHeader>
-                  <DialogTitle className="text-white text-fluid-lg">
+                  <DialogTitle className="text-neonCyan text-fluid-lg font-bold">
                     Login or Signup
                   </DialogTitle>
                 </DialogHeader>

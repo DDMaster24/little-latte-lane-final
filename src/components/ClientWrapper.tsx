@@ -101,7 +101,7 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
         {/* Editor Navigation - Only show in editor mode */}
         {isEditorMode && <EditorNavigation />}
         
-        <main className={shouldHideHeaderFooter ? 'min-h-screen relative pt-16' : 'flex-grow'}>
+        <main className={shouldHideHeaderFooter ? 'min-h-screen relative pt-16' : 'flex-grow pt-24 xs:pt-28 sm:pt-32'}>
           {children}
         </main>
         
