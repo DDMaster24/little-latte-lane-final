@@ -127,7 +127,7 @@ export default function Header() {
 
   return (
     <header 
-      className="bg-darkBg text-neonText fixed top-0 left-0 right-0 z-50 border-b border-neonCyan/30"
+      className="bg-darkBg text-neonText fixed top-0 left-0 right-0 z-50 border-b-2 border-neonCyan/30 shadow-[0_4px_20px_rgba(0,217,255,0.15)]"
       style={{
         paddingTop: 'env(safe-area-inset-top)',
         backgroundColor: '#0D0D0D', // Extends into status bar area
@@ -178,31 +178,31 @@ export default function Header() {
                 </span>
                 <ChevronDown className={`h-4 w-4 sm:h-5 sm:w-5 text-neonCyan group-hover:text-neonPink transition-all duration-300 flex-shrink-0 ml-2 ${isNavDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
-
-              {/* Navigation Dropdown */}
-              {isNavDropdownOpen && (
-                <div className="absolute left-0 right-0 sm:left-auto sm:right-auto sm:w-64 mt-2 bg-darkBg/95 backdrop-blur-md border-2 border-neonCyan/50 rounded-lg shadow-[0_0_20px_rgba(0,217,255,0.3)] z-50 animate-slide-up">
-                  <div className="p-2 space-y-1">
-                    {getNavItems().map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setIsNavDropdownOpen(false)}
-                        className={`w-full px-4 py-3 rounded-lg transition-all duration-300 flex items-center gap-3 ${
-                          pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href))
-                            ? 'bg-neonCyan/20 text-neonCyan border border-neonCyan/50'
-                            : 'hover:bg-neonCyan/10 text-gray-300 hover:text-neonCyan'
-                        }`}
-                      >
-                        <span className="text-lg">{item.emoji}</span>
-                        <span className="text-sm font-medium">{item.label}</span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </>
+        )}
+
+        {/* Navigation Dropdown - Outside header container to expand over page */}
+        {user && isNavDropdownOpen && (
+          <div className="fixed left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:w-64 top-[calc(env(safe-area-inset-top)+5rem)] sm:top-[calc(env(safe-area-inset-top)+6rem)] bg-darkBg/95 backdrop-blur-md border-2 border-neonCyan/50 rounded-lg shadow-[0_0_20px_rgba(0,217,255,0.3)] z-50 animate-slide-up lg:hidden">
+            <div className="p-2 space-y-1">
+              {getNavItems().map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsNavDropdownOpen(false)}
+                  className={`w-full px-4 py-3 rounded-lg transition-all duration-300 flex items-center gap-3 ${
+                    pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href))
+                      ? 'bg-neonCyan/20 text-neonCyan border border-neonCyan/50'
+                      : 'hover:bg-neonCyan/10 text-gray-300 hover:text-neonCyan'
+                  }`}
+                >
+                  <span className="text-lg">{item.emoji}</span>
+                  <span className="text-sm font-medium">{item.label}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* Center Section - Navigation Links (Desktop - when not logged in) */}
@@ -234,16 +234,8 @@ export default function Header() {
         {/* Right Section - Auth Area */}
         <div className="flex items-center justify-end space-x-2 xs:space-x-3 min-w-0">
           {user ? (
-            <>
-              {/* Logout Button - Hidden on mobile */}
-              <Button 
-                onClick={signOut} 
-                className="neon-button bg-neonPink text-xs px-3 py-2 hidden sm:block"
-              >
-                Logout
-              </Button>
-              
-              {/* Profile Picture - Now on far right */}
+            <div className="flex flex-col items-center gap-1.5">
+              {/* Profile Picture - On top */}
               <div className="relative">
                 <div className="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-neonCyan to-neonPink flex items-center justify-center border-2 border-neonCyan shadow-neon">
                   <span className="text-black font-bold text-xs xs:text-sm">
@@ -253,7 +245,15 @@ export default function Header() {
                   </span>
                 </div>
               </div>
-            </>
+              
+              {/* Logout Button - Below profile, matching dropdown height */}
+              <Button 
+                onClick={signOut} 
+                className="neon-button bg-neonPink text-xs px-3 py-2 sm:py-2.5 hidden sm:block whitespace-nowrap"
+              >
+                Logout
+              </Button>
+            </div>
           ) : (
             <>
               {/* Login Button */}
