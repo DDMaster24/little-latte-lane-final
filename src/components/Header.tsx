@@ -169,23 +169,23 @@ export default function Header() {
 
             {/* Mobile: Dropdown Navigation */}
             <div className="flex-1 mx-2 xs:mx-4 flex items-center gap-2 lg:hidden">
-              {/* Navigation Dropdown - Shorter width */}
-              <div className="flex-1 max-w-[180px] xs:max-w-[200px] nav-dropdown-container relative">
+              {/* Navigation Dropdown - Shorter width, exact height */}
+              <div className="flex-1 max-w-[160px] xs:max-w-[180px] nav-dropdown-container relative">
                 <button
                   onClick={() => setIsNavDropdownOpen(!isNavDropdownOpen)}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg border-2 border-neonCyan/50 bg-darkBg/80 backdrop-blur-sm hover:border-neonPink/70 hover:shadow-[0_0_10px_rgba(0,217,255,0.3)] transition-all duration-300 flex items-center justify-between group"
+                  className="w-full px-2.5 py-2 xs:px-3 xs:py-2 rounded-lg border-2 border-neonCyan/50 bg-darkBg/80 backdrop-blur-sm hover:border-neonPink/70 hover:shadow-[0_0_10px_rgba(0,217,255,0.3)] transition-all duration-300 flex items-center justify-between group"
                 >
-                  <span className="text-neonCyan text-xs sm:text-sm font-semibold group-hover:text-neonPink transition-colors truncate">
+                  <span className="text-neonCyan text-xs font-semibold group-hover:text-neonPink transition-colors truncate">
                     {getCurrentPageName()}
                   </span>
-                  <ChevronDown className={`h-4 w-4 sm:h-5 sm:w-5 text-neonCyan group-hover:text-neonPink transition-all duration-300 flex-shrink-0 ml-2 ${isNavDropdownOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`h-4 w-4 text-neonCyan group-hover:text-neonPink transition-all duration-300 flex-shrink-0 ml-1.5 ${isNavDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
               </div>
 
-              {/* Logout Button - Same height as dropdown */}
+              {/* Logout Button - Same exact height, less horizontal padding */}
               <Button 
                 onClick={signOut} 
-                className="neon-button bg-neonPink text-xs px-3 py-2 sm:px-4 sm:py-2.5 whitespace-nowrap rounded-lg"
+                className="neon-button bg-neonPink text-xs px-2.5 py-2 xs:px-3 xs:py-2 whitespace-nowrap rounded-lg"
               >
                 Logout
               </Button>
