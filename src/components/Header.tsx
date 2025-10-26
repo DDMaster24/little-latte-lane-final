@@ -4,8 +4,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/components/AuthProvider';
 import { Button } from '@/components/ui/button';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ChevronDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import {
   Dialog,
   DialogContent,
@@ -19,8 +20,9 @@ import LoginForm from '@/components/LoginForm';
 export default function Header() {
   const { user, profile, signOut, loading: authLoading } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
 
   // Fix hydration mismatch
   useEffect(() => {
@@ -34,6 +36,55 @@ export default function Header() {
       // The AuthProvider should handle this, but we can add logging here for debugging
     }
   }, [user, profile, authLoading]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (isNavDropdownOpen && !target.closest('.nav-dropdown-container')) {
+        setIsNavDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isNavDropdownOpen]);
+
+  // Get current page name based on pathname
+  const getCurrentPageName = () => {
+    if (pathname === '/') return 'Home';
+    if (pathname?.startsWith('/menu')) return 'Menu';
+    if (pathname?.startsWith('/bookings')) return 'Bookings';
+    if (pathname?.startsWith('/account')) return 'My Account';
+    if (pathname?.startsWith('/admin')) return 'Admin Panel';
+    if (pathname?.startsWith('/staff')) {
+      if (pathname.includes('kitchen-view')) return 'Kitchen View';
+      return 'Staff Panel';
+    }
+    return 'Home';
+  };
+
+  // Get navigation items based on user role
+  const getNavItems = () => {
+    const baseItems = [
+      { href: '/', label: 'Home', emoji: '🏠' },
+      { href: '/menu', label: 'Menu', emoji: '🍽️' },
+      { href: '/bookings', label: 'Bookings', emoji: '📅' },
+      { href: '/account', label: 'My Account', emoji: '👤' },
+    ];
+
+    if (user && profile?.is_admin) {
+      baseItems.push({ href: '/admin', label: 'Admin Panel', emoji: '⚙️' });
+    }
+
+    if (user && (profile?.is_staff || profile?.is_admin)) {
+      const staffHref = profile?.is_staff && !profile?.is_admin ? '/staff/kitchen-view' : '/staff';
+      const staffLabel = profile?.is_staff && !profile?.is_admin ? 'Kitchen View' : 'Staff Panel';
+      baseItems.push({ href: staffHref, label: staffLabel, emoji: '🍳' });
+    }
+
+    return baseItems;
+  };
 
   // Don't render auth-dependent content until mounted
   if (!mounted) {
@@ -98,62 +149,83 @@ export default function Header() {
           </Link>
         </div>
 
-        {/* Center Section - Navigation Links - Hidden on Mobile */}
-        <div className="hidden lg:flex items-center">
-          <nav className="flex items-center space-x-3 xl:space-x-4">
-            <Link 
-              href="/" 
-              className="neon-button text-sm px-3 py-2"
+        {/* Center Section - Current Page Navigation (when logged in) */}
+        {user && (
+          <div className="flex-1 mx-4 max-w-xs sm:max-w-sm nav-dropdown-container relative">
+            <button
+              onClick={() => setIsNavDropdownOpen(!isNavDropdownOpen)}
+              className="w-full px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg border-2 border-neonCyan/50 bg-darkBg/80 backdrop-blur-sm hover:border-neonPink/70 hover:shadow-[0_0_10px_rgba(0,217,255,0.3)] transition-all duration-300 flex items-center justify-between group"
             >
-              Home
-            </Link>
-            <Link 
-              href="/menu" 
-              className="neon-button text-sm px-3 py-2"
-            >
-              Menu
-            </Link>
-            <Link 
-              href="/bookings" 
-              className="neon-button text-sm px-3 py-2"
-            >
-              Bookings
-            </Link>
-            <Link 
-              href="/account" 
-              className="neon-button text-sm px-3 py-2"
-            >
-              My Account
-            </Link>
-            {user && profile?.is_admin && (
-              <Link 
-                href="/admin" 
-                className="neon-button text-sm px-3 py-2"
-              >
-                Admin Panel
-              </Link>
-            )}
-            {user && (profile?.is_staff || profile?.is_admin) && (
-              <Link 
-                href={profile?.is_staff && !profile?.is_admin ? "/staff/kitchen-view" : "/staff"} 
-                className="neon-button text-sm px-3 py-2"
-              >
-                {profile?.is_staff && !profile?.is_admin ? "🍳 Kitchen" : "Staff Panel"}
-              </Link>
-            )}
-            {user && !profile && authLoading && (
-              <div className="text-xs text-gray-400 px-3 py-2">
-                Loading roles...
+              <span className="text-neonCyan text-xs sm:text-sm font-semibold group-hover:text-neonPink transition-colors truncate">
+                {getCurrentPageName()}
+              </span>
+              <ChevronDown className={`h-4 w-4 sm:h-5 sm:w-5 text-neonCyan group-hover:text-neonPink transition-all duration-300 flex-shrink-0 ml-2 ${isNavDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Navigation Dropdown */}
+            {isNavDropdownOpen && (
+              <div className="absolute left-0 right-0 sm:left-auto sm:right-auto sm:w-64 mt-2 bg-darkBg/95 backdrop-blur-md border-2 border-neonCyan/50 rounded-lg shadow-[0_0_20px_rgba(0,217,255,0.3)] z-50 animate-slide-up">
+                <div className="p-2 space-y-1">
+                  {getNavItems().map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setIsNavDropdownOpen(false)}
+                      className={`w-full px-4 py-3 rounded-lg transition-all duration-300 flex items-center gap-3 ${
+                        pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href))
+                          ? 'bg-neonCyan/20 text-neonCyan border border-neonCyan/50'
+                          : 'hover:bg-neonCyan/10 text-gray-300 hover:text-neonCyan'
+                      }`}
+                    >
+                      <span className="text-lg">{item.emoji}</span>
+                      <span className="text-sm font-medium">{item.label}</span>
+                    </Link>
+                  ))}
+                </div>
               </div>
             )}
-          </nav>
-        </div>
+          </div>
+        )}
 
-        {/* Right Section - Auth Area - Compact */}
+        {/* Center Section - Navigation Links (Desktop - when not logged in) */}
+        {!user && (
+          <div className="hidden lg:flex items-center">
+            <nav className="flex items-center space-x-3 xl:space-x-4">
+              <Link 
+                href="/" 
+                className="neon-button text-sm px-3 py-2"
+              >
+                Home
+              </Link>
+              <Link 
+                href="/menu" 
+                className="neon-button text-sm px-3 py-2"
+              >
+                Menu
+              </Link>
+              <Link 
+                href="/bookings" 
+                className="neon-button text-sm px-3 py-2"
+              >
+                Bookings
+              </Link>
+            </nav>
+          </div>
+        )}
+
+        {/* Right Section - Auth Area */}
         <div className="flex items-center justify-end space-x-2 xs:space-x-3 min-w-0">
           {user ? (
-            <div className="flex items-center space-x-2">
-              {/* Profile Picture - Compact */}
+            <>
+              {/* Logout Button - Hidden on mobile */}
+              <Button 
+                onClick={signOut} 
+                className="neon-button bg-neonPink text-xs px-3 py-2 hidden sm:block"
+              >
+                Logout
+              </Button>
+              
+              {/* Profile Picture - Now on far right */}
               <div className="relative">
                 <div className="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-neonCyan to-neonPink flex items-center justify-center border-2 border-neonCyan shadow-neon">
                   <span className="text-black font-bold text-xs xs:text-sm">
@@ -163,150 +235,72 @@ export default function Header() {
                   </span>
                 </div>
               </div>
-              
-              {/* User Info - Hidden on small screens */}
-              <div className="hidden md:flex flex-col text-xs min-w-0">
-                <span className="text-gray-400 truncate">Signed in</span>
-                <span className="text-white font-medium truncate max-w-28 lg:max-w-32">
-                  {profile?.full_name || user.email}
-                </span>
-              </div>
-              
-              <Button 
-                onClick={signOut} 
-                className="neon-button bg-neonPink text-xs px-3 py-2"
-              >
-                <span className="hidden sm:inline">Logout</span>
-                <span className="sm:hidden">Exit</span>
-              </Button>
-            </div>
+            </>
           ) : (
-            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-              <DialogTrigger asChild>
-                <Button 
-                  className="neon-button text-xs xs:text-sm px-3 xs:px-4 py-2"
-                >
-                  Login
-                </Button>
-              </DialogTrigger>
-              <DialogOverlay className="fixed inset-0 backdrop-blur-md bg-black/60" />
-              <DialogContent className="bg-darkBg/95 backdrop-blur-sm border-2 border-neonCyan/50 rounded-2xl shadow-[0_0_20px_rgba(0,217,255,0.5)] w-[calc(100%-2rem)] max-w-[400px] sm:max-w-[450px]">
-                <DialogHeader>
-                  <DialogTitle className="text-neonCyan text-fluid-lg font-bold">
-                    Login or Signup
-                  </DialogTitle>
-                </DialogHeader>
-                <LoginForm setIsModalOpen={setIsModalOpen} />
-              </DialogContent>
-            </Dialog>
-          )}
+            <>
+              {/* Login Button */}
+              <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    className="neon-button text-xs xs:text-sm px-3 xs:px-4 py-2"
+                  >
+                    Login
+                  </Button>
+                </DialogTrigger>
+                <DialogOverlay className="fixed inset-0 backdrop-blur-md bg-black/60" />
+                <DialogContent className="bg-darkBg/95 backdrop-blur-sm border-2 border-neonCyan/50 rounded-2xl shadow-[0_0_20px_rgba(0,217,255,0.5)] w-[calc(100%-2rem)] max-w-[400px] sm:max-w-[450px]">
+                  <DialogHeader>
+                    <DialogTitle className="text-neonCyan text-fluid-lg font-bold">
+                      Login or Signup
+                    </DialogTitle>
+                  </DialogHeader>
+                  <LoginForm setIsModalOpen={setIsModalOpen} />
+                </DialogContent>
+              </Dialog>
 
-          {/* Hamburger Menu for Mobile/Tablet */}
-          <div className="lg:hidden">
-            <button 
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2"
-            >
-              {isMobileMenuOpen ? (
-                <X className="h-5 w-5 xs:h-6 xs:w-6 text-neonCyan hover:text-neonPink hover:shadow-neon transition-colors" />
-              ) : (
-                <Menu className="h-5 w-5 xs:h-6 xs:w-6 text-neonCyan hover:text-neonPink hover:shadow-neon transition-colors" />
-              )}
-            </button>
-          </div>
+              {/* Hamburger Menu - Only when not logged in */}
+              <div className="lg:hidden">
+                <button 
+                  onClick={() => setIsNavDropdownOpen(!isNavDropdownOpen)}
+                  className="p-2"
+                >
+                  {isNavDropdownOpen ? (
+                    <X className="h-5 w-5 xs:h-6 xs:w-6 text-neonCyan hover:text-neonPink hover:shadow-neon transition-colors" />
+                  ) : (
+                    <Menu className="h-5 w-5 xs:h-6 xs:w-6 text-neonCyan hover:text-neonPink hover:shadow-neon transition-colors" />
+                  )}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown - Enhanced Responsive */}
-      {isMobileMenuOpen && (
+      {/* Mobile Menu Dropdown - Only when not logged in */}
+      {!user && isNavDropdownOpen && (
         <nav className="absolute top-full left-0 right-0 bg-darkBg/95 backdrop-blur-md lg:hidden border-t border-gray-700/30 animate-slide-up z-50">
           <div className="container-wide py-4 space-y-1">
             <Link
               href="/"
               className="neon-button w-full text-center py-3 xs:py-4 hover:bg-neonCyan/10 rounded-lg transition-all duration-300 touch-target text-fluid-sm flex items-center justify-center gap-2"
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={() => setIsNavDropdownOpen(false)}
             >
               🏠 Home
             </Link>
             <Link
               href="/menu"
               className="neon-button w-full text-center py-3 xs:py-4 hover:bg-neonCyan/10 rounded-lg transition-all duration-300 touch-target text-fluid-sm flex items-center justify-center gap-2"
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={() => setIsNavDropdownOpen(false)}
             >
               🍽️ Menu
             </Link>
             <Link
               href="/bookings"
               className="neon-button w-full text-center py-3 xs:py-4 hover:bg-neonCyan/10 rounded-lg transition-all duration-300 touch-target text-fluid-sm flex items-center justify-center gap-2"
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={() => setIsNavDropdownOpen(false)}
             >
               📅 Bookings
             </Link>
-            <Link
-              href="/account"
-              className="neon-button w-full text-center py-3 xs:py-4 hover:bg-neonCyan/10 rounded-lg transition-all duration-300 touch-target text-fluid-sm flex items-center justify-center gap-2"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              👤 My Account
-            </Link>
-            {user && profile?.is_admin && (
-              <Link
-                href="/admin"
-                className="neon-button w-full text-center py-3 xs:py-4 hover:bg-neonPink/10 rounded-lg transition-all duration-300 touch-target text-fluid-sm flex items-center justify-center gap-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                ⚙️ Admin Panel
-              </Link>
-            )}
-            {user && (profile?.is_staff || profile?.is_admin) && (
-              <Link
-                href={profile?.is_staff && !profile?.is_admin ? "/staff/kitchen-view" : "/staff"}
-                className="neon-button w-full text-center py-3 xs:py-4 hover:bg-neonBlue/10 rounded-lg transition-all duration-300 touch-target text-fluid-sm flex items-center justify-center gap-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {profile?.is_staff && !profile?.is_admin ? "🍳 Kitchen View" : "👨‍🍳 Staff Panel"}
-              </Link>
-            )}
-            
-            {/* Mobile Auth Section */}
-            <div className="pt-4 border-t border-gray-700/50 mt-4">
-              {user ? (
-                <div className="flex items-center space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 xs:w-10 xs:h-10 rounded-full bg-gradient-to-br from-neonCyan to-neonPink flex items-center justify-center border-2 border-neonCyan">
-                      <span className="text-black font-bold text-xs xs:text-sm">
-                        {(profile?.full_name || user.email || 'U').charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-gray-400 text-xs">Signed in as</p>
-                      <p className="text-neonText text-fluid-sm font-medium truncate max-w-40">
-                        {profile?.full_name || user.email}
-                      </p>
-                    </div>
-                  </div>
-                  <Button 
-                    onClick={() => {
-                      signOut();
-                      setIsMobileMenuOpen(false);
-                    }} 
-                    className="neon-button bg-neonPink w-full py-3 xs:py-4 touch-target text-fluid-sm"
-                  >
-                    Logout
-                  </Button>
-                </div>
-              ) : (
-                <Button 
-                  onClick={() => {
-                    setIsModalOpen(true);
-                    setIsMobileMenuOpen(false);
-                  }} 
-                  className="neon-button w-full py-3 xs:py-4 touch-target text-fluid-sm"
-                >
-                  Login
-                </Button>
-              )}
-            </div>
           </div>
         </nav>
       )}
