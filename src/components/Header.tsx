@@ -42,7 +42,11 @@ export default function Header() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      if (isNavDropdownOpen && !target.closest('.nav-dropdown-container')) {
+      // Check if click is outside both the dropdown trigger AND the dropdown menu
+      const isOutsideDropdownTrigger = !target.closest('.nav-dropdown-container');
+      const isOutsideDropdownMenu = !target.closest('.nav-dropdown-menu');
+      
+      if (isNavDropdownOpen && isOutsideDropdownTrigger && isOutsideDropdownMenu) {
         setIsNavDropdownOpen(false);
       }
     };
@@ -186,7 +190,7 @@ export default function Header() {
               {/* Logout Button - Regular button (not Button component) to match exact height */}
               <button 
                 onClick={signOut} 
-                className="neon-button bg-neonPink text-white text-xs px-2.5 py-1 xs:px-3 xs:py-1.5 whitespace-nowrap rounded-lg border-2 border-neonPink/50 hover:border-neonPink hover:shadow-[0_0_10px_rgba(255,0,255,0.5)] transition-all duration-300 font-medium"
+                className="neon-button bg-neonPink text-white text-[10px] xs:text-xs px-2 py-0.5 xs:px-2.5 xs:py-1 whitespace-nowrap rounded-lg border-2 border-neonPink/50 hover:border-neonPink hover:shadow-[0_0_10px_rgba(255,0,255,0.5)] transition-all duration-300 font-medium"
               >
                 Logout
               </button>
@@ -196,15 +200,16 @@ export default function Header() {
 
         {/* Navigation Dropdown - Outside header container to expand over page */}
         {user && isNavDropdownOpen && (
-          <div className="fixed left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:w-64 top-[calc(env(safe-area-inset-top)+5rem)] sm:top-[calc(env(safe-area-inset-top)+6rem)] bg-darkBg/95 backdrop-blur-md border-2 border-neonCyan/50 rounded-lg shadow-[0_0_20px_rgba(0,217,255,0.3)] z-50 animate-slide-up lg:hidden">
+          <div className="nav-dropdown-menu fixed left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:w-64 top-[calc(env(safe-area-inset-top)+5rem)] sm:top-[calc(env(safe-area-inset-top)+6rem)] bg-darkBg/95 backdrop-blur-md border-2 border-neonCyan/50 rounded-lg shadow-[0_0_20px_rgba(0,217,255,0.3)] z-50 animate-slide-up lg:hidden">
             <div className="p-2 space-y-1">
               {getNavItems().map((item) => (
                 <button
                   key={item.href}
-                  onClick={() => {
-                    // Navigate first, then close dropdown after a brief delay
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsNavDropdownOpen(false);
                     router.push(item.href);
-                    setTimeout(() => setIsNavDropdownOpen(false), 100);
                   }}
                   className={`w-full px-4 py-3 rounded-lg transition-all duration-300 flex items-center gap-3 ${
                     pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href))
