@@ -35,7 +35,17 @@ yarn-error.log*
 
 # Firebase service account (CRITICAL - NEVER COMMIT)
 .firebase/
-*.json
+firebase-adminsdk-*.json
+*-firebase-adminsdk-*.json
+serviceAccountKey.json
+android/app/google-services.json
+ios/**/GoogleService-Info.plist
+
+# Exclude specific sensitive JSON files, but allow config files
+# package.json, tsconfig.json, etc. should be tracked
+# Android/iOS generated assets
+ios/App/App/Assets.xcassets/**/*.json
+temp-icons/**/
 
 # vercel
 .vercel
