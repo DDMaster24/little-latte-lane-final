@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
-import { getStaffOrders, updateOrderStatus } from '@/app/actions';
+import { getStaffOrders, getAllStaffOrders, updateOrderStatus } from '@/app/actions';
 import OrderDetailsModal from '@/components/OrderDetailsModal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -50,6 +50,7 @@ export default function KitchenView() {
   const { profile } = useAuth();
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   
@@ -148,6 +149,27 @@ export default function KitchenView() {
     };
   }, [profile, router, fetchOrders]);
 
+  // Refetch all orders when timeframe changes in "All Orders" view
+  useEffect(() => {
+    if (showAllOrdersView) {
+      const fetchAllOrders = async () => {
+        try {
+          const result = await getAllStaffOrders(timeFrame);
+          if (result.success) {
+            const mappedOrders = result.data.map(order => ({
+              ...order,
+              delivery_address: order.delivery_address || undefined
+            }));
+            setAllOrders(mappedOrders);
+          }
+        } catch (error) {
+          console.error('Error fetching all orders:', error);
+        }
+      };
+      fetchAllOrders();
+    }
+  }, [timeFrame, showAllOrdersView]);
+
   const handleUpdateStatus = async (id: string, newStatus: string) => {
     try {
       // Find the order to get customer details
@@ -215,8 +237,26 @@ export default function KitchenView() {
     setSelectedOrder(null);
   };
 
-  const handleViewAllOrders = () => {
+  const handleViewAllOrders = async () => {
     // Toggle the all orders view
+    if (!showAllOrdersView) {
+      // Fetch all orders when opening the view
+      try {
+        const result = await getAllStaffOrders(timeFrame);
+        if (result.success) {
+          const mappedOrders = result.data.map(order => ({
+            ...order,
+            delivery_address: order.delivery_address || undefined
+          }));
+          setAllOrders(mappedOrders);
+        } else {
+          toast.error('Failed to load all orders');
+        }
+      } catch (error) {
+        console.error('Error fetching all orders:', error);
+        toast.error('Error loading all orders');
+      }
+    }
     setShowAllOrdersView(!showAllOrdersView);
   };
 
@@ -331,9 +371,9 @@ export default function KitchenView() {
   };
 
   const getActiveOrders = () => {
-    // Orders that need kitchen work: draft orders (exclude ready to prevent duplicates)
+    // Orders that need kitchen work: confirmed and preparing orders
     return getFilteredOrders().filter(order => 
-      ['draft'].includes(order.status || '')
+      ['confirmed', 'preparing'].includes(order.status || '')
     );
   };
 
@@ -355,7 +395,7 @@ export default function KitchenView() {
     const startOfDay = new Date(today.setHours(0, 0, 0, 0));
     const endOfDay = new Date(today.setHours(23, 59, 59, 999));
     
-    return orders
+    return allOrders
       .filter(order => {
         const orderDate = new Date(order.created_at || 0);
         return orderDate >= startOfDay && orderDate <= endOfDay;
@@ -372,7 +412,7 @@ export default function KitchenView() {
     const today = new Date();
     const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
     
-    return orders
+    return allOrders
       .filter(order => {
         const orderDate = new Date(order.created_at || 0);
         return orderDate >= weekAgo;
@@ -627,26 +667,27 @@ export default function KitchenView() {
       <div className="h-screen bg-darkBg text-neonText overflow-hidden">
       {/* Streamlined Kitchen Header - Fixed to top */}
       <div className="bg-gray-900/95 backdrop-blur-md border-b border-gray-700/50 fixed top-0 left-0 right-0 z-50">
-        <div className="max-w-full px-4 py-3">
-          <div className="flex justify-between items-center">
+        <div className="max-w-full px-3 sm:px-4 py-2 sm:py-3">
+          <div className="flex justify-between items-center gap-2">
             {/* Kitchen Title */}
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-white">
-                🍳 Kitchen View
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold text-white truncate">
+                <span className="hidden xs:inline">🍳 Kitchen View</span>
+                <span className="xs:hidden">🍳 Kitchen</span>
               </h1>
               {newOrderCount > 0 && (
-                <Badge className="bg-red-500 text-white animate-pulse">
-                  +{newOrderCount} NEW
+                <Badge className="bg-red-500 text-white animate-pulse text-xs">
+                  +{newOrderCount}
                 </Badge>
               )}
             </div>
             
             {/* Essential Controls */}
-            <div className="flex items-center gap-3">
-              {/* Last Update Time */}
+            <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
+              {/* Last Update Time - Hidden on mobile */}
               {lastUpdate && (
-                <div className="text-sm text-gray-400">
-                  Last update: {lastUpdate.toLocaleTimeString()}
+                <div className="text-xs text-gray-400 hidden md:block">
+                  {lastUpdate.toLocaleTimeString()}
                 </div>
               )}
               
@@ -654,18 +695,21 @@ export default function KitchenView() {
               <Button
                 onClick={handleViewAllOrders}
                 variant="outline"
-                className="bg-transparent border border-purple-500 text-purple-400 hover:bg-purple-600 hover:text-white hover:border-purple-600 text-sm font-medium transition-all duration-300"
+                size="sm"
+                className="bg-transparent border border-purple-500 text-purple-400 hover:bg-purple-600 hover:text-white hover:border-purple-600 text-xs sm:text-sm font-medium transition-all duration-300 px-2 sm:px-3"
               >
-                📋 All Orders
+                <span className="hidden sm:inline">📋 All Orders</span>
+                <span className="sm:hidden">📋</span>
               </Button>
               
-              {/* Sound Button (Always On) */}
+              {/* Sound Button (Always On) - Hidden on small mobile */}
               <Button
                 variant="ghost"
-                className="text-gray-300 p-2"
+                size="sm"
+                className="text-gray-300 p-1 sm:p-2 hidden xs:block"
                 title="Sound notifications are active"
               >
-                <Volume2 className="w-5 h-5 text-green-400" />
+                <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
               </Button>
 
               {/* Refresh Button */}
@@ -673,13 +717,14 @@ export default function KitchenView() {
                 onClick={fetchOrders}
                 disabled={loading}
                 variant="outline"
-                className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                size="sm"
+                className="border-gray-600 text-gray-300 hover:bg-gray-700 text-xs px-2 sm:px-3"
               >
-                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
+                <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 ${loading ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline ml-2">Refresh</span>
               </Button>
 
-              {/* Logout Button */}
+              {/* Logout Button - Text hidden on mobile */}
               <Button
                 onClick={async () => {
                   try {
@@ -705,9 +750,11 @@ export default function KitchenView() {
                   }
                 }}
                 variant="outline"
-                className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
+                size="sm"
+                className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white text-xs px-2 sm:px-3"
               >
-                Logout
+                <span className="hidden sm:inline">Logout</span>
+                <span className="sm:hidden">⏻</span>
               </Button>
             </div>
           </div>
@@ -715,11 +762,11 @@ export default function KitchenView() {
       </div>
 
       {/* Split Layout: Active Orders (Left) + Completed Orders (Right) */}
-      <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 p-4 sm:p-6 pt-20">{/* Added pt-20 for fixed header space */}
+      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 p-3 sm:p-4 md:p-6 pt-20">{/* Added pt-20 for fixed header space */}
         {/* Left Side - Active Orders */}
-        <div className="flex-1 xl:w-2/3">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-white">Orders</h2>
+        <div className="flex-1 lg:w-2/3">
+          <div className="text-center mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-white">Orders</h2>
           </div>
           
           {getActiveOrders().length === 0 ? (
@@ -729,7 +776,7 @@ export default function KitchenView() {
               <p className="text-gray-500 text-sm">Orders will appear here as they come in</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
               {getActiveOrders().map((order, index) => (
                 <div
                   key={order.id}
@@ -846,9 +893,9 @@ export default function KitchenView() {
         </div>
 
         {/* Right Side - Completed Orders */}
-        <div className="xl:w-1/3 xl:border-l xl:border-gray-700 xl:pl-6">
+        <div className="lg:w-1/3 lg:border-l lg:border-gray-700 lg:pl-6">
           <div className="text-center mb-4">
-            <h2 className="text-xl font-bold text-white">Ready Orders</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-white">Ready Orders</h2>
           </div>
 
           {getReadyOrders().length === 0 ? (
@@ -858,7 +905,7 @@ export default function KitchenView() {
               <p className="text-gray-500 text-xs">Ready orders appear here</p>
             </div>
           ) : (
-            <div className="space-y-2 max-h-[calc(100vh-400px)] overflow-y-auto">
+            <div className="space-y-2 max-h-[400px] lg:max-h-[calc(100vh-250px)] overflow-y-auto">
               {getReadyOrders().map((order) => (
                 <div
                   key={order.id}

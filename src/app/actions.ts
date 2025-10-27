@@ -396,6 +396,63 @@ export async function getStaffOrders() {
   }
 }
 
+export async function getAllStaffOrders(timeframe: 'today' | 'week' = 'today') {
+  try {
+    const supabase = getSupabaseAdmin();
+    
+    // Calculate date range based on timeframe
+    const now = new Date();
+    let startDate: Date;
+    
+    if (timeframe === 'today') {
+      startDate = new Date(now.setHours(0, 0, 0, 0));
+    } else {
+      // Week - 7 days ago
+      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    }
+    
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items (
+          id,
+          menu_item_id,
+          quantity,
+          price,
+          special_instructions,
+          menu_items (
+            name,
+            category_id
+          )
+        ),
+        profiles (
+          full_name,
+          email,
+          phone
+        )
+      `)
+      .eq('payment_status', 'paid')
+      .gte('created_at', startDate.toISOString())
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('❌ Staff: Error fetching all orders:', error);
+      return { success: false, error: error.message, data: [] };
+    }
+
+    console.log(`✅ Staff: Fetched ${data?.length || 0} ${timeframe} orders via server action`);
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error('💥 Staff: Unexpected error fetching all orders:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      data: [] 
+    };
+  }
+}
+
 export async function getAllOrdersForAdmin() {
   try {
     const supabase = getSupabaseAdmin();

@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     
     const supabase = await getSupabaseServer();
 
-    // Get the draft order with menu items
+    // Get the draft/pending order with menu items (pending = payment failed)
     const { data: order, error: fetchError } = await supabase
       .from('orders')
       .select(`
@@ -38,18 +38,18 @@ export async function POST(request: NextRequest) {
       `)
       .eq('id', orderId)
       .eq('user_id', userId)
-      .eq('status', 'draft')
+      .in('status', ['draft', 'pending'])
       .single();
 
     if (fetchError || !order) {
       console.error('❌ Order not found or not accessible:', fetchError);
       return NextResponse.json(
-        { success: false, error: 'Order not found or cannot be retried' },
+        { success: false, error: 'Order not found or cannot be retried. Only draft or pending orders can be retried.' },
         { status: 404 }
       );
     }
 
-    console.log('✅ Found draft order for retry:', order.order_number);
+    console.log('✅ Found draft/pending order for retry:', order.order_number, 'status:', order.status);
 
     // Convert order items to cart format
     interface OrderItemWithMenu {
