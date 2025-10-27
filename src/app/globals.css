@@ -606,7 +606,7 @@ body {
 }
 
 /* Enhanced fallback for browsers that don't support background-clip: text */
-@supports not (background-clip: text) or not (-webkit-background-clip: text) {
+@supports not ((background-clip: text) or (-webkit-background-clip: text)) {
   .bg-neon-gradient {
     background: none;
     background-image: none;

@@ -35,14 +35,11 @@ const nextConfig = {
     scrollRestoration: true,
     optimizePackageImports: ['lucide-react', '@supabase/auth-helpers-nextjs'],
   },
-  // TypeScript and ESLint validation - TypeScript re-enabled ✅, ESLint warnings causing build issues 
+  // TypeScript validation - TypeScript re-enabled ✅
   typescript: {
     ignoreBuildErrors: false, // Re-enabled: TypeScript validation during builds
   },
-  eslint: {
-    ignoreDuringBuilds: true, // Temporarily disabled due to React Hook dependency warnings
-    dirs: ['src'], // Only lint src directory
-  },
+  // Note: ESLint configuration has been moved to eslint.config.mjs as of Next.js 16
   // Image optimization - allow remote optimization for native app
   images: {
     formats: ['image/webp', 'image/avif'],

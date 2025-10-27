@@ -1,95 +1,32 @@
 {
-  // Deno settings (ONLY for Supabase Edge Functions)
+  "java.enabled": false,
+  "java.jdt.ls.enabled": false,
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "java.import.gradle.enabled": false,
+  "java.autobuild.enabled": false,
+  "kotlin.enabled": false,
+  "csharp.enabled": false,
+  "dotnet.enableBackgroundServices": false,
   "deno.enablePaths": ["supabase/functions"],
   "deno.lint": true,
-  "deno.unstable": [
-    "bare-node-builtins",
-    "byonm",
-    "sloppy-imports",
-    "unsafe-proto",
-    "webgpu",
-    "broadcast-channel",
-    "worker-options",
-    "cron",
-    "kv",
-    "ffi",
-    "fs",
-    "http",
-    "net"
-  ],
-
-  // TypeScript/JavaScript settings for main app (Node.js)
-  "[typescript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
-  },
-  "[typescriptreact]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
-  },
-  "[javascriptreact]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
-  },
-
-  // Disable Deno for main source files (use Node.js instead)
-  "deno.disablePaths": [
-    "src/",
-    "pages/",
-    "components/",
-    "lib/",
-    "hooks/",
-    "stores/",
-    "types/",
-    ".next/",
-    "node_modules/"
-  ],
-
-  // TypeScript settings for Node.js
+  "deno.unstable": ["bare-node-builtins", "byonm", "sloppy-imports", "unsafe-proto", "webgpu", "broadcast-channel", "worker-options", "cron", "kv", "ffi", "fs", "http", "net"],
+  "deno.disablePaths": ["src/", "pages/", "components/", "lib/", "hooks/", "stores/", "types/", ".next/", "node_modules/"],
+  "[typescript]": { "editor.defaultFormatter": "vscode.typescript-language-features" },
+  "[javascript]": { "editor.defaultFormatter": "vscode.typescript-language-features" },
+  "[typescriptreact]": { "editor.defaultFormatter": "vscode.typescript-language-features" },
+  "[javascriptreact]": { "editor.defaultFormatter": "vscode.typescript-language-features" },
   "typescript.preferences.useAliasesForRenames": false,
   "typescript.suggest.autoImports": true,
   "typescript.updateImportsOnFileMove.enabled": "always",
-
-  // Control extension recommendations
   "extensions.ignoreRecommendations": false,
-
-  // Database management settings
-  "sqltools.connections": [
-    {
-      "name": "Supabase Production DB",
-      "driver": "PostgreSQL",
-      "server": "db.awytuszmunxvthuizyur.supabase.co",
-      "port": 5432,
-      "database": "postgres",
-      "username": "postgres",
-      "password": "${env:SUPABASE_DB_PASSWORD}",
-      "connectionTimeout": 30,
-      "ssl": {
-        "rejectUnauthorized": false
-      },
-      "group": "Production"
-    },
-    {
-      "name": "Local Docker PostgreSQL",
-      "driver": "PostgreSQL", 
-      "server": "localhost",
-      "port": 5432,
-      "database": "little_latte_lane_db",
-      "username": "postgres", 
-      "password": "postgres",
-      "group": "Development"
-    }
-  ],
+  "sqltools.connections": [{"name": "Supabase Production DB", "driver": "PostgreSQL", "server": "db.awytuszmunxvthuizyur.supabase.co", "port": 5432, "database": "postgres", "username": "postgres", "password": "${env:SUPABASE_DB_PASSWORD}", "connectionTimeout": 30, "ssl": {"rejectUnauthorized": false}, "group": "Production"}, {"name": "Local Docker PostgreSQL", "driver": "PostgreSQL", "server": "localhost", "port": 5432, "database": "little_latte_lane_db", "username": "postgres", "password": "postgres", "group": "Development"}],
   "supabase.projectRef": "awytuszmunxvthuizyur",
-  "sqltools.format": {
-    "language": "sql",
-    "indentSize": 2
-  },
+  "sqltools.format": {"language": "sql", "indentSize": 2},
   "sqltools.results.limit": 1000,
-
-  // Disable PHP validation completely (not needed for this Node.js project)
   "php.validate.enable": false,
   "php.suggest.basic": false,
   "php.validate.executablePath": null,
-  "java.configuration.updateBuildConfiguration": "automatic"
+  "files.exclude": {"**/android": false},
+  "files.watcherExclude": {"**/android/**": true, "**/android/.gradle/**": true, "**/android/build/**": true, "**/android/app/build/**": true},
+  "search.exclude": {"**/android/build": true, "**/android/.gradle": true, "**/android/app/build": true}
 }
