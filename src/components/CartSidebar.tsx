@@ -419,10 +419,13 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         transform transition-transform duration-300 ease-in-out z-50
         ${isOpen ? 'translate-x-0' : 'translate-x-full'}
       `}
+        style={{
+          paddingTop: 'env(safe-area-inset-top)',
+        }}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-neonCyan/30">
+          <div className="flex items-center justify-between p-4 border-b border-neonCyan/30 bg-darkBg">
             <div className="flex items-center gap-2">
               <ShoppingCart className="h-5 w-5 text-neonCyan" />
               <h2 className="text-neonCyan font-semibold text-lg">
@@ -436,10 +439,18 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setStep('cart')}
-              className="text-gray-400 hover:text-white hover:bg-gray-700/50 px-3 py-2"
+              onClick={() => {
+                if (step === 'cart') {
+                  // If on cart step, close sidebar and go back to ordering page
+                  onClose();
+                } else {
+                  // If on checkout/payment step, go back to cart
+                  setStep('cart');
+                }
+              }}
+              className="text-gray-400 hover:text-white hover:bg-gray-700/50 px-3 py-2 text-xs whitespace-nowrap"
             >
-              Back to Cart
+              {step === 'cart' ? 'Back to Menu' : 'Back to Cart'}
             </Button>
           </div>
 
@@ -592,7 +603,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                     </div>
 
                     {/* Total */}
-                    <div className="border-t border-neonCyan/30 pt-4">
+                    <div className="border-t border-neonCyan/30 pt-4 pb-safe-bottom">
                       <div className="space-y-2 mb-4">
                         <div className="flex justify-between items-center">
                           <span className="text-white">Subtotal:</span>
@@ -979,7 +990,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                       </div>
                     </form>
 
-                    <div className="mt-6">
+                    <div className="mt-6 pb-safe-bottom">
                       <Button
                         onClick={handleCreateOrder}
                         disabled={isCreatingOrder || isClosed}
