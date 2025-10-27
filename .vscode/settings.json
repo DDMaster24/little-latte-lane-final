@@ -18,7 +18,7 @@
   "typescript.preferences.useAliasesForRenames": false,
   "typescript.suggest.autoImports": true,
   "typescript.updateImportsOnFileMove.enabled": "always",
-  "extensions.ignoreRecommendations": false,
+  "extensions.ignoreRecommendations": true,
   "sqltools.connections": [{"name": "Supabase Production DB", "driver": "PostgreSQL", "server": "db.awytuszmunxvthuizyur.supabase.co", "port": 5432, "database": "postgres", "username": "postgres", "password": "${env:SUPABASE_DB_PASSWORD}", "connectionTimeout": 30, "ssl": {"rejectUnauthorized": false}, "group": "Production"}, {"name": "Local Docker PostgreSQL", "driver": "PostgreSQL", "server": "localhost", "port": 5432, "database": "little_latte_lane_db", "username": "postgres", "password": "postgres", "group": "Development"}],
   "supabase.projectRef": "awytuszmunxvthuizyur",
   "sqltools.format": {"language": "sql", "indentSize": 2},
@@ -27,6 +27,21 @@
   "php.suggest.basic": false,
   "php.validate.executablePath": null,
   "files.exclude": {"**/android": false},
-  "files.watcherExclude": {"**/android/**": true, "**/android/.gradle/**": true, "**/android/build/**": true, "**/android/app/build/**": true},
-  "search.exclude": {"**/android/build": true, "**/android/.gradle": true, "**/android/app/build": true}
+  "files.watcherExclude": {
+    "**/.next/**": true,
+    "**/node_modules/**": true,
+    "**/android/**": true,
+    "**/android/.gradle/**": true,
+    "**/android/build/**": true,
+    "**/android/app/build/**": true
+  },
+  "search.exclude": {
+    "**/.next/**": true,
+    "**/android/build": true,
+    "**/android/.gradle": true,
+    "**/android/app/build": true
+  },
+  "typescript.tsserver.watchOptions": {
+    "excludeDirectories": [".next", "node_modules", "android"]
+  }
 }
