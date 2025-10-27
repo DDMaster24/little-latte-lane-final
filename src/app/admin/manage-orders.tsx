@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import { useRouter } from 'next/navigation';
 import { Database } from '@/types/supabase';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
@@ -112,7 +112,7 @@ export default function ManageOrders() {
   const [weekAnalytics, setWeekAnalytics] = useState<OrderAnalytics | null>(null);
   const [monthAnalytics, setMonthAnalytics] = useState<OrderAnalytics | null>(null);
 
-  const supabase = createClientComponentClient<Database>();
+  const supabase = getSupabaseClient();
 
   // Redirect if not authenticated or not staff/admin
   useEffect(() => {

@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import { Database } from '@/types/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import PizzaCustomizer from '@/components/PizzaCustomizer';
 import toast from 'react-hot-toast';
 import { ShoppingCart, Settings } from 'lucide-react';
 
-const supabase = createClientComponentClient<Database>();
+const supabase = getSupabaseClient();
 
 interface MenuItem {
   id: string;

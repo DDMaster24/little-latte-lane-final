@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import { useRouter } from 'next/navigation';
 import { Database } from '@/types/supabase';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
@@ -41,7 +41,7 @@ type Booking = Database['public']['Tables']['bookings']['Row'] & {
 const statusOptions = ['pending', 'confirmed', 'cancelled'] as const;
 
 export default function ManageBookings() {
-  const supabase = createClientComponentClient<Database>();
+  const supabase = getSupabaseClient();
   const { profile, loading: authLoading } = useAuth();
   const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
