@@ -725,11 +725,11 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                       onPaymentInitiated={handlePaymentInitiated}
                     />
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 pb-safe-bottom">
                       <Button
                         onClick={() => setStep('cart')}
                         variant="outline"
-                        className="flex-1 border-neonPink/50 text-neonPink hover:bg-neonPink/10"
+                        className="flex-1 border-neonPink/50 text-neonPink hover:bg-neonPink/10 text-sm"
                       >
                         Back to Cart
                       </Button>
@@ -739,7 +739,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                           // This allows editing details and creating a new order if needed
                         }}
                         variant="outline"
-                        className="flex-1 border-red-400/50 text-red-400 hover:bg-red-400/10"
+                        className="flex-1 border-red-400/50 text-red-400 hover:bg-red-400/10 text-sm"
                       >
                         Cancel Order
                       </Button>
