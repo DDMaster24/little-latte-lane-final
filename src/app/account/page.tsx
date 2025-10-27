@@ -83,6 +83,10 @@ export default function AccountPage() {
     saving: false,
   });
 
+  // Delete account confirmation state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmStep, setDeleteConfirmStep] = useState(0);
+
   // Address editing state
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [addressData, setAddressData] = useState<EnhancedAddress>(parseAddressString(null));
@@ -423,25 +427,26 @@ export default function AccountPage() {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex space-x-1 bg-gray-800 p-1 rounded-lg">
+        <div className="flex flex-wrap gap-1 sm:gap-2 bg-gray-800 p-1 rounded-lg">
           {[
-            { id: 'active', label: 'Active Orders', icon: Clock },
-            { id: 'drafts', label: 'Draft Orders', icon: Edit2 },
-            { id: 'profile', label: 'My Profile', icon: User },
-            { id: 'notifications', label: 'Notifications', icon: Bell },
-            { id: 'orders', label: 'Order History', icon: Receipt },
-          ].map(({ id, label, icon: Icon }) => (
+            { id: 'active', label: 'Active Orders', icon: Clock, shortLabel: 'Active' },
+            { id: 'drafts', label: 'Draft Orders', icon: Edit2, shortLabel: 'Drafts' },
+            { id: 'profile', label: 'My Profile', icon: User, shortLabel: 'Profile' },
+            { id: 'notifications', label: 'Notifications', icon: Bell, shortLabel: 'Notify' },
+            { id: 'orders', label: 'Order History', icon: Receipt, shortLabel: 'History' },
+          ].map(({ id, label, icon: Icon, shortLabel }) => (
             <button
               key={id}
               onClick={() => setActiveTab(id)}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-medium transition-all ${
+              className={`flex-1 min-w-[60px] flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-md text-xs sm:text-sm font-medium transition-all ${
                 activeTab === id
                   ? 'bg-neonCyan text-black'
                   : 'text-gray-400 hover:text-white hover:bg-gray-700'
               }`}
             >
-              <Icon className="h-4 w-4" />
-              {label}
+              <Icon className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden xs:inline">{label}</span>
+              <span className="xs:hidden">{shortLabel}</span>
             </button>
           ))}
         </div>
@@ -646,9 +651,9 @@ export default function AccountPage() {
                           </div>
                         )}
 
-                        <div className="flex gap-2 pt-3 border-t border-gray-600">
+                        <div className="flex flex-col xs:flex-row gap-2 pt-3 border-t border-gray-600">
                           <Button
-                            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                            className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm"
                             onClick={async () => {
                               try {
                                 console.log('🔄 Loading order to cart for retry:', order.id);
@@ -687,7 +692,7 @@ export default function AccountPage() {
                           </Button>
                           <Button
                             variant="outline"
-                            className="border-red-500 text-red-400 hover:bg-red-500 hover:text-white"
+                            className="flex-1 border-red-500 text-red-400 hover:bg-red-500 hover:text-white text-sm whitespace-nowrap"
                             onClick={async () => {
                               if (confirm(`Are you sure you want to cancel Order #${order.order_number || order.id.slice(-8)}? This action cannot be undone.`)) {
                                 try {
@@ -747,15 +752,15 @@ export default function AccountPage() {
               {/* Inline Editable Fields */}
               <div className="space-y-6">
                 {/* Email (Read-only) */}
-                <div className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-5 w-5 text-neonCyan" />
-                    <div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 p-4 bg-gray-700 rounded-lg">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <Mail className="h-5 w-5 text-neonCyan flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm text-gray-400">Email Address</p>
-                      <p className="text-white font-medium">{user?.email}</p>
+                      <p className="text-white font-medium truncate">{user?.email}</p>
                     </div>
                   </div>
-                  <Badge variant="outline" className="border-gray-500 text-gray-400">
+                  <Badge variant="outline" className="border-gray-500 text-gray-400 text-xs whitespace-nowrap self-start sm:self-center">
                     Cannot be changed
                   </Badge>
                 </div>
@@ -962,88 +967,181 @@ export default function AccountPage() {
                   </div>
                 </div>
 
-                {/* Delete Account Section */}
-                <div className="mt-12 p-6 bg-red-900/20 border-2 border-red-500/30 rounded-lg">
-                  <div className="flex items-start gap-3 mb-4">
-                    <div className="p-2 bg-red-500/20 rounded-full">
-                      <X className="h-5 w-5 text-red-400" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-red-400 mb-2">
-                        Delete Account
-                      </h3>
-                      <p className="text-sm text-gray-300 mb-4">
-                        Permanently delete your account and all associated data. This action cannot be undone.
-                      </p>
-                      <ul className="text-sm text-gray-400 space-y-1 mb-4 list-disc list-inside">
-                        <li>All personal information will be deleted</li>
-                        <li>Order history will be removed</li>
-                        <li>You will be immediately signed out</li>
-                        <li>Active orders will be cancelled</li>
-                      </ul>
+                {/* Delete Account Section - Collapsible with Multi-Step Confirmation */}
+                <div className="mt-12">
+                  {!showDeleteConfirm ? (
+                    // Initial collapsed state - looks like other fields
+                    <div className="flex items-center justify-between p-4 bg-red-900/20 border-2 border-red-500/30 rounded-lg hover:bg-red-900/30 transition-colors">
+                      <div className="flex items-center gap-3 flex-1">
+                        <X className="h-5 w-5 text-red-400 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-sm text-gray-400">Danger Zone</p>
+                          <p className="text-white font-medium">Delete Account</p>
+                        </div>
+                      </div>
                       <Button
+                        size="sm"
                         variant="outline"
-                        className="border-red-500 text-red-400 hover:bg-red-500 hover:text-white"
-                        onClick={async () => {
-                          const confirmed = window.confirm(
-                            '⚠️ Are you absolutely sure you want to delete your account?\n\n' +
-                            'This will permanently delete:\n' +
-                            '• All your personal information\n' +
-                            '• Your order history\n' +
-                            '• Your saved addresses\n' +
-                            '• Your notification preferences\n\n' +
-                            'This action CANNOT be undone!\n\n' +
-                            'Type "DELETE" to confirm.'
-                          );
-
-                          if (confirmed) {
-                            const finalConfirm = window.prompt(
-                              'Type "DELETE" to permanently delete your account:'
-                            );
-
-                            if (finalConfirm === 'DELETE') {
-                              try {
-                                const supabase = getSupabaseClient();
-                                
-                                // First, try to delete via API endpoint
-                                const response = await fetch('/api/account/delete', {
-                                  method: 'POST',
-                                  headers: {
-                                    'Content-Type': 'application/json',
-                                  },
-                                  body: JSON.stringify({
-                                    userId: session.user.id,
-                                  }),
-                                });
-
-                                const result = await response.json();
-
-                                if (!result.success) {
-                                  throw new Error(result.error || 'Failed to delete account');
-                                }
-
-                                // Sign out
-                                await supabase.auth.signOut();
-
-                                toast.success('Account deleted successfully. You have been signed out.');
-                                
-                                // Redirect to home
-                                router.push('/');
-                              } catch (error) {
-                                console.error('❌ Delete account error:', error);
-                                toast.error('Failed to delete account. Please contact support at privacy@littlelattelane.co.za');
-                              }
-                            } else {
-                              toast.error('Account deletion cancelled. You must type "DELETE" to confirm.');
-                            }
-                          }
+                        onClick={() => {
+                          setShowDeleteConfirm(true);
+                          setDeleteConfirmStep(1);
                         }}
+                        className="border-red-500 text-red-400 hover:bg-red-500/20"
                       >
-                        <X className="h-4 w-4 mr-2" />
-                        Delete My Account
+                        <Edit2 className="h-4 w-4" />
                       </Button>
                     </div>
-                  </div>
+                  ) : (
+                    // Expanded confirmation flow
+                    <div className="p-4 sm:p-6 bg-red-900/20 border-2 border-red-500/30 rounded-lg space-y-4">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-red-500/20 rounded-full flex-shrink-0">
+                          <X className="h-5 w-5 text-red-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-base sm:text-lg font-semibold text-red-400 mb-2">
+                            Delete Account
+                          </h3>
+                          
+                          {deleteConfirmStep === 1 && (
+                            <>
+                              <p className="text-sm text-gray-300 mb-4">
+                                Permanently delete your account and all associated data. This action cannot be undone.
+                              </p>
+                              <ul className="text-xs sm:text-sm text-gray-400 space-y-1 mb-4 list-disc list-inside">
+                                <li>All personal information will be deleted</li>
+                                <li>Order history will be removed</li>
+                                <li>You will be immediately signed out</li>
+                                <li>Active orders will be cancelled</li>
+                              </ul>
+                              <div className="flex flex-col xs:flex-row gap-2">
+                                <Button
+                                  variant="outline"
+                                  className="border-red-500 text-red-400 hover:bg-red-500 hover:text-white text-sm"
+                                  onClick={() => setDeleteConfirmStep(2)}
+                                >
+                                  <X className="h-4 w-4 mr-2" />
+                                  Continue to Delete
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  className="border-gray-500 text-gray-400 hover:bg-gray-600 text-sm"
+                                  onClick={() => {
+                                    setShowDeleteConfirm(false);
+                                    setDeleteConfirmStep(0);
+                                  }}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </>
+                          )}
+
+                          {deleteConfirmStep === 2 && (
+                            <>
+                              <div className="bg-red-500/10 border border-red-500/50 rounded p-3 sm:p-4 mb-4">
+                                <p className="text-sm sm:text-base font-bold text-red-300 mb-2">
+                                  ⚠️ Final Warning
+                                </p>
+                                <p className="text-xs sm:text-sm text-gray-300 mb-2">
+                                  Are you absolutely sure? This will permanently delete:
+                                </p>
+                                <ul className="text-xs sm:text-sm text-gray-400 space-y-1 list-disc list-inside">
+                                  <li>Your profile and personal information</li>
+                                  <li>All order history and data</li>
+                                  <li>Saved addresses and preferences</li>
+                                  <li>Notification settings</li>
+                                </ul>
+                              </div>
+                              <div className="flex flex-col xs:flex-row gap-2">
+                                <Button
+                                  variant="outline"
+                                  className="border-red-600 bg-red-600/20 text-red-300 hover:bg-red-600 hover:text-white text-sm font-bold"
+                                  onClick={() => setDeleteConfirmStep(3)}
+                                >
+                                  <X className="h-4 w-4 mr-2" />
+                                  Yes, Delete Everything
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  className="border-gray-500 text-gray-400 hover:bg-gray-600 text-sm"
+                                  onClick={() => {
+                                    setShowDeleteConfirm(false);
+                                    setDeleteConfirmStep(0);
+                                  }}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </>
+                          )}
+
+                          {deleteConfirmStep === 3 && (
+                            <>
+                              <div className="bg-red-600/20 border-2 border-red-600 rounded p-3 sm:p-4 mb-4">
+                                <p className="text-sm sm:text-base font-bold text-red-200 mb-2">
+                                  🚨 FINAL CONFIRMATION
+                                </p>
+                                <p className="text-xs sm:text-sm text-red-100 mb-3">
+                                  This is your last chance to cancel. Click the button below to permanently delete your account.
+                                </p>
+                                <p className="text-xs text-red-200 font-mono bg-black/30 p-2 rounded">
+                                  This action is irreversible. All data will be lost forever.
+                                </p>
+                              </div>
+                              <div className="flex flex-col xs:flex-row gap-2">
+                                <Button
+                                  variant="outline"
+                                  className="border-red-700 bg-red-700 text-white hover:bg-red-800 text-sm font-bold"
+                                  onClick={async () => {
+                                    try {
+                                      const supabase = getSupabaseClient();
+                                      
+                                      const response = await fetch('/api/account/delete', {
+                                        method: 'POST',
+                                        headers: {
+                                          'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify({
+                                          userId: session.user.id,
+                                        }),
+                                      });
+
+                                      const result = await response.json();
+
+                                      if (!result.success) {
+                                        throw new Error(result.error || 'Failed to delete account');
+                                      }
+
+                                      await supabase.auth.signOut();
+                                      toast.success('Account deleted successfully. You have been signed out.');
+                                      router.push('/');
+                                    } catch (error) {
+                                      console.error('❌ Delete account error:', error);
+                                      toast.error('Failed to delete account. Please contact support.');
+                                    }
+                                  }}
+                                >
+                                  <X className="h-4 w-4 mr-2" />
+                                  DELETE MY ACCOUNT
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  className="border-gray-500 text-gray-400 hover:bg-gray-600 text-sm"
+                                  onClick={() => {
+                                    setShowDeleteConfirm(false);
+                                    setDeleteConfirmStep(0);
+                                  }}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
