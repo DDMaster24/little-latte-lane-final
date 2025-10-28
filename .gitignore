@@ -41,6 +41,11 @@ serviceAccountKey.json
 android/app/google-services.json
 ios/**/GoogleService-Info.plist
 
+# Android/iOS backup folders (NEVER COMMIT - contain keystores and secrets)
+android-backup-*/
+ios-backup-*/
+*-backup-*/
+
 # Exclude specific sensitive JSON files, but allow config files
 # package.json, tsconfig.json, etc. should be tracked
 # Android/iOS generated assets
