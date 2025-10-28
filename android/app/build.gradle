@@ -45,6 +45,7 @@ dependencies {
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     
     // Capacitor Plugins
+    implementation project(':capacitor-app')
     implementation project(':capacitor-browser')
     implementation project(':capacitor-push-notifications')
     
