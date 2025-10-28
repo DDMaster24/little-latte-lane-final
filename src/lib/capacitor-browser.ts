@@ -31,21 +31,23 @@ export function getPlatform(): 'android' | 'ios' | 'web' {
  */
 export async function openPaymentUrl(url: string): Promise<void> {
   if (isNativeApp()) {
-    // Set up listener for when payment redirects back to app via deep link
-    const appUrlListener = await App.addListener('appUrlOpen', async (data: { url: string }) => {
-      console.log('🔗 App URL opened:', data.url);
-      
-      // Check if this is ANY redirect from our domain (payment-related or not)
-      if (
-        data.url.includes('littlelattelane.co.za') && 
-        (data.url.includes('payment') || data.url.includes('account') || data.url.includes('cart'))
-      ) {
-        console.log('✅ Payment redirect detected - closing browser');
-        // Close the browser immediately
+    // Listen for browser URL changes to detect payment completion
+    const urlChangeListener = await Browser.addListener('browserPageLoaded', async () => {
+      console.log('🔗 Browser page loaded - checking URL');
+      // Close browser after successful payment redirect
+      // Give user 2 seconds to see success, then auto-close
+      setTimeout(async () => {
         await Browser.close();
-        // Remove the listener
-        appUrlListener.remove();
-      }
+        console.log('✅ Auto-closed browser after payment');
+        urlChangeListener.remove();
+      }, 2000);
+    });
+
+    // Also listen for when user manually closes browser
+    const finishListener = await Browser.addListener('browserFinished', () => {
+      console.log('🔄 User manually closed payment browser');
+      urlChangeListener.remove();
+      finishListener.remove();
     });
 
     // Native app: Use Capacitor Browser plugin
