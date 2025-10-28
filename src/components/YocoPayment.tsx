@@ -67,9 +67,12 @@ export default function YocoPayment({
       // Call the callback to clear cart and close sidebar
       onPaymentInitiated();
 
-      // Show success message with platform-specific info
-      const platform = isNativeApp() ? 'native browser' : 'secure payment';
-      toast.success(`Redirecting to ${platform}...`);
+      // Show single message - no need for multiple toasts
+      if (isNativeApp()) {
+        toast.success('Opening secure payment...');
+      } else {
+        toast.success('Redirecting to payment...');
+      }
 
       // Open payment URL (uses Capacitor Browser plugin in native apps)
       await openPaymentUrl(data.redirectUrl);

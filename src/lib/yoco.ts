@@ -245,10 +245,12 @@ export function generateCallbackUrls(orderId: string, request?: Request) {
   
   console.log('🌐 Generated callback URLs with base:', baseUrl);
   
+  // For native apps, we need to use deep links that will trigger the app to open
+  // The app will then close the browser automatically
   return {
-    successUrl: `${baseUrl}/account?payment=success&orderId=${orderId}`,  // Redirect to account page
-    cancelUrl: `${baseUrl}/cart/payment/cancelled?orderId=${orderId}`,
-    failureUrl: `${baseUrl}/cart/payment/failed?orderId=${orderId}`,
+    successUrl: `${baseUrl}/account?payment=success&orderId=${orderId}`,  // Will trigger deep link
+    cancelUrl: `${baseUrl}/cart?payment=cancelled&orderId=${orderId}`,      // Changed from /cart/payment/cancelled
+    failureUrl: `${baseUrl}/cart?payment=failed&orderId=${orderId}`,        // Changed from /cart/payment/failed
     webhookUrl: `${baseUrl}/api/yoco/webhook`,
   };
 }

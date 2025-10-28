@@ -35,15 +35,13 @@ export async function openPaymentUrl(url: string): Promise<void> {
     const appUrlListener = await App.addListener('appUrlOpen', async (data: { url: string }) => {
       console.log('🔗 App URL opened:', data.url);
       
-      // Check if this is a payment success/cancel/failure redirect
+      // Check if this is ANY redirect from our domain (payment-related or not)
       if (
-        data.url.includes('payment=success') ||
-        data.url.includes('payment/success') ||
-        data.url.includes('payment/cancelled') ||
-        data.url.includes('payment/failed')
+        data.url.includes('littlelattelane.co.za') && 
+        (data.url.includes('payment') || data.url.includes('account') || data.url.includes('cart'))
       ) {
         console.log('✅ Payment redirect detected - closing browser');
-        // Close the browser
+        // Close the browser immediately
         await Browser.close();
         // Remove the listener
         appUrlListener.remove();
@@ -58,6 +56,8 @@ export async function openPaymentUrl(url: string): Promise<void> {
       toolbarColor: '#1A1A1A',
       // iOS specific settings
       presentationStyle: 'fullscreen',
+      // OPTIONAL: Uncomment to open in external browser app (Chrome/Safari) instead of in-app
+      // windowName: '_system',
       // Android specific settings (uses Chrome Custom Tabs automatically)
     });
     
