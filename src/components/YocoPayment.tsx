@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, CreditCard, Shield } from 'lucide-react';
 import { toast } from 'sonner';
+import { openPaymentUrl, isNativeApp } from '@/lib/capacitor-browser';
 
 interface YocoPaymentProps {
   orderId: string;
@@ -66,11 +67,12 @@ export default function YocoPayment({
       // Call the callback to clear cart and close sidebar
       onPaymentInitiated();
 
-      // Show success message
-      toast.success('Redirecting to secure payment...');
+      // Show success message with platform-specific info
+      const platform = isNativeApp() ? 'native browser' : 'secure payment';
+      toast.success(`Redirecting to ${platform}...`);
 
-      // Redirect to Yoco payment page
-      window.location.href = data.redirectUrl;
+      // Open payment URL (uses Capacitor Browser plugin in native apps)
+      await openPaymentUrl(data.redirectUrl);
 
     } catch (error) {
       console.error('Payment initiation failed:', error);

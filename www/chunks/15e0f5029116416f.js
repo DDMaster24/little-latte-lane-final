@@ -1,0 +1,5 @@
+;!function(){try { var e="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof global?global:"undefined"!=typeof window?window:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&((e._debugIds|| (e._debugIds={}))[n]="17e70a46-f167-32c7-908f-09c90f0c469c")}catch(e){}}();
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,608454,e=>{"use strict";var t=e.i(843476),n=e.i(271645);function s(){return(0,n.useEffect)(()=>{window.location.href="/install?qr=true"},[]),(0,t.jsx)("div",{className:"min-h-screen bg-darkBg text-neonText flex items-center justify-center",children:(0,t.jsxs)("div",{className:"text-center",children:[(0,t.jsx)("div",{className:"text-4xl mb-4",children:"📱"}),(0,t.jsx)("h1",{className:"text-xl font-bold text-neonCyan mb-2",children:"QR Code Detected"}),(0,t.jsx)("p",{className:"text-gray-400",children:"Redirecting to streamlined installation..."})]})})}e.s(["default",()=>s])}]);
+
+//# debugId=17e70a46-f167-32c7-908f-09c90f0c469c
+//# sourceMappingURL=93ca54f4341a636f.js.map
