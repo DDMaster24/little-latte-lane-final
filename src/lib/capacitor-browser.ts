@@ -6,6 +6,7 @@
 
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
 
 /**
  * Check if running in native mobile app (Capacitor)
@@ -26,13 +27,31 @@ export function getPlatform(): 'android' | 'ios' | 'web' {
  * - Native apps: Opens in-app browser (Chrome Custom Tabs / Safari View Controller)
  * - Web: Uses standard window.location redirect
  * 
- * This enables seamless Google Pay/Apple Pay access in native apps
+ * Automatically listens for app URL opens (deep links) to close browser when payment completes
  */
 export async function openPaymentUrl(url: string): Promise<void> {
   if (isNativeApp()) {
+    // Set up listener for when payment redirects back to app via deep link
+    const appUrlListener = await App.addListener('appUrlOpen', async (data: { url: string }) => {
+      console.log('🔗 App URL opened:', data.url);
+      
+      // Check if this is a payment success/cancel/failure redirect
+      if (
+        data.url.includes('payment=success') ||
+        data.url.includes('payment/success') ||
+        data.url.includes('payment/cancelled') ||
+        data.url.includes('payment/failed')
+      ) {
+        console.log('✅ Payment redirect detected - closing browser');
+        // Close the browser
+        await Browser.close();
+        // Remove the listener
+        appUrlListener.remove();
+      }
+    });
+
     // Native app: Use Capacitor Browser plugin
     // This opens Chrome Custom Tabs (Android) or Safari View Controller (iOS)
-    // Maintains "in-app" feel while giving access to system credentials
     await Browser.open({
       url,
       // Brand color from Little Latte Lane theme
