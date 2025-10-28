@@ -41,6 +41,9 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     
+    // Chrome Custom Tabs (for seamless payment with Google Pay/Apple Pay)
+    implementation "androidx.browser:browser:1.7.0"
+    
     // Testing
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"

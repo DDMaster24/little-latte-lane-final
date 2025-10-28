@@ -13,6 +13,9 @@ import android.content.Intent;
 import android.view.KeyEvent;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
+import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.browser.customtabs.CustomTabColorSchemeParams;
+import android.graphics.Color;
 
 /**
  * Little Latte Lane - Native Android WebView App
@@ -87,7 +90,13 @@ public class MainActivity extends AppCompatActivity {
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                // Keep all navigation within app
+                // Open payment URLs in Chrome Custom Tabs for seamless Google Pay
+                if (isPaymentUrl(url)) {
+                    openInCustomTab(url);
+                    return true;
+                }
+                
+                // Keep all other navigation within app
                 view.loadUrl(url);
                 return true;
             }
@@ -119,6 +128,55 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+    }
+    
+    /**
+     * Check if URL is a payment checkout URL that should open in browser
+     */
+    private boolean isPaymentUrl(String url) {
+        return url != null && (
+            url.contains("yoco.com") ||         // Yoco checkout pages
+            url.contains("/checkout/") ||        // Generic checkout pages
+            url.contains("pay.") ||              // Payment providers
+            url.contains("payment")              // Payment-related URLs
+        );
+    }
+    
+    /**
+     * Open URL in Chrome Custom Tab for seamless Google Pay/Apple Pay
+     * Chrome Custom Tabs use the real Chrome browser, giving access to:
+     * - System Google account (no sign-in required)
+     * - Payment Request API
+     * - Saved payment methods
+     * While maintaining the "in-app" feel with custom toolbar
+     */
+    private void openInCustomTab(String url) {
+        try {
+            // Brand colors from Little Latte Lane theme
+            int toolbarColor = Color.parseColor("#1A1A1A");  // Dark background
+            int secondaryColor = Color.parseColor("#00F0FF");  // Neon cyan
+            
+            // Configure custom tab appearance
+            CustomTabColorSchemeParams colorScheme = new CustomTabColorSchemeParams.Builder()
+                .setToolbarColor(toolbarColor)
+                .setSecondaryToolbarColor(secondaryColor)
+                .setNavigationBarColor(toolbarColor)
+                .build();
+            
+            // Build custom tab intent
+            CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder()
+                .setDefaultColorSchemeParams(colorScheme)
+                .setShowTitle(true)
+                .setUrlBarHidingEnabled(false)
+                .build();
+            
+            // Launch in Chrome Custom Tab
+            customTabsIntent.launchUrl(this, Uri.parse(url));
+        } catch (Exception e) {
+            // Fallback: open in external browser if Custom Tabs fail
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(browserIntent);
+        }
     }
     
     /**
