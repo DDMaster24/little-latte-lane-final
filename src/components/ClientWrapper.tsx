@@ -12,6 +12,7 @@ import StaffRedirect from '@/components/StaffRedirect';
 import EditorNavigation from '@/components/EditorNavigation';
 import { initializeSessionTracking } from '@/lib/session-storage';
 import { useNativePushNotifications } from '@/hooks/useNativePushNotifications';
+import { NotificationPermissionPrompt } from '@/components/NotificationPermissionPrompt';
 
 // Create a client instance for React Query
 const queryClient = new QueryClient({
@@ -88,6 +89,14 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
       <AuthProvider>
         {/* Staff Auto-Redirect: Redirects staff users to kitchen view */}
         <StaffRedirect />
+        
+        {/* Notification Permission Prompt - Shows on first app launch */}
+        <NotificationPermissionPrompt 
+          autoShow={true}
+          onPermissionGranted={() => {
+            console.log('✅ User granted notification permissions');
+          }}
+        />
         
         {!isOnline && (
           <div className="bg-yellow-500 text-black text-center py-2 px-4 text-sm font-medium">
