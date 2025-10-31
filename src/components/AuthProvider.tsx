@@ -184,42 +184,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
           console.log('📧 AuthProvider: Initial session:', initialSession?.user?.email || 'none');
         }
         
-        // If no session found, try to recover from backup storage
+        // CRITICAL: Don't automatically attempt recovery on mount
+        // This prevents infinite loops and lets user explicitly log in
+        // Recovery is only for temporary connection issues, not permanent logout
         if (!initialSession) {
           if (process.env.NODE_ENV === 'development') {
-            console.log('🔄 AuthProvider: No session found, attempting recovery...');
-          }
-          
-          try {
-            const recoveryResult = await sessionManager.attemptSessionRecovery();
-            if (recoveryResult && !cancelled) {
-              if (process.env.NODE_ENV === 'development') {
-                console.log('✅ AuthProvider: Session recovered, re-fetching...');
-              }
-              
-              // Re-fetch session after recovery
-              const { data: { session: recoveredSession } } = await supabase.auth.getSession();
-              if (recoveredSession && !cancelled) {
-                setSession(recoveredSession);
-                
-                if (process.env.NODE_ENV === 'development') {
-                  console.log('🎉 AuthProvider: Successfully restored session for:', recoveredSession.user?.email);
-                }
-                
-                // Fetch profile for recovered session with delay for database consistency
-                await new Promise(resolve => setTimeout(resolve, PROFILE_FETCH_DELAY_MS));
-                const userProfile = await fetchProfile(recoveredSession.user.id);
-                
-                if (!cancelled && !isCancelled.current) {
-                  setProfile(userProfile);
-                }
-                return; // Exit early since we handled the recovered session
-              }
-            }
-          } catch (recoveryError) {
-            if (process.env.NODE_ENV === 'development') {
-              console.warn('⚠️ AuthProvider: Session recovery failed:', recoveryError);
-            }
+            console.log('ℹ️ AuthProvider: No session found - user needs to log in');
           }
         } else {
           setSession(initialSession);

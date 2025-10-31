@@ -22,6 +22,10 @@ class SessionPersistenceManager {
   private static instance: SessionPersistenceManager;
   private supabase: ReturnType<typeof createClient<Database>>;
   private sessionCheckInterval: NodeJS.Timeout | null = null;
+  private lastRecoveryAttempt: number = 0;
+  private recoveryAttemptCount: number = 0;
+  private readonly RECOVERY_COOLDOWN_MS = 30000; // 30 seconds between recovery attempts
+  private readonly MAX_RECOVERY_ATTEMPTS = 3; // Max attempts before giving up
 
   private constructor() {
     this.supabase = createClient<Database>(
@@ -36,25 +40,15 @@ class SessionPersistenceManager {
             getItem: (key: string) => {
               if (typeof window === 'undefined') return null;
               try {
-                // First try localStorage, then sessionStorage, then our backup
+                // First try localStorage, then sessionStorage
                 let value = window.localStorage.getItem(key);
                 if (!value) {
                   value = window.sessionStorage.getItem(key);
                 }
                 
-                // If it's the main auth token and we don't have it, try to restore from backup
-                if (!value && key.includes('auth-token')) {
-                  const backupSession = window.localStorage.getItem(STORAGE_KEYS.SESSION);
-                  if (backupSession) {
-                    console.log(`🔄 Restoring ${key} from backup session`);
-                    console.log(`📋 Backup session data:`, backupSession.substring(0, 100) + '...');
-                    // Restore the backup session to the expected key
-                    window.localStorage.setItem(key, backupSession);
-                    value = backupSession;
-                  } else {
-                    console.log(`❌ No backup session found for ${key}`);
-                  }
-                }
+                // CRITICAL: Don't try to restore invalid sessions automatically
+                // This prevents infinite refresh loops on invalid tokens
+                // Let the normal auth flow handle session restoration
                 
                 // Reduced logging for performance
                 if (process.env.NODE_ENV === 'development' && key.includes('auth-token')) {
@@ -191,18 +185,44 @@ class SessionPersistenceManager {
 
   /**
    * Attempt to recover session from backup storage
+   * Now with circuit breaker to prevent infinite loops
    */
   public async attemptSessionRecovery() {
     if (typeof window === 'undefined') return false;
 
     try {
-      console.log('🔄 Attempting session recovery...');
+      // Circuit breaker: Check if we're attempting recovery too frequently
+      const now = Date.now();
+      const timeSinceLastAttempt = now - this.lastRecoveryAttempt;
+      
+      if (timeSinceLastAttempt < this.RECOVERY_COOLDOWN_MS) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`⏸️ Recovery cooldown active. Wait ${Math.round((this.RECOVERY_COOLDOWN_MS - timeSinceLastAttempt) / 1000)}s before retry`);
+        }
+        return false;
+      }
+      
+      // Check if we've exceeded max recovery attempts
+      if (this.recoveryAttemptCount >= this.MAX_RECOVERY_ATTEMPTS) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🛑 Max recovery attempts reached. Clearing invalid data.');
+        }
+        this.clearAllSessionData();
+        this.recoveryAttemptCount = 0; // Reset for next session
+        return false;
+      }
+      
+      this.lastRecoveryAttempt = now;
+      this.recoveryAttemptCount++;
+      
+      console.log(`🔄 Attempting session recovery (${this.recoveryAttemptCount}/${this.MAX_RECOVERY_ATTEMPTS})...`);
       
       // Check if we have a current session
       const { data: { session: currentSession } } = await this.supabase.auth.getSession();
       
       if (currentSession) {
         console.log('✅ Current session is valid');
+        this.recoveryAttemptCount = 0; // Reset on success
         return true;
       }
 
@@ -226,12 +246,24 @@ class SessionPersistenceManager {
 
           if (data.session && !error) {
             console.log('✅ Session recovered successfully!');
+            this.recoveryAttemptCount = 0; // Reset on success
             return true;
           } else {
             console.warn('❌ Session recovery failed:', error);
+            // CRITICAL FIX: Clear invalid session data to prevent infinite loop
+            if (error?.message?.includes('Refresh Token Not Found') || 
+                error?.message?.includes('Invalid Refresh Token') ||
+                error?.status === 400) {
+              console.log('🗑️ Clearing invalid refresh token to prevent loop');
+              this.clearAllSessionData();
+              this.recoveryAttemptCount = 0; // Reset after clearing
+            }
           }
         } else {
-          console.log('⏰ Backup session has expired');
+          console.log('⏰ Backup session has expired, clearing old data');
+          // Clear expired session data
+          this.clearAllSessionData();
+          this.recoveryAttemptCount = 0; // Reset after clearing
         }
       }
 
@@ -239,6 +271,7 @@ class SessionPersistenceManager {
       return false;
     } catch (error) {
       console.error('❌ Session recovery error:', error);
+      // On error, increment attempt count and respect cooldown
       return false;
     }
   }
