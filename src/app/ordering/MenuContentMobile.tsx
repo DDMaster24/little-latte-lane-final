@@ -731,11 +731,62 @@ export default function MenuContentMobile() {
         )}
       </div>
 
+      {/* Floating Scroll to Cart Button - Shows when scrolled down in menu tab */}
+      {activeTab === 'menu' && (
+        <FloatingCartButton
+          cartItemCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+          onScrollToCart={() => {
+            setActiveTab('cart');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        />
+      )}
+
       {/* Cart Sidebar for Checkout */}
       <CartSidebar 
         isOpen={isCartOpen} 
         onClose={() => setIsCartOpen(false)} 
       />
     </div>
+  );
+}
+
+// Floating Cart Button Component
+function FloatingCartButton({ 
+  cartItemCount, 
+  onScrollToCart 
+}: { 
+  cartItemCount: number; 
+  onScrollToCart: () => void;
+}) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Show button when scrolled down more than 200px
+      setIsVisible(window.scrollY > 200);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  if (!isVisible || cartItemCount === 0) return null;
+
+  return (
+    <button
+      onClick={onScrollToCart}
+      className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-neonPink to-orange-500 text-white rounded-full shadow-2xl hover:scale-110 transition-all duration-300 flex items-center gap-2 px-5 py-3 animate-bounce"
+      style={{
+        boxShadow: '0 0 30px rgba(255, 105, 180, 0.6), 0 0 50px rgba(255, 165, 0, 0.4)',
+      }}
+    >
+      <ShoppingCart className="h-5 w-5" />
+      <span className="font-bold">Cart</span>
+      <Badge className="bg-black/50 text-white">
+        {cartItemCount}
+      </Badge>
+      <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-ping" />
+    </button>
   );
 }
