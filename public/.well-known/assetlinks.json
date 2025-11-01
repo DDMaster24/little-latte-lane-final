@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "co.za.littlelattelane.app",
+    "sha256_cert_fingerprints": [
+      "27:0A:E7:A1:9B:BA:03:9A:BD:FE:79:B7:D6:E9:4A:62:81:6A:CB:A1:EA:B1:E1:B2:D7:FA:DD:1A:91:82:C2:7B"
+    ]
+  }
+}]
