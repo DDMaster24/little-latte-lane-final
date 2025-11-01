@@ -46,6 +46,44 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
     // Initialize session tracking for better authentication persistence
     initializeSessionTracking();
 
+    // CRITICAL: Global App URL listener for deep links (Capacitor native apps)
+    // This handles payment redirects from Yoco and automatically closes the browser
+    if (typeof window !== 'undefined' && 'Capacitor' in window) {
+      import('@capacitor/app').then(({ App }) => {
+        import('@capacitor/browser').then(({ Browser }) => {
+          // Set up global listener for app URL opens (deep links)
+          App.addListener('appUrlOpen', async (data) => {
+            console.log('🔗 [ClientWrapper] App URL opened:', data.url);
+            
+            // Check if this is a payment callback redirect
+            const hasPaymentStatus = data.url.includes('payment=success') || 
+                                    data.url.includes('payment=cancelled') || 
+                                    data.url.includes('payment=failed');
+            
+            if (hasPaymentStatus) {
+              console.log('💳 [ClientWrapper] Payment callback detected - closing browser');
+              
+              // Close the payment browser window
+              setTimeout(async () => {
+                try {
+                  await Browser.close();
+                  console.log('✅ [ClientWrapper] Payment browser closed successfully');
+                } catch (err) {
+                  console.log('ℹ️ [ClientWrapper] Browser already closed or not open:', err);
+                }
+              }, 500); // Brief delay to ensure page loads
+            }
+          });
+          
+          console.log('✅ [ClientWrapper] Global app URL listener initialized');
+        }).catch(err => {
+          console.log('ℹ️ [ClientWrapper] Capacitor Browser plugin not available:', err);
+        });
+      }).catch(err => {
+        console.log('ℹ️ [ClientWrapper] Capacitor App plugin not available:', err);
+      });
+    }
+
     // Service Worker registration - simplified
     if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
       // Delay SW registration to avoid blocking main thread

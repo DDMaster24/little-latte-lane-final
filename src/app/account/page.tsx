@@ -109,41 +109,24 @@ export default function AccountPage() {
       }
 
       // Handle payment status notifications from payment gateway callback
-      if (paymentStatus) {
-        // CRITICAL: Close native browser if opened from payment gateway
-        // This handles the case where Yoco redirects back to the app
-        if (typeof window !== 'undefined' && 'Capacitor' in window) {
-          // Dynamically import Capacitor Browser to close it
-          import('@capacitor/browser').then(({ Browser }) => {
-            // Brief delay to show notification before closing browser
-            setTimeout(() => {
-              Browser.close().then(() => {
-                console.log('✅ Closed payment browser after callback');
-              }).catch(err => {
-                console.log('ℹ️ Browser already closed or not in native app:', err);
-              });
-            }, 1500);
-          }).catch(err => {
-            console.log('ℹ️ Capacitor Browser not available:', err);
-          });
-        }
-
-        if (paymentStatus === 'success') {
-          // Switch to the active orders tab to show the completed order
-          setActiveTab('active');
-          
-          toast.success(
-            `🎉 Payment successful! ${orderIdParam ? `Order #${orderIdParam}` : 'Your order'} has been confirmed and sent to the kitchen.`,
-            { duration: 6000 }
-          );
-        } else if (paymentStatus === 'error' || paymentStatus === 'cancelled' || paymentStatus === 'failed') {
-          const reason = urlParams.get('reason') || 'Payment was not completed';
-          toast.error(
-            `❌ Payment ${paymentStatus === 'cancelled' ? 'cancelled' : 'failed'}: ${reason}. Your order is saved as a draft - you can complete payment anytime.`,
-            { duration: 8000 }
-          );
-        }
+      // Note: Browser auto-close is handled by global App URL listener in ClientWrapper
+      if (paymentStatus === 'success') {
+        // Switch to the active orders tab to show the completed order
+        setActiveTab('active');
         
+        toast.success(
+          `🎉 Payment successful! ${orderIdParam ? `Order #${orderIdParam}` : 'Your order'} has been confirmed and sent to the kitchen.`,
+          { duration: 6000 }
+        );
+        // Clean up URL parameters after showing notification
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      } else if (paymentStatus === 'error' || paymentStatus === 'cancelled' || paymentStatus === 'failed') {
+        const reason = urlParams.get('reason') || 'Payment was not completed';
+        toast.error(
+          `❌ Payment ${paymentStatus === 'cancelled' ? 'cancelled' : 'failed'}: ${reason}. Your order is saved as a draft - you can complete payment anytime.`,
+          { duration: 8000 }
+        );
         // Clean up URL parameters after showing notification
         const newUrl = window.location.pathname;
         window.history.replaceState({}, '', newUrl);
