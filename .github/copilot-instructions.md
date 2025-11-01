@@ -2,6 +2,20 @@
 
 ## 🚨 ABSOLUTE RULES - ZERO TOLERANCE - IMMEDIATE TERMINATION IF VIOLATED
 
+### **🔴 MANDATORY PRE-ACTION CHECK - EVERY SINGLE TIME:**
+
+**BEFORE TAKING ANY ACTION, YOU MUST:**
+1. **READ PROJECT-CONTRACT.md FIRST** - Check current phase, approved scope, and constraints
+2. **VERIFY AGAINST CONTRACT** - Ensure action aligns with documented workflow
+3. **CHECK FOR EXPLICIT INSTRUCTIONS** - Look for specific build/deployment protocols
+4. **NEVER ASSUME** - If contract says "do X in Tool Y", use Tool Y (not alternatives)
+
+**Example Violations to NEVER Repeat:**
+- ❌ Building Android AAB via Gradle when contract says "Build in Android Studio"
+- ❌ Running deployment commands when contract specifies manual process
+- ❌ Creating files/folders when contract doesn't authorize them
+- ✅ **IF IN DOUBT**: Ask user first, reference contract section, explain why you're unsure
+
 ### **❌ PERMANENTLY BANNED - NEVER DO THESE:**
 
 1. **NO DOCUMENTATION FILES** - **EVER**
@@ -14,7 +28,15 @@
    - ✅ **GOLDEN RULE: If user needs guidance, provide step-by-step instructions IN CHAT, not in a new .md file**
    - ✅ **Violation = Security incident (API keys in docs)**
 
-2. **NEVER STOP MID-TASK**
+2. **NO UNAUTHORIZED BUILD/DEPLOYMENT COMMANDS**
+   - ❌ NEVER run build commands without checking PROJECT-CONTRACT.md first
+   - ❌ NEVER run deployment commands (Gradle, Docker, npm deploy, etc.) without contract approval
+   - ❌ NEVER assume "this is the standard way" - follow documented workflow
+   - ✅ **CONTRACT = LAW**: If contract says "manual in Tool X", do NOT automate with Tool Y
+   - ✅ **ASK FIRST**: "I see the contract says X, should I proceed with X or do you prefer Y?"
+   - ✅ Example: Contract says "Build AAB in Android Studio" → DO NOT use Gradle command line
+
+3. **NEVER STOP MID-TASK**
    - ❌ NEVER ask "do you want me to continue?"
    - ❌ NEVER pause and wait for permission to finish
    - ❌ NEVER split work into "phases" that require approval
@@ -22,13 +44,13 @@
    - ✅ If task requires multiple steps → DO ALL STEPS
    - ✅ Example: "Fixing Google Maps" → Remove ALL references, don't stop halfway
 
-3. **NO API KEYS IN ANY FILE**
+4. **NO API KEYS IN ANY FILE**
    - ❌ NEVER write actual API keys in any file except `.env.local` (which is gitignored)
    - ❌ NEVER include keys in documentation, analysis, or chat examples
    - ✅ **ALWAYS redact**: `re_**********************` or `YOUR_KEY_HERE`
    - ✅ **Double-check BEFORE committing** - scan for patterns like `re_`, `sk_`, `pk_`, API keys
 
-4. **EFFICIENT TOKEN USAGE**
+5. **EFFICIENT TOKEN USAGE**
    - ❌ User is paying for GitHub Copilot subscription - don't waste money
    - ❌ No 2000-line documentation files nobody reads
    - ❌ No verbose explanations when concise works
