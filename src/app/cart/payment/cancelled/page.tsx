@@ -12,6 +12,23 @@ export default function PaymentCancelledPage() {
   const orderId = searchParams.get('orderId');
   const [timeRemaining, setTimeRemaining] = useState<string>('');
 
+  // Close native browser if opened from payment gateway
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Capacitor' in window) {
+      import('@capacitor/browser').then(({ Browser }) => {
+        setTimeout(() => {
+          Browser.close().then(() => {
+            console.log('✅ Closed payment browser after cancellation');
+          }).catch(err => {
+            console.log('ℹ️ Browser already closed or not in native app:', err);
+          });
+        }, 1500);
+      }).catch(err => {
+        console.log('ℹ️ Capacitor Browser not available:', err);
+      });
+    }
+  }, []);
+
   // Calculate time remaining for order (assuming 6 hours from draft orders cleanup fix)
   useEffect(() => {
     if (!orderId) return;

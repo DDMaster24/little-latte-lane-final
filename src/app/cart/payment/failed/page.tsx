@@ -44,6 +44,23 @@ export default function PaymentFailedPage() {
     }
   };
 
+  // Close native browser if opened from payment gateway
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Capacitor' in window) {
+      import('@capacitor/browser').then(({ Browser }) => {
+        setTimeout(() => {
+          Browser.close().then(() => {
+            console.log('✅ Closed payment browser after failure');
+          }).catch(err => {
+            console.log('ℹ️ Browser already closed or not in native app:', err);
+          });
+        }, 1500);
+      }).catch(err => {
+        console.log('ℹ️ Capacitor Browser not available:', err);
+      });
+    }
+  }, []);
+
   useEffect(() => {
     // Auto-focus the retry button for better UX
     const retryButton = document.getElementById('retry-payment-btn');

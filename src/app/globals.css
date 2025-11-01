@@ -102,58 +102,38 @@
     justify-content: center;
   }
 
-  /* HYBRID SMART GRID: Adaptive columns with equal heights and smart centering */
+  /* HYBRID SMART GRID: Adaptive columns with equal heights */
   .grid-responsive-4-centered {
-    display: grid !important;
-    gap: 0.75rem; /* Smaller gap for very small screens */
-    width: 100% !important;
-    align-items: stretch !important; /* Equal heights for all panels */
-    justify-content: center !important;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(1, 1fr);
+    justify-content: center;
+    align-items: stretch;
     
-    /* Very small screens: 1 column with full width */
-    grid-template-columns: minmax(260px, 1fr) !important;
-    padding: 0 0.5rem; /* Small padding for tiny screens */
-    
-    /* Small phones: 1 column centered with max width */
-    @media (min-width: 475px) {
-      grid-template-columns: repeat(1, minmax(280px, 320px)) !important;
-      gap: 1rem;
-      padding: 0;
-    }
-    
-    /* Small screens: 2 columns centered */
     @media (min-width: 640px) {
-      grid-template-columns: repeat(2, minmax(280px, 320px)) !important;
+      grid-template-columns: repeat(2, 1fr);
       gap: 1.5rem;
     }
     
-    /* Medium screens: 3 columns centered */
     @media (min-width: 900px) {
-      grid-template-columns: repeat(3, minmax(280px, 320px)) !important;
+      grid-template-columns: repeat(3, 1fr);
       gap: 1.5rem;
     }
     
-    /* Large screens: 4 columns with smart centering */
     @media (min-width: 1200px) {
-      grid-template-columns: repeat(4, minmax(280px, 320px)) !important;
+      grid-template-columns: repeat(4, 1fr);
       gap: 1.5rem;
-      max-width: 1400px;
-      margin: 0 auto;
     }
     
-    /* Extra large screens */
     @media (min-width: 1400px) {
       gap: 2rem;
-      grid-template-columns: repeat(4, 320px) !important;
     }
     
-    /* Ensure all grid items have equal height and proper flex behavior */
+    /* Ensure all grid items have equal height */
     > * {
-      height: 100% !important;
-      display: flex !important;
-      flex-direction: column !important;
-      min-height: 200px !important;
-      width: 100% !important; /* Ensure panels fill grid space */
+      height: 100%;
+      display: flex;
+      flex-direction: column;
     }
   }
 
@@ -200,74 +180,7 @@
     }
   }
 
-  /* HOMEPAGE OVERRIDE: Smart 4-column with equal heights */
-  main .grid-responsive-4-centered {
-    display: grid !important;
-    gap: 0.75rem; /* Smaller gap for very small screens */
-    width: 100% !important;
-    align-items: stretch !important; /* Equal heights */
-    justify-content: center !important;
-    
-    /* Very small screens: 1 column with full width */
-    grid-template-columns: minmax(260px, 1fr) !important;
-    padding: 0 0.5rem; /* Small padding for tiny screens */
-    
-    /* Small phones: 1 column centered with max width */
-    @media (min-width: 475px) {
-      grid-template-columns: repeat(1, minmax(280px, 320px)) !important;
-      gap: 1rem;
-      padding: 0;
-    }
-    
-    /* Small screens: 2 columns centered */
-    @media (min-width: 640px) {
-      grid-template-columns: repeat(2, minmax(280px, 320px)) !important;
-      gap: 1.5rem;
-    }
-    
-    /* Medium screens: 3 columns centered */
-    @media (min-width: 900px) {
-      grid-template-columns: repeat(3, minmax(280px, 320px)) !important;
-      gap: 1.5rem;
-    }
-    
-    /* Large screens: 4 columns with perfect centering */
-    @media (min-width: 1200px) {
-      grid-template-columns: repeat(4, minmax(280px, 320px)) !important;
-      gap: 1.5rem;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-    
-    @media (min-width: 1400px) {
-      gap: 2rem;
-      grid-template-columns: repeat(4, 320px) !important;
-    }
-    
-    /* Equal height panels with flexible content and proper sizing */
-    > * {
-      height: 100% !important;
-      display: flex !important;
-      flex-direction: column !important;
-      min-height: 200px !important; /* Consistent minimum height */
-      width: 100% !important; /* Ensure panels fill grid space */
-    }
-  }
 
-  /* Fixed width for menu category panels to maintain consistent size when centered */
-  .menu-category-panel {
-    width: 100%; /* Full width within grid cell */
-    max-width: 400px; /* Reasonable maximum */
-    min-width: 260px; /* Minimum for very small screens */
-  }
-  
-  /* Responsive adjustments for mobile */
-  @media (max-width: 475px) {
-    .menu-category-panel {
-      min-width: 240px; /* Even smaller minimum for tiny screens */
-      max-width: calc(100vw - 1rem); /* Ensure it fits within viewport */
-    }
-  }
 
   @media (min-width: 475px) {
     .menu-category-panel {

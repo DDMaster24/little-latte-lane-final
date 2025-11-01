@@ -1041,30 +1041,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                       </div>
                     </form>
 
-                    {/* Validation Status Summary */}
-                    {!isClosed && (
-                      <div className="mt-4 p-3 bg-gray-800/30 rounded-lg border border-gray-600/50">
-                        <h4 className="text-xs font-medium text-gray-300 mb-2">Checkout Checklist:</h4>
-                        <div className="space-y-1 text-xs">
-                          <div className={`flex items-center gap-2 ${phone && isValidSouthAfricanPhone(phone) ? 'text-green-400' : 'text-red-400'}`}>
-                            {phone && isValidSouthAfricanPhone(phone) ? '✓' : '✗'} Valid phone number
-                          </div>
-                          {deliveryType === 'delivery' && (
-                            <>
-                              <div className={`flex items-center gap-2 ${(profile?.address || address.fullAddress.trim()) ? 'text-green-400' : 'text-red-400'}`}>
-                                {(profile?.address || address.fullAddress.trim()) ? '✓' : '✗'} Delivery address set
-                              </div>
-                              <div className={`flex items-center gap-2 ${isRobertsEstateResident ? 'text-green-400' : 'text-red-400'}`}>
-                                {isRobertsEstateResident ? '✓' : '✗'} Roberts Estate resident confirmed
-                              </div>
-                              <div className={`flex items-center gap-2 ${confirmAddressCorrect ? 'text-green-400' : 'text-red-400'}`}>
-                                {confirmAddressCorrect ? '✓' : '✗'} Address accuracy confirmed
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    )}
+
 
                     <div className="mt-6 pb-safe-bottom">
                       <Button
