@@ -43,6 +43,9 @@ public class MainActivity extends BridgeActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         
+        // CRITICAL: Set the intent so getIntent() returns the new one
+        setIntent(intent);
+        
         Log.d(TAG, "🔗 onNewIntent called - checking for payment redirect");
         
         // Handle deep link when app is already running
@@ -74,15 +77,45 @@ public class MainActivity extends BridgeActivity {
         if (hasPaymentStatus) {
             Log.d(TAG, "💳 Payment redirect detected - closing browser");
             
-            // Close the Capacitor Browser plugin
+            // Close the Capacitor Browser plugin - TRY MULTIPLE APPROACHES
             try {
-                // Use Capacitor's built-in way to close browser
-                getBridge().getWebView().post(() -> {
-                    getBridge().eval("if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) { " +
-                                   "  window.Capacitor.Plugins.Browser.close(); " +
-                                   "}", null);
-                    Log.d(TAG, "✅ Browser close command sent via WebView");
+                // Method 1: Direct WebView eval (synchronous on UI thread)
+                runOnUiThread(() -> {
+                    try {
+                        // Close browser via Capacitor plugin
+                        String jsCode = 
+                            "(async function() {" +
+                            "  console.log('🔴 Native: Attempting to close browser');" +
+                            "  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {" +
+                            "    await window.Capacitor.Plugins.Browser.close();" +
+                            "    console.log('✅ Native: Browser closed successfully');" +
+                            "    return true;" +
+                            "  } else {" +
+                            "    console.error('❌ Native: Capacitor Browser plugin not available');" +
+                            "    return false;" +
+                            "  }" +
+                            "})();";
+                        
+                        getBridge().getWebView().evaluateJavascript(jsCode, result -> {
+                            Log.d(TAG, "✅ JavaScript eval result: " + result);
+                        });
+                        
+                    } catch (Exception e) {
+                        Log.e(TAG, "❌ Method 1 failed: " + e.getMessage());
+                    }
                 });
+                
+                // Method 2: Post delayed command (in case WebView needs time to initialize)
+                getBridge().getWebView().postDelayed(() -> {
+                    try {
+                        String jsCode = "window.Capacitor?.Plugins?.Browser?.close();";
+                        getBridge().getWebView().evaluateJavascript(jsCode, null);
+                        Log.d(TAG, "✅ Delayed browser close command sent");
+                    } catch (Exception e) {
+                        Log.e(TAG, "❌ Method 2 failed: " + e.getMessage());
+                    }
+                }, 500); // 500ms delay
+                
             } catch (Exception e) {
                 Log.e(TAG, "❌ Error closing browser: " + e.getMessage());
             }
