@@ -64,17 +64,18 @@ export function NotificationPermissionPrompt({
     // Auto-show if enabled and not already granted/denied
     if (autoShow && support.supported) {
       const permission = getNotificationPermission()
+      
+      // CRITICAL FIX: Check actual permission status, not localStorage
+      // This ensures prompt shows after app reinstall/permission reset
       if (permission === 'default') {
-        // Only show if user hasn't made a decision yet
-        // Check if user has dismissed it recently (within 7 days)
-        const lastDismissed = localStorage.getItem('notification-prompt-dismissed')
-        if (lastDismissed) {
-          const dismissedDate = new Date(lastDismissed)
-          const daysSinceDismissed = (Date.now() - dismissedDate.getTime()) / (1000 * 60 * 60 * 24)
-          if (daysSinceDismissed < 7) {
-            return // Don't show if dismissed recently
-          }
+        // Check if user permanently dismissed (different from temporary dismiss)
+        const neverAsk = localStorage.getItem('notification-prompt-never')
+        if (neverAsk === 'true') {
+          return // User clicked "Don't Ask Again"
         }
+        
+        // Always show if permission is 'default' (not yet decided)
+        // Remove the 7-day throttle to ensure prompt shows after reinstall
         setIsOpen(true)
       }
     }

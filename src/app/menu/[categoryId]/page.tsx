@@ -115,8 +115,7 @@ export default function MenuCategory() {
     };
 
     addToCart(cartItem);
-
-    toast.success(`${item.name} added to cart!`);
+    // Toast removed - cart updates visible in UI
   };
 
   const handleCustomizedAddToCart = (customizedItem: {

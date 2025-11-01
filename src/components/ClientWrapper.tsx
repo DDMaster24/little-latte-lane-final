@@ -48,23 +48,37 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
 
     // CRITICAL: Global App URL listener for deep links (Capacitor native apps)
     // This handles payment redirects from Yoco and automatically closes the browser
+    console.log('🔍 [ClientWrapper] Checking Capacitor availability...');
+    console.log('🔍 [ClientWrapper] Window defined:', typeof window !== 'undefined');
+    console.log('🔍 [ClientWrapper] Capacitor in window:', typeof window !== 'undefined' && 'Capacitor' in window);
+    
     if (typeof window !== 'undefined' && 'Capacitor' in window) {
+      console.log('✅ [ClientWrapper] Capacitor detected - initializing app URL listener');
+      
       import('@capacitor/app').then(({ App }) => {
+        console.log('✅ [ClientWrapper] @capacitor/app imported successfully');
+        
         import('@capacitor/browser').then(({ Browser }) => {
+          console.log('✅ [ClientWrapper] @capacitor/browser imported successfully');
+          
           // Set up global listener for app URL opens (deep links)
           App.addListener('appUrlOpen', async (data) => {
             console.log('🔗 [ClientWrapper] App URL opened:', data.url);
+            console.log('🔗 [ClientWrapper] Full data object:', JSON.stringify(data, null, 2));
             
             // Check if this is a payment callback redirect
             const hasPaymentStatus = data.url.includes('payment=success') || 
                                     data.url.includes('payment=cancelled') || 
                                     data.url.includes('payment=failed');
             
+            console.log('🔗 [ClientWrapper] Has payment status:', hasPaymentStatus);
+            
             if (hasPaymentStatus) {
               console.log('💳 [ClientWrapper] Payment callback detected - closing browser');
               
               // Close the payment browser window
               setTimeout(async () => {
+                console.log('💳 [ClientWrapper] Attempting to close browser...');
                 try {
                   await Browser.close();
                   console.log('✅ [ClientWrapper] Payment browser closed successfully');
@@ -72,16 +86,20 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
                   console.log('ℹ️ [ClientWrapper] Browser already closed or not open:', err);
                 }
               }, 500); // Brief delay to ensure page loads
+            } else {
+              console.log('ℹ️ [ClientWrapper] URL does not contain payment status - not closing browser');
             }
           });
           
-          console.log('✅ [ClientWrapper] Global app URL listener initialized');
+          console.log('✅ [ClientWrapper] Global app URL listener registered');
         }).catch(err => {
-          console.log('ℹ️ [ClientWrapper] Capacitor Browser plugin not available:', err);
+          console.error('❌ [ClientWrapper] Failed to import @capacitor/browser:', err);
         });
       }).catch(err => {
-        console.log('ℹ️ [ClientWrapper] Capacitor App plugin not available:', err);
+        console.error('❌ [ClientWrapper] Failed to import @capacitor/app:', err);
       });
+    } else {
+      console.log('ℹ️ [ClientWrapper] Not a Capacitor app - skipping app URL listener');
     }
 
     // Service Worker registration - simplified

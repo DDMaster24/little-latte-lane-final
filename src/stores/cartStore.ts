@@ -54,10 +54,7 @@ export const useCartStore = create<CartStore>()(
         set((state) => {
           // For customized items, always add as new item (don't merge)
           if (item.customization) {
-            toast.success(`${item.name} added to cart!`, {
-              description: item.customization.isCustomized ? 'With custom options' : undefined,
-              duration: 2000,
-            });
+            // Toast removed per user request - cart updates are visible in UI
             return { items: [...state.items, item] };
           }
 
@@ -66,10 +63,7 @@ export const useCartStore = create<CartStore>()(
             (i) => i.id === item.id && !i.customization
           );
           if (existing) {
-            toast.success(`${item.name} quantity updated!`, {
-              description: `Now ${existing.quantity + item.quantity} in cart`,
-              duration: 2000,
-            });
+            // Toast removed per user request - quantity updates visible in cart
             return {
               items: state.items.map((i) =>
                 i.id === item.id && !i.customization
@@ -79,10 +73,7 @@ export const useCartStore = create<CartStore>()(
             };
           }
           
-          toast.success(`${item.name} added to cart!`, {
-            description: `R${item.price.toFixed(2)}`,
-            duration: 2000,
-          });
+          // Toast removed per user request - cart updates are visible in UI
           return { items: [...state.items, item] };
         }),
 

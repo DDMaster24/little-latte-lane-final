@@ -35,6 +35,7 @@ import {
   X,
   CheckCircle,
   Bell,
+  RefreshCw,
 } from 'lucide-react';
 import { 
   OrderStatusSkeleton
@@ -74,6 +75,7 @@ export default function AccountPage() {
   const { loadOrderToCart } = useCartStore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('active');
   
   // Inline editing state
@@ -212,7 +214,16 @@ export default function AccountPage() {
       return () => {
         orderSub.unsubscribe();
       };
-    }, [session?.user?.id, refreshTrigger]); // Re-run when user ID changes or manual refresh triggered  // Address management functions
+    }, [session?.user?.id, refreshTrigger]); // Re-run when user ID changes or manual refresh triggered
+  
+  // Manual refresh handler
+  const handleManualRefresh = () => {
+    setIsRefreshing(true);
+    setRefreshTrigger(prev => prev + 1);
+    setTimeout(() => setIsRefreshing(false), 1000);
+  };
+
+  // Address management functions
   const handleAddressSave = async () => {
     if (!session) return;
     
@@ -456,13 +467,26 @@ export default function AccountPage() {
         {activeTab === 'active' && (
           <Card className="bg-gray-800 border-gray-600">
             <CardHeader>
-              <CardTitle className="text-orange-400 flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Active Orders
-              </CardTitle>
-              <CardDescription>
-                Track your current orders from kitchen to pickup/delivery
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-orange-400 flex items-center gap-2">
+                    <Clock className="h-5 w-5" />
+                    Active Orders
+                  </CardTitle>
+                  <CardDescription>
+                    Track your current orders from kitchen to pickup/delivery
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleManualRefresh}
+                  disabled={isRefreshing}
+                  className="border-orange-500/50 hover:bg-orange-500/20"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {orders.filter(order => 

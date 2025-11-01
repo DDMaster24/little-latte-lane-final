@@ -269,23 +269,10 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
 
     setIsCreatingOrder(true);
     
-    // Enhanced loading with progress steps
-    const orderSteps = [
-      'Validating order details...',
-      'Creating your order...',
-      'Processing payment setup...',
-      'Preparing checkout...'
-    ];
-    
-    let currentStep = 0;
-    toast.loading(orderSteps[currentStep], { id: 'create-order' });
+    // Simple loading message
+    toast.loading('Creating your order...', { id: 'create-order' });
 
     try {
-      // Step 1: Validate
-      await new Promise(resolve => setTimeout(resolve, 500));
-      currentStep = 1;
-      toast.loading(orderSteps[currentStep], { id: 'create-order' });
-
       // Transform cart items to match the expected interface
       const checkoutItems = cart.map((item) => ({
         id: item.id,
@@ -295,11 +282,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         customization: item.customization as Record<string, unknown>,
       }));
 
-      // Step 2: Create order using server action (bypasses RLS issues)
-      await new Promise(resolve => setTimeout(resolve, 300));
-      currentStep = 2;
-      toast.loading(orderSteps[currentStep], { id: 'create-order' });
-
+      // Create order using server action (bypasses RLS issues)
       const result = await createOrderServerAction({
         userId: profile.id,
         items: checkoutItems,
@@ -316,11 +299,6 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         address_verified: false,
         specialInstructions: specialInstructions.trim() || undefined,
       });
-
-      // Step 3: Finalize
-      currentStep = 3;
-      toast.loading(orderSteps[currentStep], { id: 'create-order' });
-      await new Promise(resolve => setTimeout(resolve, 200));
 
       if (result.success && result.orderId) {
         setOrderId(result.orderId);
@@ -372,10 +350,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
           });
         }
         
-        toast.success('✅ Order ready for payment!', { 
-          id: 'create-order',
-          duration: 2000
-        });
+        toast.success('Order created!', { id: 'create-order', duration: 1500 });
         // Payment will be handled in the same checkout step
       } else {
         toast.error(
@@ -401,7 +376,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
     setOrderId(null);
     setSpecialInstructions(''); // Clear special instructions when payment is initiated
     onClose();
-    toast.success('Payment initiated! Redirecting to payment gateway...');
+    toast.success('Opening payment window...');
   };
 
   const getItemDescription = () => {

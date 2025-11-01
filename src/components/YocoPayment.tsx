@@ -71,19 +71,11 @@ export default function YocoPayment({
       // Call the callback to clear cart and close sidebar
       onPaymentInitiated();
 
-      // Show appropriate message based on device type
+      // Set loading step based on device type (no toast - handled by onPaymentInitiated)
       if (isNativeApp()) {
         setLoadingStep('Opening secure payment window...');
-        toast.success('Opening secure payment...', {
-          description: 'You will be redirected to a secure payment page',
-          duration: 3000,
-        });
       } else {
         setLoadingStep('Redirecting to payment gateway...');
-        toast.success('Redirecting to payment...', {
-          description: 'Please wait while we prepare your payment',
-          duration: 3000,
-        });
       }
 
       // Add a small delay to show the loading state

@@ -144,7 +144,7 @@ export default function PizzaCustomizationPage() {
     };
 
     addItem(cartItem);
-    toast.success(`${cartItem.name} added to cart!`);
+    // Toast removed - cart updates visible in UI
   };
 
   const totalPrice = calculateTotalPrice();

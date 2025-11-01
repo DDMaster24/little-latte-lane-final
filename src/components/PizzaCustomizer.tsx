@@ -136,7 +136,7 @@ export default function PizzaCustomizer({
     };
 
     onAddToCart(customizedItem);
-    toast.success(`${customizedItem.name} added to cart!`);
+    // Toast removed - cart updates visible in UI
     onClose();
   };
 
