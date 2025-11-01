@@ -47,9 +47,9 @@ const MenuCategoryCard: types.Brick<MenuCategoryCardProps> = ({
   }
 
   return (
-    <Link href={categoryLink} className="block category-card flex-none w-72 sm:w-80">
+    <Link href={categoryLink} className="block category-card w-full h-full">
       <div
-        className={`group relative ${getCardStyleClass()} p-4 sm:p-6 rounded-xl shadow-lg transition-all duration-300 ${getHoverClass()} animate-fade-in w-full h-full`}
+        className={`group relative ${getCardStyleClass()} p-4 sm:p-6 rounded-xl shadow-lg transition-all duration-300 ${getHoverClass()} animate-fade-in w-full h-full flex flex-col`}
         style={{ 
           backdropFilter: cardStyle === 'glass' ? 'blur(10px)' : undefined,
           boxShadow: cardStyle === 'glass' ? '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)' : undefined,
@@ -239,8 +239,8 @@ const MenuSection: types.Brick<MenuSectionProps> = ({
             </div>
           )}
 
-          {/* Categories Grid */}
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+          {/* Categories Grid - Using proper responsive grid system */}
+          <div className="grid-responsive-4-centered max-w-7xl mx-auto">
             <Repeater
               propName="categories"
               items={categories}

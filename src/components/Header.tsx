@@ -183,7 +183,7 @@ export default function Header() {
                   <span className="text-neonCyan text-xs font-semibold group-hover:text-neonPink transition-colors truncate">
                     {getCurrentPageName()}
                   </span>
-                  <ChevronDown className={`h-4 w-4 text-neonCyan group-hover:text-neonPink transition-all duration-300 flex-shrink-0 ml-1.5 ${isNavDropdownOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`h-4 w-4 text-neonCyan group-hover:text-neonPink transition-all duration-300 flex-shrink-0 ml-1.5 ${isNavDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
                 </button>
               </div>
 
@@ -213,8 +213,8 @@ export default function Header() {
                   }}
                   className={`w-full px-4 py-3 rounded-lg transition-all duration-300 flex items-center gap-3 ${
                     pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href))
-                      ? 'bg-neonCyan/20 text-neonCyan border border-neonCyan/50'
-                      : 'hover:bg-neonCyan/10 text-gray-300 hover:text-neonCyan'
+                      ? 'bg-neonCyan/20 text-neonCyan border border-neonCyan/50 shadow-[0_0_10px_rgba(0,217,255,0.3)]'
+                      : 'hover:bg-neonCyan/10 text-gray-300 hover:text-neonCyan hover:shadow-[0_0_5px_rgba(0,217,255,0.2)]'
                   }`}
                 >
                   <span className="text-lg">{item.emoji}</span>
@@ -330,25 +330,25 @@ export default function Header() {
 
       {/* Mobile Menu Dropdown - Only when not logged in */}
       {!user && isNavDropdownOpen && (
-        <nav className="absolute top-full left-0 right-0 bg-darkBg/95 backdrop-blur-md lg:hidden border-t border-gray-700/30 animate-slide-up z-50">
+        <nav className="absolute top-full left-0 right-0 bg-darkBg/95 backdrop-blur-md lg:hidden border-t border-neonCyan/30 animate-slide-up z-50 shadow-[0_4px_20px_rgba(0,217,255,0.15)]">
           <div className="container-wide py-4 space-y-1">
             <Link
               href="/"
-              className="neon-button w-full text-center py-3 xs:py-4 hover:bg-neonCyan/10 rounded-lg transition-all duration-300 touch-target text-fluid-sm flex items-center justify-center gap-2"
+              className="neon-button w-full text-center py-3 xs:py-4 hover:bg-neonCyan/10 hover:shadow-[0_0_10px_rgba(0,217,255,0.3)] rounded-lg transition-all duration-300 touch-target text-fluid-sm flex items-center justify-center gap-2"
               onClick={() => setIsNavDropdownOpen(false)}
             >
               🏠 Home
             </Link>
             <Link
               href="/menu"
-              className="neon-button w-full text-center py-3 xs:py-4 hover:bg-neonCyan/10 rounded-lg transition-all duration-300 touch-target text-fluid-sm flex items-center justify-center gap-2"
+              className="neon-button w-full text-center py-3 xs:py-4 hover:bg-neonCyan/10 hover:shadow-[0_0_10px_rgba(0,217,255,0.3)] rounded-lg transition-all duration-300 touch-target text-fluid-sm flex items-center justify-center gap-2"
               onClick={() => setIsNavDropdownOpen(false)}
             >
               🍽️ Menu
             </Link>
             <Link
               href="/bookings"
-              className="neon-button w-full text-center py-3 xs:py-4 hover:bg-neonCyan/10 rounded-lg transition-all duration-300 touch-target text-fluid-sm flex items-center justify-center gap-2"
+              className="neon-button w-full text-center py-3 xs:py-4 hover:bg-neonCyan/10 hover:shadow-[0_0_10px_rgba(0,217,255,0.3)] rounded-lg transition-all duration-300 touch-target text-fluid-sm flex items-center justify-center gap-2"
               onClick={() => setIsNavDropdownOpen(false)}
             >
               📅 Bookings

@@ -250,12 +250,35 @@ export default function RootLayout({
             position="top-right"
             theme="dark"
             className="toaster group"
+            gap={8}
+            offset={12}
+            closeButton
+            richColors
+            expand={false}
+            duration={4000}
             toastOptions={{
+              style: {
+                background: 'rgba(26, 26, 26, 0.95)',
+                border: '1px solid rgba(0, 255, 255, 0.3)',
+                backdropFilter: 'blur(10px)',
+                color: '#ffffff',
+                fontSize: '14px',
+                borderRadius: '8px',
+                boxShadow: '0 0 20px rgba(0, 217, 255, 0.15)',
+                // Safe area adjustments for mobile
+                top: 'max(12px, env(safe-area-inset-top, 12px))',
+                right: 'max(12px, env(safe-area-inset-right, 12px))',
+              },
               classNames: {
-                toast: 'group toast bg-darkBg border-neonCyan text-neonText',
+                toast: 'group toast bg-darkBg/95 border-neonCyan/30 text-neonText shadow-[0_0_20px_rgba(0,217,255,0.15)]',
                 description: 'text-gray-400',
-                actionButton: 'bg-neonCyan text-darkBg',
-                cancelButton: 'bg-gray-600 text-white',
+                actionButton: 'bg-neonCyan text-darkBg hover:bg-neonCyan/90',
+                cancelButton: 'bg-gray-600 text-white hover:bg-gray-500',
+                closeButton: 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600',
+                success: 'border-green-400/30 text-green-300',
+                error: 'border-red-400/30 text-red-300',
+                warning: 'border-yellow-400/30 text-yellow-300',
+                info: 'border-blue-400/30 text-blue-300',
               },
             }}
           />

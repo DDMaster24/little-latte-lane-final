@@ -33,10 +33,12 @@ export default function YocoPayment({
   onPaymentInitiated,
 }: YocoPaymentProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState<string>('');
 
   const handlePayment = async () => {
     try {
       setIsLoading(true);
+      setLoadingStep('Creating secure payment session...');
 
       // Create checkout session with Yoco
       const response = await fetch('/api/yoco/checkout', {
@@ -64,26 +66,42 @@ export default function YocoPayment({
         throw new Error('No redirect URL received from payment gateway');
       }
 
+      setLoadingStep('Preparing payment gateway...');
+      
       // Call the callback to clear cart and close sidebar
       onPaymentInitiated();
 
-      // Show single message - no need for multiple toasts
+      // Show appropriate message based on device type
       if (isNativeApp()) {
-        toast.success('Opening secure payment...');
+        setLoadingStep('Opening secure payment window...');
+        toast.success('Opening secure payment...', {
+          description: 'You will be redirected to a secure payment page',
+          duration: 3000,
+        });
       } else {
-        toast.success('Redirecting to payment...');
+        setLoadingStep('Redirecting to payment gateway...');
+        toast.success('Redirecting to payment...', {
+          description: 'Please wait while we prepare your payment',
+          duration: 3000,
+        });
       }
+
+      // Add a small delay to show the loading state
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Open payment URL (uses Capacitor Browser plugin in native apps)
       await openPaymentUrl(data.redirectUrl);
 
     } catch (error) {
       console.error('Payment initiation failed:', error);
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to start payment process'
-      );
+      setLoadingStep('');
+      toast.error('Payment initialization failed', {
+        description: error instanceof Error ? error.message : 'Failed to start payment process',
+        duration: 5000,
+      });
     } finally {
       setIsLoading(false);
+      setLoadingStep('');
     }
   };
 
@@ -128,13 +146,18 @@ export default function YocoPayment({
         <Button
           onClick={handlePayment}
           disabled={isLoading}
-          className="w-full bg-gradient-to-r from-neonCyan to-neonPink hover:from-neonCyan/80 hover:to-neonPink/80 text-darkBg font-semibold py-3 h-auto transition-all duration-300"
+          className="w-full btn-primary py-3 h-auto"
         >
           {isLoading ? (
-            <>
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              Creating secure payment...
-            </>
+            <div className="flex flex-col items-center gap-1">
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span className="font-medium">Processing...</span>
+              </div>
+              {loadingStep && (
+                <span className="text-xs opacity-80">{loadingStep}</span>
+              )}
+            </div>
           ) : (
             <>
               <CreditCard className="w-5 h-5 mr-2" />

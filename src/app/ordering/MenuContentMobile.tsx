@@ -776,17 +776,22 @@ function FloatingCartButton({
   return (
     <button
       onClick={onScrollToCart}
-      className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-neonPink to-orange-500 text-white rounded-full shadow-2xl hover:scale-110 transition-all duration-300 flex items-center gap-2 px-5 py-3 animate-bounce"
+      className="fixed z-40 bg-gradient-to-r from-neonPink to-orange-500 text-white rounded-full shadow-2xl hover:scale-110 transition-all duration-300 flex items-center gap-2 px-3 xs:px-4 sm:px-5 py-2 xs:py-3 animate-bounce touch-target"
       style={{
         boxShadow: '0 0 30px rgba(255, 105, 180, 0.6), 0 0 50px rgba(255, 165, 0, 0.4)',
+        // Responsive positioning with safe areas
+        bottom: 'max(1.5rem, env(safe-area-inset-bottom, 1.5rem))',
+        right: 'max(1rem, env(safe-area-inset-right, 1rem))',
+        // Landscape mode adjustments
+        transform: 'translateY(0)',
       }}
     >
-      <ShoppingCart className="h-5 w-5" />
-      <span className="font-bold">Cart</span>
-      <Badge className="bg-black/50 text-white">
+      <ShoppingCart className="h-4 w-4 xs:h-5 xs:w-5" />
+      <span className="font-bold text-xs xs:text-sm">Cart</span>
+      <Badge className="bg-black/50 text-white text-xs">
         {cartItemCount}
       </Badge>
-      <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-ping" />
+      <div className="absolute -top-1 -right-1 w-2.5 h-2.5 xs:w-3 xs:h-3 bg-green-400 rounded-full animate-ping" />
     </button>
   );
 }

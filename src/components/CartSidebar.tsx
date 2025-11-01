@@ -49,6 +49,35 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const clearCart = useCartStore((state) => state.clearCart);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
+
+  // Helper function to check if checkout is ready
+  const getCheckoutValidation = () => {
+    const errors = [];
+    
+    if (!phone.trim()) {
+      errors.push('Phone number required');
+    } else if (!isValidSouthAfricanPhone(phone)) {
+      errors.push('Valid phone number required');
+    }
+    
+    if (deliveryType === 'delivery') {
+      if (!profile?.address && !address.fullAddress.trim()) {
+        errors.push('Delivery address required');
+      }
+      if (!isRobertsEstateResident) {
+        errors.push('Roberts Estate confirmation required');
+      }
+      if (!confirmAddressCorrect) {
+        errors.push('Address confirmation required');
+      }
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors,
+      firstError: errors[0] || null
+    };
+  };
   const total = useCartStore((state) => state.total());
   const { user, profile } = useAuth();
   const { isClosed, message: closureMessage } = useRestaurantClosure();
@@ -857,7 +886,13 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                                 type="tel"
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
-                                className="bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-neonCyan focus:ring-1 focus:ring-neonCyan/20 mt-1"
+                                className={`bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-neonCyan focus:ring-1 focus:ring-neonCyan/20 mt-1 ${
+                                  phone && !isValidSouthAfricanPhone(phone) && phone.length > 5 
+                                    ? 'border-red-400 focus:border-red-400 focus:ring-red-400/20' 
+                                    : phone && isValidSouthAfricanPhone(phone)
+                                    ? 'border-green-400 focus:border-green-400 focus:ring-green-400/20'
+                                    : ''
+                                }`}
                                 placeholder={
                                   profile?.phone
                                     ? 'Your saved phone number'
@@ -934,13 +969,21 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                                     id="roberts-estate-resident"
                                     checked={isRobertsEstateResident}
                                     onCheckedChange={(checked) => setIsRobertsEstateResident(checked === true)}
-                                    className="border-gray-500 data-[state=checked]:bg-neonCyan data-[state=checked]:border-neonCyan"
+                                    className={`border-gray-500 data-[state=checked]:bg-neonCyan data-[state=checked]:border-neonCyan ${
+                                      deliveryType === 'delivery' && !isRobertsEstateResident 
+                                        ? 'border-red-400 animate-pulse' 
+                                        : ''
+                                    }`}
                                   />
                                   <Label 
                                     htmlFor="roberts-estate-resident" 
-                                    className="text-gray-300 text-sm cursor-pointer"
+                                    className={`text-sm cursor-pointer ${
+                                      deliveryType === 'delivery' && !isRobertsEstateResident 
+                                        ? 'text-red-300' 
+                                        : 'text-gray-300'
+                                    }`}
                                   >
-                                    I confirm I am a Roberts Estate resident
+                                    I confirm I am a Roberts Estate resident *
                                   </Label>
                                 </div>
 
@@ -949,13 +992,21 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                                     id="address-correct"
                                     checked={confirmAddressCorrect}
                                     onCheckedChange={(checked) => setConfirmAddressCorrect(checked === true)}
-                                    className="border-gray-500 data-[state=checked]:bg-neonCyan data-[state=checked]:border-neonCyan"
+                                    className={`border-gray-500 data-[state=checked]:bg-neonCyan data-[state=checked]:border-neonCyan ${
+                                      deliveryType === 'delivery' && !confirmAddressCorrect 
+                                        ? 'border-red-400 animate-pulse' 
+                                        : ''
+                                    }`}
                                   />
                                   <Label 
                                     htmlFor="address-correct" 
-                                    className="text-gray-300 text-sm cursor-pointer"
+                                    className={`text-sm cursor-pointer ${
+                                      deliveryType === 'delivery' && !confirmAddressCorrect 
+                                        ? 'text-red-300' 
+                                        : 'text-gray-300'
+                                    }`}
                                   >
-                                    I confirm my address is correct
+                                    I confirm my address is correct *
                                   </Label>
                                 </div>
                               </div>
@@ -990,17 +1041,48 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                       </div>
                     </form>
 
+                    {/* Validation Status Summary */}
+                    {!isClosed && (
+                      <div className="mt-4 p-3 bg-gray-800/30 rounded-lg border border-gray-600/50">
+                        <h4 className="text-xs font-medium text-gray-300 mb-2">Checkout Checklist:</h4>
+                        <div className="space-y-1 text-xs">
+                          <div className={`flex items-center gap-2 ${phone && isValidSouthAfricanPhone(phone) ? 'text-green-400' : 'text-red-400'}`}>
+                            {phone && isValidSouthAfricanPhone(phone) ? '✓' : '✗'} Valid phone number
+                          </div>
+                          {deliveryType === 'delivery' && (
+                            <>
+                              <div className={`flex items-center gap-2 ${(profile?.address || address.fullAddress.trim()) ? 'text-green-400' : 'text-red-400'}`}>
+                                {(profile?.address || address.fullAddress.trim()) ? '✓' : '✗'} Delivery address set
+                              </div>
+                              <div className={`flex items-center gap-2 ${isRobertsEstateResident ? 'text-green-400' : 'text-red-400'}`}>
+                                {isRobertsEstateResident ? '✓' : '✗'} Roberts Estate resident confirmed
+                              </div>
+                              <div className={`flex items-center gap-2 ${confirmAddressCorrect ? 'text-green-400' : 'text-red-400'}`}>
+                                {confirmAddressCorrect ? '✓' : '✗'} Address accuracy confirmed
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="mt-6 pb-safe-bottom">
                       <Button
                         onClick={handleCreateOrder}
-                        disabled={isCreatingOrder || isClosed}
-                        className="w-full bg-gradient-to-r from-neonCyan to-neonPink hover:from-neonCyan/90 hover:to-neonPink/90 text-black font-medium py-3 text-base shadow-lg hover:shadow-xl transition-all duration-200"
+                        disabled={isCreatingOrder || isClosed || !getCheckoutValidation().isValid}
+                        className={`w-full font-medium py-3 text-base shadow-lg hover:shadow-xl transition-all duration-200 ${
+                          getCheckoutValidation().isValid && !isClosed && !isCreatingOrder
+                            ? 'bg-gradient-to-r from-neonCyan to-neonPink hover:from-neonCyan/90 hover:to-neonPink/90 text-black'
+                            : 'bg-gray-600 text-gray-300 cursor-not-allowed'
+                        }`}
                       >
                         {isClosed 
                           ? 'Restaurant Closed' 
                           : isCreatingOrder 
                             ? 'Creating Order...' 
-                            : 'Proceed to Payment'
+                            : getCheckoutValidation().isValid
+                              ? 'Proceed to Payment'
+                              : getCheckoutValidation().firstError
                         }
                       </Button>
                     </div>

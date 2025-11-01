@@ -105,13 +105,21 @@
   /* HYBRID SMART GRID: Adaptive columns with equal heights and smart centering */
   .grid-responsive-4-centered {
     display: grid !important;
-    gap: 1rem;
+    gap: 0.75rem; /* Smaller gap for very small screens */
     width: 100% !important;
     align-items: stretch !important; /* Equal heights for all panels */
     justify-content: center !important;
     
-    /* Mobile: 1 column centered */
-    grid-template-columns: repeat(1, minmax(280px, 320px)) !important;
+    /* Very small screens: 1 column with full width */
+    grid-template-columns: minmax(260px, 1fr) !important;
+    padding: 0 0.5rem; /* Small padding for tiny screens */
+    
+    /* Small phones: 1 column centered with max width */
+    @media (min-width: 475px) {
+      grid-template-columns: repeat(1, minmax(280px, 320px)) !important;
+      gap: 1rem;
+      padding: 0;
+    }
     
     /* Small screens: 2 columns centered */
     @media (min-width: 640px) {
@@ -139,12 +147,13 @@
       grid-template-columns: repeat(4, 320px) !important;
     }
     
-    /* Ensure all grid items have equal height */
+    /* Ensure all grid items have equal height and proper flex behavior */
     > * {
       height: 100% !important;
       display: flex !important;
       flex-direction: column !important;
       min-height: 200px !important;
+      width: 100% !important; /* Ensure panels fill grid space */
     }
   }
 
@@ -194,13 +203,21 @@
   /* HOMEPAGE OVERRIDE: Smart 4-column with equal heights */
   main .grid-responsive-4-centered {
     display: grid !important;
-    gap: 1rem;
+    gap: 0.75rem; /* Smaller gap for very small screens */
     width: 100% !important;
     align-items: stretch !important; /* Equal heights */
     justify-content: center !important;
     
-    /* Mobile: 1 column centered */
-    grid-template-columns: repeat(1, minmax(280px, 320px)) !important;
+    /* Very small screens: 1 column with full width */
+    grid-template-columns: minmax(260px, 1fr) !important;
+    padding: 0 0.5rem; /* Small padding for tiny screens */
+    
+    /* Small phones: 1 column centered with max width */
+    @media (min-width: 475px) {
+      grid-template-columns: repeat(1, minmax(280px, 320px)) !important;
+      gap: 1rem;
+      padding: 0;
+    }
     
     /* Small screens: 2 columns centered */
     @media (min-width: 640px) {
@@ -227,32 +244,174 @@
       grid-template-columns: repeat(4, 320px) !important;
     }
     
-    /* Equal height panels with flexible content */
+    /* Equal height panels with flexible content and proper sizing */
     > * {
       height: 100% !important;
       display: flex !important;
       flex-direction: column !important;
       min-height: 200px !important; /* Consistent minimum height */
+      width: 100% !important; /* Ensure panels fill grid space */
     }
   }
 
   /* Fixed width for menu category panels to maintain consistent size when centered */
   .menu-category-panel {
-    width: 280px;
-    max-width: 100%;
+    width: 100%; /* Full width within grid cell */
+    max-width: 400px; /* Reasonable maximum */
+    min-width: 260px; /* Minimum for very small screens */
   }
   
   /* Responsive adjustments for mobile */
-  @media (max-width: 640px) {
+  @media (max-width: 475px) {
+    .menu-category-panel {
+      min-width: 240px; /* Even smaller minimum for tiny screens */
+      max-width: calc(100vw - 1rem); /* Ensure it fits within viewport */
+    }
+  }
+
+  @media (min-width: 475px) {
     .menu-category-panel {
       width: 100%;
-      max-width: 400px;
+      max-width: 320px;
+      min-width: 280px;
     }
   }
 
   .grid-responsive-auto {
     @apply grid gap-4 xs:gap-6;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  /* STANDARDIZED UI COMPONENT CLASSES FOR CONSISTENCY */
+  
+  /* Button Base Classes */
+  .btn-base {
+    @apply transition-all duration-300 font-medium rounded-lg border touch-target focus-ring;
+  }
+  
+  .btn-primary {
+    @apply btn-base bg-gradient-to-r from-neonCyan to-neonPink text-darkBg;
+    @apply hover:from-neonCyan/80 hover:to-neonPink/80 hover:scale-105;
+  }
+  
+  .btn-secondary {
+    @apply btn-base border-neonCyan/50 text-neonCyan bg-transparent;
+    @apply hover:bg-neonCyan/10 hover:border-neonCyan hover:scale-105;
+  }
+  
+  .btn-tertiary {
+    @apply btn-base border-gray-600 text-gray-300 bg-gray-800/50;
+    @apply hover:bg-gray-700/50 hover:border-gray-500 hover:text-gray-100 hover:scale-105;
+  }
+  
+  .btn-danger {
+    @apply btn-base border-red-500/50 text-red-400 bg-red-500/10;
+    @apply hover:bg-red-500/20 hover:border-red-500 hover:text-red-300 hover:scale-105;
+  }
+  
+  /* Interactive Card Classes */
+  .card-interactive {
+    @apply transition-all duration-300 hover:scale-105;
+  }
+  
+  .card-glass {
+    @apply bg-black/20 backdrop-blur-md border border-neonCyan/30;
+    @apply hover:border-neonPink/50 hover:shadow-neon;
+  }
+  
+  .card-solid {
+    @apply bg-gray-800/90 border border-gray-600;
+    @apply hover:border-neonCyan/50 hover:bg-gray-700/90;
+  }
+  
+  /* Text Interaction Classes */
+  .text-interactive {
+    @apply transition-all duration-300 hover:text-neonCyan;
+  }
+  
+  .text-interactive-pink {
+    @apply transition-all duration-300 hover:text-neonPink;
+  }
+  
+  /* Icon Interaction Classes */
+  .icon-interactive {
+    @apply transition-all duration-300 hover:scale-110 hover:text-neonCyan;
+  }
+  
+  /* Focus States for Accessibility */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-neonCyan/50 focus:ring-offset-2 focus:ring-offset-darkBg;
+  }
+  
+  /* Loading State Classes */
+  .skeleton-pulse {
+    @apply animate-pulse bg-gray-700/50 rounded;
+  }
+  
+  .skeleton-shimmer {
+    @apply relative overflow-hidden bg-gray-700/30;
+  }
+  
+  .skeleton-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Consistent Spacing Classes */
+  .space-section {
+    @apply py-8 xs:py-12 sm:py-16 lg:py-20;
+  }
+  
+  .space-component {
+    @apply py-4 xs:py-6 sm:py-8;
+  }
+  
+  .space-element {
+    @apply py-2 xs:py-3 sm:py-4;
+  }
+  
+  /* Consistent Typography Scale */
+  .heading-primary {
+    @apply text-2xl xs:text-3xl sm:text-4xl lg:text-5xl font-bold;
+  }
+  
+  .heading-secondary {
+    @apply text-xl xs:text-2xl sm:text-3xl lg:text-4xl font-bold;
+  }
+  
+  .heading-tertiary {
+    @apply text-lg xs:text-xl sm:text-2xl font-semibold;
+  }
+  
+  .text-body {
+    @apply text-sm xs:text-base sm:text-lg leading-relaxed;
+  }
+  
+  .text-caption {
+    @apply text-xs xs:text-sm opacity-80;
+  }
+  
+  /* Status Colors for Consistency */
+  .status-success {
+    @apply text-green-400 bg-green-400/10 border-green-400/30;
+  }
+  
+  .status-warning {
+    @apply text-yellow-400 bg-yellow-400/10 border-yellow-400/30;
+  }
+  
+  .status-error {
+    @apply text-red-400 bg-red-400/10 border-red-400/30;
+  }
+  
+  .status-info {
+    @apply text-neonCyan bg-neonCyan/10 border-neonCyan/30;
   }
 }
 
@@ -265,6 +424,26 @@
   100% {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+@keyframes slide-down {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-20px);
+    opacity: 0;
   }
 }
 
@@ -356,6 +535,10 @@
 
 .animate-slide-up {
   animation: slide-up 0.3s ease-out;
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out;
 }
 
 .animate-fade-in {
@@ -841,6 +1024,158 @@ iframe[src*="vercel"] {
   height: 0 !important;
   overflow: hidden !important;
   z-index: -1 !important;
+}
+
+/* Enhanced Toast Notifications Styling */
+.toaster {
+  /* Ensure toasts appear above all content */
+  z-index: 9999 !important;
+  /* Safe area positioning for mobile */
+  top: max(12px, env(safe-area-inset-top, 12px)) !important;
+  right: max(12px, env(safe-area-inset-right, 12px)) !important;
+}
+
+/* Individual toast styling improvements */
+.toaster .toast {
+  /* Enhanced mobile-friendly sizing */
+  max-width: min(400px, calc(100vw - 24px)) !important;
+  min-width: 280px !important;
+  /* Better typography */
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  /* Enhanced accessibility */
+  font-weight: 500 !important;
+  /* Better mobile touch targets */
+  min-height: 60px !important;
+  /* Improved spacing */
+  padding: 12px 16px !important;
+  /* Enhanced backdrop and borders */
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border-width: 1px !important;
+  /* Smooth animations */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Toast type-specific enhancements */
+.toaster .toast[data-type="success"] {
+  border-color: rgba(34, 197, 94, 0.4) !important;
+  background: rgba(22, 101, 52, 0.9) !important;
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.2) !important;
+}
+
+.toaster .toast[data-type="error"] {
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  background: rgba(127, 29, 29, 0.9) !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.2) !important;
+}
+
+.toaster .toast[data-type="warning"] {
+  border-color: rgba(251, 191, 36, 0.4) !important;
+  background: rgba(146, 64, 14, 0.9) !important;
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.2) !important;
+}
+
+.toaster .toast[data-type="info"] {
+  border-color: rgba(59, 130, 246, 0.4) !important;
+  background: rgba(30, 58, 138, 0.9) !important;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Loading toast special styling */
+.toaster .toast[data-type="loading"] {
+  border-color: rgba(0, 255, 255, 0.4) !important;
+  background: rgba(26, 26, 26, 0.95) !important;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.2) !important;
+}
+
+/* Close button styling */
+.toaster .toast button[data-close-button] {
+  color: rgba(255, 255, 255, 0.7) !important;
+  background: rgba(75, 85, 99, 0.5) !important;
+  border: 1px solid rgba(107, 114, 128, 0.3) !important;
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 4px !important;
+  transition: all 0.2s ease !important;
+}
+
+.toaster .toast button[data-close-button]:hover {
+  color: white !important;
+  background: rgba(107, 114, 128, 0.8) !important;
+  border-color: rgba(156, 163, 175, 0.5) !important;
+}
+
+/* Action button styling */
+.toaster .toast button[data-button] {
+  background: linear-gradient(45deg, #00ffff, #ff00ff) !important;
+  color: black !important;
+  font-weight: 600 !important;
+  border: none !important;
+  padding: 6px 12px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  transition: all 0.2s ease !important;
+}
+
+.toaster .toast button[data-button]:hover {
+  background: linear-gradient(45deg, #00cccc, #cc00cc) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 255, 255, 0.3) !important;
+}
+
+/* Progress bar styling for loading toasts */
+.toaster .toast [data-progress] {
+  background: linear-gradient(90deg, #00ffff, #ff00ff) !important;
+  height: 2px !important;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 640px) {
+  .toaster {
+    left: 12px !important;
+    right: 12px !important;
+    top: max(12px, env(safe-area-inset-top, 12px)) !important;
+  }
+  
+  .toaster .toast {
+    max-width: none !important;
+    min-width: auto !important;
+    width: 100% !important;
+    margin: 0 !important;
+    font-size: 13px !important;
+    min-height: 56px !important;
+    padding: 10px 14px !important;
+  }
+}
+
+/* Landscape mode adjustments */
+@media (max-height: 500px) and (orientation: landscape) {
+  .toaster {
+    top: 8px !important;
+    right: max(8px, env(safe-area-inset-right, 8px)) !important;
+  }
+  
+  .toaster .toast {
+    min-height: 48px !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .toaster .toast {
+    border-width: 2px !important;
+    font-weight: 600 !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .toaster .toast {
+    transition: opacity 0.2s ease !important;
+  }
 }
 
 /* Hide React Bricks Visual Elements in Production */

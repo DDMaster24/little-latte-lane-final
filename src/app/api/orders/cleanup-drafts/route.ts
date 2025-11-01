@@ -7,15 +7,15 @@ export async function POST() {
 
     const supabase = getSupabaseAdmin();
 
-    // Delete draft orders older than 1 hour (never paid)
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    // Delete draft orders older than 6 hours (never paid)
+    const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
 
     const { data: draftOrders, error: fetchError } = await supabase
       .from('orders')
       .select('id')
       .eq('status', 'draft')
       .eq('payment_status', 'pending')
-      .lt('created_at', oneHourAgo);
+      .lt('created_at', sixHoursAgo);
 
     if (fetchError) {
       console.error('❌ Error fetching draft orders:', fetchError);
@@ -67,12 +67,12 @@ export async function POST() {
     }
 
     console.log(
-      `✅ Successfully deleted ${draftOrders.length} unpaid draft orders`
+      `✅ Successfully deleted ${draftOrders.length} unpaid draft orders (older than 6 hours)`
     );
 
     return NextResponse.json({
       success: true,
-      message: `Cleaned up ${draftOrders.length} unpaid orders`,
+      message: `Cleaned up ${draftOrders.length} unpaid orders (older than 6 hours)`,
       deleted: draftOrders.length,
     });
   } catch (error) {

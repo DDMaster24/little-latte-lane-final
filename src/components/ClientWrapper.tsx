@@ -5,7 +5,6 @@ import { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/components/AuthProvider';
-import { Toaster } from 'react-hot-toast';
 import Header from '@/components/Header';
 import FooterSection from '@/components/FooterSection';
 import StaffRedirect from '@/components/StaffRedirect';
@@ -115,30 +114,6 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
         </main>
         
         {!shouldHideHeaderFooter && <FooterSection />}
-        
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#1f2937',
-              color: '#f3f4f6',
-              border: '1px solid #10b981',
-            },
-            success: {
-              iconTheme: {
-                primary: '#10b981',
-                secondary: '#1f2937',
-              },
-            },
-            error: {
-              iconTheme: {
-                primary: '#ef4444',
-                secondary: '#1f2937',
-              },
-            },
-          }}
-        />
       </AuthProvider>
     </QueryClientProvider>
   );

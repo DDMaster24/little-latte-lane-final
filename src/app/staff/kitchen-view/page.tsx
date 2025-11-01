@@ -305,9 +305,8 @@ export default function KitchenView() {
   const getProgressiveButtons = (currentStatus: string | null) => {
     const buttons = [
       { 
-        label: 'New Order', 
-        value: 'draft', 
-        icon: '📝',
+        label: 'Start Order', 
+        value: 'preparing', 
         bgColor: 'bg-neonCyan/20 border-neonCyan/50',
         textColor: 'text-neonCyan',
         hoverColor: 'hover:bg-neonCyan/30'
@@ -315,7 +314,6 @@ export default function KitchenView() {
       { 
         label: 'Ready', 
         value: 'ready', 
-        icon: '✅',
         bgColor: 'bg-emerald-400/20 border-emerald-400/50',
         textColor: 'text-emerald-300',
         hoverColor: 'hover:bg-emerald-400/30'
@@ -323,7 +321,6 @@ export default function KitchenView() {
       { 
         label: 'Completed', 
         value: 'completed', 
-        icon: '🎉',
         bgColor: 'bg-purple-400/20 border-purple-400/50',
         textColor: 'text-purple-300',
         hoverColor: 'hover:bg-purple-400/30'
@@ -339,14 +336,16 @@ export default function KitchenView() {
 
   const getNextClickableStatuses = (currentStatus: string | null) => {
     switch (currentStatus) {
-      case 'draft':
-        return ['ready'];
+      case 'confirmed':
+        return ['preparing']; // Can start the order
+      case 'preparing':
+        return ['ready']; // Can mark as ready
       case 'ready':
-        return ['completed'];
+        return ['completed']; // Can mark as completed
       case 'completed':
         return []; // No further progression
       default:
-        return ['draft', 'ready']; // Allow setting initial status
+        return ['preparing']; // Allow starting the order from any initial state
     }
   };
 
@@ -672,8 +671,8 @@ export default function KitchenView() {
             {/* Kitchen Title */}
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <h1 className="text-lg sm:text-2xl font-bold text-white truncate">
-                <span className="hidden xs:inline">🍳 Kitchen View</span>
-                <span className="xs:hidden">🍳 Kitchen</span>
+                <span className="hidden xs:inline">Kitchen View</span>
+                <span className="xs:hidden">Kitchen</span>
               </h1>
               {newOrderCount > 0 && (
                 <Badge className="bg-red-500 text-white animate-pulse text-xs">
@@ -698,8 +697,8 @@ export default function KitchenView() {
                 size="sm"
                 className="bg-transparent border border-purple-500 text-purple-400 hover:bg-purple-600 hover:text-white hover:border-purple-600 text-xs sm:text-sm font-medium transition-all duration-300 px-2 sm:px-3"
               >
-                <span className="hidden sm:inline">📋 All Orders</span>
-                <span className="sm:hidden">📋</span>
+                <span className="hidden sm:inline">All Orders</span>
+                <span className="sm:hidden">All</span>
               </Button>
               
               {/* Sound Button (Always On) - Hidden on small mobile */}
@@ -853,39 +852,38 @@ export default function KitchenView() {
                     )}
                   </div>
 
-                  {/* Progressive Status Buttons */}
-                  <div className="space-y-1">
-                    <div className="grid grid-cols-2 gap-1">
-                      {getProgressiveButtons(order.status).map((button, idx) => (
-                        <Button
-                          key={idx}
-                          onClick={() => button.isClickable ? handleUpdateStatus(order.id, button.value) : undefined}
-                          disabled={!button.isClickable && !button.isActive}
-                          className={`
-                            text-xs py-1.5 font-medium transition-all duration-300 border
-                            ${button.isActive 
-                              ? 'bg-blue-600 text-white border-blue-600 shadow-lg' 
-                              : button.isClickable 
-                                ? 'bg-transparent border-blue-500 text-blue-400 hover:bg-blue-600 hover:text-white hover:border-blue-600'
-                                : 'bg-gray-800 border-gray-600 text-gray-500 cursor-not-allowed'
-                            }
-                          `}
-                        >
-                          <span className="text-xs mr-1">{button.icon}</span>
-                          <span className="hidden sm:inline">{button.label}</span>
-                        </Button>
-                      ))}
+                    {/* Progressive Status Buttons */}
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-2 gap-1">
+                        {getProgressiveButtons(order.status).map((button, idx) => (
+                          <Button
+                            key={idx}
+                            onClick={() => button.isClickable ? handleUpdateStatus(order.id, button.value) : undefined}
+                            disabled={!button.isClickable && !button.isActive}
+                            className={`
+                              text-xs py-2 font-medium transition-all duration-300 border
+                              ${button.isActive 
+                                ? 'bg-blue-600 text-white border-blue-600 shadow-lg' 
+                                : button.isClickable 
+                                  ? 'bg-transparent border-blue-500 text-blue-400 hover:bg-blue-600 hover:text-white hover:border-blue-600'
+                                  : 'bg-gray-800 border-gray-600 text-gray-500 cursor-not-allowed'
+                              }
+                            `}
+                          >
+                            {button.label}
+                          </Button>
+                        ))}
+                      </div>
+                      
+                      {/* View Order Details Button - Smaller and fits better */}
+                      <Button
+                        onClick={() => handleViewOrder(order)}
+                        variant="outline"
+                        className="w-full bg-transparent border border-gray-500 text-gray-400 hover:bg-gray-600 hover:text-white hover:border-gray-400 text-xs py-1.5 font-medium transition-all duration-300"
+                      >
+                        View Details
+                      </Button>
                     </div>
-                    
-                    {/* View Order Details Button */}
-                    <Button
-                      onClick={() => handleViewOrder(order)}
-                      variant="outline"
-                      className="w-full bg-transparent border border-blue-500 text-blue-400 hover:bg-blue-600 hover:text-white hover:border-blue-600 text-xs py-1.5 font-medium transition-all duration-300"
-                    >
-                      👁️ <span className="hidden sm:inline">View Details</span><span className="sm:hidden">Details</span>
-                    </Button>
-                  </div>
                 </div>
               ))}
             </div>
@@ -955,14 +953,14 @@ export default function KitchenView() {
                         size="sm"
                         className="bg-transparent border border-gray-600 text-gray-400 hover:bg-gray-700 hover:text-white text-xs px-3 py-1"
                       >
-                        👁️
+                        Details
                       </Button>
                       <Button
                         onClick={() => handleUpdateStatus(order.id, 'completed')}
                         size="sm"
                         className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 font-medium"
                       >
-                        {order.delivery_method === 'delivery' ? '✅ Complete' : '✅ Complete'}
+                        Complete
                       </Button>
                     </div>
                   </div>

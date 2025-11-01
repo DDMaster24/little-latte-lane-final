@@ -384,7 +384,7 @@ export function ErrorState({
       {onRetry && (
         <button
           onClick={onRetry}
-          className="bg-gradient-to-r from-neonCyan to-neonPink hover:from-neonPink hover:to-neonCyan text-black font-medium px-6 py-3 rounded-lg transition-all duration-300 hover:scale-105"
+          className="btn-primary"
         >
           Try Again
         </button>

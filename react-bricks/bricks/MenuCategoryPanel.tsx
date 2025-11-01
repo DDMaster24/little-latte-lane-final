@@ -240,14 +240,14 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
         {/* Category Icon Section */}
         {showIcon && imagePosition !== 'icon' && (
           <div 
-            className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 mb-3 sm:mb-4 flex items-center justify-center rounded-xl bg-black/30 backdrop-blur-sm border border-neonCyan/20 group-hover:border-neonPink/40 transition-all duration-300 flex-shrink-0"
+            className="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 mb-3 sm:mb-4 flex items-center justify-center rounded-xl bg-black/30 backdrop-blur-sm border border-neonCyan/20 group-hover:border-neonPink/40 transition-all duration-300 flex-shrink-0"
           >
             <Text
               propName="categoryIcon"
               value={categoryIcon}
               placeholder="🍽️"
               renderBlock={(props) => (
-                <span className="text-2xl sm:text-3xl lg:text-4xl">
+                <span className="text-xl xs:text-2xl sm:text-3xl lg:text-4xl">
                   {props.children}
                 </span>
               )}
@@ -257,7 +257,7 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
 
         {/* Image as Icon */}
         {showImage && categoryImage && imagePosition === 'icon' && (
-          <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 mb-3 sm:mb-4 rounded-xl overflow-hidden bg-black/30 backdrop-blur-sm border border-neonCyan/20 group-hover:border-neonPink/40 transition-all duration-300 flex-shrink-0">
+          <div className="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 mb-3 sm:mb-4 rounded-xl overflow-hidden bg-black/30 backdrop-blur-sm border border-neonCyan/20 group-hover:border-neonPink/40 transition-all duration-300 flex-shrink-0">
             <Image
               propName="categoryImage"
               source={categoryImage}
@@ -282,7 +282,7 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
             placeholder={selectedCategory?.name || "Category Name"}
             renderBlock={(props) => (
               <h3 
-                className="text-lg sm:text-xl font-bold group-hover:text-neonPink transition-colors duration-300 mb-2"
+                className="text-base xs:text-lg sm:text-xl font-bold group-hover:text-neonPink transition-colors duration-300 mb-2"
                 style={{ color: nameColor.color }}
               >
                 {props.children}
@@ -299,7 +299,7 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
             placeholder={selectedCategory?.description || "Category description"}
             renderBlock={(props) => (
               <p 
-                className="text-xs sm:text-sm leading-relaxed group-hover:text-gray-200 transition-colors duration-300 line-clamp-3"
+                className="text-xs sm:text-sm leading-relaxed group-hover:text-gray-200 transition-colors duration-300 line-clamp-3 flex-1"
                 style={{ color: descriptionColor.color }}
               >
                 {props.children}
@@ -318,7 +318,7 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
   if (isAdmin) {
     return (
       <div
-        className={`menu-category-panel group relative backdrop-blur-md border hover:border-neonPink/50 transition-all duration-300 hover:shadow-neon animate-fade-in h-full block ${getPaddingClass()} ${getBorderRadiusClass()} ${getBorderWidthClass()} ${getShadowClass()}`}
+        className={`menu-category-panel group relative card-glass card-interactive animate-fade-in h-full block ${getPaddingClass()} ${getBorderRadiusClass()} ${getBorderWidthClass()} ${getShadowClass()}`}
         style={{ 
           background: cardBackground.color,
           backdropFilter: 'blur(10px)',
@@ -337,7 +337,7 @@ const MenuCategoryPanel: types.Brick<MenuCategoryPanelProps> = ({
   return (
     <Link
       href={getFinalLink()}
-      className={`menu-category-panel group relative backdrop-blur-md border hover:border-neonPink/50 transition-all duration-300 hover:shadow-neon animate-fade-in h-full block ${getPaddingClass()} ${getBorderRadiusClass()} ${getBorderWidthClass()} ${getShadowClass()}`}
+      className={`menu-category-panel group relative card-glass card-interactive animate-fade-in h-full block ${getPaddingClass()} ${getBorderRadiusClass()} ${getBorderWidthClass()} ${getShadowClass()}`}
       style={{ 
         background: cardBackground.color,
         backdropFilter: 'blur(10px)',
