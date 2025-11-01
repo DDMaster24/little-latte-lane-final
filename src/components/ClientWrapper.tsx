@@ -80,73 +80,9 @@ export function ClientWrapper({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // CRITICAL: Register Capacitor deep link listener in separate effect
-  // that NEVER cleans up (persists across WebView focus changes)
-  useEffect(() => {
-    console.log('🔍 [ClientWrapper] Checking Capacitor availability...');
-    console.log('🔍 [ClientWrapper] Window defined:', typeof window !== 'undefined');
-    console.log('🔍 [ClientWrapper] Capacitor in window:', typeof window !== 'undefined' && 'Capacitor' in window);
-    
-    if (typeof window !== 'undefined' && 'Capacitor' in window) {
-      console.log('✅ [ClientWrapper] Capacitor detected - initializing PERSISTENT app URL listener');
-      
-      import('@capacitor/app').then(({ App }) => {
-        console.log('✅ [ClientWrapper] @capacitor/app imported successfully');
-        
-        import('@capacitor/browser').then(({ Browser }) => {
-          console.log('✅ [ClientWrapper] @capacitor/browser imported successfully');
-          
-          // Set up PERSISTENT global listener for app URL opens (deep links)
-          // This listener will remain active even when WebView loses focus
-          const listenerHandle = App.addListener('appUrlOpen', async (data) => {
-            console.log('🔗 [ClientWrapper] App URL opened:', data.url);
-            console.log('🔗 [ClientWrapper] Full data object:', JSON.stringify(data, null, 2));
-            
-            // Check if this is a payment callback redirect
-            const hasPaymentStatus = data.url.includes('payment=success') || 
-                                    data.url.includes('payment=cancelled') || 
-                                    data.url.includes('payment=failed');
-            
-            console.log('🔗 [ClientWrapper] Has payment status:', hasPaymentStatus);
-            
-            if (hasPaymentStatus) {
-              console.log('💳 [ClientWrapper] Payment callback detected - closing browser');
-              
-              // Close the payment browser window
-              setTimeout(async () => {
-                console.log('💳 [ClientWrapper] Attempting to close browser...');
-                try {
-                  await Browser.close();
-                  console.log('✅ [ClientWrapper] Payment browser closed successfully');
-                } catch (err) {
-                  console.log('ℹ️ [ClientWrapper] Browser already closed or not open:', err);
-                }
-              }, 500); // Brief delay to ensure page loads
-            } else {
-              console.log('ℹ️ [ClientWrapper] URL does not contain payment status - not closing browser');
-            }
-          });
-          
-          console.log('✅ [ClientWrapper] PERSISTENT global app URL listener registered');
-          console.log('✅ [ClientWrapper] Listener will remain active across WebView focus changes');
-          
-          // Store listener reference globally to prevent garbage collection
-          if (typeof window !== 'undefined') {
-            (window as any).__capacitorAppUrlListener = listenerHandle;
-          }
-          
-        }).catch(err => {
-          console.error('❌ [ClientWrapper] Failed to import @capacitor/browser:', err);
-        });
-      }).catch(err => {
-        console.error('❌ [ClientWrapper] Failed to import @capacitor/app:', err);
-      });
-    } else {
-      console.log('ℹ️ [ClientWrapper] Not a Capacitor app - skipping app URL listener');
-    }
-    
-    // IMPORTANT: NO cleanup function - listener persists forever
-  }, []); // Empty deps - runs once on mount, never cleans up
+  // NOTE: Deep link handling is now done entirely in native Android code (MainActivity.java)
+  // JavaScript listener registration has been removed to prevent conflicts and aggressive cleanup
+  // when WebView loses focus. Native handler persists across all app state changes.
 
   if (!isClient) {
     return null; // Prevent hydration mismatch
