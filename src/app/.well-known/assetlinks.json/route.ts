@@ -16,10 +16,10 @@ export async function GET() {
         namespace: 'android_app',
         package_name: 'co.za.littlelattelane.app',
         sha256_cert_fingerprints: [
-          // Debug keystore fingerprint (for testing)
+          // Debug keystore fingerprint (for testing in debug builds)
           '27:0A:E7:A1:9B:BA:03:9A:BD:FE:79:B7:D6:E9:4A:62:81:6A:CB:A1:EA:B1:E1:B2:D7:FA:DD:1A:91:82:C2:7B',
-          // TODO: Add your release keystore SHA-256 fingerprint here when you build for production
-          // Get it with: keytool -list -v -keystore your-release-key.keystore -alias your-key-alias
+          // Release keystore fingerprint (for production builds)
+          '5F:F6:05:68:C3:D3:E0:07:9E:CA:36:4E:C4:C6:7B:F8:8E:C1:4E:D0:77:07:56:C8:E5:3F:04:FB:A6:DB:B6:AC',
         ],
       },
     },
