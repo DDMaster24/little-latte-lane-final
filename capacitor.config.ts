@@ -17,7 +17,7 @@ const config: CapacitorConfig = {
   },
   ios: {
     // Use existing iOS project structure
-    path: 'ios/App',
+    path: 'ios',
   },
   plugins: {
     // Browser plugin for payment handling
