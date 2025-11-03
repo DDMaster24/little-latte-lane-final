@@ -470,6 +470,17 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                       Add items from the menu to get started
                     </p>
 
+                    {/* View Orders Button */}
+                    <button
+                      onClick={() => {
+                        router.push('/account');
+                        onClose?.();
+                      }}
+                      className="mt-6 px-6 py-3 bg-gradient-to-r from-neonCyan to-neonPink text-white font-medium rounded-lg hover:shadow-neonCyan transition-all"
+                    >
+                      View Your Orders
+                    </button>
+
                     {/* Draft Orders Detection */}
                     {draftOrders.length > 0 && (
                       <div className="mt-6 p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
