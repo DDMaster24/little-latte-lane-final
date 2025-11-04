@@ -1,11 +1,12 @@
 # Little Latte Lane - Project Contract
 
-## CURRENT STATUS - October 21, 2025
+## CURRENT STATUS - November 4, 2025
 
-**Current Phase:** Google Play Store deployment - configuration fixes applied, ready for AAB rebuild
-**Last Updated:** October 21, 2025
-**System Status:** Web app fully operational, Android app configuration fixed
-**Next Step:** Build new AAB file in Android Studio and upload to Google Play
+**Current Phase:** Mobile app deployment - Android AAB rebuild + iOS icons ready for archive
+**Last Updated:** November 4, 2025
+**System Status:** Web app fully operational, Android config fixed, iOS icons generated
+**Android Next Step:** Build new AAB file in Android Studio and upload to Google Play
+**iOS Next Step:** Rebuild archive in Xcode and upload to App Store Connect
 
 ---
 
@@ -88,8 +89,38 @@
 
 **Note:** Step-by-step instructions provided in chat - no separate guide files created.
 
-### Apple App Store Deployment
-**Status:** Not yet started (pending Google Play fix)
+### Apple App Store Deployment - ICONS READY
+**Status:** Icons generated, ready for Xcode archive rebuild
+
+**Completed Steps:**
+1. ✅ Created Bundle ID: co.za.littlelattelane.app
+2. ✅ Registered App ID in Apple Developer Portal with capabilities
+3. ✅ Created Distribution Certificate: "Apple Distribution: DDM Technology (PTY) LTD"
+4. ✅ Created App Store Provisioning Profile: "Little Latte Lane App Store"
+5. ✅ Configured Xcode signing with manual provisioning profile
+6. ✅ Successfully built initial archive (Version 1.1.3, Build 10)
+7. ✅ Created App Store Connect app record: "Little Latte Lane"
+8. ✅ **Generated all required iOS icon sizes (18 icons total)**
+
+**Icons Generated (November 4, 2025):**
+- ✅ iPhone icons: 20x20, 29x29, 40x40, 60x60 (@2x and @3x)
+- ✅ iPad icons: 20x20, 29x29, 40x40, 76x76, 83.5x83.5
+- ✅ App Store icon: 1024x1024
+- ✅ All icons saved to: `ios/App/App/Assets.xcassets/AppIcon.appiconset/`
+- ✅ Contents.json updated with proper metadata
+
+**Next Steps (Ready for Developer on Mac):**
+1. Open Xcode project: `ios/App/App.xcworkspace`
+2. Verify all icon slots are filled in Assets.xcassets
+3. Clean Build Folder: Product → Clean Build Folder
+4. Archive for distribution: Product → Archive
+5. Upload to App Store Connect (should succeed now with all icons present)
+
+**Key Configuration:**
+- Bundle ID: co.za.littlelattelane.app
+- Provisioning Profile: Manual (Little Latte Lane App Store)
+- Deployment Target: iOS 15.0+
+- Current Version: 1.1.3, Build 10
 
 ---
 
