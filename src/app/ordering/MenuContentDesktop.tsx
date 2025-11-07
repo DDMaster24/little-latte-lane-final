@@ -273,7 +273,7 @@ export default function MenuContentDesktop() {
   }
 
   return (
-    <div className="min-h-screen bg-darkBg">
+    <div className="min-h-screen max-h-screen bg-darkBg overflow-hidden">
       {/* Payment Status Alert */}
       {paymentAlert && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md">
@@ -302,10 +302,10 @@ export default function MenuContentDesktop() {
         </div>
       )}
 
-      <div className="flex">
+      <div className="flex overflow-hidden h-screen">
         {/* LEFT PANEL - Categories */}
-        <div className="w-64 bg-gray-900 border-r border-gray-700 min-h-screen">
-          <div className="p-4">
+        <div className="w-56 xl:w-64 bg-gray-900 border-r border-gray-700 h-full flex-shrink-0 overflow-y-auto">
+          <div className="p-3 xl:p-4">
             <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <ChefHat className="h-5 w-5 text-neonCyan" />
               Categories
@@ -316,14 +316,14 @@ export default function MenuContentDesktop() {
                 <button
                   key={category.id}
                   onClick={() => handleCategoryChange(category.id)}
-                  className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${
+                  className={`w-full text-left p-2 xl:p-3 rounded-lg transition-all duration-200 ${
                     selectedCategory === category.id
                       ? 'bg-neonCyan text-black font-semibold shadow-lg'
                       : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <span>{category.name}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm xl:text-base truncate flex-1">{category.name}</span>
                     <Badge
                       variant="secondary"
                       className="bg-gray-600 text-gray-200 text-xs"
@@ -338,13 +338,13 @@ export default function MenuContentDesktop() {
         </div>
 
         {/* CENTER PANEL - Menu Items or Pizza Customizer */}
-        <div className="flex-1 p-6">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold bg-neon-gradient bg-clip-text text-transparent">
+        <div className="flex-1 p-4 xl:p-6 overflow-y-auto overflow-x-hidden h-full">
+          <div className="mb-4 xl:mb-6">
+            <h1 className="text-2xl xl:text-3xl font-bold bg-neon-gradient bg-clip-text text-transparent line-clamp-2">
               {selectedCategoryName}
             </h1>
             {!isPizzaCategory && (
-              <p className="text-gray-400 mt-1">
+              <p className="text-gray-400 mt-1 text-sm">
                 {currentGroupedItems.length} items available
               </p>
             )}
@@ -364,7 +364,7 @@ export default function MenuContentDesktop() {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4 xl:gap-6">
                   {currentGroupedItems.map((groupedItem) => {
                     // Get selected size for this grouped item
                     const selectedSize = selectedSizes[groupedItem.baseName] || getDefaultSize(groupedItem);
@@ -372,30 +372,31 @@ export default function MenuContentDesktop() {
                     return (
                       <Card
                         key={groupedItem.id}
-                        className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in"
-                        style={{ 
+                        className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in overflow-hidden"
+                        style={{
                           background: 'rgba(0, 0, 0, 0.4)',
                           backdropFilter: 'blur(10px)',
-                          boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)'
+                          boxShadow: '0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(255, 0, 255, 0.05)',
+                          maxWidth: '100%'
                         }}
                       >
                         <CardHeader className="pb-3">
-                          <CardTitle className="text-neonCyan group-hover:text-neonPink transition-colors duration-300 text-lg">
+                          <CardTitle className="text-neonCyan group-hover:text-neonPink transition-colors duration-300 text-base xl:text-lg line-clamp-2">
                             {groupedItem.baseName}
                           </CardTitle>
                           {groupedItem.description && (
-                            <p className="text-gray-300 text-sm mt-1 group-hover:text-gray-200 transition-colors duration-300">
+                            <p className="text-gray-300 text-xs xl:text-sm mt-1 group-hover:text-gray-200 transition-colors duration-300 line-clamp-2">
                               {groupedItem.description}
                             </p>
                           )}
                         </CardHeader>
 
-                        <CardContent>
+                        <CardContent className="overflow-hidden">
                           {/* Size Selection for Items with Multiple Variants */}
                           {groupedItem.variants.length > 1 && (
                             <div className="mb-4">
                               <p className="text-gray-300 text-sm mb-2 group-hover:text-gray-200 transition-colors duration-300">Size:</p>
-                              <div className="flex gap-2">
+                              <div className="flex gap-2 flex-wrap">
                                 {groupedItem.variants.map((variant) => {
                                   const isSelected = selectedSize === variant.size;
                                   
@@ -406,7 +407,7 @@ export default function MenuContentDesktop() {
                                         ...prev,
                                         [groupedItem.baseName]: variant.size
                                       }))}
-                                      className={`px-3 py-1 rounded text-sm font-medium transition-all duration-300 ${
+                                      className={`px-2 xl:px-3 py-1 rounded text-xs xl:text-sm font-medium transition-all duration-300 whitespace-nowrap ${
                                         isSelected
                                           ? 'bg-neonCyan/80 text-black backdrop-blur-sm shadow-md'
                                           : 'bg-black/30 text-gray-300 hover:bg-black/50 hover:text-neonCyan backdrop-blur-sm border border-gray-600/50 hover:border-neonCyan/30'
@@ -420,8 +421,8 @@ export default function MenuContentDesktop() {
                             </div>
                           )}
 
-                          <div className="flex items-center justify-between">
-                            <span className="text-2xl font-bold text-neonPink group-hover:text-neonCyan transition-colors duration-300">
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <span className="text-xl xl:text-2xl font-bold text-neonPink group-hover:text-neonCyan transition-colors duration-300 whitespace-nowrap">
                               R{(() => {
                                 const variant = getVariantBySize(groupedItem, selectedSize);
                                 return (variant?.price || groupedItem.variants[0].price).toFixed(2);
@@ -440,13 +441,14 @@ export default function MenuContentDesktop() {
                                 <Button
                                   onClick={() => handleAddToCart(groupedItem, selectedSize)}
                                   disabled={needsSelection}
-                                  className={`font-semibold transition-all duration-300 backdrop-blur-sm shadow-md ${
-                                    needsSelection 
+                                  size="sm"
+                                  className={`font-semibold transition-all duration-300 backdrop-blur-sm shadow-md text-xs xl:text-sm whitespace-nowrap ${
+                                    needsSelection
                                       ? 'bg-gray-600/50 text-gray-400 cursor-not-allowed border border-gray-600/30'
                                       : 'bg-neonCyan/80 text-black hover:bg-neonPink/80 hover:text-white border border-neonCyan/30 hover:border-neonPink/50'
                                   }`}
                                 >
-                                  <Plus className="h-4 w-4 mr-1" />
+                                  <Plus className="h-3 w-3 xl:h-4 xl:w-4 mr-1" />
                                   {needsSelection ? 'Select Size' : 'Add'}
                                 </Button>
                               ) : (
@@ -492,8 +494,8 @@ export default function MenuContentDesktop() {
         </div>
 
         {/* RIGHT PANEL - Cart */}
-        <div className="w-80 bg-gray-900 border-l border-gray-700 min-h-screen">
-          <div className="p-4 sticky top-0">
+        <div className="w-72 xl:w-80 bg-gray-900 border-l border-gray-700 h-full flex-shrink-0 overflow-y-auto">
+          <div className="p-3 xl:p-4 sticky top-0">
             <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <ShoppingCart className="h-5 w-5 text-neonPink" />
               Your Cart
@@ -514,9 +516,9 @@ export default function MenuContentDesktop() {
               <>
                 <div className="space-y-3 mb-6 max-h-96 overflow-y-auto">
                   {cartItems.map((item) => (
-                    <div key={item.id} className="bg-gray-800 rounded-lg p-3">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-semibold text-white text-sm">
+                    <div key={item.id} className="bg-gray-800 rounded-lg p-2 xl:p-3">
+                      <div className="flex justify-between items-start mb-2 gap-2">
+                        <h4 className="font-semibold text-white text-xs xl:text-sm line-clamp-2 flex-1">
                           {item.name}
                         </h4>
                         <button

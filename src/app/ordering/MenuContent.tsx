@@ -19,14 +19,16 @@ export default function MenuContent() {
 
   useEffect(() => {
     setIsClient(true);
-    
+
     const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 1024); // lg breakpoint
+      // Use xl breakpoint (1280px) instead of lg (1024px) for better tablet support
+      // This ensures iPads and most tablets use the mobile-optimized layout
+      setIsMobile(window.innerWidth < 1280);
     };
 
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
-    
+
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
