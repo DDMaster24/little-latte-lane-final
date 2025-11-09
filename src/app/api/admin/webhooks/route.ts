@@ -1,20 +1,27 @@
 /**
  * Yoco Webhook Management API
  * Admin endpoint for registering/managing webhooks with Yoco
+ * SECURITY: Admin-only endpoint
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { 
-  setupYocoWebhooks, 
-  listYocoWebhooks, 
+import {
+  setupYocoWebhooks,
+  listYocoWebhooks,
   deleteYocoWebhook,
-  getCurrentWebhookUrl 
+  getCurrentWebhookUrl
 } from '@/lib/yoco-webhook-registration';
+import { requireAdmin } from '@/lib/adminAuth';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   try {
+    // SECURITY: Verify admin authentication
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     // Skip execution during build time or when using placeholder environment
-    if (process.env.NEXT_PHASE === 'phase-production-build' || 
+    if (process.env.NEXT_PHASE === 'phase-production-build' ||
         process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://build-placeholder.supabase.co') {
       return NextResponse.json({
         status: 'Webhook management not available during build time',
@@ -24,9 +31,9 @@ export async function GET(request: NextRequest) {
 
     const url = new URL(request.url);
     const action = url.searchParams.get('action') || 'list';
-    
+
     if (action === 'list') {
-      console.log('📋 Listing Yoco webhooks...');
+      logger.info('Admin listing Yoco webhooks');
       const webhooks = await listYocoWebhooks();
       
       return NextResponse.json({
@@ -56,9 +63,9 @@ export async function GET(request: NextRequest) {
     );
     
   } catch (error) {
-    console.error('❌ Webhook management GET error:', error);
+    logger.error('Webhook management GET error', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to manage webhooks',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
@@ -69,11 +76,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // SECURITY: Verify admin authentication
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const body = await request.json();
     const { action } = body;
-    
+
     if (action === 'register') {
-      console.log('🔗 Registering Yoco webhook...');
+      logger.info('Admin registering Yoco webhook');
       const result = await setupYocoWebhooks();
       
       if (result.registered) {
@@ -94,7 +105,7 @@ export async function POST(request: NextRequest) {
     }
     
     if (action === 'delete' && body.webhookId) {
-      console.log('🗑️ Deleting Yoco webhook:', body.webhookId);
+      logger.info('Admin deleting Yoco webhook', { webhookId: body.webhookId });
       await deleteYocoWebhook(body.webhookId);
       
       return NextResponse.json({
@@ -109,9 +120,9 @@ export async function POST(request: NextRequest) {
     );
     
   } catch (error) {
-    console.error('❌ Webhook management POST error:', error);
+    logger.error('Webhook management POST error', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to manage webhooks',
         details: error instanceof Error ? error.message : 'Unknown error'
       },

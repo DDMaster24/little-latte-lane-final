@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { 
-  Clock, Calendar, Camera, Coffee, Utensils, Star, MapPin, 
-  Wifi, Car, Phone, Mail, Edit, ImageIcon, 
+import DOMPurify from 'isomorphic-dompurify';
+import {
+  Clock, Calendar, Camera, Coffee, Utensils, Star, MapPin,
+  Wifi, Car, Phone, Mail, Edit, ImageIcon,
   LucideIcon
 } from 'lucide-react';
 import type { CarouselPanel, PanelConfig } from '@/lib/carouselTemplates';
@@ -340,13 +341,19 @@ export default function DynamicCarousel({ panels = [], className = '' }: Dynamic
       );
     }
 
-    // Render custom HTML if enabled
+    // Render custom HTML if enabled (sanitized to prevent XSS)
     if (config.customHtml?.enabled && config.customHtml.content) {
+      const sanitizedHtml = DOMPurify.sanitize(config.customHtml.content, {
+        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a'],
+        ALLOWED_ATTR: ['class', 'style', 'href', 'target', 'rel'],
+        ALLOW_DATA_ATTR: false,
+      });
+
       components.push(
-        <div 
-          key="customHtml" 
+        <div
+          key="customHtml"
           className="mb-3"
-          dangerouslySetInnerHTML={{ __html: config.customHtml.content }}
+          dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
         />
       );
     }

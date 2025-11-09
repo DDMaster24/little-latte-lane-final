@@ -10,7 +10,7 @@ import {
 
 // Tab Components
 import OrderManagement from '@/components/Admin/OrderManagement';
-import MenuManagementThreeTier from '@/components/Admin/MenuManagementThreeTier';
+import MenuManagementImproved from '@/components/Admin/MenuManagementImproved';
 import AnalyticsDashboard from '@/components/Admin/AnalyticsDashboard';
 import UserManagement from '@/components/Admin/UserManagement';
 import BookingManagement from '@/components/Admin/BookingManagement';
@@ -129,7 +129,7 @@ export default function AdminPage() {
           </div>
         );
       case 'menu':
-        return <MenuManagementThreeTier />;
+        return <MenuManagementImproved />;
       case 'notifications':
         return <AdminNotificationsTab />;
       case 'orders':
@@ -144,8 +144,9 @@ export default function AdminPage() {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">QR Code & App Installation</h2>
-              <p className="text-gray-400 text-sm">Generate QR codes for customers to easily access and install your app</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">App Download QR Code</h2>
+              <p className="text-gray-400 text-sm">Generate smart QR codes that automatically redirect customers to App Store or Google Play</p>
+              <p className="text-gray-500 text-xs mt-2">Perfect for printing on menus, table tents, and marketing materials</p>
             </div>
             <div className="flex justify-center">
               <QRCodeGenerator />

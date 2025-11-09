@@ -5,6 +5,7 @@
  */
 
 import { env } from './env';
+import { logger } from './logger';
 
 export interface YocoCheckoutRequest {
   amount: number; // Amount in cents (R10.00 = 1000)
@@ -51,7 +52,7 @@ class YocoClient {
 
   constructor() {
     if (!env.YOCO_SECRET_KEY) {
-      console.warn('⚠️ YOCO_SECRET_KEY not configured - Yoco client will not function');
+      logger.warn('YOCO_SECRET_KEY not configured - Yoco client will not function');
       this.secretKey = '';
     } else {
       this.secretKey = env.YOCO_SECRET_KEY;
@@ -103,9 +104,7 @@ class YocoClient {
         metadata: data.metadata,
       };
     } catch (error) {
-      if (env.NODE_ENV === 'development') {
-        console.error('Yoco checkout creation failed:', error);
-      }
+      logger.error('Yoco checkout creation failed', error);
       throw error;
     }
   }
@@ -146,21 +145,25 @@ class YocoClient {
         metadata: data.metadata,
       };
     } catch (error) {
-      if (env.NODE_ENV === 'development') {
-        console.error('Yoco checkout retrieval failed:', error);
-      }
+      logger.error('Yoco checkout retrieval failed', error);
       throw error;
     }
   }
 
   /**
-   * Verify webhook signature (placeholder - Yoco webhook verification)
-   * This would typically verify the webhook signature from Yoco
+   * Verify webhook signature (REMOVED - SECURITY RISK)
+   *
+   * This method has been removed as it was a security vulnerability.
+   * Use verifyYocoWebhookSignature from yoco-webhook-utils instead.
+   *
+   * @deprecated REMOVED - Use verifyYocoWebhookSignature from yoco-webhook-utils
+   * @throws Error always
    */
   verifyWebhookSignature(_payload: string, _signature: string): boolean {
-    // TODO: Implement actual signature verification when Yoco provides webhook signing
-    // For now, we'll rely on HTTPS and the webhook URL being secret
-    return true;
+    throw new Error(
+      'YocoClient.verifyWebhookSignature has been removed due to security concerns. ' +
+      'Use verifyYocoWebhookSignature from @/lib/yoco-webhook-utils instead.'
+    );
   }
 }
 
@@ -214,10 +217,15 @@ export function formatAmount(cents: number): string {
  * Uses multiple fallback strategies to ensure correct URLs
  */
 export function generateCallbackUrls(orderId: string, request?: Request) {
-  // Try multiple sources for the base URL
-  let baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  
-  // Use request host if available (most reliable for dynamic environments)
+  // Priority order for determining base URL:
+  // 1. NEXT_PUBLIC_SITE_URL (explicit configuration)
+  // 2. Request headers (dynamic environment detection)
+  // 3. Vercel URLs (deployment environment)
+  // 4. Localhost fallback (development only)
+
+  let baseUrl = env.NEXT_PUBLIC_SITE_URL;
+
+  // Use request host if available and no explicit SITE_URL is set
   if (!baseUrl && request) {
     const host = request.headers.get('host');
     const protocol = request.headers.get('x-forwarded-proto') || 'https';
@@ -225,25 +233,28 @@ export function generateCallbackUrls(orderId: string, request?: Request) {
       baseUrl = `${protocol}://${host}`;
     }
   }
-  
-  // Fallback to Vercel URL if available
+
+  // Fallback to Vercel URLs
   if (!baseUrl && process.env.VERCEL_URL) {
     baseUrl = `https://${process.env.VERCEL_URL}`;
   }
-  
-  // Additional Vercel environment variables
+
   if (!baseUrl && process.env.VERCEL_PROJECT_PRODUCTION_URL) {
     baseUrl = `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
   }
-  
-  // Default fallback for development
+
+  // Development-only fallback
   if (!baseUrl) {
-    baseUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://www.littlelattelane.co.za'  // Updated to actual production domain
-      : 'http://localhost:3000';
+    if (env.NODE_ENV === 'production') {
+      throw new Error(
+        'NEXT_PUBLIC_SITE_URL must be set in production environment. ' +
+        'Add it to your Vercel environment variables.'
+      );
+    }
+    baseUrl = 'http://localhost:3000';
   }
-  
-  console.log('🌐 Generated callback URLs with base:', baseUrl);
+
+  logger.debug('Generated callback URLs', { baseUrl });
   
   // For native apps, deep links will trigger the app and auto-close browser
   return {

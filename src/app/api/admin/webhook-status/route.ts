@@ -1,14 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServer } from '@/lib/supabase-server';
+import { requireAdmin } from '@/lib/adminAuth';
+import { logger } from '@/lib/logger';
 
 /**
  * Webhook Status Checker
  * Check orders that might have missed webhook updates
+ * SECURITY: Admin-only endpoint
  */
 export async function GET() {
   try {
+    // SECURITY: Verify admin authentication
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     // Skip execution during build time or when using placeholder environment
-    if (process.env.NEXT_PHASE === 'phase-production-build' || 
+    if (process.env.NEXT_PHASE === 'phase-production-build' ||
         process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://build-placeholder.supabase.co') {
       return NextResponse.json({
         status: 'Webhook status checker not available during build time',
@@ -16,7 +23,7 @@ export async function GET() {
       });
     }
 
-    console.log('🔍 Checking for orders that might need webhook updates...');
+    logger.info('Admin checking webhook status');
     
     const supabase = await getSupabaseServer();
     
@@ -32,7 +39,7 @@ export async function GET() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('❌ Error checking orders:', error);
+      logger.error('Error checking orders', error);
       return NextResponse.json(
         { error: 'Failed to check orders' },
         { status: 500 }
@@ -58,12 +65,12 @@ export async function GET() {
       }
     };
 
-    console.log('📊 Webhook status report:', report);
+    logger.debug('Webhook status report generated', { ordersChecked: report.ordersChecked });
 
     return NextResponse.json(report);
 
   } catch (error) {
-    console.error('❌ Webhook status check error:', error);
+    logger.error('Webhook status check error', error);
     return NextResponse.json(
       { error: 'Status check failed', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
@@ -73,9 +80,14 @@ export async function GET() {
 
 /**
  * Manually fix stuck orders
+ * SECURITY: Admin-only endpoint
  */
 export async function POST(request: NextRequest) {
   try {
+    // SECURITY: Verify admin authentication
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const { orderIds, action = 'complete' } = await request.json();
     
     if (!orderIds || !Array.isArray(orderIds)) {
@@ -85,7 +97,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`🔧 Manually ${action}ing orders:`, orderIds);
+    logger.info(`Admin manually ${action}ing orders`, { orderIds, action });
     
     const supabase = await getSupabaseServer();
     
@@ -116,14 +128,18 @@ export async function POST(request: NextRequest) {
       .select();
 
     if (error) {
-      console.error('❌ Error updating orders:', error);
+      logger.error('Error updating orders', error);
       return NextResponse.json(
         { error: 'Failed to update orders' },
         { status: 500 }
       );
     }
 
-    console.log(`✅ Successfully ${action}d orders:`, updatedOrders?.map(o => o.order_number));
+    logger.info(`Successfully ${action}d orders`, {
+      action,
+      updatedCount: updatedOrders?.length || 0,
+      orderNumbers: updatedOrders?.map(o => o.order_number),
+    });
 
     return NextResponse.json({
       success: true,
@@ -138,7 +154,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Manual order update error:', error);
+    logger.error('Manual order update error', error);
     return NextResponse.json(
       { error: 'Manual update failed', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

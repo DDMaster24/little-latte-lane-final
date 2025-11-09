@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-server';
-import { 
-  verifyYocoWebhookSignature, 
+import {
+  verifyYocoWebhookSignature,
   getYocoWebhookSecret,
   validateWebhookTimestamp,
   logWebhookEvent
 } from '@/lib/yoco-webhook-utils';
+import { checkRateLimit, getClientIdentifier, RateLimitPresets, getRateLimitHeaders } from '@/lib/rate-limit';
+import { logger } from '@/lib/logger';
 
 // Generic webhook event interface - handles any Yoco event
 interface YocoWebhookEvent {
@@ -30,76 +32,118 @@ interface YocoWebhookEvent {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔔 Yoco webhook received at:', new Date().toISOString());
-    
+    logger.info('Yoco webhook received');
+
+    // Apply rate limiting to prevent webhook flooding
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = checkRateLimit(identifier, {
+      id: 'yoco-webhook',
+      ...RateLimitPresets.WEBHOOK,
+    });
+
+    if (!rateLimitResult.success) {
+      logger.warn('Webhook rate limit exceeded');
+      return NextResponse.json(
+        { error: 'Too many webhook requests' },
+        {
+          status: 429,
+          headers: getRateLimitHeaders({
+            ...rateLimitResult,
+            limit: RateLimitPresets.WEBHOOK.limit,
+          }),
+        }
+      );
+    }
+
     // Get webhook headers
     const webhookSignature = request.headers.get('webhook-signature');
     const webhookId = request.headers.get('webhook-id');
     const webhookTimestamp = request.headers.get('webhook-timestamp');
-    
-    console.log('📋 Webhook headers:', {
-      signature: webhookSignature ? 'Present' : 'Missing',
-      id: webhookId || 'Missing',
-      timestamp: webhookTimestamp || 'Missing',
+
+    logger.debug('Webhook headers received', {
+      hasSignature: !!webhookSignature,
+      webhookId: webhookId || 'Missing',
+      hasTimestamp: !!webhookTimestamp,
     });
-    
+
     // Get raw body for signature verification
     const body = await request.text();
-    console.log('📄 Raw webhook body length:', body.length);
-    console.log('📄 Raw webhook body preview:', body.substring(0, 300) + '...');
+    logger.debug('Webhook body received', { bodyLength: body.length });
     
-    // Verify webhook signature if all required components are present
+    // SECURITY: Mandatory webhook signature verification
     const webhookSecret = getYocoWebhookSecret();
-    if (webhookSecret && webhookSignature && webhookId && webhookTimestamp) {
-      // Validate timestamp first (prevent replay attacks)
-      if (!validateWebhookTimestamp(webhookTimestamp)) {
-        console.error('❌ Webhook timestamp is too old or invalid');
-        return NextResponse.json({ error: 'Invalid timestamp' }, { status: 401 });
-      }
-      
-      const isValid = verifyYocoWebhookSignature(
-        body, 
-        webhookSignature, 
-        webhookId, 
-        webhookTimestamp, 
-        webhookSecret
+
+    // Fail if webhook secret is not configured
+    if (!webhookSecret) {
+      logger.error('Yoco webhook secret not configured');
+      return NextResponse.json(
+        { error: 'Webhook authentication not configured' },
+        { status: 500 }
       );
-      
-      if (!isValid) {
-        console.error('❌ Invalid Yoco webhook signature');
-        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-      }
-      console.log('✅ Webhook signature verified');
-    } else {
-      console.log('⚠️ Webhook verification skipped - missing signature components or secret');
     }
+
+    // Fail if any signature component is missing
+    if (!webhookSignature || !webhookId || !webhookTimestamp) {
+      logger.error('Missing required webhook signature components', {
+        hasSignature: !!webhookSignature,
+        hasId: !!webhookId,
+        hasTimestamp: !!webhookTimestamp,
+      });
+      return NextResponse.json(
+        { error: 'Missing webhook signature components' },
+        { status: 401 }
+      );
+    }
+
+    // Validate timestamp first (prevent replay attacks)
+    if (!validateWebhookTimestamp(webhookTimestamp)) {
+      logger.error('Webhook timestamp too old or invalid');
+      return NextResponse.json({ error: 'Invalid timestamp' }, { status: 401 });
+    }
+
+    // Verify the signature
+    const isValid = verifyYocoWebhookSignature(
+      body,
+      webhookSignature,
+      webhookId,
+      webhookTimestamp,
+      webhookSecret
+    );
+
+    if (!isValid) {
+      logger.error('Invalid Yoco webhook signature');
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    }
+
+    logger.info('Webhook signature verified successfully');
 
     // Parse the webhook event
     let event: YocoWebhookEvent;
     try {
       event = JSON.parse(body);
-      
-      // ENHANCED DEBUG: Log complete webhook structure
-      console.log('🔍 COMPLETE WEBHOOK EVENT STRUCTURE:');
-      console.log('📋 Event ID:', event.id);
-      console.log('📋 Event Type:', event.type);
-      console.log('📋 Event Created:', event.createdDate);
-      console.log('📋 Payload Keys:', Object.keys(event.payload || {}));
-      console.log('📋 Complete Payload:', JSON.stringify(event.payload, null, 2));
-      
+
+      // Log webhook structure for debugging
+      logger.debug('Webhook event structure', {
+        eventId: event.id,
+        eventType: event.type,
+        createdDate: event.createdDate,
+        payloadKeys: Object.keys(event.payload || {}),
+      });
+
       // Check all possible metadata locations with proper typing
       const eventAny = event as unknown as Record<string, unknown>;
       const payloadAny = event.payload as unknown as Record<string, unknown>;
-      
-      console.log('🔍 METADATA SEARCH:');
-      console.log('📍 event.payload.metadata:', event.payload.metadata);
-      console.log('📍 event.metadata:', eventAny.metadata);
-      console.log('📍 event.payload.data:', payloadAny.data);
-      console.log('📍 event.payload.object:', payloadAny.object);
-      
+
+      logger.debug('Metadata search locations', {
+        hasPayloadMetadata: !!event.payload.metadata,
+        hasEventMetadata: !!eventAny.metadata,
+        hasPayloadData: !!payloadAny.data,
+        hasPayloadObject: !!payloadAny.object,
+      });
+
       logWebhookEvent(event as unknown as Record<string, unknown>, '📊');
     } catch (parseError) {
-      console.error('❌ Failed to parse webhook JSON:', parseError);
+      logger.error('Failed to parse webhook JSON', parseError);
       return NextResponse.json(
         { error: 'Invalid JSON payload' },
         { status: 400 }
@@ -108,7 +152,7 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!event.id || !event.type || !event.payload) {
-      console.error('❌ Invalid webhook event structure - missing required fields');
+      logger.error('Invalid webhook event structure - missing required fields');
       return NextResponse.json(
         { error: 'Invalid webhook event structure' },
         { status: 400 }
@@ -149,37 +193,36 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    console.log('🔍 ORDERID EXTRACTION RESULT:', {
+    logger.debug('OrderID extraction result', {
       foundOrderId: orderId || 'NOT FOUND',
       searchLocations: [
         'event.payload.metadata.orderId',
-        'event.metadata.orderId', 
+        'event.metadata.orderId',
         'event.payload.data.metadata.orderId',
         'event.payload.object.metadata.orderId'
       ]
     });
-    
+
     if (!orderId) {
-      console.error('❌ No orderId found in webhook metadata');
-      console.log('Available metadata:', event.payload.metadata);
-      console.log('Complete event structure for debugging:', JSON.stringify(event, null, 2));
-      
+      logger.warn('No orderId found in webhook metadata', {
+        availableMetadata: event.payload.metadata,
+      });
+
       // For now, just acknowledge the webhook even if we can't process it
-      return NextResponse.json({ 
-        received: true, 
-        processed: false, 
-        reason: 'No orderId in metadata - webhook acknowledged but not processed' 
+      return NextResponse.json({
+        received: true,
+        processed: false,
+        reason: 'No orderId in metadata - webhook acknowledged but not processed'
       });
     }
 
-    console.log('🎯 Processing Yoco event:', {
+    logger.info('Processing Yoco event', {
       eventType: event.type,
       orderId,
       payloadId: event.payload.id,
       status: event.payload.status,
       amount: event.payload.amount,
       currency: event.payload.currency,
-      paymentId: event.payload.paymentId,
     });
 
     // Get order from database using admin client (bypasses RLS for webhooks)
@@ -191,14 +234,14 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (orderError || !order) {
-      console.error('❌ Order not found:', { orderId, orderError });
+      logger.error('Order not found', { orderId, error: orderError });
       return NextResponse.json(
         { error: 'Order not found' },
         { status: 404 }
       );
     }
 
-    console.log('📋 Found order:', {
+    logger.debug('Found order', {
       id: order.id,
       currentStatus: order.status,
       currentPaymentStatus: order.payment_status,
@@ -221,7 +264,7 @@ export async function POST(request: NextRequest) {
       newOrderStatus = 'confirmed';
       newPaymentStatus = 'paid';
       shouldSendEmail = true;
-      console.log('✅ Payment successful - updating order to confirmed');
+      logger.info('Payment successful - updating order to confirmed', { orderId });
     } else if (
       event.type.includes('cancelled') ||
       event.type.includes('failed') ||
@@ -231,7 +274,7 @@ export async function POST(request: NextRequest) {
       // Payment failed or cancelled
       newOrderStatus = 'cancelled';
       newPaymentStatus = event.type.includes('failed') ? 'failed' : 'cancelled';
-      console.log('❌ Payment failed/cancelled');
+      logger.info('Payment failed/cancelled', { orderId, eventType: event.type });
     } else if (
       event.type.includes('expired') ||
       event.payload.status === 'expired'
@@ -239,14 +282,17 @@ export async function POST(request: NextRequest) {
       // Payment expired
       newOrderStatus = 'cancelled';
       newPaymentStatus = 'expired';
-      console.log('⏰ Payment expired');
+      logger.info('Payment expired', { orderId });
     } else {
-      console.log('ℹ️ Unhandled event type or status:', event.type, event.payload.status);
+      logger.warn('Unhandled event type or status', {
+        eventType: event.type,
+        status: event.payload.status,
+      });
       // Still acknowledge the webhook
-      return NextResponse.json({ 
-        received: true, 
-        processed: false, 
-        message: 'Event acknowledged but not processed - unknown event type' 
+      return NextResponse.json({
+        received: true,
+        processed: false,
+        message: 'Event acknowledged but not processed - unknown event type'
       });
     }
 
@@ -270,14 +316,14 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (updateError) {
-      console.error('❌ Failed to update order:', updateError);
+      logger.error('Failed to update order', updateError);
       return NextResponse.json(
         { error: 'Failed to update order' },
         { status: 500 }
       );
     }
 
-    console.log('✅ Order updated successfully:', {
+    logger.info('Order updated successfully', {
       orderId,
       newStatus: newOrderStatus,
       newPaymentStatus: newPaymentStatus,
@@ -286,13 +332,8 @@ export async function POST(request: NextRequest) {
     // Send confirmation email for successful payments
     if (shouldSendEmail) {
       try {
-        // For now, just log that we would send an email
-        console.log('📧 Would send confirmation email to user:', order.user_id);
-        
-        /*
-        // TODO: Implement email sending when email service is ready
-        const { sendOrderConfirmationEmail } = await import('@/lib/email');
-        
+        logger.info('Sending order confirmation email', { userId: order.user_id });
+
         if (order.user_id) {
           const { data: user } = await supabase
             .from('profiles')
@@ -301,19 +342,53 @@ export async function POST(request: NextRequest) {
             .single();
 
           if (user?.email) {
-            await sendOrderConfirmationEmail(updatedOrder, user);
-            console.log('📧 Confirmation email sent successfully');
+            const { sendOrderConfirmationEmail } = await import('@/lib/notifications');
+
+            // Fetch order items for the email
+            const { data: orderItems } = await supabase
+              .from('order_items')
+              .select(`
+                quantity,
+                price,
+                menu_items!inner (name)
+              `)
+              .eq('order_id', orderId);
+
+            const items = (orderItems || []).map((item: {
+              quantity: number;
+              price: number;
+              menu_items: { name: string };
+            }) => ({
+              name: item.menu_items.name,
+              quantity: item.quantity,
+              price: item.price,
+            }));
+
+            const emailSent = await sendOrderConfirmationEmail({
+              orderId: orderId,
+              total: order.total_amount || 0,
+              userEmail: user.email,
+              userName: user.full_name || 'Valued Customer',
+              items,
+              deliveryType: 'delivery',
+              estimatedReadyTime: undefined,
+            });
+
+            if (emailSent) {
+              logger.info('Order confirmation email sent successfully', { email: user.email });
+            } else {
+              logger.warn('Order confirmation email failed to send', { email: user.email });
+            }
           }
         }
-        */
       } catch (emailError) {
-        console.error('❌ Failed to send confirmation email:', emailError);
+        logger.error('Failed to send confirmation email', emailError);
         // Don't fail the webhook for email errors
       }
     }
 
     // Log successful webhook processing
-    console.log('🎉 Webhook processed successfully:', {
+    logger.info('Webhook processed successfully', {
       eventId: event.id,
       eventType: event.type,
       orderId,
@@ -330,10 +405,10 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Webhook processing error:', error);
-    
+    logger.error('Webhook processing error', error);
+
     return NextResponse.json(
-      { 
+      {
         error: 'Webhook processing failed',
         details: error instanceof Error ? error.message : 'Unknown error'
       },

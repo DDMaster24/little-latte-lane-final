@@ -1,6 +1,7 @@
 /**
- * Permanent QR Code Generator for PWA Installation
+ * Permanent QR Code Generator for App Download
  * Creates a fixed, unchangeable QR code for printing and physical deployment
+ * Redirects users to the appropriate app store (iOS/Android)
  */
 
 'use client';
@@ -10,10 +11,13 @@ import QRCode from 'qrcode';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, Printer, ExternalLink, Check } from 'lucide-react';
+import { Download, Printer, ExternalLink, Check, Smartphone } from 'lucide-react';
 
-// PERMANENT INSTALL URL - This never changes!
-const PERMANENT_INSTALL_URL = 'https://littlelattelane.co.za/install';
+// PERMANENT APP DOWNLOAD URL - Uses environment variable or production fallback
+const PERMANENT_APP_URL =
+  process.env.NEXT_PUBLIC_SITE_URL
+    ? `${process.env.NEXT_PUBLIC_SITE_URL}/download`
+    : 'https://littlelattelane.co.za/download';
 
 export const QRCodeGenerator = () => {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
@@ -41,7 +45,7 @@ export const QRCodeGenerator = () => {
         width: 512,  // High resolution for printing
       };
 
-      const qrCodeUrl = await QRCode.toDataURL(PERMANENT_INSTALL_URL, qrCodeOptions);
+      const qrCodeUrl = await QRCode.toDataURL(PERMANENT_APP_URL, qrCodeOptions);
       setQrCodeDataUrl(qrCodeUrl);
       setIsLoaded(true);
     } catch (error) {
@@ -54,7 +58,7 @@ export const QRCodeGenerator = () => {
 
     const link = document.createElement('a');
     link.href = qrCodeDataUrl;
-    link.download = 'little-latte-lane-install-qr-code.png';
+    link.download = 'little-latte-lane-app-download-qr-code.png';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -70,7 +74,7 @@ export const QRCodeGenerator = () => {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Little Latte Lane - Install QR Code</title>
+          <title>Little Latte Lane - Download App QR Code</title>
           <style>
             body {
               margin: 0;
@@ -127,15 +131,15 @@ export const QRCodeGenerator = () => {
         <body>
           <div class="qr-container">
             <div class="title">Little Latte Lane</div>
-            <div class="subtitle">Scan to Install Mobile App</div>
-            <img src="${qrCodeDataUrl}" alt="QR Code for Little Latte Lane App" class="qr-code" />
-            <div class="url">${PERMANENT_INSTALL_URL}</div>
+            <div class="subtitle">Download Our Mobile App</div>
+            <img src="${qrCodeDataUrl}" alt="QR Code for Little Latte Lane App Download" class="qr-code" />
+            <div class="url">${PERMANENT_APP_URL}</div>
             <div class="instructions">
               <strong>Instructions:</strong><br>
               1. Open your phone's camera app<br>
               2. Point it at this QR code<br>
-              3. Tap the notification to install<br>
-              4. Or visit the URL above manually
+              3. Tap the notification<br>
+              4. Download from App Store or Google Play
             </div>
           </div>
         </body>
@@ -149,8 +153,8 @@ export const QRCodeGenerator = () => {
     }, 500);
   };
 
-  const openInstallPage = () => {
-    window.open(PERMANENT_INSTALL_URL, '_blank');
+  const openDownloadPage = () => {
+    window.open(PERMANENT_APP_URL, '_blank');
   };
 
   return (
@@ -158,11 +162,11 @@ export const QRCodeGenerator = () => {
       <Card className="bg-gradient-to-br from-gray-900 to-darkBg border-neonCyan/30">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-neonCyan">
-            <Check className="w-5 h-5" />
-            Permanent PWA Install QR Code
+            <Smartphone className="w-5 h-5" />
+            App Download QR Code
           </CardTitle>
           <CardDescription>
-            Fixed QR code for printing and physical deployment. This QR code never changes!
+            Smart QR code that detects device and redirects to App Store or Google Play. Perfect for printing!
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -188,10 +192,13 @@ export const QRCodeGenerator = () => {
 
           {/* URL Display */}
           <div className="text-center">
-            <p className="text-sm text-gray-400 mb-2">Permanent Install URL:</p>
+            <p className="text-sm text-gray-400 mb-2">Smart Download URL:</p>
             <div className="bg-gray-800 px-4 py-2 rounded font-mono text-sm text-neonCyan break-all">
-              {PERMANENT_INSTALL_URL}
+              {PERMANENT_APP_URL}
             </div>
+            <p className="text-xs text-gray-400 mt-2">
+              Automatically detects iOS/Android and redirects to the correct app store
+            </p>
           </div>
 
           {/* Action Buttons */}
@@ -215,39 +222,43 @@ export const QRCodeGenerator = () => {
             </Button>
             
             <Button
-              onClick={openInstallPage}
+              onClick={openDownloadPage}
               variant="outline"
               className="border-neonCyan text-neonCyan hover:bg-neonCyan hover:text-black"
             >
               <ExternalLink className="w-4 h-4 mr-2" />
-              Test Install Page
+              Test Download Page
             </Button>
           </div>
 
           {/* Important Notes */}
           <div className="bg-gradient-to-r from-neonPink/20 to-neonCyan/20 border border-neonPink/30 rounded-lg p-4">
-            <h4 className="font-bold text-neonPink mb-2">🔒 PERMANENT QR CODE</h4>
+            <h4 className="font-bold text-neonPink mb-2">📱 SMART QR CODE</h4>
             <ul className="text-sm text-gray-300 space-y-1">
+              <li>• Automatically detects iOS or Android device</li>
+              <li>• Redirects to App Store or Google Play automatically</li>
               <li>• This QR code URL never changes - safe for printing</li>
               <li>• High error correction (Level H) for damaged/worn prints</li>
-              <li>• Works on all devices and browsers</li>
-              <li>• Direct install page with manual instructions</li>
               <li>• 512x512 resolution optimal for printing</li>
             </ul>
           </div>
 
-          {/* Backup Instructions */}
+          {/* Store Links */}
           <div className="bg-gray-800 border border-gray-600 rounded-lg p-4">
-            <h4 className="font-bold text-neonGreen mb-2">� BACKUP PLAN</h4>
+            <h4 className="font-bold text-neonGreen mb-2">📲 APP STORE LINKS</h4>
             <p className="text-sm text-gray-300 mb-2">
-              If QR scanning fails, users can manually visit:
+              Download directly from:
             </p>
-            <div className="bg-black px-3 py-2 rounded font-mono text-xs text-neonCyan">
-              littlelattelane.co.za/install
+            <div className="space-y-2">
+              <div className="bg-black px-3 py-2 rounded text-xs">
+                <span className="text-gray-400">iOS:</span>{' '}
+                <span className="text-neonCyan font-mono">apps.apple.com/za/app/little-latte-lane/id6754854354</span>
+              </div>
+              <div className="bg-black px-3 py-2 rounded text-xs">
+                <span className="text-gray-400">Android:</span>{' '}
+                <span className="text-neonCyan font-mono">play.google.com/store/apps/details?id=co.za.littlelattelane.app</span>
+              </div>
             </div>
-            <p className="text-xs text-gray-400 mt-2">
-              This page provides platform-specific installation instructions
-            </p>
           </div>
         </CardContent>
       </Card>

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendWelcomeEmail, sendPasswordResetEmail } from '@/lib/emailTemplates';
 import { getSupabaseAdmin } from '@/lib/supabase-server';
+import { env } from '@/lib/env';
+import { createHmac, timingSafeEqual } from 'crypto';
+import { checkRateLimit, getClientIdentifier, RateLimitPresets, getRateLimitHeaders } from '@/lib/rate-limit';
 
 /**
  * Auth Event Webhook Handler
@@ -8,15 +11,92 @@ import { getSupabaseAdmin } from '@/lib/supabase-server';
  */
 export async function POST(request: NextRequest) {
   try {
-    const authEvent = await request.json();
-    console.log('🔔 Auth webhook received:', authEvent.type);
+    // Apply rate limiting to prevent webhook flooding
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = checkRateLimit(identifier, {
+      id: 'auth-webhook',
+      ...RateLimitPresets.WEBHOOK,
+    });
 
-    // Verify webhook authenticity (basic check)
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.includes('Bearer')) {
-      console.log('❌ Unauthorized webhook request');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!rateLimitResult.success) {
+      console.error('Auth webhook rate limit exceeded');
+      return NextResponse.json(
+        { error: 'Too many webhook requests' },
+        {
+          status: 429,
+          headers: getRateLimitHeaders({
+            ...rateLimitResult,
+            limit: RateLimitPresets.WEBHOOK.limit,
+          }),
+        }
+      );
     }
+
+    // Get raw body for signature verification
+    const body = await request.text();
+    const authEvent = JSON.parse(body);
+
+    console.log('Auth webhook received:', authEvent.type);
+
+    // SECURITY: Verify webhook authenticity with HMAC signature
+    const webhookSecret = env.SUPABASE_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      console.error('Webhook secret not configured - rejecting webhook');
+      return NextResponse.json(
+        { error: 'Webhook authentication not configured' },
+        { status: 500 }
+      );
+    }
+
+    const signature = request.headers.get('x-webhook-signature') || request.headers.get('authorization');
+    const timestamp = request.headers.get('x-webhook-timestamp');
+
+    if (!signature) {
+      console.error('Unauthorized webhook request - missing signature');
+      return NextResponse.json({ error: 'Unauthorized - Missing signature' }, { status: 401 });
+    }
+
+    // Extract signature from Authorization header if present (format: "Bearer <signature>")
+    const signatureValue = signature.startsWith('Bearer ') ? signature.slice(7) : signature;
+
+    // Verify timestamp to prevent replay attacks (must be within 5 minutes)
+    if (timestamp) {
+      const requestTime = parseInt(timestamp, 10);
+      const currentTime = Math.floor(Date.now() / 1000);
+      const timeDiff = Math.abs(currentTime - requestTime);
+
+      if (timeDiff > 300) { // 5 minutes
+        console.error('Webhook timestamp too old - possible replay attack');
+        return NextResponse.json(
+          { error: 'Webhook timestamp expired' },
+          { status: 401 }
+        );
+      }
+    }
+
+    // Compute HMAC signature
+    const signedPayload = timestamp ? `${timestamp}.${body}` : body;
+    const computedSignature = createHmac('sha256', webhookSecret)
+      .update(signedPayload)
+      .digest('hex');
+
+    // Use timing-safe comparison to prevent timing attacks
+    try {
+      const isValid = timingSafeEqual(
+        Buffer.from(signatureValue),
+        Buffer.from(computedSignature)
+      );
+
+      if (!isValid) {
+        console.error('Invalid webhook signature');
+        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+      }
+    } catch {
+      console.error('Signature comparison failed - possible format mismatch');
+      return NextResponse.json({ error: 'Invalid signature format' }, { status: 401 });
+    }
+
+    console.log('Webhook signature verified');
 
     const { type, user } = authEvent;
 

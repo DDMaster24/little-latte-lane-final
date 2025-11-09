@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseServer } from '@/lib/supabase-server'
 import webpush from 'web-push'
+import { checkRateLimit, getClientIdentifier, RateLimitPresets, getRateLimitHeaders } from '@/lib/rate-limit'
 
 // Configure web-push with VAPID details
 webpush.setVapidDetails(
@@ -31,6 +32,30 @@ export async function POST(request: NextRequest) {
       data: { user },
       error: authError,
     } = await supabase.auth.getUser()
+
+    // Apply rate limiting for notifications
+    const identifier = getClientIdentifier(request, user?.id);
+    const rateLimitResult = checkRateLimit(identifier, {
+      id: 'notifications-broadcast',
+      ...RateLimitPresets.NOTIFICATIONS,
+    });
+
+    if (!rateLimitResult.success) {
+      const resetTime = new Date(rateLimitResult.resetAt).toISOString();
+      return NextResponse.json(
+        {
+          error: 'Too many notification requests. Please try again later.',
+          resetAt: resetTime,
+        },
+        {
+          status: 429,
+          headers: getRateLimitHeaders({
+            ...rateLimitResult,
+            limit: RateLimitPresets.NOTIFICATIONS.limit,
+          }),
+        }
+      );
+    }
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

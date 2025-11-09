@@ -32,12 +32,22 @@ const envSchema = z.object({
     .string()
     .default('true')
     .transform((val) => val === 'true'),
-    
+
   YOCO_SECRET_KEY: z.string().optional(),
   YOCO_PUBLIC_KEY: z.string().optional(),
+  YOCO_WEBHOOK_SECRET: z.string().optional(),
+
+  // Webhook security
+  SUPABASE_WEBHOOK_SECRET: z.string().optional(),
 
   // Project metadata
   NEXT_PUBLIC_SUPABASE_PROJECT_ID: z.string().optional(),
+
+  // Site URL for callbacks, redirects, and QR codes
+  NEXT_PUBLIC_SITE_URL: z
+    .string()
+    .url('Invalid site URL format')
+    .optional(),
 });
 
 /**
@@ -63,8 +73,11 @@ export const env = envSchema.parse({
   NEXT_PUBLIC_YOCO_TEST_MODE: process.env['NEXT_PUBLIC_YOCO_TEST_MODE'],
   YOCO_SECRET_KEY: process.env['YOCO_SECRET_KEY'],
   YOCO_PUBLIC_KEY: process.env['YOCO_PUBLIC_KEY'],
+  YOCO_WEBHOOK_SECRET: process.env['YOCO_WEBHOOK_SECRET'],
+  SUPABASE_WEBHOOK_SECRET: process.env['SUPABASE_WEBHOOK_SECRET'],
   NEXT_PUBLIC_SUPABASE_PROJECT_ID:
     process.env['NEXT_PUBLIC_SUPABASE_PROJECT_ID'],
+  NEXT_PUBLIC_SITE_URL: process.env['NEXT_PUBLIC_SITE_URL'],
 });
 
 /**
@@ -74,38 +87,76 @@ export const env = envSchema.parse({
 export function validateEnvironment(): void {
   // Skip validation during build time
   if (isBuildTime()) {
+    // Note: Using console.log here to avoid circular dependency with logger
     console.log('⚙️ Skipping environment validation during build time');
     return;
   }
 
   const errors: string[] = [];
+  const warnings: string[] = [];
+
+  // SECURITY: Fail hard if placeholders are detected in runtime
+  if (env.NEXT_PUBLIC_SUPABASE_URL === 'https://build-placeholder.supabase.co') {
+    errors.push('NEXT_PUBLIC_SUPABASE_URL contains build-time placeholder - set real value!');
+  }
+
+  if (env.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'build-placeholder-key') {
+    errors.push('NEXT_PUBLIC_SUPABASE_ANON_KEY contains build-time placeholder - set real value!');
+  }
+
+  if (env.SUPABASE_SERVICE_ROLE_KEY === 'build-placeholder-key') {
+    errors.push('SUPABASE_SERVICE_ROLE_KEY contains build-time placeholder - set real value!');
+  }
 
   // Critical checks that should fail fast
-  if (!env.NEXT_PUBLIC_SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL === 'https://build-placeholder.supabase.co') {
+  if (!env.NEXT_PUBLIC_SUPABASE_URL) {
     errors.push('NEXT_PUBLIC_SUPABASE_URL is required');
   }
 
-  if (!env.NEXT_PUBLIC_SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'build-placeholder-key') {
+  if (!env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     errors.push('NEXT_PUBLIC_SUPABASE_ANON_KEY is required');
   }
 
   // Production-specific checks
   if (env.NODE_ENV === 'production') {
+    // Mandatory in production
     if (!env.SUPABASE_SERVICE_ROLE_KEY) {
       errors.push('SUPABASE_SERVICE_ROLE_KEY is required in production');
     }
 
+    // Mandatory for payments
     if (!env.YOCO_SECRET_KEY) {
-      // Warning for Yoco in production
-      console.warn(
-        '⚠️ Yoco credentials missing - payment features will be disabled'
-      );
+      errors.push('YOCO_SECRET_KEY is required in production');
+    }
+
+    if (!env.YOCO_WEBHOOK_SECRET) {
+      errors.push('YOCO_WEBHOOK_SECRET is required in production');
+    }
+
+    // Mandatory for secure webhooks
+    if (!env.SUPABASE_WEBHOOK_SECRET) {
+      warnings.push('SUPABASE_WEBHOOK_SECRET is missing - auth webhooks will fail');
+    }
+
+    // Verify not in test mode
+    if (env.NEXT_PUBLIC_YOCO_TEST_MODE === true) {
+      warnings.push('Yoco is in TEST MODE in production - payments will not be real!');
     }
   }
 
+  // Log warnings
+  if (warnings.length > 0) {
+    // Note: Using console.warn here to avoid circular dependency with logger
+    console.warn(
+      '⚠️ Environment warnings:\n' + warnings.map((w) => `  - ${w}`).join('\n')
+    );
+  }
+
+  // Fail if any errors
   if (errors.length > 0) {
     throw new Error(
-      `Environment validation failed:\n${errors.map((e) => `  - ${e}`).join('\n')}`
+      `❌ PRODUCTION DEPLOYMENT BLOCKED - Environment validation failed:\n${errors.map((e) => `  - ${e}`).join('\n')}\n\n` +
+      `Please set these environment variables in your deployment platform (Vercel, etc.)`
     );
   }
 }

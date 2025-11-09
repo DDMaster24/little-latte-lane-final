@@ -1,15 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServer } from '@/lib/supabase-server';
+import { requireAdmin } from '@/lib/adminAuth';
+import { logger } from '@/lib/logger';
 
 /**
  * Auto Order Status Monitor
  * Automatically check and update orders that should be completed
  * This is a backup system when webhooks don't work
+ * SECURITY: Admin-only endpoint
  */
 export async function POST(_request: NextRequest) {
   try {
+    // SECURITY: Verify admin authentication
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     // Skip execution during build time or when using placeholder environment
-    if (process.env.NEXT_PHASE === 'phase-production-build' || 
+    if (process.env.NEXT_PHASE === 'phase-production-build' ||
         process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://build-placeholder.supabase.co') {
       return NextResponse.json({
         success: false,
@@ -18,7 +25,7 @@ export async function POST(_request: NextRequest) {
       });
     }
 
-    console.log('🔄 Auto order status monitor triggered');
+    logger.info('Auto order status monitor triggered by admin');
     
     const supabase = await getSupabaseServer();
     
@@ -35,7 +42,7 @@ export async function POST(_request: NextRequest) {
       .limit(10);
 
     if (error) {
-      console.error('❌ Error fetching old orders:', error);
+      logger.error('Error fetching old orders', error);
       return NextResponse.json(
         { error: 'Failed to fetch orders' },
         { status: 500 }
@@ -50,7 +57,7 @@ export async function POST(_request: NextRequest) {
       });
     }
 
-    console.log(`🔍 Found ${oldOrders.length} orders that may need updating`);
+    logger.info(`Found ${oldOrders.length} orders that may need updating`);
 
     // Update these orders to completed (since they've been awaiting payment for 2+ minutes)
     // This assumes if someone stayed on payment page for 2+ minutes, they likely completed it
@@ -65,14 +72,14 @@ export async function POST(_request: NextRequest) {
       .select();
 
     if (updateError) {
-      console.error('❌ Error updating orders:', updateError);
+      logger.error('Error updating orders', updateError);
       return NextResponse.json(
         { error: 'Failed to update orders' },
         { status: 500 }
       );
     }
 
-    console.log(`✅ Auto-updated ${updatedOrders?.length || 0} orders to confirmed`);
+    logger.info(`Auto-updated ${updatedOrders?.length || 0} orders to confirmed`);
 
     // Trigger notifications for updated orders
     const notifications = [];
@@ -116,7 +123,7 @@ export async function POST(_request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Auto monitor error:', error);
+    logger.error('Auto monitor error', error);
     return NextResponse.json(
       { error: 'Auto monitor failed', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
@@ -125,8 +132,12 @@ export async function POST(_request: NextRequest) {
 }
 
 export async function GET() {
+  // SECURITY: Verify admin authentication
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   // Skip execution during build time or when using placeholder environment
-  if (process.env.NEXT_PHASE === 'phase-production-build' || 
+  if (process.env.NEXT_PHASE === 'phase-production-build' ||
       process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://build-placeholder.supabase.co') {
     return NextResponse.json({
       status: 'Auto order monitor not available during build time',

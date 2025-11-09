@@ -69,7 +69,7 @@ export const metadata: Metadata = {
     'og:title': 'Little Latte Lane Café & Deli | Roberts Estate, Middleburg',
     'og:description': 'Authentic café and deli in Roberts Estate, Middleburg. Fresh artisan coffee, wood-fired pizzas, and homemade meals.',
     'og:type': 'website',
-    'og:url': 'https://littlelattelane.co.za',
+    'og:url': process.env.NEXT_PUBLIC_SITE_URL || 'https://littlelattelane.co.za',
     'og:image': '/icon-512x512.png',
     'og:site_name': 'Little Latte Lane',
     // Twitter Card tags

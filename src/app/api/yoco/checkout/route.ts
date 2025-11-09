@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { yocoClient, randssToCents, generateCallbackUrls } from '@/lib/yoco';
 import { getSupabaseAdmin } from '@/lib/supabase-server';
+import { checkRateLimit, getClientIdentifier, RateLimitPresets, getRateLimitHeaders } from '@/lib/rate-limit';
 
 interface CheckoutRequestBody {
   orderId: string;
@@ -22,19 +23,75 @@ interface CheckoutRequestBody {
 }
 
 export async function POST(request: NextRequest) {
-  console.log('🚀 Yoco checkout POST request received');
-  
+  console.log('Yoco checkout POST request received');
+
   try {
     const body: CheckoutRequestBody = await request.json();
-    console.log('📝 Request body:', body);
-    
+
     const { orderId, userId, amount, itemName, itemDescription, userDetails } = body;
 
-    // Validate required fields
-    console.log('🔍 Validating fields:', { orderId, userId, amount });
-    if (!orderId || !userId || !amount || amount <= 0) {
+    // Apply rate limiting for payment operations
+    const identifier = getClientIdentifier(request, userId);
+    const rateLimitResult = checkRateLimit(identifier, {
+      id: 'yoco-checkout',
+      ...RateLimitPresets.PAYMENT,
+    });
+
+    if (!rateLimitResult.success) {
+      const resetTime = new Date(rateLimitResult.resetAt).toISOString();
       return NextResponse.json(
-        { error: 'Missing required fields: orderId, userId, or invalid amount' },
+        {
+          error: 'Too many checkout requests. Please try again later.',
+          resetAt: resetTime,
+        },
+        {
+          status: 429,
+          headers: getRateLimitHeaders({
+            ...rateLimitResult,
+            limit: RateLimitPresets.PAYMENT.limit,
+          }),
+        }
+      );
+    }
+
+    // Validate required fields
+    console.log('Validating fields:', { orderId, userId, amount });
+    if (!orderId || !userId) {
+      return NextResponse.json(
+        { error: 'Missing required fields: orderId or userId' },
+        { status: 400 }
+      );
+    }
+
+    // SECURITY: Validate payment amount with min/max limits
+    const MIN_AMOUNT = 5; // R5 minimum (to cover payment gateway fees)
+    const MAX_AMOUNT = 10000; // R10,000 maximum (reasonable limit for restaurant orders)
+
+    if (typeof amount !== 'number' || isNaN(amount)) {
+      return NextResponse.json(
+        { error: 'Invalid amount - must be a valid number' },
+        { status: 400 }
+      );
+    }
+
+    if (amount < MIN_AMOUNT) {
+      return NextResponse.json(
+        { error: `Amount too low - minimum order amount is R${MIN_AMOUNT}` },
+        { status: 400 }
+      );
+    }
+
+    if (amount > MAX_AMOUNT) {
+      return NextResponse.json(
+        { error: `Amount too high - maximum order amount is R${MAX_AMOUNT}` },
+        { status: 400 }
+      );
+    }
+
+    // Validate decimal precision (max 2 decimal places for currency)
+    if (!Number.isFinite(amount) || Math.round(amount * 100) / 100 !== amount) {
+      return NextResponse.json(
+        { error: 'Invalid amount - must have at most 2 decimal places' },
         { status: 400 }
       );
     }
@@ -60,11 +117,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify the amount matches
+    // SECURITY: Verify the amount matches using integer comparison (cents) to avoid floating point issues
     const orderAmount = order.total_amount || 0;
-    if (Math.abs(orderAmount - amount) > 0.01) {
+    const amountCents = Math.round(amount * 100);
+    const orderAmountCents = Math.round(orderAmount * 100);
+
+    if (amountCents !== orderAmountCents) {
+      console.error('Amount mismatch:', {
+        requestAmount: amount,
+        requestAmountCents: amountCents,
+        orderAmount: orderAmount,
+        orderAmountCents: orderAmountCents,
+      });
       return NextResponse.json(
-        { error: 'Amount mismatch between request and order' },
+        {
+          error: 'Amount mismatch - the payment amount must match the order total',
+          expected: orderAmount,
+          received: amount,
+        },
         { status: 400 }
       );
     }
