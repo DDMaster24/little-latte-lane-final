@@ -10,6 +10,7 @@ import { Loader2, CheckCircle, XCircle, Upload, X, FileText, Mail, Check, Edit }
 import SignatureCanvas from 'react-signature-canvas';
 import SimpleAddressInput from '@/components/SimpleAddressInput';
 import { FileDown, Send } from 'lucide-react';
+import { openPaymentUrl } from '@/lib/capacitor-browser';
 
 export default function RobertsHallBookingForm() {
   const { user, profile } = useAuth();
@@ -198,9 +199,9 @@ export default function RobertsHallBookingForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate address
-    if (!addressValid || !addressValue) {
-      toast.error('Please provide a valid Roberts Estate address');
+    // Validate address (just check it's not empty)
+    if (!addressValue || addressValue.trim().length === 0) {
+      toast.error('Please provide your address');
       return;
     }
 
@@ -398,7 +399,12 @@ export default function RobertsHallBookingForm() {
 
       if (checkoutData.success && checkoutData.redirectUrl) {
         console.log('✅ Redirecting to Yoco payment:', checkoutData.redirectUrl);
-        window.location.href = checkoutData.redirectUrl;
+
+        // Use the same payment URL handler as cart (supports native apps and web)
+        await openPaymentUrl(checkoutData.redirectUrl);
+
+        // Note: Don't set isSubmitting to false here - let it stay loading
+        // until user returns from payment (similar to cart flow)
       } else {
         toast.error('Failed to initialize payment');
         setIsSubmitting(false);
