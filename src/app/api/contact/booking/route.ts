@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
       'general': 'General Table Booking',
       'birthday': 'Birthday Party',
       'corporate': 'Corporate Event',
+      'hall': 'Roberts Hall Booking',
       'other': 'Other Event'
     };
 
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
       <body>
         <div class="container">
           <div class="header">
-            <h1>🍽️ New Booking Inquiry</h1>
+            <h1>${data.eventType === 'hall' ? '🏛️' : '🍽️'} New Booking Inquiry</h1>
           </div>
           <div class="content">
             <p><strong>You have received a new booking inquiry through your website!</strong></p>
@@ -102,9 +103,16 @@ export async function POST(request: NextRequest) {
             </div>
             
             <div class="field">
-              <label>🎉 Type of Booking:</label>
+              <label>${data.eventType === 'hall' ? '🏛️' : '🎉'} Type of Booking:</label>
               <span class="value">${eventTypeDisplay}</span>
             </div>
+
+            ${data.eventType === 'hall' ? `
+            <div class="field" style="background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107;">
+              <p style="margin: 0; color: #856404; font-weight: bold;">⭐ ROBERTS HALL BOOKING</p>
+              <p style="margin: 5px 0 0 0; color: #856404; font-size: 13px;">This is a high-value venue booking. Please prioritize this inquiry and respond promptly!</p>
+            </div>
+            ` : ''}
             
             <div class="field">
               <label>💬 Message & Special Requests:</label>
@@ -200,7 +208,7 @@ Reply to: ${data.email}
           from: 'Little Latte Lane <bookings@littlelattelane.co.za>',
           to: ['admin@littlelattelane.co.za'],
           replyTo: data.email,
-          subject: `🍽️ New Booking Inquiry from ${data.name} - ${eventTypeDisplay}`,
+          subject: `${data.eventType === 'hall' ? '🏛️ ⭐ ROBERTS HALL' : '🍽️'} New Booking: ${data.name} - ${eventTypeDisplay}`,
           html: emailHtml,
           text: emailText,
         });

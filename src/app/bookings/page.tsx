@@ -97,12 +97,78 @@ export default function BookingsContactPage() {
       <div className="relative z-10 safe-area-top">
         {/* Hero Section */}
         <div className="py-8 sm:py-12">
-          <div className="max-w-4xl mx-auto px-6 text-center">
-            <h1 className="text-3xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-neonCyan to-neonPink bg-clip-text text-transparent">
-              Book Your Table or Event
+          <div className="max-w-6xl mx-auto px-6">
+            <h1 className="text-3xl sm:text-5xl font-bold mb-8 text-center bg-gradient-to-r from-neonCyan to-neonPink bg-clip-text text-transparent">
+              Book with Little Latte Lane
             </h1>
-            <p className="text-lg sm:text-xl text-gray-200 mb-8">
-              Planning a party, event, or need to book a table? Get in touch with us!
+
+            {/* Two Booking Options */}
+            <div className="grid md:grid-cols-2 gap-6 sm:gap-8 mb-12">
+              {/* Option 1: Tables & Events */}
+              <div className="bg-gradient-to-br from-neonCyan/10 to-neonCyan/5 border-2 border-neonCyan/30 rounded-2xl p-6 sm:p-8 hover:border-neonCyan/50 transition-all duration-300">
+                <div className="text-center mb-4">
+                  <div className="text-5xl sm:text-6xl mb-4">🍽️</div>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-neonCyan mb-3">
+                    Tables & Events
+                  </h2>
+                  <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
+                    Book a table for dining, celebrate birthdays, host corporate gatherings, or plan any special event at our cafe.
+                  </p>
+                </div>
+                <ul className="space-y-2 text-gray-200 text-sm sm:text-base">
+                  <li className="flex items-start gap-2">
+                    <span className="text-neonCyan mt-1">✓</span>
+                    <span>General table reservations</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-neonCyan mt-1">✓</span>
+                    <span>Birthday parties & celebrations</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-neonCyan mt-1">✓</span>
+                    <span>Corporate events & meetings</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-neonCyan mt-1">✓</span>
+                    <span>Custom event planning</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Option 2: Roberts Hall */}
+              <div className="bg-gradient-to-br from-neonPink/10 to-neonPink/5 border-2 border-neonPink/30 rounded-2xl p-6 sm:p-8 hover:border-neonPink/50 transition-all duration-300">
+                <div className="text-center mb-4">
+                  <div className="text-5xl sm:text-6xl mb-4">🏛️</div>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-neonPink mb-3">
+                    Roberts Hall
+                  </h2>
+                  <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
+                    Reserve the exclusive Roberts Hall for weddings, large gatherings, conferences, and major events.
+                  </p>
+                </div>
+                <ul className="space-y-2 text-gray-200 text-sm sm:text-base">
+                  <li className="flex items-start gap-2">
+                    <span className="text-neonPink mt-1">✓</span>
+                    <span>Weddings & receptions</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-neonPink mt-1">✓</span>
+                    <span>Large private functions</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-neonPink mt-1">✓</span>
+                    <span>Conferences & seminars</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-neonPink mt-1">✓</span>
+                    <span>Community events</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <p className="text-center text-lg sm:text-xl text-gray-200">
+              Fill out the form below to send us your booking inquiry!
             </p>
           </div>
         </div>
@@ -211,8 +277,12 @@ export default function BookingsContactPage() {
                     <option value="general">General Table Booking</option>
                     <option value="birthday">Birthday Party</option>
                     <option value="corporate">Corporate Event</option>
+                    <option value="hall">Roberts Hall Booking</option>
                     <option value="other">Other Event</option>
                   </select>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Select Roberts Hall for weddings, large functions, or conferences
+                  </p>
                 </div>
               </div>
 
