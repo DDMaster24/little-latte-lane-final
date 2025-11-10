@@ -41,8 +41,8 @@ export default function TablesBookingPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Basic validation
-    if (!formData.name || !formData.email || !formData.message) {
+    // Validation - all fields required
+    if (!formData.name || !formData.email || !formData.phone || !formData.preferredDate || !formData.message) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -100,7 +100,7 @@ export default function TablesBookingPage() {
         {/* Back Button */}
         <div className="max-w-6xl mx-auto px-6 pt-6">
           <Link href="/bookings">
-            <Button variant="ghost" className="text-gray-300 hover:text-white hover:bg-white/10">
+            <Button variant="outline" className="border-2 border-neonCyan/50 text-neonCyan hover:bg-neonCyan/10 hover:border-neonCyan">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Bookings
             </Button>
@@ -112,7 +112,6 @@ export default function TablesBookingPage() {
           <div className="max-w-3xl mx-auto px-6">
             {/* Header */}
             <div className="text-center mb-8">
-              <div className="text-5xl sm:text-6xl mb-4">🍽️</div>
               <h1 className="text-3xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-neonCyan to-cyan-500 bg-clip-text text-transparent">
                 Tables & Events Booking
               </h1>
@@ -122,13 +121,13 @@ export default function TablesBookingPage() {
             </div>
 
             {/* Contact Form */}
-            <div className="bg-gradient-to-br from-neonCyan/10 to-neonCyan/5 border-2 border-neonCyan/30 rounded-2xl p-6 sm:p-8">
+            <div className="bg-gradient-to-br from-neonCyan/20 to-neonCyan/10 backdrop-blur-sm bg-gray-900/60 border-2 border-neonCyan/30 rounded-2xl p-6 sm:p-8">
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Personal Information Row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div>
                     <label className="block font-semibold mb-2 text-gray-200">
-                      Full Name *
+                      Full Name
                     </label>
                     <Input
                       type="text"
@@ -143,7 +142,7 @@ export default function TablesBookingPage() {
 
                   <div>
                     <label className="block font-semibold mb-2 text-gray-200">
-                      Email Address *
+                      Email Address
                     </label>
                     <Input
                       type="email"
@@ -168,8 +167,9 @@ export default function TablesBookingPage() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
+                      required
                       className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan"
-                      placeholder="(optional)"
+                      placeholder="Enter your phone number"
                     />
                   </div>
 
@@ -182,7 +182,8 @@ export default function TablesBookingPage() {
                       name="preferredDate"
                       value={formData.preferredDate}
                       onChange={handleInputChange}
-                      className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan"
+                      required
+                      className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
                       min={new Date().toISOString().split('T')[0]}
                     />
                   </div>
@@ -233,7 +234,7 @@ export default function TablesBookingPage() {
                 {/* Message */}
                 <div>
                   <label className="block font-semibold mb-2 text-gray-200">
-                    Message & Special Requests *
+                    Message & Special Requests
                   </label>
                   <textarea
                     name="message"
@@ -268,10 +269,18 @@ export default function TablesBookingPage() {
                 </div>
 
                 {/* Contact Info */}
-                <div className="mt-6 pt-6 border-t border-gray-600 text-center">
-                  <p className="text-sm text-gray-300">
-                    admin@littlelattelane.co.za • We'll respond within 24 hours
+                <div className="mt-6 pt-6 border-t border-neonCyan/30">
+                  <p className="text-sm text-gray-400 text-center mb-3">
+                    Prefer to contact us directly?
                   </p>
+                  <div className="bg-neonCyan/10 border border-neonCyan/30 rounded-lg p-4">
+                    <p className="text-lg font-semibold text-neonCyan text-center mb-1">
+                      📧 admin@littlelattelane.co.za
+                    </p>
+                    <p className="text-sm text-gray-300 text-center">
+                      We'll respond within 24 hours
+                    </p>
+                  </div>
                 </div>
               </form>
             </div>
