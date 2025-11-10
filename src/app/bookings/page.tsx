@@ -3,7 +3,6 @@
 import NextImage from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Calendar, Users } from 'lucide-react';
 
 export default function BookingsPage() {
   return (
@@ -48,14 +47,14 @@ export default function BookingsPage() {
                   </p>
                 </div>
 
-                {/* Image Placeholder */}
-                <div className="relative h-48 sm:h-64 bg-gray-800/50 mx-6 mb-6 rounded-lg overflow-hidden">
-                  <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-                    <div className="text-center">
-                      <Calendar className="h-16 w-16 mx-auto mb-2 opacity-30" />
-                      <p className="text-sm">Image Coming Soon</p>
-                    </div>
-                  </div>
+                {/* Tables Image */}
+                <div className="relative h-48 sm:h-64 mx-6 mb-6 rounded-lg overflow-hidden">
+                  <NextImage
+                    src="/images/Tables.jpg"
+                    alt="Tables & Events at Little Latte Lane"
+                    fill
+                    className="object-cover"
+                  />
                 </div>
 
                 {/* Features List */}
@@ -103,14 +102,14 @@ export default function BookingsPage() {
                   </p>
                 </div>
 
-                {/* Image Placeholder */}
-                <div className="relative h-48 sm:h-64 bg-gray-800/50 mx-6 mb-6 rounded-lg overflow-hidden">
-                  <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-                    <div className="text-center">
-                      <Users className="h-16 w-16 mx-auto mb-2 opacity-30" />
-                      <p className="text-sm">Image Coming Soon</p>
-                    </div>
-                  </div>
+                {/* Roberts Hall Image */}
+                <div className="relative h-48 sm:h-64 mx-6 mb-6 rounded-lg overflow-hidden">
+                  <NextImage
+                    src="/images/Hall.jpg"
+                    alt="Roberts Hall"
+                    fill
+                    className="object-cover"
+                  />
                 </div>
 
                 {/* Features List */}
