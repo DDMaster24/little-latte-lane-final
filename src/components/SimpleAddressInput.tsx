@@ -69,7 +69,6 @@ export default function SimpleAddressInput({
         onChange={handleChange}
         onBlur={onBlur}
         required={required}
-        placeholder="e.g., 123 Marula Street"
         className={`bg-gray-700/80 text-white focus:border-neonCyan [color-scheme:dark] pr-10 ${
           showValidation
             ? isValid

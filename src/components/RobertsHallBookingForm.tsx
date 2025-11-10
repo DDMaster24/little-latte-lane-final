@@ -103,10 +103,8 @@ export default function RobertsHallBookingForm() {
 
       if (existingBookings && existingBookings.length > 0) {
         setDateAvailable(false);
-        toast.error('Sorry, this date is already booked. Please select another date.');
       } else {
         setDateAvailable(true);
-        toast.success('✓ Date is available!');
       }
     } catch (error) {
       console.error('Error checking availability:', error);
@@ -269,22 +267,48 @@ export default function RobertsHallBookingForm() {
       if (bankProofFile) {
         const fileExt = bankProofFile.name.split('.').pop();
         const fileName = `bank-proof-${user.id}-${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
+
+        console.log('📤 Uploading bank proof:', {
+          fileName,
+          fileSize: bankProofFile.size,
+          fileType: bankProofFile.type,
+          bucket: 'hall-bookings'
+        });
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
           .from('hall-bookings')
-          .upload(fileName, bankProofFile);
+          .upload(fileName, bankProofFile, {
+            cacheControl: '3600',
+            upsert: false
+          });
 
         if (uploadError) {
-          console.error('Error uploading bank proof:', uploadError);
-          toast.error('Failed to upload bank proof');
+          console.error('❌ Bank proof upload error:', uploadError);
+          console.error('Error details:', {
+            message: uploadError.message,
+            name: uploadError.name
+          });
+
+          // Provide more specific error messages
+          if (uploadError.message?.includes('Bucket not found') || uploadError.message?.includes('not found')) {
+            toast.error('Storage bucket not configured. Please contact admin to set up the hall-bookings storage bucket.');
+          } else if (uploadError.message?.includes('Invalid') || uploadError.message?.includes('format')) {
+            toast.error('Invalid file. Please ensure you selected a valid image file (JPG, PNG, or PDF).');
+          } else {
+            toast.error(`Failed to upload bank proof: ${uploadError.message || 'Unknown error'}`);
+          }
           setIsSubmitting(false);
           return;
         }
+
+        console.log('✅ Bank proof uploaded successfully:', uploadData);
 
         const { data: urlData } = supabase.storage
           .from('hall-bookings')
           .getPublicUrl(fileName);
 
         bankProofUrl = urlData.publicUrl;
+        console.log('📎 Bank proof URL:', bankProofUrl);
       }
 
       // Create booking in database
@@ -408,7 +432,7 @@ export default function RobertsHallBookingForm() {
           className={`p-6 rounded-lg border-2 transition-all text-left ${
             bookingMethod === 'online'
               ? 'border-neonPink bg-neonPink/10'
-              : 'border-gray-600 bg-gray-800/50 hover:border-neonPink/50'
+              : 'border-gray-600 bg-gray-900/90 hover:border-neonPink/50'
           }`}
         >
           <FileText className={`h-8 w-8 mb-3 ${bookingMethod === 'online' ? 'text-neonPink' : 'text-gray-400'}`} />
@@ -423,7 +447,7 @@ export default function RobertsHallBookingForm() {
           className={`p-6 rounded-lg border-2 transition-all text-left ${
             bookingMethod === 'contact'
               ? 'border-neonCyan bg-neonCyan/10'
-              : 'border-gray-600 bg-gray-800/50 hover:border-neonCyan/50'
+              : 'border-gray-600 bg-gray-900/90 hover:border-neonCyan/50'
           }`}
         >
           <Mail className={`h-8 w-8 mb-3 ${bookingMethod === 'contact' ? 'text-neonCyan' : 'text-gray-400'}`} />
@@ -438,7 +462,7 @@ export default function RobertsHallBookingForm() {
           className={`p-6 rounded-lg border-2 transition-all text-left ${
             bookingMethod === 'download'
               ? 'border-purple-500 bg-purple-500/10'
-              : 'border-gray-600 bg-gray-800/50 hover:border-purple-500/50'
+              : 'border-gray-600 bg-gray-900/90 hover:border-purple-500/50'
           }`}
         >
           <FileDown className={`h-8 w-8 mb-3 ${bookingMethod === 'download' ? 'text-purple-500' : 'text-gray-400'}`} />
@@ -553,7 +577,13 @@ export default function RobertsHallBookingForm() {
               onChange={handleInputChange}
               min={new Date().toISOString().split('T')[0]}
               required
-              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
+              className={`bg-gray-700/80 text-white focus:border-neonCyan [color-scheme:dark] ${
+                dateAvailable === true
+                  ? 'border-green-500'
+                  : dateAvailable === false
+                  ? 'border-red-500'
+                  : 'border-gray-600'
+              }`}
             />
             {isCheckingAvailability && (
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -639,11 +669,12 @@ export default function RobertsHallBookingForm() {
               name="totalGuests"
               value={formData.totalGuests}
               onChange={handleInputChange}
+              onBlur={() => handleFieldBlur('totalGuests')}
               required
               min={1}
               max={50}
               className={`bg-gray-700/80 text-white focus:border-neonCyan [color-scheme:dark] ${
-                formData.totalGuests > 0
+                isFieldTouched('totalGuests')
                   ? isGuestCountValid()
                     ? 'border-green-500'
                     : 'border-red-500'
@@ -651,13 +682,13 @@ export default function RobertsHallBookingForm() {
               }`}
             />
             <p className={`text-xs mt-1 ${
-              formData.totalGuests > 0
+              isFieldTouched('totalGuests')
                 ? isGuestCountValid()
                   ? 'text-green-400'
                   : 'text-red-400'
                 : 'text-gray-400'
             }`}>
-              {isGuestCountValid() || formData.totalGuests === 0 ? 'Maximum 50 guests' : `Must be between 1-50 (currently ${formData.totalGuests})`}
+              {isGuestCountValid() || !isFieldTouched('totalGuests') ? 'Maximum 50 guests' : `Must be between 1-50 (currently ${formData.totalGuests})`}
             </p>
           </div>
 
@@ -670,21 +701,26 @@ export default function RobertsHallBookingForm() {
               name="numberOfVehicles"
               value={formData.numberOfVehicles}
               onChange={handleInputChange}
+              onBlur={() => handleFieldBlur('numberOfVehicles')}
               required
               min={0}
               max={30}
               className={`bg-gray-700/80 text-white focus:border-neonCyan [color-scheme:dark] ${
-                isVehicleCountValid()
-                  ? 'border-green-500'
-                  : 'border-red-500'
+                isFieldTouched('numberOfVehicles')
+                  ? isVehicleCountValid()
+                    ? 'border-green-500'
+                    : 'border-red-500'
+                  : 'border-gray-600'
               }`}
             />
             <p className={`text-xs mt-1 ${
-              isVehicleCountValid()
-                ? 'text-green-400'
-                : 'text-red-400'
+              isFieldTouched('numberOfVehicles')
+                ? isVehicleCountValid()
+                  ? 'text-green-400'
+                  : 'text-red-400'
+                : 'text-gray-400'
             }`}>
-              {isVehicleCountValid() ? 'Maximum 30 vehicles' : `Must be between 0-30 (currently ${formData.numberOfVehicles})`}
+              {isVehicleCountValid() || !isFieldTouched('numberOfVehicles') ? 'Maximum 30 vehicles' : `Must be between 0-30 (currently ${formData.numberOfVehicles})`}
             </p>
           </div>
         </div>
