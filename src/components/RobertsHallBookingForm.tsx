@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { useAuth } from '@/components/AuthProvider';
-import { Loader2, CheckCircle, XCircle, Upload, X } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Upload, X, FileText, Mail } from 'lucide-react';
 import SignatureCanvas from 'react-signature-canvas';
 
 export default function RobertsHallBookingForm() {
@@ -16,6 +16,10 @@ export default function RobertsHallBookingForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const signatureRef = useRef<SignatureCanvas>(null);
   const [bankProofFile, setBankProofFile] = useState<File | null>(null);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+  const [termsAgreed, setTermsAgreed] = useState(false);
+  const termsContentRef = useRef<HTMLDivElement>(null);
 
   // Form data - matching PDF exactly
   const [formData, setFormData] = useState({
@@ -41,9 +45,6 @@ export default function RobertsHallBookingForm() {
     bankName: '',
     branchCode: '',
     accountNumber: '',
-
-    // Terms
-    termsAccepted: false,
   });
 
   // Check if user is logged in
@@ -133,6 +134,25 @@ export default function RobertsHallBookingForm() {
     setBankProofFile(null);
   };
 
+  const handleTermsScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const element = e.currentTarget;
+    const isAtBottom = element.scrollHeight - element.scrollTop <= element.clientHeight + 10;
+    if (isAtBottom && !hasScrolledToBottom) {
+      setHasScrolledToBottom(true);
+    }
+  };
+
+  const handleAgreeToTerms = () => {
+    setTermsAgreed(true);
+    setShowTermsModal(false);
+    toast.success('Terms and conditions accepted');
+  };
+
+  const openTermsModal = () => {
+    setShowTermsModal(true);
+    setHasScrolledToBottom(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -142,8 +162,8 @@ export default function RobertsHallBookingForm() {
       return;
     }
 
-    if (!formData.termsAccepted) {
-      toast.error('You must accept the terms and conditions');
+    if (!termsAgreed) {
+      toast.error('You must read and accept the terms and conditions');
       return;
     }
 
@@ -675,34 +695,6 @@ export default function RobertsHallBookingForm() {
         </div>
       </div>
 
-      {/* SECTION 4: SIGNATURE PAD */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-bold text-neonCyan border-b border-neonCyan/30 pb-2">
-          Signature / Initial
-        </h3>
-        <p className="text-sm text-gray-400">
-          Please sign or initial using your mouse or finger
-        </p>
-
-        <div className="bg-white rounded-lg p-2">
-          <SignatureCanvas
-            ref={signatureRef}
-            canvasProps={{
-              className: 'w-full h-40 border border-gray-300 rounded cursor-crosshair',
-            }}
-          />
-        </div>
-
-        <Button
-          type="button"
-          onClick={clearSignature}
-          variant="outline"
-          className="w-full border-gray-600 text-gray-300 hover:bg-gray-700"
-        >
-          Clear Signature
-        </Button>
-      </div>
-
       {/* PAYMENT SUMMARY */}
       <div className="bg-neonCyan/10 border border-neonCyan/30 rounded-lg p-4">
         <h4 className="font-semibold text-white mb-3 text-center">Payment Summary</h4>
@@ -725,27 +717,108 @@ export default function RobertsHallBookingForm() {
         </p>
       </div>
 
-      {/* TERMS & CONDITIONS */}
+      {/* CONTACT ADMIN OPTION */}
       <div className="bg-gray-800/50 border border-gray-600 rounded-lg p-4">
-        <label className="flex items-start gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            name="termsAccepted"
-            checked={formData.termsAccepted}
-            onChange={handleInputChange}
-            required
-            className="mt-1 w-4 h-4 text-neonCyan bg-gray-700 border-gray-600 rounded focus:ring-neonCyan focus:ring-2"
-          />
-          <span className="text-sm text-gray-200">
-            I accept the terms and conditions for booking Roberts Hall, including the R1,000 refundable deposit policy and event end time of 23:00. I confirm that I am a current resident of Roberts Estate.
-          </span>
-        </label>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-start gap-3 flex-1">
+            <Mail className="h-5 w-5 text-neonCyan mt-1 flex-shrink-0" />
+            <div>
+              <h4 className="font-semibold text-white mb-1">Prefer a PDF Form?</h4>
+              <p className="text-sm text-gray-300">
+                Contact our admin to receive the official PDF booking form instead
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            onClick={() => window.location.href = 'mailto:admin@littlelattelane.co.za?subject=Roberts%20Hall%20PDF%20Booking%20Form%20Request'}
+            variant="outline"
+            className="border-neonCyan/50 text-neonCyan hover:bg-neonCyan/10 hover:border-neonCyan whitespace-nowrap"
+          >
+            Contact Admin
+          </Button>
+        </div>
+      </div>
+
+      {/* TERMS & SIGNATURE SECTION (GROUPED) */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-bold text-neonCyan border-b border-neonCyan/30 pb-2">
+          Terms & Signature
+        </h3>
+
+        {/* Read Terms Button */}
+        <div>
+          <Button
+            type="button"
+            onClick={openTermsModal}
+            variant="outline"
+            className="w-full border-neonCyan/50 text-neonCyan hover:bg-neonCyan/10 hover:border-neonCyan flex items-center justify-center gap-2"
+          >
+            <FileText className="h-4 w-4" />
+            Read Terms & Conditions
+          </Button>
+        </div>
+
+        {/* Terms Acceptance Checkbox */}
+        <div className={`bg-gray-800/50 border rounded-lg p-4 transition-all ${termsAgreed ? 'border-green-500/50 bg-green-500/10' : 'border-gray-600'}`}>
+          <label className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              checked={termsAgreed}
+              onChange={(e) => setTermsAgreed(e.target.checked)}
+              disabled={!termsAgreed}
+              className="mt-1 w-4 h-4 text-neonCyan bg-gray-700 border-gray-600 rounded focus:ring-neonCyan focus:ring-2 disabled:opacity-50"
+            />
+            <span className="text-sm text-gray-200">
+              {termsAgreed ? (
+                <>
+                  <CheckCircle className="inline h-4 w-4 text-green-400 mr-1" />
+                  I have read and accept the terms and conditions
+                </>
+              ) : (
+                'Please read the terms and conditions above to continue'
+              )}
+            </span>
+          </label>
+        </div>
+
+        {/* Signature Pad - Only show if terms accepted */}
+        {termsAgreed && (
+          <div className="space-y-3">
+            <div>
+              <label className="block font-semibold mb-2 text-gray-200 text-sm">
+                Your Signature / Initial
+              </label>
+              <p className="text-xs text-gray-400 mb-2">
+                Please sign or initial using your mouse or finger
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg p-2">
+              <SignatureCanvas
+                ref={signatureRef}
+                canvasProps={{
+                  className: 'w-full h-40 border border-gray-300 rounded cursor-crosshair',
+                }}
+              />
+            </div>
+
+            <Button
+              type="button"
+              onClick={clearSignature}
+              variant="outline"
+              className="w-full border-gray-600 text-gray-300 hover:bg-gray-700"
+            >
+              Clear Signature
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* SUBMIT BUTTON */}
       <Button
         type="submit"
-        disabled={isSubmitting || dateAvailable !== true}
+        disabled={isSubmitting || dateAvailable !== true || !termsAgreed}
         className="w-full text-lg py-6 bg-gradient-to-r from-neonCyan to-cyan-500 hover:from-neonCyan/80 hover:to-cyan-500/80 text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSubmitting ? (
@@ -755,10 +828,173 @@ export default function RobertsHallBookingForm() {
           </span>
         ) : dateAvailable !== true ? (
           'Select Available Date First'
+        ) : !termsAgreed ? (
+          'Read & Accept Terms to Continue'
         ) : (
           'Proceed to Payment (R2,500)'
         )}
       </Button>
+
+      {/* TERMS & CONDITIONS MODAL OVERLAY */}
+      {showTermsModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-900 border-2 border-neonCyan/50 rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-neonCyan/30">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-neonCyan">Roberts Hall Terms & Conditions</h2>
+                <button
+                  type="button"
+                  onClick={() => setShowTermsModal(false)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              <p className="text-sm text-gray-400 mt-2">
+                Please scroll through and read all terms carefully
+              </p>
+            </div>
+
+            {/* Modal Content - Scrollable */}
+            <div
+              ref={termsContentRef}
+              onScroll={handleTermsScroll}
+              className="flex-1 overflow-y-auto p-6 space-y-4 text-gray-200"
+            >
+              <div className="space-y-6">
+                <section>
+                  <h3 className="text-lg font-semibold text-neonCyan mb-3">1. Booking and Payment</h3>
+                  <ul className="list-disc list-inside space-y-2 text-sm">
+                    <li>The total booking fee is R2,500.00, comprising R1,500.00 rental fee and R1,000.00 refundable deposit.</li>
+                    <li>Full payment must be made at the time of booking via the secure Yoco payment gateway.</li>
+                    <li>Bookings are only confirmed upon successful payment and receipt of all required documentation.</li>
+                    <li>The applicant must be a current resident of Roberts Estate.</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-semibold text-neonCyan mb-3">2. Deposit Refund Policy</h3>
+                  <ul className="list-disc list-inside space-y-2 text-sm">
+                    <li>The R1,000.00 deposit is fully refundable if the hall is left in the same condition as received.</li>
+                    <li>Deductions will be made for any damages, excessive cleaning required, or missing items.</li>
+                    <li>The deposit will be refunded within 7 business days after the event, subject to inspection.</li>
+                    <li>Any disputes regarding deposit deductions must be submitted in writing within 48 hours of notification.</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-semibold text-neonCyan mb-3">3. Event Time and Duration</h3>
+                  <ul className="list-disc list-inside space-y-2 text-sm">
+                    <li>All events MUST end by 23:00 (11:00 PM) sharp - no exceptions.</li>
+                    <li>Setup time can begin 2 hours before the stated event start time.</li>
+                    <li>Cleanup must be completed by midnight (00:00).</li>
+                    <li>Late departures may result in deposit deductions or future booking restrictions.</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-semibold text-neonCyan mb-3">4. Capacity and Safety</h3>
+                  <ul className="list-disc list-inside space-y-2 text-sm">
+                    <li>Maximum capacity: 50 guests - this limit must be strictly observed.</li>
+                    <li>Maximum vehicle parking: 30 vehicles on the premises.</li>
+                    <li>All fire safety regulations and emergency exits must be respected at all times.</li>
+                    <li>No blocking of emergency exits or overcrowding of the venue.</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-semibold text-neonCyan mb-3">5. Permitted and Prohibited Activities</h3>
+                  <ul className="list-disc list-inside space-y-2 text-sm">
+                    <li>Smoking is strictly prohibited inside the hall.</li>
+                    <li>Alcohol is permitted for responsible adult consumption only.</li>
+                    <li>No illegal substances or activities are allowed on the premises.</li>
+                    <li>Loud music must be kept at reasonable levels and comply with local noise ordinances.</li>
+                    <li>No open flames, candles, or fireworks inside the hall without prior written approval.</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-semibold text-neonCyan mb-3">6. Furniture and Equipment</h3>
+                  <ul className="list-disc list-inside space-y-2 text-sm">
+                    <li>Tables and chairs are available upon request (quantities specified in booking form).</li>
+                    <li>All furniture must remain inside the hall and be returned to original positions after use.</li>
+                    <li>Any damaged or broken furniture will be charged to the deposit.</li>
+                    <li>You may bring additional decorations, but these must not damage walls, floors, or fixtures.</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-semibold text-neonCyan mb-3">7. Cleaning and Maintenance</h3>
+                  <ul className="list-disc list-inside space-y-2 text-sm">
+                    <li>The hall must be left clean and tidy after your event.</li>
+                    <li>All rubbish must be bagged and placed in designated bins.</li>
+                    <li>Floors must be swept and any spills cleaned up.</li>
+                    <li>Failure to clean adequately will result in deductions from your deposit.</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-semibold text-neonCyan mb-3">8. Cancellation Policy</h3>
+                  <ul className="list-disc list-inside space-y-2 text-sm">
+                    <li>Cancellations made 30+ days before the event: 80% refund.</li>
+                    <li>Cancellations made 14-29 days before: 50% refund.</li>
+                    <li>Cancellations made less than 14 days before: No refund.</li>
+                    <li>All cancellations must be submitted in writing to admin@littlelattelane.co.za.</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-semibold text-neonCyan mb-3">9. Liability and Insurance</h3>
+                  <ul className="list-disc list-inside space-y-2 text-sm">
+                    <li>The venue owner is not liable for any injuries, losses, or damages during your event.</li>
+                    <li>You are responsible for the conduct and safety of all your guests.</li>
+                    <li>You are liable for any property damage caused by you or your guests.</li>
+                    <li>We recommend obtaining event insurance for large gatherings.</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-semibold text-neonCyan mb-3">10. General Conditions</h3>
+                  <ul className="list-disc list-inside space-y-2 text-sm">
+                    <li>Roberts Estate management reserves the right to cancel bookings due to maintenance or emergencies.</li>
+                    <li>The applicant is responsible for ensuring all guests comply with these terms.</li>
+                    <li>Any breach of these terms may result in immediate termination of the event without refund.</li>
+                    <li>These terms are subject to change - the version agreed to at booking time applies.</li>
+                  </ul>
+                </section>
+
+                <div className="border-t border-neonCyan/30 pt-4 mt-6">
+                  <p className="text-sm text-gray-300">
+                    By accepting these terms and providing your signature, you confirm that you have read, understood, and agree to abide by all the conditions outlined above.
+                  </p>
+                </div>
+              </div>
+
+              {/* Scroll indicator */}
+              {!hasScrolledToBottom && (
+                <div className="sticky bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 to-transparent py-4 text-center">
+                  <p className="text-sm text-neonCyan animate-pulse">
+                    ↓ Scroll down to continue ↓
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 border-t border-neonCyan/30">
+              <Button
+                type="button"
+                onClick={handleAgreeToTerms}
+                disabled={!hasScrolledToBottom}
+                className="w-full bg-gradient-to-r from-neonCyan to-cyan-500 hover:from-neonCyan/80 hover:to-cyan-500/80 text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {hasScrolledToBottom ? 'I Agree to Terms & Conditions' : 'Scroll to Bottom to Continue'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }
