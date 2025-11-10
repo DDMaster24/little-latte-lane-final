@@ -30,29 +30,45 @@ export function getPlatform(): 'android' | 'ios' | 'web' {
  * Automatically listens for app URL opens (deep links) to close browser when payment completes
  */
 export async function openPaymentUrl(url: string): Promise<void> {
+  console.log('🔵 openPaymentUrl called with URL:', url);
+  console.log('🔵 Platform detection:', {
+    isNative: isNativeApp(),
+    platform: getPlatform(),
+    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'N/A'
+  });
+
   if (isNativeApp()) {
+    console.log('📱 Native app detected - using Capacitor Browser');
     // NOTE: Deep link handling is now done ENTIRELY in native Android code (MainActivity.java)
     // JavaScript listener registration has been removed to prevent conflicts when WebView loses focus
     // Native handler persists at OS level and survives all app state changes
-    
-    // Simply open the browser - native Android will handle the deep link redirect
-    await Browser.open({
-      url,
-      // Brand color from Little Latte Lane theme
-      toolbarColor: '#1A1A1A',
-      // iOS specific settings
-      presentationStyle: 'fullscreen',
-      // OPTIONAL: Uncomment to open in external browser app (Chrome/Safari) instead of in-app
-      // windowName: '_system',
-      // Android specific settings (uses Chrome Custom Tabs automatically)
-    });
-    
-    console.log('✅ Opened payment URL in native browser:', getPlatform());
-    console.log('ℹ️ Deep link handling delegated to native MainActivity');
+
+    try {
+      console.log('📱 Opening browser with Capacitor...');
+      // Simply open the browser - native Android will handle the deep link redirect
+      await Browser.open({
+        url,
+        // Brand color from Little Latte Lane theme
+        toolbarColor: '#1A1A1A',
+        // iOS specific settings
+        presentationStyle: 'fullscreen',
+        // OPTIONAL: Uncomment to open in external browser app (Chrome/Safari) instead of in-app
+        // windowName: '_system',
+        // Android specific settings (uses Chrome Custom Tabs automatically)
+      });
+
+      console.log('✅ Opened payment URL in native browser:', getPlatform());
+      console.log('ℹ️ Deep link handling delegated to native MainActivity');
+    } catch (error) {
+      console.error('❌ Failed to open native browser:', error);
+      throw error;
+    }
   } else {
+    console.log('🌐 Web browser detected - using standard redirect');
+    console.log('🌐 Redirecting to:', url);
     // Web app: Use standard redirect
     window.location.href = url;
-    console.log('✅ Redirected to payment URL in web browser');
+    console.log('✅ Redirect initiated (window.location.href set)');
   }
 }
 

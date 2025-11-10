@@ -14,8 +14,8 @@ const CSP_DIRECTIVES = [
   "img-src 'self' data: blob: https:",
   "connect-src 'self' data: wss: https://awytuszmunxvthuizyur.supabase.co wss://awytuszmunxvthuizyur.supabase.co https://registry.npmjs.org https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.googletagmanager.com https://overbridgenet.com https://*.sentry.io https://vercel.live https://*.vercel.live https://api.reactbricks.com https://*.reactbricks.com https://payments.yoco.com https://*.yoco.com https://online.yoco.com",
   "worker-src 'self' blob:",
-  "child-src 'self' blob: https://vercel.live https://*.vercel.live https://payments.yoco.com https://*.yoco.com",
-  "frame-src 'self' blob: https://vercel.live https://*.vercel.live https://payments.yoco.com https://*.yoco.com https://secure.yoco.com",
+  "child-src 'self' blob: https://vercel.live https://*.vercel.live https://payments.yoco.com https://*.yoco.com https:",
+  "frame-src 'self' blob: https://vercel.live https://*.vercel.live https://payments.yoco.com https://*.yoco.com https://secure.yoco.com https:",
   "form-action 'self' https: http:",
   "frame-ancestors 'self' https://vercel.live https://*.vercel.live",
 ].join('; ');

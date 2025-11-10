@@ -397,20 +397,49 @@ export default function RobertsHallBookingForm() {
 
       const checkoutData = await checkoutResponse.json();
 
+      console.log('🎫 Checkout response received:', {
+        success: checkoutData.success,
+        checkoutId: checkoutData.checkoutId,
+        redirectUrl: checkoutData.redirectUrl,
+        amount: checkoutData.amount,
+        currency: checkoutData.currency
+      });
+
       if (checkoutData.success && checkoutData.redirectUrl) {
-        console.log('✅ Redirecting to Yoco payment:', checkoutData.redirectUrl);
+        console.log('✅ Payment session created successfully');
+        console.log('🔗 Redirect URL:', checkoutData.redirectUrl);
+        console.log('💳 About to open payment URL...');
 
-        // Use the same payment URL handler as cart (supports native apps and web)
-        await openPaymentUrl(checkoutData.redirectUrl);
+        try {
+          // Use the same payment URL handler as cart (supports native apps and web)
+          console.log('📱 Calling openPaymentUrl()...');
+          await openPaymentUrl(checkoutData.redirectUrl);
+          console.log('✅ openPaymentUrl() completed');
 
-        // Note: Don't set isSubmitting to false here - let it stay loading
-        // until user returns from payment (similar to cart flow)
+          // Note: Don't set isSubmitting to false here - let it stay loading
+          // until user returns from payment (similar to cart flow)
+        } catch (paymentError) {
+          console.error('❌ Error opening payment URL:', paymentError);
+          console.error('Payment error details:', {
+            name: paymentError instanceof Error ? paymentError.name : 'Unknown',
+            message: paymentError instanceof Error ? paymentError.message : String(paymentError),
+            stack: paymentError instanceof Error ? paymentError.stack : undefined
+          });
+          toast.error('Failed to open payment page. Please try again.');
+          setIsSubmitting(false);
+        }
       } else {
+        console.error('❌ Invalid checkout response:', checkoutData);
         toast.error('Failed to initialize payment');
         setIsSubmitting(false);
       }
     } catch (error) {
-      console.error('Booking submission error:', error);
+      console.error('❌ Booking submission error:', error);
+      console.error('Error details:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
       toast.error('An error occurred. Please try again.');
       setIsSubmitting(false);
     }
