@@ -38,7 +38,6 @@ export default function BookingsPage() {
               <div className="bg-gradient-to-br from-neonCyan/20 to-neonCyan/10 backdrop-blur-sm bg-gray-900/60 border-2 border-neonCyan/30 rounded-2xl overflow-hidden hover:border-neonCyan/50 transition-all duration-300 hover:scale-[1.02]">
                 {/* Card Header */}
                 <div className="p-6 sm:p-8">
-                  <div className="text-5xl sm:text-6xl mb-4 text-center">🍽️</div>
                   <h2 className="text-2xl sm:text-3xl font-bold text-neonCyan mb-3 text-center">
                     Tables & Events
                   </h2>
@@ -93,7 +92,6 @@ export default function BookingsPage() {
               <div className="bg-gradient-to-br from-neonPink/20 to-neonPink/10 backdrop-blur-sm bg-gray-900/60 border-2 border-neonPink/30 rounded-2xl overflow-hidden hover:border-neonPink/50 transition-all duration-300 hover:scale-[1.02]">
                 {/* Card Header */}
                 <div className="p-6 sm:p-8">
-                  <div className="text-5xl sm:text-6xl mb-4 text-center">🏛️</div>
                   <h2 className="text-2xl sm:text-3xl font-bold text-neonPink mb-3 text-center">
                     Roberts Hall
                   </h2>

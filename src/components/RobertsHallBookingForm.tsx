@@ -590,7 +590,7 @@ export default function RobertsHallBookingForm() {
             Banking Details
           </h3>
           <p className="text-sm text-gray-400 mt-2">
-            Kindly attach proof of your bank account
+            Kindly upload proof of your bank account
           </p>
         </div>
 
@@ -862,107 +862,167 @@ export default function RobertsHallBookingForm() {
               onScroll={handleTermsScroll}
               className="flex-1 overflow-y-auto p-6 space-y-4 text-gray-200"
             >
-              <div className="space-y-6">
-                <section>
-                  <h3 className="text-lg font-semibold text-neonCyan mb-3">1. Booking and Payment</h3>
-                  <ul className="list-disc list-inside space-y-2 text-sm">
-                    <li>The total booking fee is R2,500.00, comprising R1,500.00 rental fee and R1,000.00 refundable deposit.</li>
-                    <li>Full payment must be made at the time of booking via the secure Yoco payment gateway.</li>
-                    <li>Bookings are only confirmed upon successful payment and receipt of all required documentation.</li>
-                    <li>The applicant must be a current resident of Roberts Estate.</li>
-                  </ul>
-                </section>
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-neonCyan mb-4">
+                  TERMS AND CONDITIONS FOR RENTAL OF THE COMMUNITY HALL
+                </h3>
 
-                <section>
-                  <h3 className="text-lg font-semibold text-neonCyan mb-3">2. Deposit Refund Policy</h3>
-                  <ul className="list-disc list-inside space-y-2 text-sm">
-                    <li>The R1,000.00 deposit is fully refundable if the hall is left in the same condition as received.</li>
-                    <li>Deductions will be made for any damages, excessive cleaning required, or missing items.</li>
-                    <li>The deposit will be refunded within 7 business days after the event, subject to inspection.</li>
-                    <li>Any disputes regarding deposit deductions must be submitted in writing within 48 hours of notification.</li>
-                  </ul>
-                </section>
+                <div className="space-y-3 text-sm">
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">1.</span>
+                    <p>ROBERTS LITTLE LATTE LANE reserves the right to decline this application without further explanation.</p>
+                  </div>
 
-                <section>
-                  <h3 className="text-lg font-semibold text-neonCyan mb-3">3. Event Time and Duration</h3>
-                  <ul className="list-disc list-inside space-y-2 text-sm">
-                    <li>All events MUST end by 23:00 (11:00 PM) sharp - no exceptions.</li>
-                    <li>Setup time can begin 2 hours before the stated event start time.</li>
-                    <li>Cleanup must be completed by midnight (00:00).</li>
-                    <li>Late departures may result in deposit deductions or future booking restrictions.</li>
-                  </ul>
-                </section>
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">2.</span>
+                    <p>Renting the hall is the sole responsibility of the applicant. No claims may be made against the Homeowners Association or Roberts Little Latte Lane.</p>
+                  </div>
 
-                <section>
-                  <h3 className="text-lg font-semibold text-neonCyan mb-3">4. Capacity and Safety</h3>
-                  <ul className="list-disc list-inside space-y-2 text-sm">
-                    <li>Maximum capacity: 50 guests - this limit must be strictly observed.</li>
-                    <li>Maximum vehicle parking: 30 vehicles on the premises.</li>
-                    <li>All fire safety regulations and emergency exits must be respected at all times.</li>
-                    <li>No blocking of emergency exits or overcrowding of the venue.</li>
-                  </ul>
-                </section>
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">3.</span>
+                    <p>A total amount of R2,500 is payable upon signature of this application form: R1,500 rental fee and R1,000 refundable deposit.</p>
+                  </div>
 
-                <section>
-                  <h3 className="text-lg font-semibold text-neonCyan mb-3">5. Permitted and Prohibited Activities</h3>
-                  <ul className="list-disc list-inside space-y-2 text-sm">
-                    <li>Smoking is strictly prohibited inside the hall.</li>
-                    <li>Alcohol is permitted for responsible adult consumption only.</li>
-                    <li>No illegal substances or activities are allowed on the premises.</li>
-                    <li>Loud music must be kept at reasonable levels and comply with local noise ordinances.</li>
-                    <li>No open flames, candles, or fireworks inside the hall without prior written approval.</li>
-                  </ul>
-                </section>
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">4.</span>
+                    <p>The R1,000 deposit will be refunded within 7 working days after the function and final inspection, provided there are no damages, excessive cleaning required, or breaches of the terms and conditions.</p>
+                  </div>
 
-                <section>
-                  <h3 className="text-lg font-semibold text-neonCyan mb-3">6. Furniture and Equipment</h3>
-                  <ul className="list-disc list-inside space-y-2 text-sm">
-                    <li>Tables and chairs are available upon request (quantities specified in booking form).</li>
-                    <li>All furniture must remain inside the hall and be returned to original positions after use.</li>
-                    <li>Any damaged or broken furniture will be charged to the deposit.</li>
-                    <li>You may bring additional decorations, but these must not damage walls, floors, or fixtures.</li>
-                  </ul>
-                </section>
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">5.</span>
+                    <p>The applicant is responsible for the conduct of all guests and will be held liable for any damages caused to ROBERTS LITTLE LATTE LANE property, infrastructure, offices, private homes, or roads.</p>
+                  </div>
 
-                <section>
-                  <h3 className="text-lg font-semibold text-neonCyan mb-3">7. Cleaning and Maintenance</h3>
-                  <ul className="list-disc list-inside space-y-2 text-sm">
-                    <li>The hall must be left clean and tidy after your event.</li>
-                    <li>All rubbish must be bagged and placed in designated bins.</li>
-                    <li>Floors must be swept and any spills cleaned up.</li>
-                    <li>Failure to clean adequately will result in deductions from your deposit.</li>
-                  </ul>
-                </section>
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">6.</span>
+                    <p>The applicant's account must be up to date and have no outstanding payments due to ROBERTS LITTLE LATTE LANE.</p>
+                  </div>
 
-                <section>
-                  <h3 className="text-lg font-semibold text-neonCyan mb-3">8. Cancellation Policy</h3>
-                  <ul className="list-disc list-inside space-y-2 text-sm">
-                    <li>Cancellations made 30+ days before the event: 80% refund.</li>
-                    <li>Cancellations made 14-29 days before: 50% refund.</li>
-                    <li>Cancellations made less than 14 days before: No refund.</li>
-                    <li>All cancellations must be submitted in writing to admin@littlelattelane.co.za.</li>
-                  </ul>
-                </section>
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">7.</span>
+                    <p>Guests may not roam freely through Roberts Estate or cause any nuisance to residents. Access is restricted to the entrance hall and veranda area.</p>
+                  </div>
 
-                <section>
-                  <h3 className="text-lg font-semibold text-neonCyan mb-3">9. Liability and Insurance</h3>
-                  <ul className="list-disc list-inside space-y-2 text-sm">
-                    <li>The venue owner is not liable for any injuries, losses, or damages during your event.</li>
-                    <li>You are responsible for the conduct and safety of all your guests.</li>
-                    <li>You are liable for any property damage caused by you or your guests.</li>
-                    <li>We recommend obtaining event insurance for large gatherings.</li>
-                  </ul>
-                </section>
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">8.</span>
+                    <p>All guests must adhere to ROBERTS LITTLE LATTE LANE's House Rules. Any violation will result in the forfeiture of the deposit and possible denial of future rentals.</p>
+                  </div>
 
-                <section>
-                  <h3 className="text-lg font-semibold text-neonCyan mb-3">10. General Conditions</h3>
-                  <ul className="list-disc list-inside space-y-2 text-sm">
-                    <li>Roberts Estate management reserves the right to cancel bookings due to maintenance or emergencies.</li>
-                    <li>The applicant is responsible for ensuring all guests comply with these terms.</li>
-                    <li>Any breach of these terms may result in immediate termination of the event without refund.</li>
-                    <li>These terms are subject to change - the version agreed to at booking time applies.</li>
-                  </ul>
-                </section>
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">9.</span>
+                    <p>The speed limit within the Estate is strictly 30 km/h.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">10.</span>
+                    <p>Guests must enter using a unique access code provided by the office. No access will be granted without a code.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">11.</span>
+                    <p>Security personnel may be placed at the hall for the duration of the event.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">12.</span>
+                    <p>ROBERTS LITTLE LATTE LANE reserves the right to inspect or visit the hall at any time during the function. Should any irregularities occur, the function may be terminated immediately, and all guests will be deemed trespassers. The deposit will be forfeited.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">13.</span>
+                    <p>Should guests misbehave or cause a nuisance, the applicant will be required to address it immediately. If not rectified, the guest's access will be revoked, and the function may be terminated. The deposit will be forfeited.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">14.</span>
+                    <p>For functions for minors (under 18 years), alcohol is strictly prohibited. If alcohol is found, the function will be terminated immediately, and the deposit forfeited.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">15.</span>
+                    <p>Cash bars are not permitted.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">16.</span>
+                    <p>The hall must be left clean and in its original condition. Any additional cleaning required will result in the forfeiture of the deposit.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">17.</span>
+                    <p>There is no generator or alternative power supply available. Private generators may not be connected to the building's electrical system.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">18.</span>
+                    <p>Access to the kiosk must remain unobstructed. Kiosk tables and equipment are not to be used or removed.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">19.</span>
+                    <p>Jumping castles and water slides are not permitted.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">20.</span>
+                    <p>Towels, soap, or other restroom items are the property of ROBERTS LITTLE LATTE LANE and may not be removed.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">21.</span>
+                    <p>No damage to plants or throwing of objects into the dam or swimming pool is permitted.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">22.</span>
+                    <p>Decorations may not be attached to walls, doors, or ceilings with glue, Prestik, Sellotape, or any adhesive materials.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">23.</span>
+                    <p>If music is played, it must be SAMRO and SAMPRA registered. Proof of registration must accompany this application.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">24.</span>
+                    <p>All music and noise must be turned down by 22:00 (Fridays & Saturdays), and 20:00 on Sundays.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">25.</span>
+                    <p>If noise or nuisance complaints are received, security will investigate. If found valid, the function may be terminated immediately, and the deposit forfeited.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">26.</span>
+                    <p>All functions must end by 23:00 (latest).</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">27.</span>
+                    <p>Any event continuing after 23:00 will incur an additional day's rental of R1,500, recoverable via a special levy.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">28.</span>
+                    <p>A maximum of 50 guests is permitted per function.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">29.</span>
+                    <p>A maximum of 30 vehicles is permitted per function.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">30.</span>
+                    <p>The applicant must be present at all times during the function.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <span className="font-semibold min-w-[1.5rem]">31.</span>
+                    <p>By signing this document, the applicant confirms that they have read, understood, and agree to all the above terms and conditions, and acknowledge receipt of Annexure A: ROBERTS LITTLE LATTE LANE House Rules.</p>
+                  </div>
+                </div>
 
                 <div className="border-t border-neonCyan/30 pt-4 mt-6">
                   <p className="text-sm text-gray-300">
