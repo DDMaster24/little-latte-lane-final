@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +18,7 @@ interface ContactFormData {
 }
 
 export default function BookingsContactPage() {
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<ContactFormData>({
     name: '',
@@ -146,7 +148,7 @@ export default function BookingsContactPage() {
                     Reserve the exclusive Roberts Hall for weddings, large gatherings, conferences, and major events.
                   </p>
                 </div>
-                <ul className="space-y-2 text-gray-200 text-sm sm:text-base">
+                <ul className="space-y-2 text-gray-200 text-sm sm:text-base mb-6">
                   <li className="flex items-start gap-2">
                     <span className="text-neonPink mt-1">✓</span>
                     <span>Weddings & receptions</span>
@@ -164,11 +166,36 @@ export default function BookingsContactPage() {
                     <span>Community events</span>
                   </li>
                 </ul>
+
+                {/* Online Booking CTA */}
+                <div className="bg-neonPink/10 border border-neonPink/50 rounded-lg p-4 mb-4">
+                  <p className="text-white font-semibold text-center mb-3">
+                    💳 Book & Pay Online Now!
+                  </p>
+                  <Button
+                    onClick={() => router.push('/hall-booking')}
+                    className="w-full bg-gradient-to-r from-neonPink to-purple-500 hover:from-neonPink/80 hover:to-purple-500/80 text-white font-bold py-3"
+                  >
+                    🏛️ Book Roberts Hall Online →
+                  </Button>
+                  <p className="text-gray-400 text-xs text-center mt-2">
+                    Instant online booking with secure payment
+                  </p>
+                </div>
+
+                <div className="bg-gray-700/50 rounded-lg p-3">
+                  <p className="text-gray-300 text-xs text-center">
+                    💰 R2,500 total (R1,500 rental + R1,000 refundable deposit)
+                  </p>
+                </div>
               </div>
             </div>
 
-            <p className="text-center text-lg sm:text-xl text-gray-200">
-              Fill out the form below to send us your booking inquiry!
+            <p className="text-center text-lg sm:text-xl text-gray-200 mb-2">
+              Fill out the form below for <strong className="text-neonCyan">Table & Event Bookings</strong>
+            </p>
+            <p className="text-center text-sm text-gray-400">
+              (For Roberts Hall, use the online booking system above)
             </p>
           </div>
         </div>
@@ -277,11 +304,10 @@ export default function BookingsContactPage() {
                     <option value="general">General Table Booking</option>
                     <option value="birthday">Birthday Party</option>
                     <option value="corporate">Corporate Event</option>
-                    <option value="hall">Roberts Hall Booking</option>
                     <option value="other">Other Event</option>
                   </select>
                   <p className="text-sm text-gray-400 mt-1">
-                    Select Roberts Hall for weddings, large functions, or conferences
+                    For Roberts Hall bookings, use the online system above
                   </p>
                 </div>
               </div>

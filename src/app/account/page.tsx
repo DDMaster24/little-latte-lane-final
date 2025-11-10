@@ -36,6 +36,7 @@ import {
   CheckCircle,
   Bell,
   RefreshCw,
+  Building2,
 } from 'lucide-react';
 import { 
   OrderStatusSkeleton
@@ -62,6 +63,20 @@ interface Order {
   order_items: OrderItem[];
 }
 
+interface HallBooking {
+  id: string;
+  booking_reference: string;
+  status: string;
+  event_date: string;
+  event_start_time: string;
+  event_end_time: string;
+  event_type: string;
+  total_guests: number;
+  total_amount: number;
+  payment_status: string;
+  created_at: string;
+}
+
 // Inline editing state
 interface EditingField {
   field: 'full_name' | 'phone' | 'address' | null;
@@ -74,6 +89,7 @@ export default function AccountPage() {
   const router = useRouter();
   const { loadOrderToCart } = useCartStore();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [hallBookings, setHallBookings] = useState<HallBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('active');
@@ -182,8 +198,22 @@ export default function AccountPage() {
 
         console.log('✅ Account Page: Orders fetched:', orderData?.length || 0);
         console.log('📋 Account Page: Order details:', orderData?.slice(0, 3));
-        
+
         setOrders((orderData as unknown as Order[]) || []);
+
+        // Fetch hall bookings
+        const { data: hallBookingData, error: hallError } = await supabase
+          .from('hall_bookings')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('created_at', { ascending: false });
+
+        if (hallError) {
+          console.error('❌ Account Page: Error fetching hall bookings:', hallError);
+        } else {
+          console.log('✅ Account Page: Hall bookings fetched:', hallBookingData?.length || 0);
+          setHallBookings((hallBookingData as HallBooking[]) || []);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
         toast.error('Failed to load account data');
@@ -443,6 +473,7 @@ export default function AccountPage() {
           {[
             { id: 'active', label: 'Active Orders', icon: Clock, shortLabel: 'Active' },
             { id: 'drafts', label: 'Draft Orders', icon: Edit2, shortLabel: 'Drafts' },
+            { id: 'hall-bookings', label: 'Hall Bookings', icon: Building2, shortLabel: 'Hall' },
             { id: 'profile', label: 'My Profile', icon: User, shortLabel: 'Profile' },
             { id: 'notifications', label: 'Notifications', icon: Bell, shortLabel: 'Notify' },
             { id: 'orders', label: 'Order History', icon: Receipt, shortLabel: 'History' },
@@ -1201,6 +1232,162 @@ export default function AccountPage() {
                 </h3>
                 <NotificationHistoryList />
               </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === 'hall-bookings' && (
+          <Card className="bg-gray-800 border-gray-600">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle className="text-neonPink flex items-center gap-2">
+                    <Building2 className="h-5 w-5" />
+                    My Hall Bookings
+                  </CardTitle>
+                  <CardDescription>
+                    View and manage your Roberts Hall bookings
+                  </CardDescription>
+                </div>
+                <Button
+                  onClick={() => router.push('/hall-booking')}
+                  className="bg-gradient-to-r from-neonPink to-neonCyan hover:from-neonPink/80 hover:to-neonCyan/80 text-black font-semibold"
+                >
+                  + New Booking
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {hallBookings.length === 0 ? (
+                <div className="text-center py-12">
+                  <Building2 className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-400 mb-2">No hall bookings yet</p>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Book Roberts Hall for your next event
+                  </p>
+                  <Button
+                    onClick={() => router.push('/hall-booking')}
+                    className="bg-gradient-to-r from-neonPink to-neonCyan hover:from-neonPink/80 hover:to-neonCyan/80 text-black font-semibold"
+                  >
+                    Book Roberts Hall →
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {hallBookings.map((booking) => {
+                    const statusColors: Record<string, string> = {
+                      draft: 'bg-gray-500',
+                      pending_payment: 'bg-yellow-500',
+                      payment_processing: 'bg-blue-500',
+                      confirmed: 'bg-green-500',
+                      completed: 'bg-purple-500',
+                      deposit_refunded: 'bg-teal-500',
+                      cancelled: 'bg-red-500',
+                      rejected: 'bg-red-700',
+                    };
+
+                    const statusLabels: Record<string, string> = {
+                      draft: 'Draft',
+                      pending_payment: 'Pending Payment',
+                      payment_processing: 'Processing',
+                      confirmed: 'Confirmed',
+                      completed: 'Completed',
+                      deposit_refunded: 'Deposit Refunded',
+                      cancelled: 'Cancelled',
+                      rejected: 'Rejected',
+                    };
+
+                    const eventDate = new Date(booking.event_date).toLocaleDateString('en-ZA', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    });
+
+                    return (
+                      <div
+                        key={booking.id}
+                        className="border-2 border-neonPink/30 bg-gradient-to-br from-neonPink/5 to-purple-500/5 rounded-lg p-4 space-y-3 hover:border-neonPink/50 transition-all"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-semibold text-white text-lg">
+                              🏛️ {booking.booking_reference}
+                            </h4>
+                            <p className="text-sm text-gray-400">
+                              {eventDate}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {booking.event_start_time} - {booking.event_end_time}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <Badge
+                              className={`${statusColors[booking.status] || 'bg-gray-500'} text-white mb-2`}
+                            >
+                              {statusLabels[booking.status] || booking.status}
+                            </Badge>
+                            <p className="text-lg font-bold text-white">
+                              R {booking.total_amount.toFixed(2)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 text-sm bg-gray-700/50 p-3 rounded">
+                          <div>
+                            <p className="text-gray-400">Event Type</p>
+                            <p className="text-white font-medium capitalize">{booking.event_type.replace('_', ' ')}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-400">Guests</p>
+                            <p className="text-white font-medium">{booking.total_guests} people</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-400">Payment Status</p>
+                            <p className="text-white font-medium">
+                              {booking.payment_status === 'paid' ? '✅ Paid' : '⏳ ' + booking.payment_status}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-400">Booked On</p>
+                            <p className="text-white font-medium">
+                              {new Date(booking.created_at).toLocaleDateString('en-ZA')}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2 pt-2">
+                          {booking.status === 'draft' && (
+                            <Button
+                              size="sm"
+                              onClick={() => router.push(`/hall-booking?resume=${booking.id}`)}
+                              className="bg-neonCyan/20 hover:bg-neonCyan/30 text-neonCyan border border-neonCyan/30"
+                            >
+                              Continue Booking
+                            </Button>
+                          )}
+                          {booking.status === 'confirmed' && (
+                            <div className="bg-green-500/10 border border-green-500/30 rounded px-3 py-2 text-sm">
+                              <p className="text-green-400">✅ Confirmed! You'll receive the access code 24hrs before your event.</p>
+                            </div>
+                          )}
+                          {booking.status === 'completed' && (
+                            <div className="bg-purple-500/10 border border-purple-500/30 rounded px-3 py-2 text-sm">
+                              <p className="text-purple-400">🎉 Event completed! Deposit refund processing.</p>
+                            </div>
+                          )}
+                          {booking.status === 'deposit_refunded' && (
+                            <div className="bg-teal-500/10 border border-teal-500/30 rounded px-3 py-2 text-sm">
+                              <p className="text-teal-400">💰 Deposit refunded successfully!</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
