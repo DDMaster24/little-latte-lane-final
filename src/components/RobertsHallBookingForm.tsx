@@ -1246,14 +1246,23 @@ export default function RobertsHallBookingForm() {
                   <Button
                     type="button"
                     onClick={() => {
-                      // TODO: Add actual PDF download link
-                      toast.info('PDF download link will be added');
+                      // Create a link to download the PDF
+                      const link = document.createElement('a');
+                      link.href = '/roberts-hall-booking-form.pdf';
+                      link.download = 'Roberts_Hall_Booking_Form.pdf';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      toast.success('Downloading PDF form...');
                     }}
                     className="bg-purple-500 hover:bg-purple-600 text-white"
                   >
                     <FileDown className="h-4 w-4 mr-2" />
                     Download PDF Form
                   </Button>
+                  <p className="text-xs text-yellow-400 mt-2">
+                    Note: PDF form needs to be added to public folder (/roberts-hall-booking-form.pdf)
+                  </p>
                 </div>
               </div>
             </div>
@@ -1343,17 +1352,30 @@ export default function RobertsHallBookingForm() {
 
                         setIsSendingEmail(true);
                         try {
-                          // TODO: Implement email sending with Resend
-                          toast.info('Email functionality will be implemented');
-                          // After successful send, show success message
-                          setTimeout(() => {
-                            toast.success('Form sent successfully!');
-                            setIsSendingEmail(false);
+                          // Create FormData to send PDF with user details
+                          const formDataToSend = new FormData();
+                          formDataToSend.append('pdf', uploadedPdfFile);
+                          formDataToSend.append('email', user.email);
+                          formDataToSend.append('name', profile?.full_name || 'Unknown User');
+
+                          const response = await fetch('/api/hall-booking/send-pdf-form', {
+                            method: 'POST',
+                            body: formDataToSend,
+                          });
+
+                          const result = await response.json();
+
+                          if (response.ok) {
+                            toast.success('Form sent successfully! Admin will review and contact you.');
                             setUploadedPdfFile(null);
                             setBookingMethod(null);
-                          }, 2000);
+                          } else {
+                            throw new Error(result.error || 'Failed to send form');
+                          }
                         } catch (error) {
-                          toast.error('Failed to send form');
+                          console.error('Error sending PDF form:', error);
+                          toast.error(error instanceof Error ? error.message : 'Failed to send form');
+                        } finally {
                           setIsSendingEmail(false);
                         }
                       }}
