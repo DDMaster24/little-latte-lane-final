@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import NextImage from 'next/image';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface ContactFormData {
   name: string;
@@ -17,6 +18,11 @@ interface ContactFormData {
 }
 
 export default function BookingsContactPage() {
+  // Collapsible sections state
+  const [tableEnquiryOpen, setTableEnquiryOpen] = useState(false);
+  const [hallBookingOpen, setHallBookingOpen] = useState(false);
+
+  // Contact form state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<ContactFormData>({
     name: '',
@@ -102,84 +108,73 @@ export default function BookingsContactPage() {
               Book with Little Latte Lane
             </h1>
 
-            {/* Two Booking Options */}
-            <div className="grid md:grid-cols-2 gap-6 sm:gap-8 mb-12">
-              {/* Option 1: Tables & Events */}
-              <div className="bg-gradient-to-br from-neonCyan/10 to-neonCyan/5 border-2 border-neonCyan/30 rounded-2xl p-6 sm:p-8 hover:border-neonCyan/50 transition-all duration-300">
-                <div className="text-center mb-4">
-                  <div className="text-5xl sm:text-6xl mb-4">🍽️</div>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-neonCyan mb-3">
-                    Tables & Events
-                  </h2>
-                  <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
-                    Book a table for dining, celebrate birthdays, host corporate gatherings, or plan any special event at our cafe.
-                  </p>
-                </div>
-                <ul className="space-y-2 text-gray-200 text-sm sm:text-base">
-                  <li className="flex items-start gap-2">
-                    <span className="text-neonCyan mt-1">✓</span>
-                    <span>General table reservations</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-neonCyan mt-1">✓</span>
-                    <span>Birthday parties & celebrations</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-neonCyan mt-1">✓</span>
-                    <span>Corporate events & meetings</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-neonCyan mt-1">✓</span>
-                    <span>Custom event planning</span>
-                  </li>
-                </ul>
-              </div>
+            {/* Two Collapsible Booking Sections */}
+            <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
 
-              {/* Option 2: Roberts Hall */}
-              <div className="bg-gradient-to-br from-neonPink/10 to-neonPink/5 border-2 border-neonPink/30 rounded-2xl p-6 sm:p-8 hover:border-neonPink/50 transition-all duration-300">
-                <div className="text-center mb-4">
-                  <div className="text-5xl sm:text-6xl mb-4">🏛️</div>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-neonPink mb-3">
-                    Roberts Hall
-                  </h2>
-                  <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
-                    Reserve the exclusive Roberts Hall for weddings, large gatherings, conferences, and major events.
-                  </p>
-                </div>
-                <ul className="space-y-2 text-gray-200 text-sm sm:text-base">
-                  <li className="flex items-start gap-2">
-                    <span className="text-neonPink mt-1">✓</span>
-                    <span>Weddings & receptions</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-neonPink mt-1">✓</span>
-                    <span>Large private functions</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-neonPink mt-1">✓</span>
-                    <span>Conferences & seminars</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-neonPink mt-1">✓</span>
-                    <span>Community events</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
+              {/* SECTION 1: TABLE & EVENT ENQUIRY */}
+              <div className="bg-gradient-to-br from-neonCyan/10 to-neonCyan/5 border-2 border-neonCyan/30 rounded-2xl overflow-hidden hover:border-neonCyan/50 transition-all duration-300">
+                {/* Header - Always Visible */}
+                <button
+                  onClick={() => {
+                    setTableEnquiryOpen(!tableEnquiryOpen);
+                    if (!tableEnquiryOpen) setHallBookingOpen(false);
+                  }}
+                  className="w-full p-6 sm:p-8 text-left hover:bg-neonCyan/5 transition-all duration-200"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="text-5xl sm:text-6xl mb-4">🍽️</div>
+                      <h2 className="text-2xl sm:text-3xl font-bold text-neonCyan mb-3">
+                        Tables & Events
+                      </h2>
+                      <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-4">
+                        Book a table for dining, celebrate birthdays, host corporate gatherings, or plan any special event at our cafe.
+                      </p>
+                      <ul className="space-y-2 text-gray-200 text-sm sm:text-base">
+                        <li className="flex items-start gap-2">
+                          <span className="text-neonCyan mt-1">✓</span>
+                          <span>General table reservations</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-neonCyan mt-1">✓</span>
+                          <span>Birthday parties & celebrations</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-neonCyan mt-1">✓</span>
+                          <span>Corporate events & meetings</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-neonCyan mt-1">✓</span>
+                          <span>Custom event planning</span>
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="ml-4 flex-shrink-0">
+                      {tableEnquiryOpen ? (
+                        <ChevronUp className="h-6 w-6 text-neonCyan" />
+                      ) : (
+                        <ChevronDown className="h-6 w-6 text-neonCyan" />
+                      )}
+                    </div>
+                  </div>
+                  {!tableEnquiryOpen && (
+                    <div className="mt-4 text-center">
+                      <span className="text-neonCyan font-semibold text-sm">
+                        Click to open booking form →
+                      </span>
+                    </div>
+                  )}
+                </button>
 
-            <p className="text-center text-lg sm:text-xl text-gray-200">
-              Fill out the form below to send us your booking inquiry!
-            </p>
-          </div>
-        </div>
+                {/* Collapsible Content - Contact Form */}
+                {tableEnquiryOpen && (
+                  <div className="px-6 sm:px-8 pb-8 border-t border-neonCyan/20">
+                    <div className="mt-6 bg-gray-800/80 backdrop-blur-lg p-6 rounded-xl">
+                      <h3 className="text-xl font-semibold mb-6 text-white text-center">
+                        Send Us Your Booking Inquiry
+                      </h3>
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-12">
-          <div className="bg-gray-800/90 backdrop-blur-lg p-6 sm:p-8 rounded-xl shadow-2xl border border-neonCyan/30">
-            <h2 className="text-2xl font-semibold mb-6 text-white text-center">
-              Send Us Your Booking Inquiry
-            </h2>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
+                      <form onSubmit={handleSubmit} className="space-y-4">
               {/* Personal Information Row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
@@ -320,27 +315,100 @@ export default function BookingsContactPage() {
                   ) : (
                     '📧 Send Booking Inquiry'
                   )}
-                </Button>
-              </div>
-            </form>
+                        </Button>
+                      </div>
 
-            {/* Contact Information */}
-            <div className="mt-8 pt-8 border-t border-gray-600">
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-white mb-4">
-                  Prefer to contact us directly?
-                </h3>
-                <div className="flex flex-col sm:flex-row justify-center items-center gap-4 text-gray-300">
-                  <div className="flex items-center gap-2">
-                    <span>📧</span>
-                    <span>admin@littlelattelane.co.za</span>
+                      {/* Contact Info */}
+                      <div className="mt-6 pt-6 border-t border-gray-600 text-center">
+                        <p className="text-sm text-gray-300">
+                          📧 admin@littlelattelane.co.za • ⏰ We&apos;ll respond within 24 hours
+                        </p>
+                      </div>
+                    </form>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span>⏰</span>
-                    <span>We&apos;ll respond within 24 hours</span>
-                  </div>
-                </div>
+                )}
               </div>
+
+              {/* SECTION 2: ROBERTS HALL BOOKING */}
+              <div className="bg-gradient-to-br from-neonPink/10 to-neonPink/5 border-2 border-neonPink/30 rounded-2xl overflow-hidden hover:border-neonPink/50 transition-all duration-300">
+                {/* Header - Always Visible */}
+                <button
+                  onClick={() => {
+                    setHallBookingOpen(!hallBookingOpen);
+                    if (!hallBookingOpen) setTableEnquiryOpen(false);
+                  }}
+                  className="w-full p-6 sm:p-8 text-left hover:bg-neonPink/5 transition-all duration-200"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="text-5xl sm:text-6xl mb-4">🏛️</div>
+                      <h2 className="text-2xl sm:text-3xl font-bold text-neonPink mb-3">
+                        Roberts Hall
+                      </h2>
+                      <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-4">
+                        Reserve the exclusive Roberts Hall for weddings, large gatherings, conferences, and major events.
+                      </p>
+                      <ul className="space-y-2 text-gray-200 text-sm sm:text-base mb-6">
+                        <li className="flex items-start gap-2">
+                          <span className="text-neonPink mt-1">✓</span>
+                          <span>Weddings & receptions (up to 50 guests)</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-neonPink mt-1">✓</span>
+                          <span>Large private functions</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-neonPink mt-1">✓</span>
+                          <span>Conferences & seminars</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-neonPink mt-1">✓</span>
+                          <span>Community events</span>
+                        </li>
+                      </ul>
+
+                      <div className="bg-neonPink/10 border border-neonPink/50 rounded-lg p-4">
+                        <p className="text-white font-semibold text-center mb-2">
+                          💰 Total Cost: R2,500
+                        </p>
+                        <p className="text-gray-300 text-sm text-center">
+                          R1,500 rental fee + R1,000 refundable deposit
+                        </p>
+                      </div>
+                    </div>
+                    <div className="ml-4 flex-shrink-0">
+                      {hallBookingOpen ? (
+                        <ChevronUp className="h-6 w-6 text-neonPink" />
+                      ) : (
+                        <ChevronDown className="h-6 w-6 text-neonPink" />
+                      )}
+                    </div>
+                  </div>
+                  {!hallBookingOpen && (
+                    <div className="mt-4 text-center">
+                      <span className="text-neonPink font-semibold text-sm">
+                        Click to check availability & book online →
+                      </span>
+                    </div>
+                  )}
+                </button>
+
+                {/* Collapsible Content - Hall Booking (Placeholder) */}
+                {hallBookingOpen && (
+                  <div className="px-6 sm:px-8 pb-8 border-t border-neonPink/20">
+                    <div className="mt-6 bg-gray-800/80 backdrop-blur-lg p-6 rounded-xl text-center">
+                      <p className="text-white mb-4">
+                        🏗️ Roberts Hall online booking coming soon...
+                      </p>
+                      <p className="text-gray-400 text-sm">
+                        For now, please use the Table & Events form and select "Roberts Hall Booking"
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
             </div>
           </div>
         </div>
