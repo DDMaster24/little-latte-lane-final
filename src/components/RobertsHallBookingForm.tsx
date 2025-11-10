@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { useAuth } from '@/components/AuthProvider';
-import { Loader2, CheckCircle, XCircle, Upload, X, FileText, Mail } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Upload, X, FileText, Mail, Check, Edit } from 'lucide-react';
 import SignatureCanvas from 'react-signature-canvas';
+import AddressInputSignup from '@/components/AddressInputSignup';
+import { type ValidatedAddress } from '@/types/address';
 
 export default function RobertsHallBookingForm() {
   const { user, profile } = useAuth();
@@ -20,6 +22,9 @@ export default function RobertsHallBookingForm() {
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
   const [termsAgreed, setTermsAgreed] = useState(false);
   const termsContentRef = useRef<HTMLDivElement>(null);
+  const [validatedAddress, setValidatedAddress] = useState<ValidatedAddress | null>(null);
+  const [signatureConfirmed, setSignatureConfirmed] = useState(false);
+  const [isEditingSignature, setIsEditingSignature] = useState(false);
 
   // Form data - matching PDF exactly
   const [formData, setFormData] = useState({
@@ -28,7 +33,6 @@ export default function RobertsHallBookingForm() {
     applicantSurname: profile?.full_name?.split(' ').slice(1).join(' ') || '',
     applicantEmail: user?.email || '',
     applicantPhone: profile?.phone || '',
-    address: '',
 
     // Event Details
     eventDate: '',
@@ -149,16 +153,61 @@ export default function RobertsHallBookingForm() {
   };
 
   const openTermsModal = () => {
-    setShowTermsModal(true);
-    setHasScrolledToBottom(false);
+    // Scroll main page to top before opening modal
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => {
+      setShowTermsModal(true);
+      setHasScrolledToBottom(false);
+    }, 300);
+  };
+
+  const handleConfirmSignature = () => {
+    if (signatureRef.current && !signatureRef.current.isEmpty()) {
+      setSignatureConfirmed(true);
+      setIsEditingSignature(false);
+      toast.success('Signature confirmed!');
+    } else {
+      toast.error('Please provide a signature first');
+    }
+  };
+
+  const handleEditSignature = () => {
+    setIsEditingSignature(true);
+    setSignatureConfirmed(false);
+  };
+
+  const isGuestCountValid = () => {
+    return formData.totalGuests >= 1 && formData.totalGuests <= 50;
+  };
+
+  const isVehicleCountValid = () => {
+    return formData.numberOfVehicles >= 0 && formData.numberOfVehicles <= 30;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate address
+    if (!validatedAddress) {
+      toast.error('Please provide a valid address');
+      return;
+    }
+
     // Validate date availability
     if (dateAvailable !== true) {
       toast.error('Please select an available date');
+      return;
+    }
+
+    // Validate guest count
+    if (!isGuestCountValid()) {
+      toast.error('Guest count must be between 1 and 50');
+      return;
+    }
+
+    // Validate vehicle count
+    if (!isVehicleCountValid()) {
+      toast.error('Vehicle count must be between 0 and 30');
       return;
     }
 
@@ -167,9 +216,9 @@ export default function RobertsHallBookingForm() {
       return;
     }
 
-    // Validate signature
-    if (signatureRef.current?.isEmpty()) {
-      toast.error('Please provide your signature');
+    // Validate signature is confirmed
+    if (!signatureConfirmed) {
+      toast.error('Please confirm your signature by clicking the "Confirm Signature" button');
       return;
     }
 
@@ -237,8 +286,8 @@ export default function RobertsHallBookingForm() {
           applicant_surname: formData.applicantSurname,
           applicant_email: formData.applicantEmail,
           applicant_phone: formData.applicantPhone,
-          applicant_address: formData.address,
-          roberts_estate_address: formData.address,
+          applicant_address: validatedAddress ? `${validatedAddress.unitNumber || ''} ${validatedAddress.streetAddress}, ${validatedAddress.city}, ${validatedAddress.postalCode}`.trim() : '',
+          roberts_estate_address: validatedAddress ? `${validatedAddress.unitNumber || ''} ${validatedAddress.streetAddress}, ${validatedAddress.city}, ${validatedAddress.postalCode}`.trim() : '',
           event_start_time: formData.eventStartTime,
           event_end_time: formData.eventEndTime,
           event_type: formData.eventType,
@@ -336,7 +385,31 @@ export default function RobertsHallBookingForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-gray-900/95 backdrop-blur-md border-2 border-neonPink/40 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6 shadow-2xl">
+    <div className="space-y-6">
+      {/* CONTACT ADMIN OPTION - Outside Form */}
+      <div className="bg-gray-800/50 border border-neonCyan/30 rounded-lg p-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-start gap-3 flex-1">
+            <Mail className="h-5 w-5 text-neonCyan mt-1 flex-shrink-0" />
+            <div>
+              <h4 className="font-semibold text-white mb-1">Prefer a PDF Form?</h4>
+              <p className="text-sm text-gray-300">
+                Contact our admin to receive the official PDF booking form instead
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            onClick={() => window.location.href = 'mailto:admin@littlelattelane.co.za?subject=Roberts%20Hall%20PDF%20Booking%20Form%20Request'}
+            variant="outline"
+            className="border-neonCyan/50 text-neonCyan hover:bg-neonCyan/10 hover:border-neonCyan whitespace-nowrap"
+          >
+            Contact Admin
+          </Button>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="bg-gray-900/95 backdrop-blur-md border-2 border-neonPink/40 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6 shadow-2xl">
 
       {/* SECTION 1: APPLICANT DETAILS */}
       <div className="space-y-4">
@@ -408,13 +481,10 @@ export default function RobertsHallBookingForm() {
           <label className="block font-semibold mb-2 text-gray-200 text-sm">
             Address
           </label>
-          <Input
-            type="text"
-            name="address"
-            value={formData.address}
-            onChange={handleInputChange}
+          <AddressInputSignup
+            address={validatedAddress}
+            onChange={(address) => setValidatedAddress(address)}
             required
-            className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
           />
           <p className="text-xs text-gray-400 mt-1">
             The applicant must be a current resident of Roberts Estate
@@ -476,8 +546,12 @@ export default function RobertsHallBookingForm() {
               value={formData.eventStartTime}
               onChange={handleInputChange}
               required
+              min="05:30"
               className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
             />
+            <p className="text-xs text-gray-400 mt-1">
+              Minimum start time is 05:30
+            </p>
           </div>
 
           <div>
@@ -509,7 +583,6 @@ export default function RobertsHallBookingForm() {
             value={formData.eventType}
             onChange={handleInputChange}
             required
-            placeholder="e.g., Wedding, Birthday Party, Corporate Event"
             className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
           />
         </div>
@@ -527,9 +600,23 @@ export default function RobertsHallBookingForm() {
               required
               min={1}
               max={50}
-              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
+              className={`bg-gray-700/80 text-white focus:border-neonCyan [color-scheme:dark] ${
+                formData.totalGuests > 0
+                  ? isGuestCountValid()
+                    ? 'border-green-500'
+                    : 'border-red-500'
+                  : 'border-gray-600'
+              }`}
             />
-            <p className="text-xs text-gray-400 mt-1">Maximum 50 guests</p>
+            <p className={`text-xs mt-1 ${
+              formData.totalGuests > 0
+                ? isGuestCountValid()
+                  ? 'text-green-400'
+                  : 'text-red-400'
+                : 'text-gray-400'
+            }`}>
+              {isGuestCountValid() || formData.totalGuests === 0 ? 'Maximum 50 guests' : `Must be between 1-50 (currently ${formData.totalGuests})`}
+            </p>
           </div>
 
           <div>
@@ -544,9 +631,19 @@ export default function RobertsHallBookingForm() {
               required
               min={0}
               max={30}
-              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
+              className={`bg-gray-700/80 text-white focus:border-neonCyan [color-scheme:dark] ${
+                isVehicleCountValid()
+                  ? 'border-green-500'
+                  : 'border-red-500'
+              }`}
             />
-            <p className="text-xs text-gray-400 mt-1">Maximum 30 vehicles</p>
+            <p className={`text-xs mt-1 ${
+              isVehicleCountValid()
+                ? 'text-green-400'
+                : 'text-red-400'
+            }`}>
+              {isVehicleCountValid() ? 'Maximum 30 vehicles' : `Must be between 0-30 (currently ${formData.numberOfVehicles})`}
+            </p>
           </div>
         </div>
 
@@ -717,29 +814,6 @@ export default function RobertsHallBookingForm() {
         </p>
       </div>
 
-      {/* CONTACT ADMIN OPTION */}
-      <div className="bg-gray-800/50 border border-gray-600 rounded-lg p-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-start gap-3 flex-1">
-            <Mail className="h-5 w-5 text-neonCyan mt-1 flex-shrink-0" />
-            <div>
-              <h4 className="font-semibold text-white mb-1">Prefer a PDF Form?</h4>
-              <p className="text-sm text-gray-300">
-                Contact our admin to receive the official PDF booking form instead
-              </p>
-            </div>
-          </div>
-          <Button
-            type="button"
-            onClick={() => window.location.href = 'mailto:admin@littlelattelane.co.za?subject=Roberts%20Hall%20PDF%20Booking%20Form%20Request'}
-            variant="outline"
-            className="border-neonCyan/50 text-neonCyan hover:bg-neonCyan/10 hover:border-neonCyan whitespace-nowrap"
-          >
-            Contact Admin
-          </Button>
-        </div>
-      </div>
-
       {/* TERMS & SIGNATURE SECTION (GROUPED) */}
       <div className="space-y-4">
         <h3 className="text-lg font-bold text-neonCyan border-b border-neonCyan/30 pb-2">
@@ -790,27 +864,60 @@ export default function RobertsHallBookingForm() {
                 Your Signature / Initial
               </label>
               <p className="text-xs text-gray-400 mb-2">
-                Please sign or initial using your mouse or finger
+                {signatureConfirmed
+                  ? '✓ Signature confirmed. Click "Edit Signature" to make changes.'
+                  : 'Please sign or initial using your mouse or finger on the line below'}
               </p>
             </div>
 
-            <div className="bg-white rounded-lg p-2">
+            <div className="bg-white rounded-lg p-2 relative">
+              {signatureConfirmed && (
+                <div className="absolute inset-0 bg-gray-900/10 z-10 rounded flex items-center justify-center">
+                  <Check className="h-8 w-8 text-green-500" />
+                </div>
+              )}
               <SignatureCanvas
                 ref={signatureRef}
                 canvasProps={{
-                  className: 'w-full h-40 border border-gray-300 rounded cursor-crosshair',
+                  className: `w-full h-40 border border-gray-300 rounded ${signatureConfirmed && !isEditingSignature ? 'pointer-events-none' : 'cursor-crosshair'}`,
                 }}
               />
+              {/* Signature line */}
+              <div className="absolute bottom-10 left-8 right-8 border-b-2 border-black opacity-30" />
             </div>
 
-            <Button
-              type="button"
-              onClick={clearSignature}
-              variant="outline"
-              className="w-full border-gray-600 text-gray-300 hover:bg-gray-700"
-            >
-              Clear Signature
-            </Button>
+            <div className="flex gap-2">
+              {!signatureConfirmed || isEditingSignature ? (
+                <>
+                  <Button
+                    type="button"
+                    onClick={clearSignature}
+                    variant="outline"
+                    className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700"
+                  >
+                    Clear
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleConfirmSignature}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <Check className="h-4 w-4 mr-2" />
+                    Confirm Signature
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={handleEditSignature}
+                  variant="outline"
+                  className="w-full border-neonCyan text-neonCyan hover:bg-neonCyan/10"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Signature
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -1055,6 +1162,7 @@ export default function RobertsHallBookingForm() {
           </div>
         </div>
       )}
-    </form>
+      </form>
+    </div>
   );
 }
