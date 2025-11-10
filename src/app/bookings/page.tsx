@@ -22,17 +22,17 @@ export default function BookingsPage() {
       {/* Main Content */}
       <div className="relative z-10 safe-area-top">
         {/* Hero Section */}
-        <div className="py-8 sm:py-12">
-          <div className="max-w-6xl mx-auto px-6">
-            <h1 className="text-3xl sm:text-5xl font-bold mb-4 text-center bg-gradient-to-r from-neonCyan to-neonPink bg-clip-text text-transparent">
+        <div className="py-6 sm:py-10 lg:py-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 text-center bg-gradient-to-r from-neonCyan to-neonPink bg-clip-text text-transparent">
               Book with Little Latte Lane
             </h1>
-            <p className="text-gray-300 text-center text-lg mb-12 max-w-2xl mx-auto">
+            <p className="text-gray-300 text-center text-base sm:text-lg mb-8 sm:mb-10 lg:mb-12 max-w-2xl mx-auto px-4">
               Choose your booking type below
             </p>
 
             {/* Two Booking Cards */}
-            <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
+            <div className="grid md:grid-cols-2 gap-5 sm:gap-6 lg:gap-8">
 
               {/* CARD 1: TABLE & EVENT ENQUIRY */}
               <div className="bg-gradient-to-br from-neonCyan/20 to-neonCyan/10 backdrop-blur-sm bg-gray-900/60 border-2 border-neonCyan/30 rounded-2xl overflow-hidden hover:border-neonCyan/50 transition-all duration-300 hover:scale-[1.02]">

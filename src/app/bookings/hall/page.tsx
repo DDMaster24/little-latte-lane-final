@@ -24,9 +24,9 @@ export default function HallBookingPage() {
       {/* Main Content */}
       <div className="relative z-10 safe-area-top">
         {/* Back Button */}
-        <div className="max-w-6xl mx-auto px-6 pt-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
           <Link href="/bookings">
-            <Button variant="outline" className="border-2 border-neonPink/50 text-neonPink hover:bg-neonPink/10 hover:border-neonPink">
+            <Button variant="outline" className="border-2 border-neonPink/50 text-neonPink hover:bg-neonPink/10 hover:border-neonPink text-sm sm:text-base">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Bookings
             </Button>
@@ -34,14 +34,14 @@ export default function HallBookingPage() {
         </div>
 
         {/* Page Content */}
-        <div className="py-8 sm:py-12">
-          <div className="max-w-4xl mx-auto px-6">
+        <div className="py-6 sm:py-8 lg:py-12 pb-12 sm:pb-16">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Header */}
-            <div className="text-center mb-8">
-              <h1 className="text-3xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-neonPink to-purple-500 bg-clip-text text-transparent">
+            <div className="text-center mb-6 sm:mb-8 lg:mb-10">
+              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-neonPink to-purple-500 bg-clip-text text-transparent">
                 Roberts Hall Booking
               </h1>
-              <p className="text-gray-300 text-lg">
+              <p className="text-gray-300 text-base sm:text-lg px-4">
                 Reserve the exclusive Roberts Hall for your special event
               </p>
             </div>

@@ -50,7 +50,7 @@ export default function RobertsHallBookingForm() {
   // Check if user is logged in
   if (!user) {
     return (
-      <div className="bg-gradient-to-br from-neonPink/20 to-neonPink/10 backdrop-blur-sm bg-gray-900/60 border-2 border-neonPink/30 rounded-2xl p-8 text-center">
+      <div className="bg-gray-900/95 backdrop-blur-md border-2 border-neonPink/40 rounded-2xl p-8 text-center shadow-2xl">
         <XCircle className="h-16 w-16 text-red-400 mx-auto mb-4" />
         <h3 className="text-xl font-semibold text-white mb-4">
           Login Required
@@ -336,7 +336,7 @@ export default function RobertsHallBookingForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-gradient-to-br from-neonPink/20 to-neonPink/10 backdrop-blur-sm bg-gray-900/60 border-2 border-neonPink/30 rounded-2xl p-6 sm:p-8 space-y-6">
+    <form onSubmit={handleSubmit} className="bg-gray-900/95 backdrop-blur-md border-2 border-neonPink/40 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6 shadow-2xl">
 
       {/* SECTION 1: APPLICANT DETAILS */}
       <div className="space-y-4">
@@ -837,21 +837,21 @@ export default function RobertsHallBookingForm() {
 
       {/* TERMS & CONDITIONS MODAL OVERLAY */}
       {showTermsModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-gray-900 border-2 border-neonCyan/50 rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 lg:p-6">
+          <div className="bg-gray-900 border-2 border-neonCyan/50 rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[92vh] sm:max-h-[90vh] flex flex-col shadow-2xl">
             {/* Modal Header */}
-            <div className="p-6 border-b border-neonCyan/30">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-neonCyan">Roberts Hall Terms & Conditions</h2>
+            <div className="p-4 sm:p-6 border-b border-neonCyan/30">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-neonCyan">Roberts Hall Terms & Conditions</h2>
                 <button
                   type="button"
                   onClick={() => setShowTermsModal(false)}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors flex-shrink-0"
                 >
-                  <X className="h-6 w-6" />
+                  <X className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
               </div>
-              <p className="text-sm text-gray-400 mt-2">
+              <p className="text-xs sm:text-sm text-gray-400 mt-2">
                 Please scroll through and read all terms carefully
               </p>
             </div>
@@ -860,14 +860,14 @@ export default function RobertsHallBookingForm() {
             <div
               ref={termsContentRef}
               onScroll={handleTermsScroll}
-              className="flex-1 overflow-y-auto p-6 space-y-4 text-gray-200"
+              className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 sm:space-y-4 text-gray-200"
             >
-              <div className="space-y-4">
-                <h3 className="text-xl font-bold text-neonCyan mb-4">
+              <div className="space-y-3 sm:space-y-4">
+                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-neonCyan mb-3 sm:mb-4">
                   TERMS AND CONDITIONS FOR RENTAL OF THE COMMUNITY HALL
                 </h3>
 
-                <div className="space-y-3 text-sm">
+                <div className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm">
                   <div className="flex gap-3">
                     <span className="font-semibold min-w-[1.5rem]">1.</span>
                     <p>ROBERTS LITTLE LATTE LANE reserves the right to decline this application without further explanation.</p>
@@ -1042,12 +1042,12 @@ export default function RobertsHallBookingForm() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-6 border-t border-neonCyan/30">
+            <div className="p-4 sm:p-6 border-t border-neonCyan/30">
               <Button
                 type="button"
                 onClick={handleAgreeToTerms}
                 disabled={!hasScrolledToBottom}
-                className="w-full bg-gradient-to-r from-neonCyan to-cyan-500 hover:from-neonCyan/80 hover:to-cyan-500/80 text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-neonCyan to-cyan-500 hover:from-neonCyan/80 hover:to-cyan-500/80 text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base py-5 sm:py-6"
               >
                 {hasScrolledToBottom ? 'I Agree to Terms & Conditions' : 'Scroll to Bottom to Continue'}
               </Button>

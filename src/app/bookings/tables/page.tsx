@@ -98,9 +98,9 @@ export default function TablesBookingPage() {
       {/* Main Content */}
       <div className="relative z-10 safe-area-top">
         {/* Back Button */}
-        <div className="max-w-6xl mx-auto px-6 pt-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
           <Link href="/bookings">
-            <Button variant="outline" className="border-2 border-neonCyan/50 text-neonCyan hover:bg-neonCyan/10 hover:border-neonCyan">
+            <Button variant="outline" className="border-2 border-neonCyan/50 text-neonCyan hover:bg-neonCyan/10 hover:border-neonCyan text-sm sm:text-base">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Bookings
             </Button>
@@ -108,21 +108,21 @@ export default function TablesBookingPage() {
         </div>
 
         {/* Page Content */}
-        <div className="py-8 sm:py-12">
-          <div className="max-w-3xl mx-auto px-6">
+        <div className="py-6 sm:py-8 lg:py-12 pb-12 sm:pb-16">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Header */}
-            <div className="text-center mb-8">
-              <h1 className="text-3xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-neonCyan to-cyan-500 bg-clip-text text-transparent">
+            <div className="text-center mb-6 sm:mb-8 lg:mb-10">
+              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-neonCyan to-cyan-500 bg-clip-text text-transparent">
                 Tables & Events Booking
               </h1>
-              <p className="text-gray-300 text-lg">
+              <p className="text-gray-300 text-base sm:text-lg px-4">
                 Fill in the form below and we'll get back to you within 24 hours
               </p>
             </div>
 
             {/* Contact Form */}
-            <div className="bg-gradient-to-br from-neonCyan/20 to-neonCyan/10 backdrop-blur-sm bg-gray-900/60 border-2 border-neonCyan/30 rounded-2xl p-6 sm:p-8">
-              <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="bg-gray-900/95 backdrop-blur-md border-2 border-neonCyan/40 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-2xl">
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
                 {/* Personal Information Row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div>
