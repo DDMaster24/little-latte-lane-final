@@ -12,7 +12,7 @@ const CSP_DIRECTIVES = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: blob: https:",
-  "connect-src 'self' wss: https://awytuszmunxvthuizyur.supabase.co wss://awytuszmunxvthuizyur.supabase.co https://registry.npmjs.org https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.googletagmanager.com https://overbridgenet.com https://*.sentry.io https://vercel.live https://*.vercel.live https://api.reactbricks.com https://*.reactbricks.com",
+  "connect-src 'self' data: wss: https://awytuszmunxvthuizyur.supabase.co wss://awytuszmunxvthuizyur.supabase.co https://registry.npmjs.org https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.googletagmanager.com https://overbridgenet.com https://*.sentry.io https://vercel.live https://*.vercel.live https://api.reactbricks.com https://*.reactbricks.com",
   "worker-src 'self' blob:",
   "child-src 'self' blob: https://vercel.live https://*.vercel.live",
   "frame-src 'self' blob: https://vercel.live https://*.vercel.live",
