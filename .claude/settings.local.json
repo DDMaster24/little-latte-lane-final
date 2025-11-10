@@ -21,7 +21,8 @@
       "Bash(supabase gen types:*)",
       "Bash(src/types/supabase.ts)",
       "Bash(node setup-storage-buckets.js:*)",
-      "Bash(node apply-storage-policies.js:*)"
+      "Bash(node apply-storage-policies.js:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
