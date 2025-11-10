@@ -1,39 +1,52 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { useAuth } from '@/components/AuthProvider';
-import { Calendar, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
 export default function RobertsHallBookingForm() {
   const { user, profile } = useAuth();
-  const [selectedDate, setSelectedDate] = useState('');
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [dateAvailable, setDateAvailable] = useState<boolean | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Form data
+  // Form data - matching PDF exactly
   const [formData, setFormData] = useState({
+    // Applicant Details
     applicantName: profile?.full_name?.split(' ')[0] || '',
     applicantSurname: profile?.full_name?.split(' ').slice(1).join(' ') || '',
-    applicantEmail: '',
+    applicantEmail: user?.email || '',
     applicantPhone: profile?.phone || '',
-    robertsEstateAddress: '',
+    address: '',
+
+    // Event Details
+    eventDate: '',
     eventStartTime: '',
     eventEndTime: '23:00',
     eventType: '',
     totalGuests: 1,
     numberOfVehicles: 0,
+    tablesRequired: 0,
+    chairsRequired: 0,
+
+    // Banking Details
+    accountHolder: '',
+    bankName: '',
+    branchCode: '',
+    accountNumber: '',
+
+    // Terms
     termsAccepted: false,
   });
 
   // Check if user is logged in
   if (!user) {
     return (
-      <div className="bg-gray-800/80 backdrop-blur-lg p-8 rounded-xl text-center">
+      <div className="bg-gradient-to-br from-neonPink/20 to-neonPink/10 backdrop-blur-sm bg-gray-900/60 border-2 border-neonPink/30 rounded-2xl p-8 text-center">
         <XCircle className="h-16 w-16 text-red-400 mx-auto mb-4" />
         <h3 className="text-xl font-semibold text-white mb-4">
           Login Required
@@ -51,11 +64,15 @@ export default function RobertsHallBookingForm() {
     );
   }
 
-  const checkAvailability = async () => {
-    if (!selectedDate) {
-      toast.error('Please select a date first');
-      return;
+  // Auto-check availability when date changes
+  useEffect(() => {
+    if (formData.eventDate) {
+      checkAvailability(formData.eventDate);
     }
+  }, [formData.eventDate]);
+
+  const checkAvailability = async (date: string) => {
+    if (!date) return;
 
     setIsCheckingAvailability(true);
     setDateAvailable(null);
@@ -67,18 +84,17 @@ export default function RobertsHallBookingForm() {
       const { data: existingBookings, error } = await supabase
         .from('hall_bookings')
         .select('id, event_date, status')
-        .eq('event_date', selectedDate)
+        .eq('event_date', date)
         .in('status', ['confirmed', 'pending_payment', 'payment_processing']);
 
       if (error) throw error;
 
       if (existingBookings && existingBookings.length > 0) {
         setDateAvailable(false);
-        toast.error('Sorry, this date is already booked');
+        toast.error('Sorry, this date is already booked. Please select another date.');
       } else {
         setDateAvailable(true);
-        setShowForm(true);
-        toast.success('Date is available! Please complete the form below');
+        toast.success('✓ Date is available!');
       }
     } catch (error) {
       console.error('Error checking availability:', error);
@@ -90,6 +106,12 @@ export default function RobertsHallBookingForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate date availability
+    if (dateAvailable !== true) {
+      toast.error('Please select an available date');
+      return;
+    }
 
     if (!formData.termsAccepted) {
       toast.error('You must accept the terms and conditions');
@@ -111,6 +133,8 @@ export default function RobertsHallBookingForm() {
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
       const supabase = getSupabaseClient();
 
@@ -121,28 +145,29 @@ export default function RobertsHallBookingForm() {
         .from('hall_bookings')
         .insert({
           user_id: user.id,
-          event_date: selectedDate,
+          event_date: formData.eventDate,
           applicant_name: formData.applicantName,
           applicant_surname: formData.applicantSurname,
           applicant_email: formData.applicantEmail,
           applicant_phone: formData.applicantPhone,
-          applicant_address: formData.robertsEstateAddress, // Maps to applicant_address
-          roberts_estate_address: formData.robertsEstateAddress,
+          applicant_address: formData.address,
+          roberts_estate_address: formData.address,
           event_start_time: formData.eventStartTime,
           event_end_time: formData.eventEndTime,
           event_type: formData.eventType,
           total_guests: formData.totalGuests,
           number_of_vehicles: formData.numberOfVehicles,
+          tables_required: formData.tablesRequired,
+          chairs_required: formData.chairsRequired,
+          bank_account_holder: formData.accountHolder,
+          bank_name: formData.bankName,
+          bank_branch_code: formData.branchCode,
+          bank_account_number: formData.accountNumber,
           status: 'pending_payment',
-          total_amount: 2500, // R1,500 rental + R1,000 deposit
+          total_amount: 2500,
           rental_fee: 1500,
           deposit_amount: 1000,
           booking_reference: bookingReference,
-          // Bank details - will be collected later or not required for online bookings
-          bank_account_holder: 'TBD',
-          bank_account_number: 'TBD',
-          bank_branch_code: 'TBD',
-          bank_name: 'TBD',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
@@ -152,6 +177,7 @@ export default function RobertsHallBookingForm() {
       if (bookingError || !booking) {
         console.error('Error creating booking:', bookingError);
         toast.error('Failed to create booking. Please try again.');
+        setIsSubmitting(false);
         return;
       }
 
@@ -181,6 +207,7 @@ export default function RobertsHallBookingForm() {
         const errorData = await checkoutResponse.json();
         console.error('Checkout error:', errorData);
         toast.error(errorData.error || 'Failed to create payment session');
+        setIsSubmitting(false);
         return;
       }
 
@@ -188,14 +215,15 @@ export default function RobertsHallBookingForm() {
 
       if (checkoutData.success && checkoutData.redirectUrl) {
         console.log('✅ Redirecting to Yoco payment:', checkoutData.redirectUrl);
-        // Redirect to Yoco payment page
         window.location.href = checkoutData.redirectUrl;
       } else {
         toast.error('Failed to initialize payment');
+        setIsSubmitting(false);
       }
     } catch (error) {
       console.error('Booking submission error:', error);
       toast.error('An error occurred. Please try again.');
+      setIsSubmitting(false);
     }
   };
 
@@ -211,328 +239,382 @@ export default function RobertsHallBookingForm() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Date Availability Checker */}
-      <div className="bg-gray-800/80 backdrop-blur-lg p-6 rounded-xl">
-        <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-neonPink" />
-          Step 1: Check Date Availability
+    <form onSubmit={handleSubmit} className="bg-gradient-to-br from-neonPink/20 to-neonPink/10 backdrop-blur-sm bg-gray-900/60 border-2 border-neonPink/30 rounded-2xl p-6 sm:p-8 space-y-6">
+
+      {/* SECTION 1: APPLICANT DETAILS */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-bold text-neonPink border-b border-neonPink/30 pb-2">
+          Applicant Details
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block font-semibold mb-2 text-gray-200 text-sm">
-              Select Event Date *
+              First Name
             </label>
             <Input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              min={new Date().toISOString().split('T')[0]}
+              type="text"
+              name="applicantName"
+              value={formData.applicantName}
+              onChange={handleInputChange}
               required
-              className="bg-gray-700/80 border-gray-600 text-white"
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
             />
           </div>
 
-          <div className="flex items-end">
-            <Button
-              onClick={checkAvailability}
-              disabled={isCheckingAvailability || !selectedDate}
-              className="w-full bg-gradient-to-r from-neonPink to-purple-500 text-white font-semibold"
-            >
-              {isCheckingAvailability ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Checking...
-                </>
-              ) : (
-                'Check Availability'
-              )}
-            </Button>
+          <div>
+            <label className="block font-semibold mb-2 text-gray-200 text-sm">
+              Surname
+            </label>
+            <Input
+              type="text"
+              name="applicantSurname"
+              value={formData.applicantSurname}
+              onChange={handleInputChange}
+              required
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+            />
           </div>
         </div>
 
-        {/* Availability Status */}
-        {dateAvailable === true && (
-          <div className="mt-4 p-4 bg-green-500/10 border border-green-500/30 rounded-lg flex items-center gap-3">
-            <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
-            <p className="text-green-400 font-semibold">
-              ✅ Date available! Complete the form below.
-            </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block font-semibold mb-2 text-gray-200 text-sm">
+              Email Address
+            </label>
+            <Input
+              type="email"
+              name="applicantEmail"
+              value={formData.applicantEmail}
+              onChange={handleInputChange}
+              required
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+            />
           </div>
-        )}
 
-        {dateAvailable === false && (
-          <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-3">
-            <XCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
-            <p className="text-red-400 font-semibold">
-              ❌ This date is already booked. Please select another date.
-            </p>
+          <div>
+            <label className="block font-semibold mb-2 text-gray-200 text-sm">
+              Phone Number
+            </label>
+            <Input
+              type="tel"
+              name="applicantPhone"
+              value={formData.applicantPhone}
+              onChange={handleInputChange}
+              required
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+            />
           </div>
-        )}
+        </div>
+
+        <div>
+          <label className="block font-semibold mb-2 text-gray-200 text-sm">
+            Address
+          </label>
+          <Input
+            type="text"
+            name="address"
+            value={formData.address}
+            onChange={handleInputChange}
+            required
+            className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+          />
+          <p className="text-xs text-gray-400 mt-1">
+            The applicant must be a current resident of Roberts Estate
+          </p>
+        </div>
       </div>
 
-      {/* Booking Form - Only shows when date is available */}
-      {showForm && dateAvailable && (
-        <form onSubmit={handleSubmit} className="bg-gray-800/80 backdrop-blur-lg p-6 rounded-xl space-y-6">
-          <div className="text-center mb-6">
-            <h3 className="text-2xl font-bold text-white mb-2">
-              Step 2: Complete Booking Form
-            </h3>
-            <p className="text-gray-400 text-sm">
-              Fill in all required fields marked with *
+      {/* SECTION 2: EVENT DETAILS */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-bold text-neonPink border-b border-neonPink/30 pb-2">
+          Event Details
+        </h3>
+
+        {/* Event Date with Availability Check */}
+        <div>
+          <label className="block font-semibold mb-2 text-gray-200 text-sm">
+            Event Date
+          </label>
+          <div className="relative">
+            <Input
+              type="date"
+              name="eventDate"
+              value={formData.eventDate}
+              onChange={handleInputChange}
+              min={new Date().toISOString().split('T')[0]}
+              required
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+            />
+            {isCheckingAvailability && (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <Loader2 className="h-4 w-4 animate-spin text-neonPink" />
+              </div>
+            )}
+          </div>
+
+          {/* Availability Status */}
+          {formData.eventDate && !isCheckingAvailability && dateAvailable === true && (
+            <div className="mt-2 p-2 bg-green-500/10 border border-green-500/30 rounded flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-green-400" />
+              <p className="text-sm text-green-400 font-semibold">Date available!</p>
+            </div>
+          )}
+          {formData.eventDate && !isCheckingAvailability && dateAvailable === false && (
+            <div className="mt-2 p-2 bg-red-500/10 border border-red-500/30 rounded flex items-center gap-2">
+              <XCircle className="h-4 w-4 text-red-400" />
+              <p className="text-sm text-red-400 font-semibold">Date already booked</p>
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block font-semibold mb-2 text-gray-200 text-sm">
+              Start Time
+            </label>
+            <Input
+              type="time"
+              name="eventStartTime"
+              value={formData.eventStartTime}
+              onChange={handleInputChange}
+              required
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold mb-2 text-gray-200 text-sm">
+              End Time
+            </label>
+            <Input
+              type="time"
+              name="eventEndTime"
+              value={formData.eventEndTime}
+              onChange={handleInputChange}
+              required
+              max="23:00"
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+            />
+            <p className="text-xs text-red-400 mt-1">
+              ⚠️ Events MUST end by 23:00
             </p>
           </div>
+        </div>
 
-          {/* Applicant Details */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-neonPink border-b border-neonPink/30 pb-2">
-              Your Details
-            </h4>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block font-semibold mb-2 text-gray-200 text-sm">
-                  First Name *
-                </label>
-                <Input
-                  type="text"
-                  name="applicantName"
-                  value={formData.applicantName}
-                  onChange={handleInputChange}
-                  required
-                  className="bg-gray-700/80 border-gray-600 text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-2 text-gray-200 text-sm">
-                  Surname *
-                </label>
-                <Input
-                  type="text"
-                  name="applicantSurname"
-                  value={formData.applicantSurname}
-                  onChange={handleInputChange}
-                  required
-                  className="bg-gray-700/80 border-gray-600 text-white"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block font-semibold mb-2 text-gray-200 text-sm">
-                  Email *
-                </label>
-                <Input
-                  type="email"
-                  name="applicantEmail"
-                  value={formData.applicantEmail}
-                  onChange={handleInputChange}
-                  required
-                  className="bg-gray-700/80 border-gray-600 text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-2 text-gray-200 text-sm">
-                  Phone *
-                </label>
-                <Input
-                  type="tel"
-                  name="applicantPhone"
-                  value={formData.applicantPhone}
-                  onChange={handleInputChange}
-                  required
-                  className="bg-gray-700/80 border-gray-600 text-white"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block font-semibold mb-2 text-gray-200 text-sm">
-                Roberts Estate Address *
-              </label>
-              <Input
-                type="text"
-                name="robertsEstateAddress"
-                value={formData.robertsEstateAddress}
-                onChange={handleInputChange}
-                required
-                placeholder="e.g., 123 Roberts Drive, Roberts Estate"
-                className="bg-gray-700/80 border-gray-600 text-white"
-              />
-              <p className="text-xs text-gray-400 mt-1">
-                Only Roberts Estate residents can book the hall
-              </p>
-            </div>
-          </div>
-
-          {/* Event Details */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-neonPink border-b border-neonPink/30 pb-2">
-              Event Details
-            </h4>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block font-semibold mb-2 text-gray-200 text-sm">
-                  Start Time *
-                </label>
-                <Input
-                  type="time"
-                  name="eventStartTime"
-                  value={formData.eventStartTime}
-                  onChange={handleInputChange}
-                  required
-                  className="bg-gray-700/80 border-gray-600 text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-2 text-gray-200 text-sm">
-                  End Time *
-                </label>
-                <Input
-                  type="time"
-                  name="eventEndTime"
-                  value={formData.eventEndTime}
-                  onChange={handleInputChange}
-                  required
-                  max="23:00"
-                  className="bg-gray-700/80 border-gray-600 text-white"
-                />
-                <p className="text-xs text-red-400 mt-1">
-                  ⚠️ Events MUST end by 23:00 - NO EXCEPTIONS
-                </p>
-              </div>
-            </div>
-
-            <div>
-              <label className="block font-semibold mb-2 text-gray-200 text-sm">
-                Event Type *
-              </label>
-              <select
-                name="eventType"
-                value={formData.eventType}
-                onChange={handleInputChange}
-                required
-                className="w-full p-3 rounded-lg bg-gray-700/80 text-white border border-gray-600"
-              >
-                <option value="">Select event type...</option>
-                <option value="wedding">Wedding / Reception</option>
-                <option value="birthday">Birthday Party</option>
-                <option value="corporate">Corporate Event</option>
-                <option value="conference">Conference / Seminar</option>
-                <option value="community">Community Event</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block font-semibold mb-2 text-gray-200 text-sm">
-                  Number of Guests *
-                </label>
-                <Input
-                  type="number"
-                  name="totalGuests"
-                  value={formData.totalGuests}
-                  onChange={handleInputChange}
-                  required
-                  min={1}
-                  max={50}
-                  className="bg-gray-700/80 border-gray-600 text-white"
-                />
-                <p className="text-xs text-gray-400 mt-1">Maximum 50 guests</p>
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-2 text-gray-200 text-sm">
-                  Number of Vehicles *
-                </label>
-                <Input
-                  type="number"
-                  name="numberOfVehicles"
-                  value={formData.numberOfVehicles}
-                  onChange={handleInputChange}
-                  required
-                  min={0}
-                  max={30}
-                  className="bg-gray-700/80 border-gray-600 text-white"
-                />
-                <p className="text-xs text-gray-400 mt-1">Maximum 30 vehicles</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Terms & Conditions */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-neonPink border-b border-neonPink/30 pb-2">
-              Terms & Conditions
-            </h4>
-
-            <div className="bg-gray-700/50 rounded-lg p-4 max-h-48 overflow-y-auto text-sm text-gray-300">
-              <ul className="list-disc list-inside space-y-2">
-                <li>Booking fee is R2,500 (R1,500 rental + R1,000 refundable deposit)</li>
-                <li>Functions MUST end by 23:00 - NO EXCEPTIONS</li>
-                <li>Maximum 50 guests and 30 vehicles allowed</li>
-                <li>Speed limit of 30 km/h within the estate</li>
-                <li>Hall must be left clean and undamaged</li>
-                <li>Deposit refunded within 7 days after inspection</li>
-                <li>No illegal activities or violations of estate rules</li>
-              </ul>
-            </div>
-
-            <div className="bg-neonPink/10 border border-neonPink/30 rounded-lg p-4">
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="termsAccepted"
-                  checked={formData.termsAccepted}
-                  onChange={handleInputChange}
-                  required
-                  className="w-5 h-5 mt-1 text-neonPink bg-gray-700 border-gray-600 rounded"
-                />
-                <span className="text-white font-semibold">
-                  I have read, understood, and agree to all terms and conditions *
-                </span>
-              </label>
-            </div>
-          </div>
-
-          {/* Payment Summary */}
-          <div className="bg-gradient-to-r from-neonPink/10 to-purple-500/10 border border-neonPink/30 rounded-lg p-6">
-            <h4 className="text-xl font-bold text-white mb-4 text-center">
-              Payment Summary
-            </h4>
-            <div className="space-y-2 text-gray-200">
-              <div className="flex justify-between">
-                <span>Hall Rental Fee:</span>
-                <span className="font-semibold">R 1,500.00</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Security Deposit (Refundable):</span>
-                <span className="font-semibold">R 1,000.00</span>
-              </div>
-              <div className="border-t border-neonPink/30 mt-2 pt-2 flex justify-between text-xl">
-                <span className="font-bold text-neonPink">Total Due:</span>
-                <span className="font-bold text-neonPink">R 2,500.00</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            disabled={!formData.termsAccepted}
-            className="w-full text-lg py-4 bg-gradient-to-r from-neonPink to-purple-500 text-white font-bold disabled:opacity-50"
+        <div>
+          <label className="block font-semibold mb-2 text-gray-200 text-sm">
+            Event Type
+          </label>
+          <select
+            name="eventType"
+            value={formData.eventType}
+            onChange={handleInputChange}
+            required
+            className="w-full p-3 rounded-lg bg-gray-700/80 text-white border border-gray-600 focus:border-neonPink focus:ring-2 focus:ring-neonPink/20"
           >
-            💳 Submit & Proceed to Payment (R2,500)
-          </Button>
-        </form>
-      )}
-    </div>
+            <option value="">Select event type...</option>
+            <option value="wedding">Wedding / Reception</option>
+            <option value="birthday">Birthday Party</option>
+            <option value="corporate">Corporate Event</option>
+            <option value="conference">Conference / Seminar</option>
+            <option value="community">Community Event</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block font-semibold mb-2 text-gray-200 text-sm">
+              Number of Guests
+            </label>
+            <Input
+              type="number"
+              name="totalGuests"
+              value={formData.totalGuests}
+              onChange={handleInputChange}
+              required
+              min={1}
+              max={50}
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+            />
+            <p className="text-xs text-gray-400 mt-1">Maximum 50 guests</p>
+          </div>
+
+          <div>
+            <label className="block font-semibold mb-2 text-gray-200 text-sm">
+              Number of Vehicles
+            </label>
+            <Input
+              type="number"
+              name="numberOfVehicles"
+              value={formData.numberOfVehicles}
+              onChange={handleInputChange}
+              required
+              min={0}
+              max={30}
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+            />
+            <p className="text-xs text-gray-400 mt-1">Maximum 30 vehicles</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block font-semibold mb-2 text-gray-200 text-sm">
+              Number of Tables
+            </label>
+            <Input
+              type="number"
+              name="tablesRequired"
+              value={formData.tablesRequired}
+              onChange={handleInputChange}
+              required
+              min={0}
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold mb-2 text-gray-200 text-sm">
+              Number of Chairs
+            </label>
+            <Input
+              type="number"
+              name="chairsRequired"
+              value={formData.chairsRequired}
+              onChange={handleInputChange}
+              required
+              min={0}
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* SECTION 3: BANKING DETAILS */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-bold text-neonPink border-b border-neonPink/30 pb-2">
+          Banking Details
+        </h3>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block font-semibold mb-2 text-gray-200 text-sm">
+              Account Holder Name
+            </label>
+            <Input
+              type="text"
+              name="accountHolder"
+              value={formData.accountHolder}
+              onChange={handleInputChange}
+              required
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold mb-2 text-gray-200 text-sm">
+              Bank Name
+            </label>
+            <Input
+              type="text"
+              name="bankName"
+              value={formData.bankName}
+              onChange={handleInputChange}
+              required
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block font-semibold mb-2 text-gray-200 text-sm">
+              Branch Code
+            </label>
+            <Input
+              type="text"
+              name="branchCode"
+              value={formData.branchCode}
+              onChange={handleInputChange}
+              required
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold mb-2 text-gray-200 text-sm">
+              Account Number
+            </label>
+            <Input
+              type="text"
+              name="accountNumber"
+              value={formData.accountNumber}
+              onChange={handleInputChange}
+              required
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* PAYMENT SUMMARY */}
+      <div className="bg-neonPink/10 border border-neonPink/30 rounded-lg p-4">
+        <h4 className="font-semibold text-white mb-3 text-center">Payment Summary</h4>
+        <div className="space-y-2 text-gray-200">
+          <div className="flex justify-between">
+            <span>Hall Rental Fee:</span>
+            <span className="font-semibold">R1,500.00</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Refundable Deposit:</span>
+            <span className="font-semibold">R1,000.00</span>
+          </div>
+          <div className="border-t border-neonPink/30 pt-2 mt-2 flex justify-between text-lg font-bold text-neonPink">
+            <span>Total Amount:</span>
+            <span>R2,500.00</span>
+          </div>
+        </div>
+        <p className="text-xs text-gray-400 mt-3 text-center">
+          Payment will be processed via Yoco secure checkout
+        </p>
+      </div>
+
+      {/* TERMS & CONDITIONS */}
+      <div className="bg-gray-800/50 border border-gray-600 rounded-lg p-4">
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            name="termsAccepted"
+            checked={formData.termsAccepted}
+            onChange={handleInputChange}
+            required
+            className="mt-1 w-4 h-4 text-neonPink bg-gray-700 border-gray-600 rounded focus:ring-neonPink focus:ring-2"
+          />
+          <span className="text-sm text-gray-200">
+            I accept the terms and conditions for booking Roberts Hall, including the R1,000 refundable deposit policy and event end time of 23:00. I confirm that I am a current resident of Roberts Estate.
+          </span>
+        </label>
+      </div>
+
+      {/* SUBMIT BUTTON */}
+      <Button
+        type="submit"
+        disabled={isSubmitting || dateAvailable !== true}
+        className="w-full text-lg py-6 bg-gradient-to-r from-neonPink to-purple-500 hover:from-neonPink/80 hover:to-purple-500/80 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isSubmitting ? (
+          <span className="flex items-center justify-center gap-2">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            Processing...
+          </span>
+        ) : dateAvailable !== true ? (
+          'Select Available Date First'
+        ) : (
+          'Proceed to Payment (R2,500)'
+        )}
+      </Button>
+    </form>
   );
 }
