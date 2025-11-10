@@ -216,7 +216,11 @@ export function formatAmount(cents: number): string {
  * Generate callback URLs for checkout
  * Uses multiple fallback strategies to ensure correct URLs
  */
-export function generateCallbackUrls(orderId: string, request?: Request) {
+export function generateCallbackUrls(
+  orderId: string,
+  request?: Request,
+  type: 'order' | 'hall-booking' = 'order'
+) {
   // Priority order for determining base URL:
   // 1. NEXT_PUBLIC_SITE_URL (explicit configuration)
   // 2. Request headers (dynamic environment detection)
@@ -254,8 +258,18 @@ export function generateCallbackUrls(orderId: string, request?: Request) {
     baseUrl = 'http://localhost:3000';
   }
 
-  logger.debug('Generated callback URLs', { baseUrl });
-  
+  logger.debug('Generated callback URLs', { baseUrl, type });
+
+  // Different callback URLs based on booking type
+  if (type === 'hall-booking') {
+    return {
+      successUrl: `${baseUrl}/account?payment=success&bookingId=${orderId}&type=hall`,
+      cancelUrl: `${baseUrl}/bookings?payment=cancelled&bookingId=${orderId}`,
+      failureUrl: `${baseUrl}/bookings?payment=failed&bookingId=${orderId}`,
+      webhookUrl: `${baseUrl}/api/yoco/webhook`,
+    };
+  }
+
   // For native apps, deep links will trigger the app and auto-close browser
   return {
     successUrl: `${baseUrl}/account?payment=success&orderId=${orderId}`,  // Deep link to account page

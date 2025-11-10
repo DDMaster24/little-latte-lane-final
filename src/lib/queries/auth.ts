@@ -28,12 +28,12 @@ export class AuthQueries {
    */
   async getCurrentUser(): Promise<UserWithProfile | null> {
     const { data: { user }, error: authError } = await this.client.auth.getUser();
-    
+
     if (authError || !user) return null;
 
     const { data: profile } = await this.client
       .from('profiles')
-      .select('*')
+      .select('id, created_at, email, phone, updated_at, address, full_name, is_staff, is_admin, phone_number, role')
       .eq('id', user.id)
       .single();
 
@@ -46,7 +46,7 @@ export class AuthQueries {
   async getUserProfile(userId: string): Promise<ProfileRow | null> {
     const { data, error } = await this.client
       .from('profiles')
-      .select('*')
+      .select('id, created_at, email, phone, updated_at, address, full_name, is_staff, is_admin, phone_number, role')
       .eq('id', userId)
       .single();
 
@@ -65,7 +65,7 @@ export class AuthQueries {
       .from('profiles')
       .update(updates)
       .eq('id', userId)
-      .select()
+      .select('id, created_at, email, phone, updated_at, address, full_name, is_staff, is_admin, phone_number, role')
       .single();
 
     if (error) throw error;
@@ -172,14 +172,14 @@ export class ServerAuthQueries {
    */
   static async getCurrentUser(): Promise<UserWithProfile | null> {
     const supabase = await getSupabaseServer();
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) return null;
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, created_at, email, phone, updated_at, address, full_name, is_staff, is_admin, phone_number, role')
       .eq('id', user.id)
       .single();
 
@@ -191,10 +191,10 @@ export class ServerAuthQueries {
    */
   static async getUserProfile(userId: string): Promise<ProfileRow | null> {
     const supabase = await getSupabaseServer();
-    
+
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, created_at, email, phone, updated_at, address, full_name, is_staff, is_admin, phone_number, role')
       .eq('id', userId)
       .single();
 

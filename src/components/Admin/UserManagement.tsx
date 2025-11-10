@@ -47,10 +47,10 @@ export default function UserManagement() {
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const { data: profiles, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, created_at, email, phone, updated_at, address, full_name, is_staff, is_admin, phone_number, role')
         .order('created_at', { ascending: false });
 
       if (error) throw error;

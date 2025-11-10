@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import NextImage from 'next/image';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import RobertsHallBookingForm from '@/components/RobertsHallBookingForm';
 
 interface ContactFormData {
   name: string;
@@ -394,16 +395,11 @@ export default function BookingsContactPage() {
                   )}
                 </button>
 
-                {/* Collapsible Content - Hall Booking (Placeholder) */}
+                {/* Collapsible Content - Hall Booking Form */}
                 {hallBookingOpen && (
                   <div className="px-6 sm:px-8 pb-8 border-t border-neonPink/20">
-                    <div className="mt-6 bg-gray-800/80 backdrop-blur-lg p-6 rounded-xl text-center">
-                      <p className="text-white mb-4">
-                        🏗️ Roberts Hall online booking coming soon...
-                      </p>
-                      <p className="text-gray-400 text-sm">
-                        For now, please use the Table & Events form and select "Roberts Hall Booking"
-                      </p>
+                    <div className="mt-6">
+                      <RobertsHallBookingForm />
                     </div>
                   </div>
                 )}

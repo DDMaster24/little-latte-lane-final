@@ -158,7 +158,7 @@ export async function getOrCreateUserProfile(
     // Try to get existing profile
     const { data: profile, error: fetchError } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, created_at, email, phone, updated_at, address, full_name, is_staff, is_admin, phone_number, role')
       .eq('id', userId)
       .single();
 
@@ -186,7 +186,7 @@ export async function getOrCreateUserProfile(
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
-        .select('*')
+        .select('id, created_at, email, phone, updated_at, address, full_name, is_staff, is_admin, phone_number, role')
         .single();
 
       if (createError) {

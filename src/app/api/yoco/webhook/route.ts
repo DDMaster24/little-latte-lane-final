@@ -159,52 +159,68 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Extract order ID from metadata - CHECK MULTIPLE LOCATIONS
+    // Extract order ID or booking ID from metadata - CHECK MULTIPLE LOCATIONS
     let orderId: string | undefined;
-    
+    let bookingId: string | undefined;
+    let bookingType: string | undefined;
+
     // Try multiple possible metadata locations
     const eventAny = event as unknown as Record<string, unknown>;
     const payloadAny = event.payload as unknown as Record<string, unknown>;
-    
-    // 1. Standard location: event.payload.metadata.orderId
-    orderId = event.payload.metadata?.orderId;
-    
-    // 2. Alternative: event.metadata.orderId
-    if (!orderId && eventAny.metadata && typeof eventAny.metadata === 'object') {
+
+    // 1. Standard location: event.payload.metadata
+    orderId = event.payload.metadata?.orderId as string | undefined;
+    bookingId = event.payload.metadata?.bookingId as string | undefined;
+    const rawBookingType = event.payload.metadata?.bookingType;
+    bookingType = typeof rawBookingType === 'string' ? rawBookingType : undefined;
+
+    // 2. Alternative: event.metadata
+    if (!orderId && !bookingId && eventAny.metadata && typeof eventAny.metadata === 'object') {
       const metadata = eventAny.metadata as Record<string, unknown>;
       orderId = metadata.orderId as string;
+      bookingId = metadata.bookingId as string;
+      bookingType = metadata.bookingType as string | undefined;
     }
-    
-    // 3. Alternative: event.payload.data.metadata.orderId
-    if (!orderId && payloadAny.data && typeof payloadAny.data === 'object') {
+
+    // 3. Alternative: event.payload.data.metadata
+    if (!orderId && !bookingId && payloadAny.data && typeof payloadAny.data === 'object') {
       const data = payloadAny.data as Record<string, unknown>;
       if (data.metadata && typeof data.metadata === 'object') {
         const metadata = data.metadata as Record<string, unknown>;
         orderId = metadata.orderId as string;
+        bookingId = metadata.bookingId as string;
+        bookingType = metadata.bookingType as string | undefined;
       }
     }
-    
-    // 4. Alternative: event.payload.object.metadata.orderId (for checkout objects)
-    if (!orderId && payloadAny.object && typeof payloadAny.object === 'object') {
+
+    // 4. Alternative: event.payload.object.metadata (for checkout objects)
+    if (!orderId && !bookingId && payloadAny.object && typeof payloadAny.object === 'object') {
       const object = payloadAny.object as Record<string, unknown>;
       if (object.metadata && typeof object.metadata === 'object') {
         const metadata = object.metadata as Record<string, unknown>;
         orderId = metadata.orderId as string;
+        bookingId = metadata.bookingId as string;
+        bookingType = metadata.bookingType as string | undefined;
       }
     }
-    
-    logger.debug('OrderID extraction result', {
+
+    logger.debug('ID extraction result', {
       foundOrderId: orderId || 'NOT FOUND',
+      foundBookingId: bookingId || 'NOT FOUND',
+      bookingType: bookingType || 'NOT FOUND',
       searchLocations: [
-        'event.payload.metadata.orderId',
-        'event.metadata.orderId',
-        'event.payload.data.metadata.orderId',
-        'event.payload.object.metadata.orderId'
+        'event.payload.metadata',
+        'event.metadata',
+        'event.payload.data.metadata',
+        'event.payload.object.metadata'
       ]
     });
 
-    if (!orderId) {
-      logger.warn('No orderId found in webhook metadata', {
+    // Check if this is a hall booking payment
+    const isHallBooking = bookingType === 'hall_booking' && bookingId;
+
+    if (!orderId && !isHallBooking) {
+      logger.warn('No orderId or bookingId found in webhook metadata', {
         availableMetadata: event.payload.metadata,
       });
 
@@ -212,21 +228,123 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         received: true,
         processed: false,
-        reason: 'No orderId in metadata - webhook acknowledged but not processed'
+        reason: 'No orderId or bookingId in metadata - webhook acknowledged but not processed'
       });
     }
 
     logger.info('Processing Yoco event', {
       eventType: event.type,
       orderId,
+      bookingId,
+      isHallBooking,
       payloadId: event.payload.id,
       status: event.payload.status,
       amount: event.payload.amount,
       currency: event.payload.currency,
     });
 
-    // Get order from database using admin client (bypasses RLS for webhooks)
     const supabase = getSupabaseAdmin();
+
+    // Handle hall booking payments
+    if (isHallBooking && bookingId) {
+      logger.info('Processing hall booking payment', { bookingId });
+
+      const { data: booking, error: bookingError } = await supabase
+        .from('hall_bookings')
+        .select('id, status, user_id, event_date, applicant_email')
+        .eq('id', bookingId)
+        .single();
+
+      if (bookingError || !booking) {
+        logger.error('Hall booking not found', { bookingId, error: bookingError });
+        return NextResponse.json(
+          { error: 'Hall booking not found' },
+          { status: 404 }
+        );
+      }
+
+      logger.debug('Found hall booking', {
+        id: booking.id,
+        currentStatus: booking.status,
+        eventDate: booking.event_date,
+      });
+
+      // Determine booking status based on event type
+      let newBookingStatus: string;
+
+      if (
+        (event.type.includes('payment') && event.payload.status === 'succeeded') ||
+        (event.type.includes('checkout') && event.payload.status === 'completed') ||
+        event.type.includes('succeeded') ||
+        event.type.includes('completed')
+      ) {
+        // Payment successful
+        newBookingStatus = 'confirmed';
+        logger.info('Hall booking payment successful', { bookingId });
+      } else if (
+        event.type.includes('cancelled') ||
+        event.type.includes('failed') ||
+        event.payload.status === 'cancelled' ||
+        event.payload.status === 'failed'
+      ) {
+        // Payment failed or cancelled
+        newBookingStatus = 'cancelled';
+        logger.info('Hall booking payment failed/cancelled', { bookingId });
+      } else {
+        logger.warn('Unhandled event type for hall booking', {
+          eventType: event.type,
+          status: event.payload.status,
+        });
+        return NextResponse.json({
+          received: true,
+          processed: false,
+          message: 'Event acknowledged but not processed - unknown event type'
+        });
+      }
+
+      // Update booking in database
+      const { error: updateError } = await supabase
+        .from('hall_bookings')
+        .update({
+          status: newBookingStatus,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', bookingId);
+
+      if (updateError) {
+        logger.error('Failed to update hall booking', updateError);
+        return NextResponse.json(
+          { error: 'Failed to update hall booking' },
+          { status: 500 }
+        );
+      }
+
+      logger.info('Hall booking updated successfully', {
+        bookingId,
+        newStatus: newBookingStatus,
+      });
+
+      // TODO: Send confirmation email for hall booking
+      // This can be implemented later with booking details
+
+      return NextResponse.json({
+        received: true,
+        processed: true,
+        bookingId,
+        newStatus: newBookingStatus,
+      });
+    }
+
+    // Handle regular order payments (existing logic)
+    if (!orderId) {
+      logger.error('No orderId found for regular order payment');
+      return NextResponse.json(
+        { error: 'No orderId found' },
+        { status: 400 }
+      );
+    }
+
+    // Get order from database using admin client (bypasses RLS for webhooks)
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select('id, status, payment_status, user_id, total_amount')

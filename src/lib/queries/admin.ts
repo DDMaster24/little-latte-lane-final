@@ -18,10 +18,10 @@ export class ServerAdminQueries {
    */
   static async getAllUsers(): Promise<ProfileRow[]> {
     const supabase = await getSupabaseServer();
-    
+
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, created_at, email, phone, updated_at, address, full_name, is_staff, is_admin, phone_number, role')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -33,10 +33,10 @@ export class ServerAdminQueries {
    */
   static async getUsersByRole(role: 'customer' | 'staff' | 'admin'): Promise<ProfileRow[]> {
     const supabase = await getSupabaseServer();
-    
+
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, created_at, email, phone, updated_at, address, full_name, is_staff, is_admin, phone_number, role')
       .eq('role', role)
       .order('created_at', { ascending: false });
 
@@ -49,15 +49,15 @@ export class ServerAdminQueries {
    */
   static async updateUserRole(userId: string, newRole: 'customer' | 'staff' | 'admin'): Promise<ProfileRow> {
     const supabase = await getSupabaseServer();
-    
+
     const { data, error } = await supabase
       .from('profiles')
-      .update({ 
+      .update({
         role: newRole,
         updated_at: new Date().toISOString(),
       })
       .eq('id', userId)
-      .select()
+      .select('id, created_at, email, phone, updated_at, address, full_name, is_staff, is_admin, phone_number, role')
       .single();
 
     if (error) throw error;
