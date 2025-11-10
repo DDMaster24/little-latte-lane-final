@@ -1,18 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { useAuth } from '@/components/AuthProvider';
-import { Loader2, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Upload, X } from 'lucide-react';
+import SignatureCanvas from 'react-signature-canvas';
 
 export default function RobertsHallBookingForm() {
   const { user, profile } = useAuth();
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [dateAvailable, setDateAvailable] = useState<boolean | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const signatureRef = useRef<SignatureCanvas>(null);
+  const [bankProofFile, setBankProofFile] = useState<File | null>(null);
 
   // Form data - matching PDF exactly
   const [formData, setFormData] = useState({
@@ -80,7 +83,6 @@ export default function RobertsHallBookingForm() {
     try {
       const supabase = getSupabaseClient();
 
-      // Check if date is already booked
       const { data: existingBookings, error } = await supabase
         .from('hall_bookings')
         .select('id, event_date, status')
@@ -104,6 +106,33 @@ export default function RobertsHallBookingForm() {
     setIsCheckingAvailability(false);
   };
 
+  const clearSignature = () => {
+    signatureRef.current?.clear();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File size must be less than 5MB');
+        return;
+      }
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+      if (!validTypes.includes(file.type)) {
+        toast.error('Please upload a valid image (JPG, PNG) or PDF file');
+        return;
+      }
+      setBankProofFile(file);
+      toast.success('Bank proof attached');
+    }
+  };
+
+  const removeFile = () => {
+    setBankProofFile(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -115,6 +144,18 @@ export default function RobertsHallBookingForm() {
 
     if (!formData.termsAccepted) {
       toast.error('You must accept the terms and conditions');
+      return;
+    }
+
+    // Validate signature
+    if (signatureRef.current?.isEmpty()) {
+      toast.error('Please provide your signature');
+      return;
+    }
+
+    // Validate bank proof upload
+    if (!bankProofFile) {
+      toast.error('Please upload proof of your bank account');
       return;
     }
 
@@ -138,7 +179,33 @@ export default function RobertsHallBookingForm() {
     try {
       const supabase = getSupabaseClient();
 
-      // Create booking in database with pending_payment status
+      // Get signature as data URL
+      const signatureDataUrl = signatureRef.current?.toDataURL();
+
+      // Upload bank proof file
+      let bankProofUrl = '';
+      if (bankProofFile) {
+        const fileExt = bankProofFile.name.split('.').pop();
+        const fileName = `bank-proof-${user.id}-${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('hall-bookings')
+          .upload(fileName, bankProofFile);
+
+        if (uploadError) {
+          console.error('Error uploading bank proof:', uploadError);
+          toast.error('Failed to upload bank proof');
+          setIsSubmitting(false);
+          return;
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('hall-bookings')
+          .getPublicUrl(fileName);
+
+        bankProofUrl = urlData.publicUrl;
+      }
+
+      // Create booking in database
       const bookingReference = `HB-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 
       const { data: booking, error: bookingError } = await supabase
@@ -163,6 +230,7 @@ export default function RobertsHallBookingForm() {
           bank_name: formData.bankName,
           bank_branch_code: formData.branchCode,
           bank_account_number: formData.accountNumber,
+          proof_of_payment_url: bankProofUrl,
           status: 'pending_payment',
           total_amount: 2500,
           rental_fee: 1500,
@@ -179,6 +247,15 @@ export default function RobertsHallBookingForm() {
         toast.error('Failed to create booking. Please try again.');
         setIsSubmitting(false);
         return;
+      }
+
+      // Upload signature
+      if (signatureDataUrl) {
+        const signatureBlob = await (await fetch(signatureDataUrl)).blob();
+        const signatureFileName = `signature-${booking.id}.png`;
+        await supabase.storage
+          .from('hall-bookings')
+          .upload(signatureFileName, signatureBlob);
       }
 
       console.log('✅ Booking created:', booking.id);
@@ -243,7 +320,7 @@ export default function RobertsHallBookingForm() {
 
       {/* SECTION 1: APPLICANT DETAILS */}
       <div className="space-y-4">
-        <h3 className="text-lg font-bold text-neonPink border-b border-neonPink/30 pb-2">
+        <h3 className="text-lg font-bold text-neonCyan border-b border-neonCyan/30 pb-2">
           Applicant Details
         </h3>
 
@@ -258,7 +335,7 @@ export default function RobertsHallBookingForm() {
               value={formData.applicantName}
               onChange={handleInputChange}
               required
-              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
             />
           </div>
 
@@ -272,7 +349,7 @@ export default function RobertsHallBookingForm() {
               value={formData.applicantSurname}
               onChange={handleInputChange}
               required
-              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
             />
           </div>
         </div>
@@ -288,7 +365,7 @@ export default function RobertsHallBookingForm() {
               value={formData.applicantEmail}
               onChange={handleInputChange}
               required
-              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
             />
           </div>
 
@@ -302,7 +379,7 @@ export default function RobertsHallBookingForm() {
               value={formData.applicantPhone}
               onChange={handleInputChange}
               required
-              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
             />
           </div>
         </div>
@@ -317,7 +394,7 @@ export default function RobertsHallBookingForm() {
             value={formData.address}
             onChange={handleInputChange}
             required
-            className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+            className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
           />
           <p className="text-xs text-gray-400 mt-1">
             The applicant must be a current resident of Roberts Estate
@@ -327,7 +404,7 @@ export default function RobertsHallBookingForm() {
 
       {/* SECTION 2: EVENT DETAILS */}
       <div className="space-y-4">
-        <h3 className="text-lg font-bold text-neonPink border-b border-neonPink/30 pb-2">
+        <h3 className="text-lg font-bold text-neonCyan border-b border-neonCyan/30 pb-2">
           Event Details
         </h3>
 
@@ -344,11 +421,11 @@ export default function RobertsHallBookingForm() {
               onChange={handleInputChange}
               min={new Date().toISOString().split('T')[0]}
               required
-              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
             />
             {isCheckingAvailability && (
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <Loader2 className="h-4 w-4 animate-spin text-neonPink" />
+                <Loader2 className="h-4 w-4 animate-spin text-neonCyan" />
               </div>
             )}
           </div>
@@ -379,7 +456,7 @@ export default function RobertsHallBookingForm() {
               value={formData.eventStartTime}
               onChange={handleInputChange}
               required
-              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
             />
           </div>
 
@@ -394,7 +471,7 @@ export default function RobertsHallBookingForm() {
               onChange={handleInputChange}
               required
               max="23:00"
-              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
             />
             <p className="text-xs text-red-400 mt-1">
               ⚠️ Events MUST end by 23:00
@@ -406,21 +483,15 @@ export default function RobertsHallBookingForm() {
           <label className="block font-semibold mb-2 text-gray-200 text-sm">
             Event Type
           </label>
-          <select
+          <Input
+            type="text"
             name="eventType"
             value={formData.eventType}
             onChange={handleInputChange}
             required
-            className="w-full p-3 rounded-lg bg-gray-700/80 text-white border border-gray-600 focus:border-neonPink focus:ring-2 focus:ring-neonPink/20"
-          >
-            <option value="">Select event type...</option>
-            <option value="wedding">Wedding / Reception</option>
-            <option value="birthday">Birthday Party</option>
-            <option value="corporate">Corporate Event</option>
-            <option value="conference">Conference / Seminar</option>
-            <option value="community">Community Event</option>
-            <option value="other">Other</option>
-          </select>
+            placeholder="e.g., Wedding, Birthday Party, Corporate Event"
+            className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
+          />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -436,7 +507,7 @@ export default function RobertsHallBookingForm() {
               required
               min={1}
               max={50}
-              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
             />
             <p className="text-xs text-gray-400 mt-1">Maximum 50 guests</p>
           </div>
@@ -453,7 +524,7 @@ export default function RobertsHallBookingForm() {
               required
               min={0}
               max={30}
-              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
             />
             <p className="text-xs text-gray-400 mt-1">Maximum 30 vehicles</p>
           </div>
@@ -471,7 +542,7 @@ export default function RobertsHallBookingForm() {
               onChange={handleInputChange}
               required
               min={0}
-              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
             />
           </div>
 
@@ -486,7 +557,7 @@ export default function RobertsHallBookingForm() {
               onChange={handleInputChange}
               required
               min={0}
-              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
             />
           </div>
         </div>
@@ -494,9 +565,14 @@ export default function RobertsHallBookingForm() {
 
       {/* SECTION 3: BANKING DETAILS */}
       <div className="space-y-4">
-        <h3 className="text-lg font-bold text-neonPink border-b border-neonPink/30 pb-2">
-          Banking Details
-        </h3>
+        <div>
+          <h3 className="text-lg font-bold text-neonCyan border-b border-neonCyan/30 pb-2">
+            Banking Details
+          </h3>
+          <p className="text-sm text-gray-400 mt-2">
+            Kindly attach proof of your bank account
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -509,7 +585,7 @@ export default function RobertsHallBookingForm() {
               value={formData.accountHolder}
               onChange={handleInputChange}
               required
-              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
             />
           </div>
 
@@ -523,7 +599,7 @@ export default function RobertsHallBookingForm() {
               value={formData.bankName}
               onChange={handleInputChange}
               required
-              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
             />
           </div>
         </div>
@@ -539,7 +615,7 @@ export default function RobertsHallBookingForm() {
               value={formData.branchCode}
               onChange={handleInputChange}
               required
-              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
             />
           </div>
 
@@ -553,14 +629,82 @@ export default function RobertsHallBookingForm() {
               value={formData.accountNumber}
               onChange={handleInputChange}
               required
-              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonPink [color-scheme:dark]"
+              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan [color-scheme:dark]"
             />
           </div>
         </div>
+
+        {/* Bank Proof Upload */}
+        <div>
+          <label className="block font-semibold mb-2 text-gray-200 text-sm">
+            Upload Bank Proof
+          </label>
+          <div className="relative">
+            <input
+              type="file"
+              accept="image/*,.pdf"
+              onChange={handleFileChange}
+              className="hidden"
+              id="bank-proof-upload"
+            />
+            <label
+              htmlFor="bank-proof-upload"
+              className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer hover:border-neonCyan transition-colors bg-gray-700/50"
+            >
+              <Upload className="h-5 w-5 text-gray-400" />
+              <span className="text-gray-300">
+                {bankProofFile ? bankProofFile.name : 'Click to upload bank statement or proof'}
+              </span>
+            </label>
+          </div>
+          {bankProofFile && (
+            <div className="mt-2 flex items-center justify-between bg-neonCyan/10 border border-neonCyan/30 rounded p-3">
+              <span className="text-sm text-neonCyan truncate flex-1">{bankProofFile.name}</span>
+              <button
+                type="button"
+                onClick={removeFile}
+                className="ml-2 text-red-400 hover:text-red-300"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+          <p className="text-xs text-gray-400 mt-1">
+            Accepted formats: JPG, PNG, PDF (max 5MB)
+          </p>
+        </div>
+      </div>
+
+      {/* SECTION 4: SIGNATURE PAD */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-bold text-neonCyan border-b border-neonCyan/30 pb-2">
+          Signature / Initial
+        </h3>
+        <p className="text-sm text-gray-400">
+          Please sign or initial using your mouse or finger
+        </p>
+
+        <div className="bg-white rounded-lg p-2">
+          <SignatureCanvas
+            ref={signatureRef}
+            canvasProps={{
+              className: 'w-full h-40 border border-gray-300 rounded cursor-crosshair',
+            }}
+          />
+        </div>
+
+        <Button
+          type="button"
+          onClick={clearSignature}
+          variant="outline"
+          className="w-full border-gray-600 text-gray-300 hover:bg-gray-700"
+        >
+          Clear Signature
+        </Button>
       </div>
 
       {/* PAYMENT SUMMARY */}
-      <div className="bg-neonPink/10 border border-neonPink/30 rounded-lg p-4">
+      <div className="bg-neonCyan/10 border border-neonCyan/30 rounded-lg p-4">
         <h4 className="font-semibold text-white mb-3 text-center">Payment Summary</h4>
         <div className="space-y-2 text-gray-200">
           <div className="flex justify-between">
@@ -571,7 +715,7 @@ export default function RobertsHallBookingForm() {
             <span>Refundable Deposit:</span>
             <span className="font-semibold">R1,000.00</span>
           </div>
-          <div className="border-t border-neonPink/30 pt-2 mt-2 flex justify-between text-lg font-bold text-neonPink">
+          <div className="border-t border-neonCyan/30 pt-2 mt-2 flex justify-between text-lg font-bold text-neonCyan">
             <span>Total Amount:</span>
             <span>R2,500.00</span>
           </div>
@@ -590,7 +734,7 @@ export default function RobertsHallBookingForm() {
             checked={formData.termsAccepted}
             onChange={handleInputChange}
             required
-            className="mt-1 w-4 h-4 text-neonPink bg-gray-700 border-gray-600 rounded focus:ring-neonPink focus:ring-2"
+            className="mt-1 w-4 h-4 text-neonCyan bg-gray-700 border-gray-600 rounded focus:ring-neonCyan focus:ring-2"
           />
           <span className="text-sm text-gray-200">
             I accept the terms and conditions for booking Roberts Hall, including the R1,000 refundable deposit policy and event end time of 23:00. I confirm that I am a current resident of Roberts Estate.
@@ -602,7 +746,7 @@ export default function RobertsHallBookingForm() {
       <Button
         type="submit"
         disabled={isSubmitting || dateAvailable !== true}
-        className="w-full text-lg py-6 bg-gradient-to-r from-neonPink to-purple-500 hover:from-neonPink/80 hover:to-purple-500/80 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full text-lg py-6 bg-gradient-to-r from-neonCyan to-cyan-500 hover:from-neonCyan/80 hover:to-cyan-500/80 text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSubmitting ? (
           <span className="flex items-center justify-center gap-2">
