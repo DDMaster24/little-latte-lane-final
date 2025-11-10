@@ -35,7 +35,7 @@ export default function BookingsPage() {
             <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
 
               {/* CARD 1: TABLE & EVENT ENQUIRY */}
-              <div className="bg-gradient-to-br from-neonCyan/10 to-neonCyan/5 border-2 border-neonCyan/30 rounded-2xl overflow-hidden hover:border-neonCyan/50 transition-all duration-300 hover:scale-[1.02]">
+              <div className="bg-gradient-to-br from-neonCyan/20 to-neonCyan/10 backdrop-blur-sm bg-gray-900/60 border-2 border-neonCyan/30 rounded-2xl overflow-hidden hover:border-neonCyan/50 transition-all duration-300 hover:scale-[1.02]">
                 {/* Card Header */}
                 <div className="p-6 sm:p-8">
                   <div className="text-5xl sm:text-6xl mb-4 text-center">🍽️</div>
@@ -90,7 +90,7 @@ export default function BookingsPage() {
               </div>
 
               {/* CARD 2: ROBERTS HALL BOOKING */}
-              <div className="bg-gradient-to-br from-neonPink/10 to-neonPink/5 border-2 border-neonPink/30 rounded-2xl overflow-hidden hover:border-neonPink/50 transition-all duration-300 hover:scale-[1.02]">
+              <div className="bg-gradient-to-br from-neonPink/20 to-neonPink/10 backdrop-blur-sm bg-gray-900/60 border-2 border-neonPink/30 rounded-2xl overflow-hidden hover:border-neonPink/50 transition-all duration-300 hover:scale-[1.02]">
                 {/* Card Header */}
                 <div className="p-6 sm:p-8">
                   <div className="text-5xl sm:text-6xl mb-4 text-center">🏛️</div>
@@ -132,16 +132,6 @@ export default function BookingsPage() {
                       <span>Community events</span>
                     </li>
                   </ul>
-
-                  {/* Price Box */}
-                  <div className="bg-neonPink/10 border border-neonPink/50 rounded-lg p-4 mt-6">
-                    <p className="text-white font-semibold text-center mb-2">
-                      💰 Total Cost: R2,500
-                    </p>
-                    <p className="text-gray-300 text-sm text-center">
-                      R1,500 rental fee + R1,000 refundable deposit
-                    </p>
-                  </div>
                 </div>
 
                 {/* Action Button */}
