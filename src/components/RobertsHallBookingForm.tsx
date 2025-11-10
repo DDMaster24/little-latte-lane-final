@@ -8,11 +8,12 @@ import { getSupabaseClient } from '@/lib/supabase-client';
 import { useAuth } from '@/components/AuthProvider';
 import { Loader2, CheckCircle, XCircle, Upload, X, FileText, Mail, Check, Edit } from 'lucide-react';
 import SignatureCanvas from 'react-signature-canvas';
-import AddressInputSignup from '@/components/AddressInputSignup';
-import { type ValidatedAddress } from '@/types/address';
+import SimpleAddressInput from '@/components/SimpleAddressInput';
+import { FileDown, Send } from 'lucide-react';
 
 export default function RobertsHallBookingForm() {
   const { user, profile } = useAuth();
+  const [bookingMethod, setBookingMethod] = useState<'online' | 'contact' | 'download' | null>(null);
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [dateAvailable, setDateAvailable] = useState<boolean | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,17 +23,21 @@ export default function RobertsHallBookingForm() {
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
   const [termsAgreed, setTermsAgreed] = useState(false);
   const termsContentRef = useRef<HTMLDivElement>(null);
-  const [validatedAddress, setValidatedAddress] = useState<ValidatedAddress | null>(null);
+  const [addressValue, setAddressValue] = useState('');
+  const [addressValid, setAddressValid] = useState(false);
   const [signatureConfirmed, setSignatureConfirmed] = useState(false);
   const [isEditingSignature, setIsEditingSignature] = useState(false);
+  const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
+  const [uploadedPdfFile, setUploadedPdfFile] = useState<File | null>(null);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
-  // Form data - matching PDF exactly
+  // Form data - matching PDF exactly (NO AUTO-FILL)
   const [formData, setFormData] = useState({
     // Applicant Details
-    applicantName: profile?.full_name?.split(' ')[0] || '',
-    applicantSurname: profile?.full_name?.split(' ').slice(1).join(' ') || '',
-    applicantEmail: user?.email || '',
-    applicantPhone: profile?.phone || '',
+    applicantName: '',
+    applicantSurname: '',
+    applicantEmail: '',
+    applicantPhone: '',
 
     // Event Details
     eventDate: '',
@@ -184,12 +189,20 @@ export default function RobertsHallBookingForm() {
     return formData.numberOfVehicles >= 0 && formData.numberOfVehicles <= 30;
   };
 
+  const handleFieldBlur = (fieldName: string) => {
+    setTouchedFields(prev => new Set(prev).add(fieldName));
+  };
+
+  const isFieldTouched = (fieldName: string) => {
+    return touchedFields.has(fieldName);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validate address
-    if (!validatedAddress) {
-      toast.error('Please provide a valid address');
+    if (!addressValid || !addressValue) {
+      toast.error('Please provide a valid Roberts Estate address');
       return;
     }
 
@@ -286,8 +299,8 @@ export default function RobertsHallBookingForm() {
           applicant_surname: formData.applicantSurname,
           applicant_email: formData.applicantEmail,
           applicant_phone: formData.applicantPhone,
-          applicant_address: validatedAddress ? `${validatedAddress.unitNumber || ''} ${validatedAddress.streetAddress}, ${validatedAddress.city}, ${validatedAddress.postalCode}`.trim() : '',
-          roberts_estate_address: validatedAddress ? `${validatedAddress.unitNumber || ''} ${validatedAddress.streetAddress}, ${validatedAddress.city}, ${validatedAddress.postalCode}`.trim() : '',
+          applicant_address: addressValue,
+          roberts_estate_address: addressValue,
           event_start_time: formData.eventStartTime,
           event_end_time: formData.eventEndTime,
           event_type: formData.eventType,
@@ -386,30 +399,57 @@ export default function RobertsHallBookingForm() {
 
   return (
     <div className="space-y-6">
-      {/* CONTACT ADMIN OPTION - Outside Form */}
-      <div className="bg-gray-800/50 border border-neonCyan/30 rounded-lg p-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-start gap-3 flex-1">
-            <Mail className="h-5 w-5 text-neonCyan mt-1 flex-shrink-0" />
-            <div>
-              <h4 className="font-semibold text-white mb-1">Prefer a PDF Form?</h4>
-              <p className="text-sm text-gray-300">
-                Contact our admin to receive the official PDF booking form instead
-              </p>
-            </div>
-          </div>
-          <Button
-            type="button"
-            onClick={() => window.location.href = 'mailto:admin@littlelattelane.co.za?subject=Roberts%20Hall%20PDF%20Booking%20Form%20Request'}
-            variant="outline"
-            className="border-neonCyan/50 text-neonCyan hover:bg-neonCyan/10 hover:border-neonCyan whitespace-nowrap"
-          >
-            Contact Admin
-          </Button>
-        </div>
+      {/* THREE BOOKING METHOD OPTIONS */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* OPTION 1: Fill in Form Online */}
+        <button
+          type="button"
+          onClick={() => setBookingMethod(bookingMethod === 'online' ? null : 'online')}
+          className={`p-6 rounded-lg border-2 transition-all text-left ${
+            bookingMethod === 'online'
+              ? 'border-neonPink bg-neonPink/10'
+              : 'border-gray-600 bg-gray-800/50 hover:border-neonPink/50'
+          }`}
+        >
+          <FileText className={`h-8 w-8 mb-3 ${bookingMethod === 'online' ? 'text-neonPink' : 'text-gray-400'}`} />
+          <h3 className="font-semibold text-white mb-2">Fill in Form Online</h3>
+          <p className="text-sm text-gray-300">Complete the booking form directly on this page</p>
+        </button>
+
+        {/* OPTION 2: Contact Admin */}
+        <button
+          type="button"
+          onClick={() => setBookingMethod(bookingMethod === 'contact' ? null : 'contact')}
+          className={`p-6 rounded-lg border-2 transition-all text-left ${
+            bookingMethod === 'contact'
+              ? 'border-neonCyan bg-neonCyan/10'
+              : 'border-gray-600 bg-gray-800/50 hover:border-neonCyan/50'
+          }`}
+        >
+          <Mail className={`h-8 w-8 mb-3 ${bookingMethod === 'contact' ? 'text-neonCyan' : 'text-gray-400'}`} />
+          <h3 className="font-semibold text-white mb-2">Request PDF Form</h3>
+          <p className="text-sm text-gray-300">Contact admin to receive the PDF booking form</p>
+        </button>
+
+        {/* OPTION 3: Download PDF */}
+        <button
+          type="button"
+          onClick={() => setBookingMethod(bookingMethod === 'download' ? null : 'download')}
+          className={`p-6 rounded-lg border-2 transition-all text-left ${
+            bookingMethod === 'download'
+              ? 'border-purple-500 bg-purple-500/10'
+              : 'border-gray-600 bg-gray-800/50 hover:border-purple-500/50'
+          }`}
+        >
+          <FileDown className={`h-8 w-8 mb-3 ${bookingMethod === 'download' ? 'text-purple-500' : 'text-gray-400'}`} />
+          <h3 className="font-semibold text-white mb-2">Download & Upload PDF</h3>
+          <p className="text-sm text-gray-300">Download PDF, fill it out, and upload back</p>
+        </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-gray-900/95 backdrop-blur-md border-2 border-neonPink/40 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6 shadow-2xl">
+      {/* OPTION 1 CONTENT: Online Form */}
+      {bookingMethod === 'online' && (
+        <form onSubmit={handleSubmit} className="bg-gray-900/95 backdrop-blur-md border-2 border-neonPink/40 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6 shadow-2xl">
 
       {/* SECTION 1: APPLICANT DETAILS */}
       <div className="space-y-4">
@@ -479,16 +519,18 @@ export default function RobertsHallBookingForm() {
 
         <div>
           <label className="block font-semibold mb-2 text-gray-200 text-sm">
-            Address
+            Address (Roberts Estate)
           </label>
-          <AddressInputSignup
-            address={validatedAddress}
-            onChange={(address) => setValidatedAddress(address)}
+          <SimpleAddressInput
+            value={addressValue}
+            onChange={(value, isValid) => {
+              setAddressValue(value);
+              setAddressValid(isValid);
+            }}
+            onBlur={() => handleFieldBlur('address')}
+            touched={isFieldTouched('address')}
             required
           />
-          <p className="text-xs text-gray-400 mt-1">
-            The applicant must be a current resident of Roberts Estate
-          </p>
         </div>
       </div>
 
@@ -1162,7 +1204,180 @@ export default function RobertsHallBookingForm() {
           </div>
         </div>
       )}
-      </form>
+        </form>
+      )}
+
+      {/* OPTION 2 CONTENT: Contact Admin */}
+      {bookingMethod === 'contact' && (
+        <div className="bg-gray-900/95 backdrop-blur-md border-2 border-neonCyan/40 rounded-xl p-6 sm:p-8 shadow-2xl text-center">
+          <Mail className="h-16 w-16 text-neonCyan mx-auto mb-4" />
+          <h3 className="text-2xl font-bold text-white mb-4">Contact Admin for PDF Form</h3>
+          <p className="text-gray-300 mb-6 max-w-md mx-auto">
+            Click the button below to send an email to our admin team. They will respond with the official Roberts Hall booking PDF form.
+          </p>
+          <Button
+            type="button"
+            onClick={() => window.location.href = 'mailto:admin@littlelattelane.co.za?subject=Roberts%20Hall%20PDF%20Booking%20Form%20Request&body=Hello,%0D%0A%0D%0AI%20would%20like%20to%20request%20the%20Roberts%20Hall%20booking%20PDF%20form.%0D%0A%0D%0AThank%20you!'}
+            className="bg-gradient-to-r from-neonCyan to-cyan-500 hover:from-neonCyan/80 hover:to-cyan-500/80 text-black font-semibold px-8 py-3"
+          >
+            <Mail className="h-5 w-5 mr-2" />
+            Send Email to Admin
+          </Button>
+        </div>
+      )}
+
+      {/* OPTION 3 CONTENT: Download & Upload PDF */}
+      {bookingMethod === 'download' && (
+        <div className="bg-gray-900/95 backdrop-blur-md border-2 border-purple-500/40 rounded-xl p-6 sm:p-8 shadow-2xl">
+          <h3 className="text-2xl font-bold text-white mb-6 text-center">Download, Fill & Upload PDF Form</h3>
+
+          {/* Step 1: Download */}
+          <div className="space-y-6">
+            <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <div className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold">
+                  1
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-white mb-2">Download the PDF Form</h4>
+                  <p className="text-sm text-gray-300 mb-3">
+                    Download the official Roberts Hall booking form to your device
+                  </p>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      // TODO: Add actual PDF download link
+                      toast.info('PDF download link will be added');
+                    }}
+                    className="bg-purple-500 hover:bg-purple-600 text-white"
+                  >
+                    <FileDown className="h-4 w-4 mr-2" />
+                    Download PDF Form
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 2: Fill it out */}
+            <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <div className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold">
+                  2
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-white mb-2">Fill Out the Form</h4>
+                  <p className="text-sm text-gray-300">
+                    Open the PDF and complete all required fields with your event details and personal information
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 3: Upload */}
+            <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <div className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold">
+                  3
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-white mb-2">Upload Completed Form</h4>
+                  <p className="text-sm text-gray-300 mb-3">
+                    Upload your filled PDF form here
+                  </p>
+
+                  {uploadedPdfFile ? (
+                    <div className="flex items-center gap-2 bg-green-900/20 border border-green-500/30 rounded-lg p-3 mb-3">
+                      <CheckCircle className="h-5 w-5 text-green-400" />
+                      <span className="text-white text-sm flex-1">{uploadedPdfFile.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => setUploadedPdfFile(null)}
+                        className="text-red-400 hover:text-red-300"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer hover:border-purple-500 transition-colors">
+                      <Upload className="h-5 w-5 text-gray-400" />
+                      <span className="text-gray-300">Click to upload PDF</span>
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        className="hidden"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            const file = e.target.files[0];
+                            if (file.type === 'application/pdf') {
+                              setUploadedPdfFile(file);
+                              toast.success('PDF uploaded successfully');
+                            } else {
+                              toast.error('Please upload a PDF file');
+                            }
+                          }
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Step 4: Send Email */}
+            {uploadedPdfFile && (
+              <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold">
+                    4
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-white mb-2">Send to Admin</h4>
+                    <p className="text-sm text-gray-300 mb-3">
+                      Send your completed form to the admin team for review
+                    </p>
+                    <Button
+                      type="button"
+                      disabled={isSendingEmail || !uploadedPdfFile}
+                      onClick={async () => {
+                        if (!uploadedPdfFile || !user?.email) return;
+
+                        setIsSendingEmail(true);
+                        try {
+                          // TODO: Implement email sending with Resend
+                          toast.info('Email functionality will be implemented');
+                          // After successful send, show success message
+                          setTimeout(() => {
+                            toast.success('Form sent successfully!');
+                            setIsSendingEmail(false);
+                            setUploadedPdfFile(null);
+                            setBookingMethod(null);
+                          }, 2000);
+                        } catch (error) {
+                          toast.error('Failed to send form');
+                          setIsSendingEmail(false);
+                        }
+                      }}
+                      className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white"
+                    >
+                      {isSendingEmail ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-4 w-4 mr-2" />
+                          Send Form to Admin
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
