@@ -5,8 +5,6 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import NextImage from 'next/image';
-import { ChevronDown, ChevronUp } from 'lucide-react';
-import RobertsHallBookingForm from '@/components/RobertsHallBookingForm';
 
 interface ContactFormData {
   name: string;
@@ -18,12 +16,7 @@ interface ContactFormData {
   message: string;
 }
 
-export default function BookingsPage() {
-  // Collapsible sections state
-  const [tableEnquiryOpen, setTableEnquiryOpen] = useState(false);
-  const [hallBookingOpen, setHallBookingOpen] = useState(false);
-
-  // Contact form state
+export default function BookingsContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<ContactFormData>({
     name: '',
@@ -43,9 +36,9 @@ export default function BookingsPage() {
     }));
   };
 
-  const handleContactSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    
     // Basic validation
     if (!formData.name || !formData.email || !formData.message) {
       toast.error('Please fill in all required fields');
@@ -104,298 +97,250 @@ export default function BookingsPage() {
       <div className="relative z-10 safe-area-top">
         {/* Hero Section */}
         <div className="py-8 sm:py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6">
-            <h1 className="text-3xl sm:text-5xl font-bold mb-4 text-center bg-gradient-to-r from-neonCyan to-neonPink bg-clip-text text-transparent">
+          <div className="max-w-6xl mx-auto px-6">
+            <h1 className="text-3xl sm:text-5xl font-bold mb-8 text-center bg-gradient-to-r from-neonCyan to-neonPink bg-clip-text text-transparent">
               Book with Little Latte Lane
             </h1>
-            <p className="text-center text-gray-300 text-lg mb-12">
-              Choose your booking type below
+
+            {/* Two Booking Options */}
+            <div className="grid md:grid-cols-2 gap-6 sm:gap-8 mb-12">
+              {/* Option 1: Tables & Events */}
+              <div className="bg-gradient-to-br from-neonCyan/10 to-neonCyan/5 border-2 border-neonCyan/30 rounded-2xl p-6 sm:p-8 hover:border-neonCyan/50 transition-all duration-300">
+                <div className="text-center mb-4">
+                  <div className="text-5xl sm:text-6xl mb-4">🍽️</div>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-neonCyan mb-3">
+                    Tables & Events
+                  </h2>
+                  <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
+                    Book a table for dining, celebrate birthdays, host corporate gatherings, or plan any special event at our cafe.
+                  </p>
+                </div>
+                <ul className="space-y-2 text-gray-200 text-sm sm:text-base">
+                  <li className="flex items-start gap-2">
+                    <span className="text-neonCyan mt-1">✓</span>
+                    <span>General table reservations</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-neonCyan mt-1">✓</span>
+                    <span>Birthday parties & celebrations</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-neonCyan mt-1">✓</span>
+                    <span>Corporate events & meetings</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-neonCyan mt-1">✓</span>
+                    <span>Custom event planning</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Option 2: Roberts Hall */}
+              <div className="bg-gradient-to-br from-neonPink/10 to-neonPink/5 border-2 border-neonPink/30 rounded-2xl p-6 sm:p-8 hover:border-neonPink/50 transition-all duration-300">
+                <div className="text-center mb-4">
+                  <div className="text-5xl sm:text-6xl mb-4">🏛️</div>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-neonPink mb-3">
+                    Roberts Hall
+                  </h2>
+                  <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
+                    Reserve the exclusive Roberts Hall for weddings, large gatherings, conferences, and major events.
+                  </p>
+                </div>
+                <ul className="space-y-2 text-gray-200 text-sm sm:text-base">
+                  <li className="flex items-start gap-2">
+                    <span className="text-neonPink mt-1">✓</span>
+                    <span>Weddings & receptions</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-neonPink mt-1">✓</span>
+                    <span>Large private functions</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-neonPink mt-1">✓</span>
+                    <span>Conferences & seminars</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-neonPink mt-1">✓</span>
+                    <span>Community events</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <p className="text-center text-lg sm:text-xl text-gray-200">
+              Fill out the form below to send us your booking inquiry!
             </p>
+          </div>
+        </div>
 
-            {/* Two Collapsible Sections Side by Side */}
-            <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-12">
+          <div className="bg-gray-800/90 backdrop-blur-lg p-6 sm:p-8 rounded-xl shadow-2xl border border-neonCyan/30">
+            <h2 className="text-2xl font-semibold mb-6 text-white text-center">
+              Send Us Your Booking Inquiry
+            </h2>
 
-              {/* SECTION 1: TABLE & EVENT ENQUIRY */}
-              <div className="bg-gradient-to-br from-neonCyan/10 to-neonCyan/5 border-2 border-neonCyan/30 rounded-2xl overflow-hidden hover:border-neonCyan/50 transition-all duration-300">
-                {/* Header - Always Visible */}
-                <button
-                  onClick={() => {
-                    setTableEnquiryOpen(!tableEnquiryOpen);
-                    if (!tableEnquiryOpen) setHallBookingOpen(false); // Close other section
-                  }}
-                  className="w-full p-6 sm:p-8 text-left hover:bg-neonCyan/5 transition-all duration-200"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="text-5xl sm:text-6xl mb-4">🍽️</div>
-                      <h2 className="text-2xl sm:text-3xl font-bold text-neonCyan mb-3">
-                        Tables & Events
-                      </h2>
-                      <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-4">
-                        Book a table for dining, celebrate birthdays, host corporate gatherings, or plan any special event at our cafe.
-                      </p>
-                      <ul className="space-y-2 text-gray-200 text-sm sm:text-base">
-                        <li className="flex items-start gap-2">
-                          <span className="text-neonCyan mt-1">✓</span>
-                          <span>General table reservations</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-neonCyan mt-1">✓</span>
-                          <span>Birthday parties & celebrations</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-neonCyan mt-1">✓</span>
-                          <span>Corporate events & meetings</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-neonCyan mt-1">✓</span>
-                          <span>Custom event planning</span>
-                        </li>
-                      </ul>
-                    </div>
-                    <div className="ml-4 flex-shrink-0">
-                      {tableEnquiryOpen ? (
-                        <ChevronUp className="h-6 w-6 text-neonCyan" />
-                      ) : (
-                        <ChevronDown className="h-6 w-6 text-neonCyan" />
-                      )}
-                    </div>
-                  </div>
-                  {!tableEnquiryOpen && (
-                    <div className="mt-4 text-center">
-                      <span className="text-neonCyan font-semibold text-sm">
-                        Click to open booking form →
-                      </span>
-                    </div>
-                  )}
-                </button>
-
-                {/* Collapsible Content - Contact Form */}
-                {tableEnquiryOpen && (
-                  <div className="px-6 sm:px-8 pb-8 border-t border-neonCyan/20">
-                    <div className="mt-6 bg-gray-800/80 backdrop-blur-lg p-6 rounded-xl">
-                      <h3 className="text-xl font-semibold mb-6 text-white text-center">
-                        Send Us Your Booking Inquiry
-                      </h3>
-
-                      <form onSubmit={handleContactSubmit} className="space-y-4">
-                        {/* Personal Information */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block font-semibold mb-2 text-gray-200 text-sm">
-                              Full Name *
-                            </label>
-                            <Input
-                              type="text"
-                              name="name"
-                              value={formData.name}
-                              onChange={handleInputChange}
-                              required
-                              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan"
-                              placeholder="Enter your full name"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block font-semibold mb-2 text-gray-200 text-sm">
-                              Email Address *
-                            </label>
-                            <Input
-                              type="email"
-                              name="email"
-                              value={formData.email}
-                              onChange={handleInputChange}
-                              required
-                              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan"
-                              placeholder="your@email.com"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Contact & Date */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block font-semibold mb-2 text-gray-200 text-sm">
-                              Phone Number
-                            </label>
-                            <Input
-                              type="tel"
-                              name="phone"
-                              value={formData.phone}
-                              onChange={handleInputChange}
-                              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan"
-                              placeholder="(optional)"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block font-semibold mb-2 text-gray-200 text-sm">
-                              Preferred Date
-                            </label>
-                            <Input
-                              type="date"
-                              name="preferredDate"
-                              value={formData.preferredDate}
-                              onChange={handleInputChange}
-                              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan"
-                              min={new Date().toISOString().split('T')[0]}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Event Details */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block font-semibold mb-2 text-gray-200 text-sm">
-                              Amount of People
-                            </label>
-                            <Input
-                              type="number"
-                              name="partySize"
-                              value={formData.partySize}
-                              onChange={handleInputChange}
-                              min={1}
-                              max={50}
-                              className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block font-semibold mb-2 text-gray-200 text-sm">
-                              Type of Booking
-                            </label>
-                            <select
-                              name="eventType"
-                              value={formData.eventType}
-                              onChange={handleInputChange}
-                              className="w-full p-3 rounded-lg bg-gray-700/80 text-white border border-gray-600 focus:border-neonCyan focus:ring-2 focus:ring-neonCyan/20"
-                            >
-                              <option value="general">General Table Booking</option>
-                              <option value="birthday">Birthday Party</option>
-                              <option value="corporate">Corporate Event</option>
-                              <option value="other">Other Event</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        {/* Message */}
-                        <div>
-                          <label className="block font-semibold mb-2 text-gray-200 text-sm">
-                            Message & Special Requests *
-                          </label>
-                          <textarea
-                            name="message"
-                            value={formData.message}
-                            onChange={handleInputChange}
-                            required
-                            rows={4}
-                            className="w-full p-4 rounded-lg bg-gray-700/80 text-white border border-gray-600 focus:border-neonCyan focus:ring-2 focus:ring-neonCyan/20 resize-vertical"
-                            placeholder="Tell us about your booking needs..."
-                          />
-                        </div>
-
-                        {/* Submit Button */}
-                        <Button
-                          type="submit"
-                          disabled={isSubmitting}
-                          className="w-full text-lg py-3 bg-gradient-to-r from-neonCyan to-neonCyan/80 hover:from-neonCyan/80 hover:to-neonCyan/60 text-black font-semibold disabled:opacity-50"
-                        >
-                          {isSubmitting ? (
-                            <span className="flex items-center justify-center gap-2">
-                              <div className="animate-spin w-5 h-5 border-2 border-black border-t-transparent rounded-full"></div>
-                              Sending...
-                            </span>
-                          ) : (
-                            '📧 Send Booking Inquiry'
-                          )}
-                        </Button>
-                      </form>
-
-                      {/* Contact Info */}
-                      <div className="mt-6 pt-6 border-t border-gray-600 text-center">
-                        <p className="text-sm text-gray-300">
-                          📧 admin@littlelattelane.co.za • ⏰ We&apos;ll respond within 24 hours
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Personal Information Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                <div>
+                  <label className="block font-semibold mb-2 text-gray-200">
+                    Full Name *
+                  </label>
+                  <Input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                    className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan"
+                    placeholder="Enter your full name"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block font-semibold mb-2 text-gray-200">
+                    Email Address *
+                  </label>
+                  <Input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan"
+                    placeholder="your@email.com"
+                  />
+                </div>
               </div>
 
-              {/* SECTION 2: ROBERTS HALL BOOKING */}
-              <div className="bg-gradient-to-br from-neonPink/10 to-neonPink/5 border-2 border-neonPink/30 rounded-2xl overflow-hidden hover:border-neonPink/50 transition-all duration-300">
-                {/* Header - Always Visible */}
-                <button
-                  onClick={() => {
-                    setHallBookingOpen(!hallBookingOpen);
-                    if (!hallBookingOpen) setTableEnquiryOpen(false); // Close other section
-                  }}
-                  className="w-full p-6 sm:p-8 text-left hover:bg-neonPink/5 transition-all duration-200"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="text-5xl sm:text-6xl mb-4">🏛️</div>
-                      <h2 className="text-2xl sm:text-3xl font-bold text-neonPink mb-3">
-                        Roberts Hall
-                      </h2>
-                      <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-4">
-                        Reserve the exclusive Roberts Hall for weddings, large gatherings, conferences, and major events.
-                      </p>
-                      <ul className="space-y-2 text-gray-200 text-sm sm:text-base mb-6">
-                        <li className="flex items-start gap-2">
-                          <span className="text-neonPink mt-1">✓</span>
-                          <span>Weddings & receptions</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-neonPink mt-1">✓</span>
-                          <span>Large private functions (up to 50 guests)</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-neonPink mt-1">✓</span>
-                          <span>Conferences & seminars</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-neonPink mt-1">✓</span>
-                          <span>Community events</span>
-                        </li>
-                      </ul>
-
-                      <div className="bg-neonPink/10 border border-neonPink/50 rounded-lg p-4">
-                        <p className="text-white font-semibold text-center mb-2">
-                          💰 Total Cost: R2,500
-                        </p>
-                        <p className="text-gray-300 text-sm text-center">
-                          R1,500 rental fee + R1,000 refundable deposit
-                        </p>
-                      </div>
-                    </div>
-                    <div className="ml-4 flex-shrink-0">
-                      {hallBookingOpen ? (
-                        <ChevronUp className="h-6 w-6 text-neonPink" />
-                      ) : (
-                        <ChevronDown className="h-6 w-6 text-neonPink" />
-                      )}
-                    </div>
-                  </div>
-                  {!hallBookingOpen && (
-                    <div className="mt-4 text-center">
-                      <span className="text-neonPink font-semibold text-sm">
-                        Click to check availability & book online →
-                      </span>
-                    </div>
-                  )}
-                </button>
-
-                {/* Collapsible Content - Hall Booking Form */}
-                {hallBookingOpen && (
-                  <div className="px-6 sm:px-8 pb-8 border-t border-neonPink/20">
-                    <div className="mt-6">
-                      <RobertsHallBookingForm />
-                    </div>
-                  </div>
-                )}
+              {/* Contact & Date Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                <div>
+                  <label className="block font-semibold mb-2 text-gray-200">
+                    Phone Number
+                  </label>
+                  <Input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan"
+                    placeholder="(optional)"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block font-semibold mb-2 text-gray-200">
+                    Preferred Date
+                  </label>
+                  <Input
+                    type="date"
+                    name="preferredDate"
+                    value={formData.preferredDate}
+                    onChange={handleInputChange}
+                    className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan"
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
               </div>
 
+              {/* Event Details Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                <div>
+                  <label className="block font-semibold mb-2 text-gray-200">
+                    Amount of People
+                  </label>
+                  <Input
+                    type="number"
+                    name="partySize"
+                    value={formData.partySize}
+                    onChange={handleInputChange}
+                    min={1}
+                    max={50}
+                    className="bg-gray-700/80 border-gray-600 text-white focus:border-neonCyan"
+                  />
+                  <p className="text-sm text-gray-300 mt-1">
+                    How many people?
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block font-semibold mb-2 text-gray-200">
+                    Type of Booking
+                  </label>
+                  <select
+                    name="eventType"
+                    value={formData.eventType}
+                    onChange={handleInputChange}
+                    className="w-full p-3 rounded-lg bg-gray-700/80 text-white border border-gray-600 focus:border-neonCyan focus:ring-2 focus:ring-neonCyan/20"
+                  >
+                    <option value="general">General Table Booking</option>
+                    <option value="birthday">Birthday Party</option>
+                    <option value="corporate">Corporate Event</option>
+                    <option value="hall">Roberts Hall Booking</option>
+                    <option value="other">Other Event</option>
+                  </select>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Select Roberts Hall for weddings, large functions, or conferences
+                  </p>
+                </div>
+              </div>
+
+              {/* Message */}
+              <div>
+                <label className="block font-semibold mb-2 text-gray-200">
+                  Message & Special Requests *
+                </label>
+                <textarea
+                  name="message"
+                  value={formData.message}
+                  onChange={handleInputChange}
+                  required
+                  rows={5}
+                  className="w-full p-4 rounded-lg bg-gray-700/80 text-white border border-gray-600 focus:border-neonCyan focus:ring-2 focus:ring-neonCyan/20 resize-vertical"
+                  placeholder="Tell us about your booking needs, preferred time, special dietary requirements, decorations, or any other details..."
+                />
+                <p className="text-sm text-gray-300 mt-2">
+                  Please include your preferred time, any special requirements, and other relevant details.
+                </p>
+              </div>
+
+              {/* Submit Button */}
+              <div className="pt-4">
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full text-lg py-4 bg-gradient-to-r from-neonPink to-neonCyan hover:from-neonPink/80 hover:to-neonCyan/80 text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="animate-spin w-5 h-5 border-2 border-black border-t-transparent rounded-full"></div>
+                      Sending...
+                    </span>
+                  ) : (
+                    '📧 Send Booking Inquiry'
+                  )}
+                </Button>
+              </div>
+            </form>
+
+            {/* Contact Information */}
+            <div className="mt-8 pt-8 border-t border-gray-600">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-white mb-4">
+                  Prefer to contact us directly?
+                </h3>
+                <div className="flex flex-col sm:flex-row justify-center items-center gap-4 text-gray-300">
+                  <div className="flex items-center gap-2">
+                    <span>📧</span>
+                    <span>admin@littlelattelane.co.za</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>⏰</span>
+                    <span>We&apos;ll respond within 24 hours</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
