@@ -74,6 +74,7 @@ export default function AccountPage() {
   const router = useRouter();
   const { loadOrderToCart } = useCartStore();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [hallBookings, setHallBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('active');
@@ -182,8 +183,23 @@ export default function AccountPage() {
 
         console.log('✅ Account Page: Orders fetched:', orderData?.length || 0);
         console.log('📋 Account Page: Order details:', orderData?.slice(0, 3));
-        
+
         setOrders((orderData as unknown as Order[]) || []);
+
+        // Fetch hall bookings
+        const { data: bookingsData, error: bookingsError } = await supabase
+          .from('hall_bookings')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (bookingsError) {
+          console.error('❌ Account Page: Error fetching hall bookings:', bookingsError);
+        } else {
+          console.log('✅ Account Page: Hall bookings fetched:', bookingsData?.length || 0);
+          setHallBookings(bookingsData || []);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
         toast.error('Failed to load account data');
@@ -443,6 +459,7 @@ export default function AccountPage() {
           {[
             { id: 'active', label: 'Active Orders', icon: Clock, shortLabel: 'Active' },
             { id: 'drafts', label: 'Draft Orders', icon: Edit2, shortLabel: 'Drafts' },
+            { id: 'hall-bookings', label: 'Hall Bookings', icon: MapPin, shortLabel: 'Hall' },
             { id: 'profile', label: 'My Profile', icon: User, shortLabel: 'Profile' },
             { id: 'notifications', label: 'Notifications', icon: Bell, shortLabel: 'Notify' },
             { id: 'orders', label: 'Order History', icon: Receipt, shortLabel: 'History' },
@@ -749,6 +766,142 @@ export default function AccountPage() {
             </CardContent>
           </Card>
         )}
+        {activeTab === 'hall-bookings' && (
+          <Card className="bg-gray-800 border-gray-600">
+            <CardHeader>
+              <CardTitle className="text-neonPink flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Roberts Hall Bookings
+              </CardTitle>
+              <CardDescription>
+                View and manage your Roberts Hall bookings
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {hallBookings.length === 0 ? (
+                <div className="text-center py-12">
+                  <MapPin className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-400 mb-2">No hall bookings yet</p>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Book Roberts Hall for your special event
+                  </p>
+                  <Button
+                    onClick={() => router.push('/bookings/hall')}
+                    className="bg-gradient-to-r from-neonPink to-purple-500 text-white"
+                  >
+                    Book Roberts Hall
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {hallBookings.map((booking) => {
+                    const getBookingStatusColor = (status: string) => {
+                      switch (status.toLowerCase()) {
+                        case 'confirmed':
+                          return 'bg-green-500 text-green-50';
+                        case 'pending_payment':
+                          return 'bg-yellow-500 text-yellow-50';
+                        case 'payment_processing':
+                          return 'bg-blue-500 text-blue-50';
+                        case 'cancelled':
+                          return 'bg-red-500 text-red-50';
+                        default:
+                          return 'bg-gray-500 text-gray-50';
+                      }
+                    };
+
+                    return (
+                      <div
+                        key={booking.id}
+                        className="border-2 border-neonPink/30 bg-neonPink/10 rounded-lg p-4 space-y-3"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-semibold text-white text-lg">
+                              {booking.event_type || 'Event Booking'}
+                            </h4>
+                            <p className="text-sm text-gray-400">
+                              Booking Ref: {booking.booking_reference}
+                            </p>
+                            <p className="text-sm text-gray-400">
+                              {new Date(booking.event_date).toLocaleDateString('en-ZA', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <Badge className={`${getBookingStatusColor(booking.status || 'pending')} mb-2`}>
+                              {booking.status === 'pending_payment' ? 'Awaiting Payment' :
+                               booking.status === 'payment_processing' ? 'Processing' :
+                               booking.status ? booking.status.charAt(0).toUpperCase() + booking.status.slice(1) : 'Unknown'}
+                            </Badge>
+                            <p className="text-lg font-bold text-white">
+                              R{booking.total_amount?.toFixed(2) || '0.00'}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Booking Details */}
+                        <div className="grid grid-cols-2 gap-3 bg-gray-700/50 p-3 rounded">
+                          <div>
+                            <p className="text-xs text-gray-400">Start Time</p>
+                            <p className="text-sm text-white">{booking.event_start_time}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-400">End Time</p>
+                            <p className="text-sm text-white">{booking.event_end_time}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-400">Guests</p>
+                            <p className="text-sm text-white">{booking.total_guests} people</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-400">Vehicles</p>
+                            <p className="text-sm text-white">{booking.number_of_vehicles} vehicles</p>
+                          </div>
+                        </div>
+
+                        {/* Payment Breakdown */}
+                        <div className="bg-neonPink/5 border border-neonPink/20 p-3 rounded">
+                          <p className="text-xs font-semibold text-neonPink mb-2">Payment Breakdown</p>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">Rental Fee:</span>
+                              <span className="text-white">R{booking.rental_fee?.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">Deposit:</span>
+                              <span className="text-white">R{booking.deposit_amount?.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between font-bold border-t border-neonPink/20 pt-1 mt-1">
+                              <span className="text-neonPink">Total:</span>
+                              <span className="text-neonPink">R{booking.total_amount?.toFixed(2)}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        {booking.status === 'confirmed' && (
+                          <div className="flex items-center gap-2 bg-green-900/20 border border-green-500/30 p-3 rounded">
+                            <CheckCircle className="h-5 w-5 text-green-400" />
+                            <div className="flex-1">
+                              <p className="text-sm font-semibold text-green-400">Booking Confirmed!</p>
+                              <p className="text-xs text-gray-300">We'll see you on {new Date(booking.event_date).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {activeTab === 'profile' && (
           <Card className="bg-gray-800 border-gray-600">
             <CardHeader>

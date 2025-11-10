@@ -11,7 +11,7 @@ import { checkRateLimit, getClientIdentifier, RateLimitPresets, getRateLimitHead
 interface HallBookingCheckoutRequest {
   bookingId: string;
   userId: string;
-  amount: number; // Should always be 2500 (R1,500 rental + R1,000 deposit)
+  amount: number; // Temporarily set to 20 for testing (normally 2500: R1,500 rental + R1,000 deposit)
   userDetails: {
     email: string;
     firstName: string;
@@ -61,8 +61,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // SECURITY: Validate payment amount (must be exactly R2,500)
-    const HALL_BOOKING_AMOUNT = 2500;
+    // SECURITY: Validate payment amount (TEMPORARILY SET TO R20 FOR TESTING - normally R2,500)
+    const HALL_BOOKING_AMOUNT = 20; // TODO: Change back to 2500 for production
 
     if (typeof amount !== 'number' || isNaN(amount)) {
       return NextResponse.json(
