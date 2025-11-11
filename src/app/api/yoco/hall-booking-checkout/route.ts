@@ -61,8 +61,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // SECURITY: Validate payment amount (TEMPORARILY SET TO R20 FOR TESTING - normally R2,500)
-    const HALL_BOOKING_AMOUNT = 20; // TODO: Change back to 2500 for production
+    // SECURITY: Validate payment amount - R2,500 total (R1,500 rental + R1,000 deposit)
+    const HALL_BOOKING_AMOUNT = 2500; // Production amount
 
     if (typeof amount !== 'number' || isNaN(amount)) {
       return NextResponse.json(

@@ -335,9 +335,9 @@ export default function RobertsHallBookingForm() {
           bank_account_number: formData.accountNumber,
           proof_of_payment_url: bankProofUrl,
           status: 'pending_payment',
-          total_amount: 20,
-          rental_fee: 12,
-          deposit_amount: 8,
+          total_amount: 2500,
+          rental_fee: 1500,
+          deposit_amount: 1000,
           booking_reference: bookingReference,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -373,7 +373,7 @@ export default function RobertsHallBookingForm() {
         body: JSON.stringify({
           bookingId: booking.id,
           userId: user.id,
-          amount: 20,
+          amount: 2500,
           userDetails: {
             email: formData.applicantEmail,
             firstName: formData.applicantName,
@@ -922,15 +922,15 @@ export default function RobertsHallBookingForm() {
         <div className="space-y-2 text-gray-200">
           <div className="flex justify-between">
             <span>Hall Rental Fee:</span>
-            <span className="font-semibold">R12.00</span>
+            <span className="font-semibold">R1,500.00</span>
           </div>
           <div className="flex justify-between">
             <span>Refundable Deposit:</span>
-            <span className="font-semibold">R8.00</span>
+            <span className="font-semibold">R1,000.00</span>
           </div>
           <div className="border-t border-neonCyan/30 pt-2 mt-2 flex justify-between text-lg font-bold text-neonCyan">
             <span>Total Amount:</span>
-            <span>R20.00</span>
+            <span>R2,500.00</span>
           </div>
         </div>
         <p className="text-xs text-gray-400 mt-3 text-center">
@@ -1062,7 +1062,7 @@ export default function RobertsHallBookingForm() {
         ) : !termsAgreed ? (
           'Read & Accept Terms to Continue'
         ) : (
-          'Proceed to Payment (R20)'
+          'Proceed to Payment (R2,500)'
         )}
       </Button>
 
