@@ -1332,9 +1332,6 @@ export default function RobertsHallBookingForm() {
                     <FileDown className="h-4 w-4 mr-2" />
                     Download PDF Form
                   </Button>
-                  <p className="text-xs text-yellow-400 mt-2">
-                    Note: PDF form needs to be added to public folder (/roberts-hall-booking-form.pdf)
-                  </p>
                 </div>
               </div>
             </div>
