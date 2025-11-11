@@ -278,9 +278,9 @@ export async function POST(request: NextRequest) {
         event.type.includes('succeeded') ||
         event.type.includes('completed')
       ) {
-        // Payment successful
-        newBookingStatus = 'confirmed';
-        logger.info('Hall booking payment successful', { bookingId });
+        // Payment successful - set to pending_approval (admin must approve)
+        newBookingStatus = 'pending_approval';
+        logger.info('Hall booking payment successful - awaiting admin approval', { bookingId });
       } else if (
         event.type.includes('cancelled') ||
         event.type.includes('failed') ||

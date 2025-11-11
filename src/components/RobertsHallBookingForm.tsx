@@ -463,14 +463,14 @@ export default function RobertsHallBookingForm() {
           className={`relative p-6 rounded-lg border-2 transition-all text-left overflow-hidden ${
             bookingMethod === 'online'
               ? 'border-neonPink bg-gradient-to-br from-neonPink/20 to-purple-500/10 shadow-lg shadow-neonPink/30'
-              : 'border-gray-600 bg-gray-900/90 hover:border-neonPink/50 hover:shadow-md hover:shadow-neonPink/20'
+              : 'border-neonPink/60 bg-gray-900/90 hover:border-neonPink hover:shadow-md hover:shadow-neonPink/20'
           }`}
         >
           {bookingMethod === 'online' && (
             <div className="absolute inset-0 bg-gradient-to-br from-neonPink/10 via-transparent to-purple-500/10 pointer-events-none" />
           )}
           <div className="relative z-10">
-            <FileText className={`h-8 w-8 mb-3 ${bookingMethod === 'online' ? 'text-neonPink' : 'text-gray-400'}`} />
+            <FileText className={`h-8 w-8 mb-3 ${bookingMethod === 'online' ? 'text-neonPink' : 'text-neonPink/80'}`} />
             <h3 className="font-semibold text-white mb-2">Fill in Form Online</h3>
             <p className="text-sm text-gray-300">Complete the booking form directly on this page</p>
           </div>
@@ -483,14 +483,14 @@ export default function RobertsHallBookingForm() {
           className={`relative p-6 rounded-lg border-2 transition-all text-left overflow-hidden ${
             bookingMethod === 'contact'
               ? 'border-neonCyan bg-gradient-to-br from-neonCyan/20 to-blue-500/10 shadow-lg shadow-neonCyan/30'
-              : 'border-gray-600 bg-gray-900/90 hover:border-neonCyan/50 hover:shadow-md hover:shadow-neonCyan/20'
+              : 'border-neonCyan/60 bg-gray-900/90 hover:border-neonCyan hover:shadow-md hover:shadow-neonCyan/20'
           }`}
         >
           {bookingMethod === 'contact' && (
             <div className="absolute inset-0 bg-gradient-to-br from-neonCyan/10 via-transparent to-blue-500/10 pointer-events-none" />
           )}
           <div className="relative z-10">
-            <Mail className={`h-8 w-8 mb-3 ${bookingMethod === 'contact' ? 'text-neonCyan' : 'text-gray-400'}`} />
+            <Mail className={`h-8 w-8 mb-3 ${bookingMethod === 'contact' ? 'text-neonCyan' : 'text-neonCyan/80'}`} />
             <h3 className="font-semibold text-white mb-2">Request PDF Form</h3>
             <p className="text-sm text-gray-300">Contact admin to receive the PDF booking form</p>
           </div>
@@ -503,14 +503,14 @@ export default function RobertsHallBookingForm() {
           className={`relative p-6 rounded-lg border-2 transition-all text-left overflow-hidden ${
             bookingMethod === 'download'
               ? 'border-purple-500 bg-gradient-to-br from-purple-500/20 to-pink-500/10 shadow-lg shadow-purple-500/30'
-              : 'border-gray-600 bg-gray-900/90 hover:border-purple-500/50 hover:shadow-md hover:shadow-purple-500/20'
+              : 'border-purple-500/60 bg-gray-900/90 hover:border-purple-500 hover:shadow-md hover:shadow-purple-500/20'
           }`}
         >
           {bookingMethod === 'download' && (
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-pink-500/10 pointer-events-none" />
           )}
           <div className="relative z-10">
-            <FileDown className={`h-8 w-8 mb-3 ${bookingMethod === 'download' ? 'text-purple-500' : 'text-gray-400'}`} />
+            <FileDown className={`h-8 w-8 mb-3 ${bookingMethod === 'download' ? 'text-purple-500' : 'text-purple-500/80'}`} />
             <h3 className="font-semibold text-white mb-2">Download & Upload PDF</h3>
             <p className="text-sm text-gray-300">Download PDF, fill it out, and upload back</p>
           </div>

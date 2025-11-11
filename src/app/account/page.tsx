@@ -186,12 +186,12 @@ export default function AccountPage() {
 
         setOrders((orderData as unknown as Order[]) || []);
 
-        // Fetch hall bookings (only confirmed/paid bookings)
+        // Fetch hall bookings (show paid bookings: pending_approval, confirmed)
         const { data: bookingsData, error: bookingsError } = await supabase
           .from('hall_bookings')
           .select('*')
           .eq('user_id', session.user.id)
-          .in('status', ['confirmed', 'paid'])
+          .in('status', ['pending_approval', 'confirmed'])
           .order('created_at', { ascending: false })
           .limit(10);
 
@@ -800,6 +800,8 @@ export default function AccountPage() {
                       switch (status.toLowerCase()) {
                         case 'confirmed':
                           return 'bg-green-500 text-green-50';
+                        case 'pending_approval':
+                          return 'bg-orange-500 text-orange-50';
                         case 'pending_payment':
                           return 'bg-yellow-500 text-yellow-50';
                         case 'payment_processing':
@@ -808,6 +810,23 @@ export default function AccountPage() {
                           return 'bg-red-500 text-red-50';
                         default:
                           return 'bg-gray-500 text-gray-50';
+                      }
+                    };
+
+                    const getBookingStatusLabel = (status: string) => {
+                      switch (status.toLowerCase()) {
+                        case 'confirmed':
+                          return 'Confirmed';
+                        case 'pending_approval':
+                          return 'Being Verified';
+                        case 'pending_payment':
+                          return 'Awaiting Payment';
+                        case 'payment_processing':
+                          return 'Processing';
+                        case 'cancelled':
+                          return 'Cancelled';
+                        default:
+                          return status.charAt(0).toUpperCase() + status.slice(1);
                       }
                     };
 
@@ -835,9 +854,7 @@ export default function AccountPage() {
                           </div>
                           <div className="text-right">
                             <Badge className={`${getBookingStatusColor(booking.status || 'pending')} mb-2`}>
-                              {booking.status === 'pending_payment' ? 'Awaiting Payment' :
-                               booking.status === 'payment_processing' ? 'Processing' :
-                               booking.status ? booking.status.charAt(0).toUpperCase() + booking.status.slice(1) : 'Unknown'}
+                              {getBookingStatusLabel(booking.status || 'pending')}
                             </Badge>
                             <p className="text-lg font-bold text-white">
                               R{booking.total_amount?.toFixed(2) || '0.00'}
@@ -883,6 +900,35 @@ export default function AccountPage() {
                             </div>
                           </div>
                         </div>
+
+                        {/* Documents */}
+                        {(booking.proof_of_payment_url || booking.id) && (
+                          <div className="bg-gray-700/30 border border-gray-600/50 p-3 rounded">
+                            <p className="text-xs font-semibold text-neonCyan mb-2">Documents</p>
+                            <div className="flex flex-wrap gap-2">
+                              {booking.proof_of_payment_url && (
+                                <a
+                                  href={booking.proof_of_payment_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-3 py-2 rounded text-sm transition-colors"
+                                >
+                                  <FileText className="h-4 w-4" />
+                                  Bank Proof
+                                </a>
+                              )}
+                              <button
+                                onClick={() => {
+                                  toast.info('Form PDF viewing coming soon');
+                                }}
+                                className="flex items-center gap-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 px-3 py-2 rounded text-sm transition-colors"
+                              >
+                                <FileText className="h-4 w-4" />
+                                View Signed Form
+                              </button>
+                            </div>
+                          </div>
+                        )}
 
                         {/* Action Buttons */}
                         {booking.status === 'confirmed' && (
