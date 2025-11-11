@@ -10,7 +10,7 @@ import {
 
 // Tab Components
 import OrderManagement from '@/components/Admin/OrderManagement';
-import MenuManagementImproved from '@/components/Admin/MenuManagementImproved';
+import EnhancedMenuManagement from '@/components/Admin/EnhancedMenuManagement';
 import AnalyticsDashboard from '@/components/Admin/AnalyticsDashboard';
 import UserManagement from '@/components/Admin/UserManagement';
 import BookingManagement from '@/components/Admin/BookingManagement';
@@ -129,7 +129,7 @@ export default function AdminPage() {
           </div>
         );
       case 'menu':
-        return <MenuManagementImproved />;
+        return <EnhancedMenuManagement />;
       case 'notifications':
         return <AdminNotificationsTab />;
       case 'orders':

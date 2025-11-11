@@ -28,29 +28,436 @@ export async function updateOrderStatus(orderId: string, status: string) {
   }
 }
 
-// Stub implementations for menu management
-export async function createMenuCategory(_categoryData: Record<string, unknown>) {
-  return { success: false, message: 'Menu management moved to React Bricks CMS' };
+// ============================================================================
+// Menu Management Actions - Categories, Items, Variations, Add-ons
+// ============================================================================
+
+// Category Management
+export async function createMenuCategory(categoryData: {
+  name: string;
+  description?: string | null;
+  display_order?: number | null;
+  is_active?: boolean | null;
+}) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from('menu_categories')
+      .insert(categoryData)
+      .select()
+      .single();
+
+    if (error) throw error;
+    console.log('✅ Created menu category:', data.name);
+    return { success: true, data, message: 'Category created successfully' };
+  } catch (error) {
+    console.error('❌ Error creating category:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to create category'
+    };
+  }
 }
 
-export async function updateMenuCategory(_id: string, _categoryData: Record<string, unknown>) {
-  return { success: false, message: 'Menu management moved to React Bricks CMS' };
+export async function updateMenuCategory(id: string, categoryData: Partial<{
+  name: string;
+  description: string | null;
+  display_order: number | null;
+  is_active: boolean | null;
+}>) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from('menu_categories')
+      .update(categoryData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    console.log('✅ Updated menu category:', data.name);
+    return { success: true, data, message: 'Category updated successfully' };
+  } catch (error) {
+    console.error('❌ Error updating category:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to update category'
+    };
+  }
 }
 
-export async function deleteMenuCategory(_id: string) {
-  return { success: false, message: 'Menu management moved to React Bricks CMS' };
+export async function deleteMenuCategory(id: string) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const { error } = await supabase
+      .from('menu_categories')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    console.log('✅ Deleted menu category');
+    return { success: true, message: 'Category deleted successfully' };
+  } catch (error) {
+    console.error('❌ Error deleting category:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to delete category'
+    };
+  }
 }
 
-export async function createMenuItem(_menuItem: Record<string, unknown>) {
-  return { success: false, message: 'Menu management moved to React Bricks CMS' };
+// Menu Item Management
+export async function createMenuItem(menuItem: {
+  name: string;
+  description?: string | null;
+  price: number;
+  category_id?: string | null;
+  is_available?: boolean | null;
+  image_url?: string | null;
+}) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from('menu_items')
+      .insert(menuItem)
+      .select()
+      .single();
+
+    if (error) throw error;
+    console.log('✅ Created menu item:', data.name);
+    return { success: true, data, message: 'Menu item created successfully' };
+  } catch (error) {
+    console.error('❌ Error creating menu item:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to create menu item'
+    };
+  }
 }
 
-export async function updateMenuItem(_id: string, _menuItem: Record<string, unknown>) {
-  return { success: false, message: 'Menu management moved to React Bricks CMS' };
+export async function updateMenuItem(id: string, menuItem: Partial<{
+  name: string;
+  description: string | null;
+  price: number;
+  category_id: string | null;
+  is_available: boolean | null;
+  image_url: string | null;
+}>) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from('menu_items')
+      .update(menuItem)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    console.log('✅ Updated menu item:', data.name);
+    return { success: true, data, message: 'Menu item updated successfully' };
+  } catch (error) {
+    console.error('❌ Error updating menu item:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to update menu item'
+    };
+  }
 }
 
-export async function deleteMenuItem(_id: string) {
-  return { success: false, message: 'Menu management moved to React Bricks CMS' };
+export async function deleteMenuItem(id: string) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const { error } = await supabase
+      .from('menu_items')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    console.log('✅ Deleted menu item');
+    return { success: true, message: 'Menu item deleted successfully' };
+  } catch (error) {
+    console.error('❌ Error deleting menu item:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to delete menu item'
+    };
+  }
+}
+
+// ============================================================================
+// Item Variations Management (Small/Medium/Large, etc.)
+// ============================================================================
+
+export async function createItemVariation(variationData: {
+  menu_item_id: string;
+  name: string;
+  price_adjustment: number;
+  is_default?: boolean;
+  display_order?: number;
+  is_available?: boolean;
+}) {
+  try {
+    const supabase = getSupabaseAdmin();
+
+    // If this is set as default, unset other defaults for this item
+    if (variationData.is_default) {
+      await (supabase as any)
+        .from('menu_item_variations')
+        .update({ is_default: false })
+        .eq('menu_item_id', variationData.menu_item_id);
+    }
+
+    const { data, error } = await (supabase as any)
+      .from('menu_item_variations')
+      .insert(variationData)
+      .select()
+      .single();
+
+    if (error) throw error;
+    console.log('✅ Created item variation:', data.name);
+    return { success: true, data, message: 'Variation created successfully' };
+  } catch (error) {
+    console.error('❌ Error creating variation:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to create variation'
+    };
+  }
+}
+
+export async function updateItemVariation(id: string, variationData: Partial<{
+  name: string;
+  price_adjustment: number;
+  is_default: boolean | null;
+  display_order: number | null;
+  is_available: boolean | null;
+}>) {
+  try {
+    const supabase = getSupabaseAdmin();
+
+    // If setting as default, unset other defaults for this item
+    if (variationData.is_default) {
+      const { data: variation } = await (supabase as any)
+        .from('menu_item_variations')
+        .select('menu_item_id')
+        .eq('id', id)
+        .single();
+
+      if (variation) {
+        await (supabase as any)
+          .from('menu_item_variations')
+          .update({ is_default: false })
+          .eq('menu_item_id', variation.menu_item_id)
+          .neq('id', id);
+      }
+    }
+
+    const { data, error } = await (supabase as any)
+      .from('menu_item_variations')
+      .update(variationData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    console.log('✅ Updated item variation:', data.name);
+    return { success: true, data, message: 'Variation updated successfully' };
+  } catch (error) {
+    console.error('❌ Error updating variation:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to update variation'
+    };
+  }
+}
+
+export async function deleteItemVariation(id: string) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const { error } = await (supabase as any)
+      .from('menu_item_variations')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    console.log('✅ Deleted item variation');
+    return { success: true, message: 'Variation deleted successfully' };
+  } catch (error) {
+    console.error('❌ Error deleting variation:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to delete variation'
+    };
+  }
+}
+
+// ============================================================================
+// Add-ons Management (Boba, pizza toppings, etc.)
+// ============================================================================
+
+export async function createAddon(addonData: {
+  name: string;
+  description?: string;
+  price: number;
+  image_url?: string;
+  category?: string;
+  display_order?: number;
+  is_available?: boolean;
+}) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await (supabase as any)
+      .from('menu_addons')
+      .insert(addonData)
+      .select()
+      .single();
+
+    if (error) throw error;
+    console.log('✅ Created add-on:', data.name);
+    return { success: true, data, message: 'Add-on created successfully' };
+  } catch (error) {
+    console.error('❌ Error creating add-on:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to create add-on'
+    };
+  }
+}
+
+export async function updateAddon(id: string, addonData: Partial<{
+  name: string;
+  description: string | null;
+  price: number;
+  image_url: string | null;
+  category: string | null;
+  display_order: number | null;
+  is_available: boolean | null;
+}>) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await (supabase as any)
+      .from('menu_addons')
+      .update(addonData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    console.log('✅ Updated add-on:', data.name);
+    return { success: true, data, message: 'Add-on updated successfully' };
+  } catch (error) {
+    console.error('❌ Error updating add-on:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to update add-on'
+    };
+  }
+}
+
+export async function deleteAddon(id: string) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const { error } = await (supabase as any)
+      .from('menu_addons')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    console.log('✅ Deleted add-on');
+    return { success: true, message: 'Add-on deleted successfully' };
+  } catch (error) {
+    console.error('❌ Error deleting add-on:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to delete add-on'
+    };
+  }
+}
+
+// ============================================================================
+// Link Add-ons to Items or Categories
+// ============================================================================
+
+export async function linkAddonToItem(linkData: {
+  menu_item_id?: string;
+  category_id?: string;
+  addon_id: string;
+  is_required?: boolean;
+  max_quantity?: number;
+}) {
+  try {
+    const supabase = getSupabaseAdmin();
+
+    // Validate: must have either menu_item_id OR category_id, not both
+    if ((!linkData.menu_item_id && !linkData.category_id) ||
+        (linkData.menu_item_id && linkData.category_id)) {
+      return {
+        success: false,
+        message: 'Must link to either a specific item OR a category, not both or neither'
+      };
+    }
+
+    const { data, error } = await (supabase as any)
+      .from('menu_item_addons')
+      .insert(linkData)
+      .select()
+      .single();
+
+    if (error) throw error;
+    console.log('✅ Linked add-on to', linkData.menu_item_id ? 'item' : 'category');
+    return { success: true, data, message: 'Add-on linked successfully' };
+  } catch (error) {
+    console.error('❌ Error linking add-on:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to link add-on'
+    };
+  }
+}
+
+export async function unlinkAddon(id: string) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const { error } = await (supabase as any)
+      .from('menu_item_addons')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    console.log('✅ Unlinked add-on');
+    return { success: true, message: 'Add-on unlinked successfully' };
+  } catch (error) {
+    console.error('❌ Error unlinking add-on:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to unlink add-on'
+    };
+  }
+}
+
+export async function updateAddonLink(id: string, linkData: Partial<{
+  is_required: boolean;
+  max_quantity: number;
+}>) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await (supabase as any)
+      .from('menu_item_addons')
+      .update(linkData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    console.log('✅ Updated add-on link');
+    return { success: true, data, message: 'Add-on link updated successfully' };
+  } catch (error) {
+    console.error('❌ Error updating add-on link:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to update add-on link'
+    };
+  }
 }
 
 export async function getBookingInquiries() {
