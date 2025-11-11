@@ -86,7 +86,8 @@ interface ItemVariation {
   id: string;
   menu_item_id: string;
   name: string;
-  price_adjustment: number;
+  price_adjustment?: number;
+  absolute_price?: number;
   is_default: boolean | null;
   display_order: number | null;
   is_available: boolean | null;
@@ -141,7 +142,7 @@ export default function EnhancedMenuManagement() {
   // Inline variations for item form
   const [itemVariations, setItemVariations] = useState<Array<{
     name: string;
-    price_adjustment: number;
+    absolute_price: number;
     is_default: boolean;
   }>>([]);
 
@@ -292,7 +293,7 @@ export default function EnhancedMenuManagement() {
           await createItemVariation({
             menu_item_id: itemId,
             name: variation.name,
-            price_adjustment: variation.price_adjustment,
+            absolute_price: variation.absolute_price,
             is_default: variation.is_default,
             display_order: 0,
           });
@@ -545,7 +546,7 @@ export default function EnhancedMenuManagement() {
                             <div className="flex flex-wrap gap-1">
                               {itemVars.map(v => (
                                 <Badge key={v.id} variant="outline" className="text-xs">
-                                  {v.name} ({v.price_adjustment >= 0 ? '+' : ''}R{v.price_adjustment})
+                                  {v.name} (R{v.absolute_price || v.price_adjustment || 0})
                                 </Badge>
                               ))}
                             </div>
@@ -954,7 +955,7 @@ export default function EnhancedMenuManagement() {
                     type="button"
                     size="sm"
                     onClick={() => {
-                      setItemVariations([...itemVariations, { name: '', price_adjustment: 0, is_default: itemVariations.length === 0 }]);
+                      setItemVariations([...itemVariations, { name: '', absolute_price: 0, is_default: itemVariations.length === 0 }]);
                     }}
                     className="bg-purple-600 text-white hover:bg-purple-700"
                   >
@@ -982,17 +983,17 @@ export default function EnhancedMenuManagement() {
                             />
                           </div>
                           <div>
-                            <Label className="text-xs">Price Adjustment (R)</Label>
+                            <Label className="text-xs">Price (R)</Label>
                             <Input
                               type="number"
                               step="0.01"
-                              value={variation.price_adjustment}
+                              value={variation.absolute_price}
                               onChange={(e) => {
                                 const newVars = [...itemVariations];
-                                newVars[index].price_adjustment = parseFloat(e.target.value) || 0;
+                                newVars[index].absolute_price = parseFloat(e.target.value) || 0;
                                 setItemVariations(newVars);
                               }}
-                              placeholder="e.g., -5 or +10"
+                              placeholder="e.g., 30"
                               className="bg-gray-900 border-gray-600 text-white text-sm"
                             />
                           </div>
@@ -1043,7 +1044,7 @@ export default function EnhancedMenuManagement() {
                         <div>
                           <span className="text-white font-medium">{v.name}</span>
                           <span className="text-gray-400 ml-3">
-                            {v.price_adjustment >= 0 ? '+' : ''}R{v.price_adjustment}
+                            R{v.absolute_price || v.price_adjustment || 0}
                           </span>
                           {v.is_default && <Badge className="ml-2" variant="default">Default</Badge>}
                         </div>

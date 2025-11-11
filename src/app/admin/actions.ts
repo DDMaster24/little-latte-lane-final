@@ -191,7 +191,8 @@ export async function deleteMenuItem(id: string) {
 export async function createItemVariation(variationData: {
   menu_item_id: string;
   name: string;
-  price_adjustment: number;
+  price_adjustment?: number;
+  absolute_price?: number;
   is_default?: boolean;
   display_order?: number;
   is_available?: boolean;
@@ -227,7 +228,8 @@ export async function createItemVariation(variationData: {
 
 export async function updateItemVariation(id: string, variationData: Partial<{
   name: string;
-  price_adjustment: number;
+  price_adjustment: number | null;
+  absolute_price: number | null;
   is_default: boolean | null;
   display_order: number | null;
   is_available: boolean | null;

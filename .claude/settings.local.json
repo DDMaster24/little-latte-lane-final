@@ -15,7 +15,9 @@
       "Bash(nul)",
       "Bash(echo:*)",
       "Bash(npx eslint:*)",
-      "mcp__supabase__query"
+      "mcp__supabase__query",
+      "Bash(npx supabase:*)",
+      "Bash(psql:*)"
     ],
     "deny": [],
     "ask": []
