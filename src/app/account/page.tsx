@@ -186,11 +186,12 @@ export default function AccountPage() {
 
         setOrders((orderData as unknown as Order[]) || []);
 
-        // Fetch hall bookings
+        // Fetch hall bookings (only confirmed/paid bookings)
         const { data: bookingsData, error: bookingsError } = await supabase
           .from('hall_bookings')
           .select('*')
           .eq('user_id', session.user.id)
+          .in('status', ['confirmed', 'paid'])
           .order('created_at', { ascending: false })
           .limit(10);
 
