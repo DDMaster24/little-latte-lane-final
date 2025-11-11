@@ -7,15 +7,15 @@ const { withSentryConfig } = require('@sentry/nextjs');
 // Content Security Policy - extracted to reduce bundle size
 const CSP_DIRECTIVES = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === 'development' ? "'unsafe-eval'" : ''} blob: https://vercel.live https://*.vercel.live https://*.sentry.io https://api.reactbricks.com https://payments.yoco.com https://*.yoco.com`,
-  "script-src-elem 'self' 'unsafe-inline' blob: https://vercel.live https://*.vercel.live https://*.sentry.io https://api.reactbricks.com https://payments.yoco.com https://*.yoco.com",
+  `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === 'development' ? "'unsafe-eval'" : ''} blob: https://vercel.live https://*.vercel.live https://*.sentry.io https://api.reactbricks.com`,
+  "script-src-elem 'self' 'unsafe-inline' blob: https://vercel.live https://*.vercel.live https://*.sentry.io https://api.reactbricks.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: blob: https:",
-  "connect-src 'self' data: wss: https://awytuszmunxvthuizyur.supabase.co wss://awytuszmunxvthuizyur.supabase.co https://registry.npmjs.org https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.googletagmanager.com https://overbridgenet.com https://*.sentry.io https://vercel.live https://*.vercel.live https://api.reactbricks.com https://*.reactbricks.com https://payments.yoco.com https://*.yoco.com https://online.yoco.com",
+  "connect-src 'self' data: wss: https://awytuszmunxvthuizyur.supabase.co wss://awytuszmunxvthuizyur.supabase.co https://registry.npmjs.org https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.googletagmanager.com https://overbridgenet.com https://*.sentry.io https://vercel.live https://*.vercel.live https://api.reactbricks.com https://*.reactbricks.com",
   "worker-src 'self' blob:",
-  "child-src 'self' blob: https://vercel.live https://*.vercel.live https://payments.yoco.com https://*.yoco.com https:",
-  "frame-src 'self' blob: https://vercel.live https://*.vercel.live https://payments.yoco.com https://*.yoco.com https://secure.yoco.com https:",
+  "child-src 'self' blob: https://vercel.live https://*.vercel.live",
+  "frame-src 'self' blob: https://vercel.live https://*.vercel.live",
   "form-action 'self' https: http:",
   "frame-ancestors 'self' https://vercel.live https://*.vercel.live",
 ].join('; ');
