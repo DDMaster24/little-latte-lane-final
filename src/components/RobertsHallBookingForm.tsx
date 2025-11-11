@@ -157,12 +157,8 @@ export default function RobertsHallBookingForm() {
   };
 
   const openTermsModal = () => {
-    // Scroll main page to top before opening modal
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(() => {
-      setShowTermsModal(true);
-      setHasScrolledToBottom(false);
-    }, 300);
+    setShowTermsModal(true);
+    setHasScrolledToBottom(true); // Allow immediate agreement - no scroll requirement
   };
 
   const handleConfirmSignature = () => {
@@ -464,45 +460,60 @@ export default function RobertsHallBookingForm() {
         <button
           type="button"
           onClick={() => setBookingMethod(bookingMethod === 'online' ? null : 'online')}
-          className={`p-6 rounded-lg border-2 transition-all text-left ${
+          className={`relative p-6 rounded-lg border-2 transition-all text-left overflow-hidden ${
             bookingMethod === 'online'
-              ? 'border-neonPink bg-neonPink/10'
-              : 'border-gray-600 bg-gray-900/90 hover:border-neonPink/50'
+              ? 'border-neonPink bg-gradient-to-br from-neonPink/20 to-purple-500/10 shadow-lg shadow-neonPink/30'
+              : 'border-gray-600 bg-gray-900/90 hover:border-neonPink/50 hover:shadow-md hover:shadow-neonPink/20'
           }`}
         >
-          <FileText className={`h-8 w-8 mb-3 ${bookingMethod === 'online' ? 'text-neonPink' : 'text-gray-400'}`} />
-          <h3 className="font-semibold text-white mb-2">Fill in Form Online</h3>
-          <p className="text-sm text-gray-300">Complete the booking form directly on this page</p>
+          {bookingMethod === 'online' && (
+            <div className="absolute inset-0 bg-gradient-to-br from-neonPink/10 via-transparent to-purple-500/10 pointer-events-none" />
+          )}
+          <div className="relative z-10">
+            <FileText className={`h-8 w-8 mb-3 ${bookingMethod === 'online' ? 'text-neonPink' : 'text-gray-400'}`} />
+            <h3 className="font-semibold text-white mb-2">Fill in Form Online</h3>
+            <p className="text-sm text-gray-300">Complete the booking form directly on this page</p>
+          </div>
         </button>
 
         {/* OPTION 2: Contact Admin */}
         <button
           type="button"
           onClick={() => setBookingMethod(bookingMethod === 'contact' ? null : 'contact')}
-          className={`p-6 rounded-lg border-2 transition-all text-left ${
+          className={`relative p-6 rounded-lg border-2 transition-all text-left overflow-hidden ${
             bookingMethod === 'contact'
-              ? 'border-neonCyan bg-neonCyan/10'
-              : 'border-gray-600 bg-gray-900/90 hover:border-neonCyan/50'
+              ? 'border-neonCyan bg-gradient-to-br from-neonCyan/20 to-blue-500/10 shadow-lg shadow-neonCyan/30'
+              : 'border-gray-600 bg-gray-900/90 hover:border-neonCyan/50 hover:shadow-md hover:shadow-neonCyan/20'
           }`}
         >
-          <Mail className={`h-8 w-8 mb-3 ${bookingMethod === 'contact' ? 'text-neonCyan' : 'text-gray-400'}`} />
-          <h3 className="font-semibold text-white mb-2">Request PDF Form</h3>
-          <p className="text-sm text-gray-300">Contact admin to receive the PDF booking form</p>
+          {bookingMethod === 'contact' && (
+            <div className="absolute inset-0 bg-gradient-to-br from-neonCyan/10 via-transparent to-blue-500/10 pointer-events-none" />
+          )}
+          <div className="relative z-10">
+            <Mail className={`h-8 w-8 mb-3 ${bookingMethod === 'contact' ? 'text-neonCyan' : 'text-gray-400'}`} />
+            <h3 className="font-semibold text-white mb-2">Request PDF Form</h3>
+            <p className="text-sm text-gray-300">Contact admin to receive the PDF booking form</p>
+          </div>
         </button>
 
         {/* OPTION 3: Download PDF */}
         <button
           type="button"
           onClick={() => setBookingMethod(bookingMethod === 'download' ? null : 'download')}
-          className={`p-6 rounded-lg border-2 transition-all text-left ${
+          className={`relative p-6 rounded-lg border-2 transition-all text-left overflow-hidden ${
             bookingMethod === 'download'
-              ? 'border-purple-500 bg-purple-500/10'
-              : 'border-gray-600 bg-gray-900/90 hover:border-purple-500/50'
+              ? 'border-purple-500 bg-gradient-to-br from-purple-500/20 to-pink-500/10 shadow-lg shadow-purple-500/30'
+              : 'border-gray-600 bg-gray-900/90 hover:border-purple-500/50 hover:shadow-md hover:shadow-purple-500/20'
           }`}
         >
-          <FileDown className={`h-8 w-8 mb-3 ${bookingMethod === 'download' ? 'text-purple-500' : 'text-gray-400'}`} />
-          <h3 className="font-semibold text-white mb-2">Download & Upload PDF</h3>
-          <p className="text-sm text-gray-300">Download PDF, fill it out, and upload back</p>
+          {bookingMethod === 'download' && (
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-pink-500/10 pointer-events-none" />
+          )}
+          <div className="relative z-10">
+            <FileDown className={`h-8 w-8 mb-3 ${bookingMethod === 'download' ? 'text-purple-500' : 'text-gray-400'}`} />
+            <h3 className="font-semibold text-white mb-2">Download & Upload PDF</h3>
+            <p className="text-sm text-gray-300">Download PDF, fill it out, and upload back</p>
+          </div>
         </button>
       </div>
 
@@ -1058,7 +1069,7 @@ export default function RobertsHallBookingForm() {
       {/* TERMS & CONDITIONS MODAL OVERLAY */}
       {showTermsModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 lg:p-6">
-          <div className="bg-gray-900 border-2 border-neonCyan/50 rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[92vh] sm:max-h-[90vh] flex flex-col shadow-2xl">
+          <div className="bg-gray-900 border-2 border-neonCyan/50 rounded-xl sm:rounded-2xl max-w-4xl w-full h-[95vh] flex flex-col shadow-2xl">
             {/* Modal Header */}
             <div className="p-4 sm:p-6 border-b border-neonCyan/30">
               <div className="flex items-center justify-between gap-3">
@@ -1250,15 +1261,6 @@ export default function RobertsHallBookingForm() {
                   </p>
                 </div>
               </div>
-
-              {/* Scroll indicator */}
-              {!hasScrolledToBottom && (
-                <div className="sticky bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 to-transparent py-4 text-center">
-                  <p className="text-sm text-neonCyan animate-pulse">
-                    ↓ Scroll down to continue ↓
-                  </p>
-                </div>
-              )}
             </div>
 
             {/* Modal Footer */}
@@ -1266,10 +1268,9 @@ export default function RobertsHallBookingForm() {
               <Button
                 type="button"
                 onClick={handleAgreeToTerms}
-                disabled={!hasScrolledToBottom}
-                className="w-full bg-gradient-to-r from-neonCyan to-cyan-500 hover:from-neonCyan/80 hover:to-cyan-500/80 text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base py-5 sm:py-6"
+                className="w-full bg-gradient-to-r from-neonCyan to-cyan-500 hover:from-neonCyan/80 hover:to-cyan-500/80 text-black font-semibold text-sm sm:text-base py-5 sm:py-6"
               >
-                {hasScrolledToBottom ? 'I Agree to Terms & Conditions' : 'Scroll to Bottom to Continue'}
+                I Agree to Terms & Conditions
               </Button>
             </div>
           </div>
