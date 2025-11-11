@@ -36,6 +36,7 @@ import {
   CheckCircle,
   Bell,
   RefreshCw,
+  FileText,
 } from 'lucide-react';
 import { 
   OrderStatusSkeleton
@@ -919,7 +920,9 @@ export default function AccountPage() {
                               )}
                               <button
                                 onClick={() => {
-                                  toast.info('Form PDF viewing coming soon');
+                                  toast('Form PDF viewing coming soon', {
+                                    icon: 'ℹ️',
+                                  });
                                 }}
                                 className="flex items-center gap-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 px-3 py-2 rounded text-sm transition-colors"
                               >
