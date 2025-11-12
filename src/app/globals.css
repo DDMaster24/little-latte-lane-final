@@ -915,6 +915,82 @@ body {
   
   /* Keep only essential utility classes, no editor-specific styles */
   /* Essential utilities only */
+
+  /* Custom Scrollbar Utilities */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.3);
+    border-radius: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(156, 163, 175, 0.5);
+  }
+
+  /* Cyan scrollbar variant */
+  .scrollbar-thumb-neonCyan\/50::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 255, 0.5);
+  }
+
+  .scrollbar-thumb-neonCyan\/50:hover::-webkit-scrollbar-thumb,
+  .hover\:scrollbar-thumb-neonCyan:hover::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 255, 0.8);
+  }
+
+  .scrollbar-track-gray-800::-webkit-scrollbar-track {
+    background: rgba(31, 41, 55, 0.5);
+  }
+
+  /* Pink scrollbar variant */
+  .scrollbar-thumb-neonPink\/50::-webkit-scrollbar-thumb {
+    background: rgba(255, 20, 147, 0.5);
+  }
+
+  .scrollbar-thumb-neonPink\/50:hover::-webkit-scrollbar-thumb,
+  .hover\:scrollbar-thumb-neonPink:hover::-webkit-scrollbar-thumb {
+    background: rgba(255, 20, 147, 0.8);
+  }
+
+  .scrollbar-track-gray-900::-webkit-scrollbar-track {
+    background: rgba(17, 24, 39, 0.5);
+  }
+
+  /* Orange scrollbar variant */
+  .scrollbar-thumb-orange-500\/50::-webkit-scrollbar-thumb {
+    background: rgba(249, 115, 22, 0.5);
+  }
+
+  .scrollbar-thumb-orange-500\/50:hover::-webkit-scrollbar-thumb,
+  .hover\:scrollbar-thumb-orange-500:hover::-webkit-scrollbar-thumb {
+    background: rgba(249, 115, 22, 0.8);
+  }
+
+  /* Firefox scrollbar support */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+  }
+
+  .scrollbar-thumb-neonCyan\/50 {
+    scrollbar-color: rgba(0, 255, 255, 0.5) rgba(31, 41, 55, 0.5);
+  }
+
+  .scrollbar-thumb-neonPink\/50 {
+    scrollbar-color: rgba(255, 20, 147, 0.5) rgba(17, 24, 39, 0.5);
+  }
+
+  .scrollbar-thumb-orange-500\/50 {
+    scrollbar-color: rgba(249, 115, 22, 0.5) rgba(31, 41, 55, 0.5);
+  }
 }
 
 /* Hide Vercel Toolbar - Force disable */

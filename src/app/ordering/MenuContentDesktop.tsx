@@ -353,9 +353,9 @@ export default function MenuContentDesktop() {
         </div>
       )}
 
-      <div className="flex overflow-hidden h-screen">
+      <div className="flex overflow-hidden h-screen pt-4">
         {/* LEFT PANEL - Categories */}
-        <div className="w-64 xl:w-72 bg-gray-900 border-r border-gray-700 h-full flex-shrink-0 overflow-y-auto">
+        <div className="w-64 xl:w-72 bg-gray-900 border-r border-gray-700 h-full flex-shrink-0 overflow-y-auto scrollbar-thin scrollbar-thumb-neonCyan/50 scrollbar-track-gray-800 hover:scrollbar-thumb-neonCyan">
           <div className="p-3 xl:p-4">
             <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <ChefHat className="h-5 w-5 text-neonCyan" />
@@ -389,7 +389,7 @@ export default function MenuContentDesktop() {
         </div>
 
         {/* CENTER PANEL - Menu Items or Pizza Customizer */}
-        <div className="flex-1 p-4 xl:p-6 overflow-y-auto overflow-x-hidden h-full">
+        <div className="flex-1 p-4 xl:p-6 overflow-y-auto overflow-x-hidden h-full scrollbar-thin scrollbar-thumb-neonPink/50 scrollbar-track-gray-900 hover:scrollbar-thumb-neonPink">
           <div className="mb-4 xl:mb-6">
             <h1 className="text-2xl xl:text-3xl font-bold bg-neon-gradient bg-clip-text text-transparent line-clamp-2">
               {selectedCategoryName}
@@ -553,7 +553,7 @@ export default function MenuContentDesktop() {
         </div>
 
         {/* RIGHT PANEL - Cart */}
-        <div className="w-80 xl:w-96 bg-gray-900 border-l border-gray-700 h-full flex-shrink-0 overflow-y-auto">
+        <div className="w-80 xl:w-96 bg-gray-900 border-l border-gray-700 h-full flex-shrink-0 overflow-y-auto scrollbar-thin scrollbar-thumb-orange-500/50 scrollbar-track-gray-800 hover:scrollbar-thumb-orange-500">
           <div className="p-3 xl:p-4 sticky top-0">
             <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <ShoppingCart className="h-5 w-5 text-neonPink" />
