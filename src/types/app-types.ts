@@ -65,6 +65,22 @@ export interface MenuItem extends DbMenuItem {
     is_default?: boolean | null;
     display_order?: number | null;
   }>;
+  available_addons?: Array<{
+    id: string;
+    name: string;
+    description?: string | null;
+    price: number;
+    category?: string | null;
+    is_required?: boolean;
+    max_quantity?: number;
+    addon_variations?: Array<{
+      id: string;
+      name: string;
+      absolute_price?: number | null;
+      is_available?: boolean | null;
+      display_order?: number | null;
+    }>;
+  }>;
 }
 export type Profile = DbProfile;
 export type Request = DbStaffRequest;

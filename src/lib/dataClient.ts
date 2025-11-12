@@ -236,7 +236,48 @@ export class DataClient {
         return { data: null, error: error.message, loading: false };
       }
 
-      const menuItems = data || [];
+      let menuItems = data || [];
+
+      // Fetch category-level add-ons if categoryId is specified
+      if (categoryId) {
+        const { data: categoryAddons } = await supabase
+          .from('menu_item_addons')
+          .select(`
+            id,
+            is_required,
+            max_quantity,
+            addon:menu_addons!menu_item_addons_addon_id_fkey(
+              id,
+              name,
+              description,
+              price,
+              category,
+              addon_variations:addon_variations!addon_variations_addon_id_fkey(
+                id,
+                name,
+                absolute_price,
+                is_available,
+                display_order
+              )
+            )
+          `)
+          .eq('category_id', categoryId)
+          .eq('menu_addons.is_available', true);
+
+        // Attach add-ons to each menu item in this category
+        if (categoryAddons && categoryAddons.length > 0) {
+          menuItems = menuItems.map(item => ({
+            ...item,
+            available_addons: categoryAddons
+              .filter(link => link.addon)
+              .map(link => ({
+                ...link.addon,
+                is_required: link.is_required,
+                max_quantity: link.max_quantity,
+              })),
+          }));
+        }
+      }
 
       // Cache the result
       cache.set(cacheKey, menuItems);

@@ -33,12 +33,14 @@ import {
 } from '@/components/LoadingComponents';
 import PizzaCustomizationPanel from '@/components/PizzaCustomizationPanel';
 import CartSidebar from '@/components/CartSidebar';
+import AddOnCustomizationModal from '@/components/AddOnCustomizationModal';
 import type { MenuItem } from '@/types/app-types';
 
 export default function MenuContentDesktop() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedSizes, setSelectedSizes] = useState<Record<string, string>>({}); // Track selected size for each grouped item
+  const [customizingItem, setCustomizingItem] = useState<{ item: MenuItem; selectedSize?: string } | null>(null);
   const [paymentAlert, setPaymentAlert] = useState<{
     type: 'success' | 'error';
     message: string;
@@ -160,11 +162,61 @@ export default function MenuContentDesktop() {
     return menuItems.filter((item) => item.category_id === categoryId).length;
   }, [menuItems]);
 
+  const handleCustomize = (item: MenuItem, variationId?: string) => {
+    const variations = item.menu_item_variations || [];
+    const selectedVariation = variations.find(v => v.id === variationId);
+
+    setCustomizingItem({
+      item,
+      selectedSize: selectedVariation?.name,
+    });
+  };
+
+  const handleAddWithAddons = (selectedAddons: any[]) => {
+    if (!customizingItem) return;
+
+    const { item, selectedSize } = customizingItem;
+    const variations = item.menu_item_variations || [];
+    const selectedVariation = variations.find(v => v.name === selectedSize);
+    const variationId = selectedVariation?.id;
+
+    // Calculate total price including add-ons
+    const basePrice = selectedVariation?.absolute_price || item.price;
+    const addonsPrice = selectedAddons.reduce((sum, addon) => sum + addon.price * addon.quantity, 0);
+    const totalPrice = basePrice + addonsPrice;
+
+    // Build cart item name with add-ons
+    let itemName = item.name;
+    if (selectedSize) itemName += ` (${selectedSize})`;
+
+    const addonNames = selectedAddons
+      .map(a => `${a.quantity}x ${a.addonName}${a.variationName ? ` (${a.variationName})` : ''}`)
+      .join(', ');
+
+    if (addonNames) itemName += ` + ${addonNames}`;
+
+    const cartItem: CartItem = {
+      id: variationId || item.id,
+      name: itemName,
+      price: totalPrice,
+      quantity: 1,
+    };
+
+    addItem(cartItem);
+  };
+
   const handleAddToCart = (item: MenuItem, variationId?: string) => {
     const variations = item.menu_item_variations || [];
+    const hasAddons = item.available_addons && item.available_addons.length > 0;
 
     // If item has variations and none is selected, don't add to cart
     if (variations.length > 0 && !variationId) {
+      return;
+    }
+
+    // If item has add-ons, open customization modal
+    if (hasAddons) {
+      handleCustomize(item, variationId);
       return;
     }
 
@@ -582,10 +634,21 @@ export default function MenuContentDesktop() {
       </div>
 
       {/* Cart Sidebar */}
-      <CartSidebar 
-        isOpen={isCartOpen} 
-        onClose={() => setIsCartOpen(false)} 
+      <CartSidebar
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
       />
+
+      {/* Add-On Customization Modal */}
+      {customizingItem && (
+        <AddOnCustomizationModal
+          isOpen={true}
+          onClose={() => setCustomizingItem(null)}
+          item={customizingItem.item}
+          selectedSize={customizingItem.selectedSize}
+          onAddToCart={handleAddWithAddons}
+        />
+      )}
     </div>
   );
 }
