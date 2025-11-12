@@ -534,6 +534,7 @@ export type Database = {
           display_order: number | null
           id: string
           is_active: boolean | null
+          is_showcase: boolean | null
           name: string
         }
         Insert: {
@@ -542,6 +543,7 @@ export type Database = {
           display_order?: number | null
           id?: string
           is_active?: boolean | null
+          is_showcase?: boolean | null
           name: string
         }
         Update: {
@@ -550,6 +552,7 @@ export type Database = {
           display_order?: number | null
           id?: string
           is_active?: boolean | null
+          is_showcase?: boolean | null
           name?: string
         }
         Relationships: []

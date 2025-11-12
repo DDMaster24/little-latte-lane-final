@@ -161,6 +161,12 @@ export default function MenuContentMobile() {
     return selectedCategoryName.toLowerCase().includes('pizza');
   }, [selectedCategoryName]);
 
+  // Check if current category is a showcase category
+  const isShowcaseCategory = useMemo(() => {
+    const category = filteredAndSortedCategories.find((cat) => cat.id === selectedCategory);
+    return category?.is_showcase === true;
+  }, [filteredAndSortedCategories, selectedCategory]);
+
   // Get accurate item count for each category
   const getCategoryItemCount = useCallback((categoryId: string) => {
     return menuItems.filter((item) => item.category_id === categoryId).length;
@@ -526,6 +532,15 @@ export default function MenuContentMobile() {
                     Change
                   </Button>
                 </div>
+
+                {/* Showcase Category Banner */}
+                {isShowcaseCategory && (
+                  <div className="mb-4 p-3 bg-neonCyan/10 border border-neonCyan/30 rounded-lg">
+                    <p className="text-neonCyan text-sm">
+                      ✨ All items shown here can be customized with {selectedCategoryName.toLowerCase()}
+                    </p>
+                  </div>
+                )}
 
                 {isPizzaCategory ? (
                   <PizzaCustomizationPanel />

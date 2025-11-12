@@ -290,6 +290,121 @@ export class DataClient {
     }
   }
 
+  // Get items for showcase categories (categories that show items with specific add-ons)
+  async getShowcaseItems(categoryName: string, useCache = true): Promise<DataResponse<MenuItem[]>> {
+    const cacheKey = `showcase-items-${categoryName}`;
+
+    try {
+      if (useCache) {
+        const cached = cache.get<MenuItem[]>(cacheKey);
+        if (cached) {
+          return { data: cached, error: null, loading: false };
+        }
+      }
+
+      // Find add-ons that match the category name (e.g., "Boba" → find Boba add-ons)
+      const { data: addons, error: addonsError } = await supabase
+        .from('menu_addons')
+        .select('id, category')
+        .or(`name.ilike.%${categoryName}%,category.ilike.%${categoryName}%`)
+        .eq('is_available', true);
+
+      if (addonsError || !addons || addons.length === 0) {
+        return { data: [], error: null, loading: false };
+      }
+
+      const addonIds = addons.map(a => a.id);
+
+      // Find all menu items that have these add-ons available
+      const { data: itemLinks, error: linksError } = await supabase
+        .from('menu_item_addons')
+        .select(`
+          category_id,
+          menu_items!menu_item_addons_category_id_fkey(
+            id,
+            category_id,
+            name,
+            description,
+            price,
+            is_available,
+            image_url
+          )
+        `)
+        .in('addon_id', addonIds)
+        .not('category_id', 'is', null);
+
+      if (linksError) {
+        return { data: null, error: linksError.message, loading: false };
+      }
+
+      // Get unique items from the linked categories
+      const categoryIds = [...new Set(itemLinks?.map(link => link.category_id).filter(Boolean))];
+
+      if (categoryIds.length === 0) {
+        return { data: [], error: null, loading: false };
+      }
+
+      // Fetch all items from those categories with variations and add-ons
+      const { data: items, error: itemsError } = await supabase
+        .from('menu_items')
+        .select(`
+          *,
+          menu_item_variations!menu_item_id(*)
+        `)
+        .in('category_id', categoryIds)
+        .eq('is_available', true);
+
+      if (itemsError) {
+        return { data: null, error: itemsError.message, loading: false };
+      }
+
+      let menuItems = items || [];
+
+      // Attach add-ons to each item based on its category
+      for (const item of menuItems) {
+        const { data: categoryAddons } = await supabase
+          .from('menu_item_addons')
+          .select(`
+            id,
+            is_required,
+            max_quantity,
+            addon:menu_addons!menu_item_addons_addon_id_fkey(
+              id,
+              name,
+              description,
+              price,
+              category,
+              addon_variations:addon_variations!addon_variations_addon_id_fkey(
+                id,
+                name,
+                absolute_price,
+                is_available,
+                display_order
+              )
+            )
+          `)
+          .eq('category_id', item.category_id)
+          .eq('menu_addons.is_available', true);
+
+        if (categoryAddons && categoryAddons.length > 0) {
+          (item as any).available_addons = categoryAddons
+            .filter(link => link.addon)
+            .map(link => ({
+              ...link.addon,
+              is_required: link.is_required,
+              max_quantity: link.max_quantity,
+            }));
+        }
+      }
+
+      cache.set(cacheKey, menuItems);
+      return { data: menuItems, error: null, loading: false };
+    } catch (err) {
+      const error = err instanceof Error ? err.message : 'Failed to load showcase items';
+      return { data: null, error, loading: false };
+    }
+  }
+
   // Get both categories and menu items in one optimized call
   async getMenuData(
     useCache = true,

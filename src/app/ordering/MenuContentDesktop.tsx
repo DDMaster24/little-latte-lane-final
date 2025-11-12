@@ -157,6 +157,12 @@ export default function MenuContentDesktop() {
     return selectedCategoryName.toLowerCase().includes('pizza');
   }, [selectedCategoryName]);
 
+  // Check if current category is a showcase category
+  const isShowcaseCategory = useMemo(() => {
+    const category = filteredAndSortedCategories.find((cat) => cat.id === selectedCategory);
+    return category?.is_showcase === true;
+  }, [filteredAndSortedCategories, selectedCategory]);
+
   // Optimized: Get accurate item count for each category with memoization
   const getCategoryItemCount = useCallback((categoryId: string) => {
     return menuItems.filter((item) => item.category_id === categoryId).length;
@@ -388,7 +394,14 @@ export default function MenuContentDesktop() {
             <h1 className="text-2xl xl:text-3xl font-bold bg-neon-gradient bg-clip-text text-transparent line-clamp-2">
               {selectedCategoryName}
             </h1>
-            {!isPizzaCategory && (
+            {isShowcaseCategory && (
+              <div className="mt-3 p-3 bg-neonCyan/10 border border-neonCyan/30 rounded-lg">
+                <p className="text-neonCyan text-sm">
+                  ✨ All items shown here can be customized with {selectedCategoryName.toLowerCase()}
+                </p>
+              </div>
+            )}
+            {!isPizzaCategory && !isShowcaseCategory && (
               <p className="text-gray-400 mt-1 text-sm">
                 {currentItems.length} items available
               </p>

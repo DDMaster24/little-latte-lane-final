@@ -51,19 +51,29 @@ export function useMenu(options: UseMenuOptions = {}): UseMenuResult {
 
     try {
       const dataClient = await getDataClient();
-      
+
       if (categoryId) {
-        // Fetch specific category items
-        const [categoriesResponse, sectionsResponse, itemsResponse] = await Promise.all([
-          dataClient.getCategories(),
-          dataClient.getSections(),
-          dataClient.getMenuItems(categoryId),
-        ]);
+        // Fetch categories first to check if this is a showcase category
+        const categoriesResponse = await dataClient.getCategories();
 
         if (categoriesResponse.error) {
           setError(categoriesResponse.error);
           return;
         }
+
+        const categories = categoriesResponse.data || [];
+        const selectedCategory = categories.find(c => c.id === categoryId);
+
+        // Check if this is a showcase category
+        const isShowcase = selectedCategory?.is_showcase === true;
+
+        // Fetch items based on category type
+        const [sectionsResponse, itemsResponse] = await Promise.all([
+          dataClient.getSections(),
+          isShowcase && selectedCategory?.name
+            ? dataClient.getShowcaseItems(selectedCategory.name)
+            : dataClient.getMenuItems(categoryId),
+        ]);
 
         if (sectionsResponse.error) {
           setError(sectionsResponse.error);
@@ -75,7 +85,7 @@ export function useMenu(options: UseMenuOptions = {}): UseMenuResult {
           return;
         }
 
-        setCategories(categoriesResponse.data || []);
+        setCategories(categories);
         setSections(sectionsResponse.data || []);
         setMenuItems(itemsResponse.data || []);
       } else {
