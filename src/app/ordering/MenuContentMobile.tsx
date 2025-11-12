@@ -607,35 +607,37 @@ export default function MenuContentMobile() {
                                     </div>
                                   )}
 
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xl font-bold text-neonPink">
-                                      R{(() => {
-                                        const selectedVariation = variations.find(v => v.id === selectedVariationId);
-                                        return (selectedVariation?.absolute_price || item.price || 0).toFixed(2);
-                                      })()}
-                                    </span>
+                                  <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xl font-bold text-neonPink">
+                                        R{(() => {
+                                          const selectedVariation = variations.find(v => v.id === selectedVariationId);
+                                          return (selectedVariation?.absolute_price || item.price || 0).toFixed(2);
+                                        })()}
+                                      </span>
 
-                                    {(() => {
-                                      // Get cart item ID (variation ID or item ID)
-                                      const cartItemId = selectedVariationId || item.id;
-                                      const quantity = getCartQuantity(cartItemId);
+                                      {(() => {
+                                        // Get cart item ID (variation ID or item ID)
+                                        const cartItemId = selectedVariationId || item.id;
+                                        const quantity = getCartQuantity(cartItemId);
+                                        const hasAddons = item.available_addons && item.available_addons.length > 0;
 
-                                      // Check if this item needs size selection and none is selected
-                                      const needsSelection = variations.length > 0 && !selectedVariationId;
+                                        // Check if this item needs size selection and none is selected
+                                        const needsSelection = variations.length > 0 && !selectedVariationId;
 
-                                      return quantity === 0 ? (
-                                        <Button
-                                          onClick={() => handleAddToCart(item, selectedVariationId)}
-                                          disabled={needsSelection}
-                                          className={`font-semibold ${
-                                            needsSelection
-                                              ? 'bg-gray-600/50 text-gray-400 cursor-not-allowed'
-                                              : 'bg-neonCyan text-black hover:bg-neonCyan/80'
-                                          }`}
-                                        >
-                                          <Plus className="h-4 w-4 mr-1" />
-                                          {needsSelection ? 'Select Size' : 'Add to Cart'}
-                                        </Button>
+                                        return quantity === 0 ? (
+                                          <Button
+                                            onClick={() => handleAddToCart(item, selectedVariationId)}
+                                            disabled={needsSelection}
+                                            className={`font-semibold ${
+                                              needsSelection
+                                                ? 'bg-gray-600/50 text-gray-400 cursor-not-allowed'
+                                                : 'bg-gradient-to-r from-neonPink to-orange-500 text-white hover:scale-105'
+                                            }`}
+                                          >
+                                            <Plus className="h-4 w-4 mr-1" />
+                                            {needsSelection ? 'Select Size' : hasAddons ? 'Customize & Add' : 'Add to Cart'}
+                                          </Button>
                                       ) : (
                                         <div className="flex items-center gap-2">
                                           <Button
@@ -664,6 +666,16 @@ export default function MenuContentMobile() {
                                         </div>
                                       );
                                     })()}
+                                    </div>
+
+                                    {/* Customization Available Badge */}
+                                    {item.available_addons && item.available_addons.length > 0 && (
+                                      <div className="text-center">
+                                        <Badge className="bg-neonCyan/20 text-neonCyan border border-neonCyan/30 text-xs">
+                                          ✨ Customization Available
+                                        </Badge>
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               </CardContent>

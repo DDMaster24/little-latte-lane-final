@@ -431,7 +431,7 @@ export default function MenuContentDesktop() {
                     return (
                       <Card
                         key={item.id}
-                        className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in overflow-hidden"
+                        className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in overflow-hidden flex flex-col"
                         style={{
                           background: 'rgba(0, 0, 0, 0.4)',
                           backdropFilter: 'blur(10px)',
@@ -440,17 +440,19 @@ export default function MenuContentDesktop() {
                         }}
                       >
                         <CardHeader className="pb-3">
-                          <CardTitle className="text-neonCyan group-hover:text-neonPink transition-colors duration-300 text-base xl:text-lg line-clamp-2">
+                          <CardTitle className="text-neonCyan group-hover:text-neonPink transition-colors duration-300 text-base xl:text-lg line-clamp-2 min-h-[3rem]">
                             {item.name}
                           </CardTitle>
-                          {item.description && (
-                            <p className="text-gray-300 text-xs xl:text-sm mt-1 group-hover:text-gray-200 transition-colors duration-300 line-clamp-2">
-                              {item.description}
-                            </p>
-                          )}
+                          <div className="min-h-[2.5rem]">
+                            {item.description && (
+                              <p className="text-gray-300 text-xs xl:text-sm mt-1 group-hover:text-gray-200 transition-colors duration-300 line-clamp-2">
+                                {item.description}
+                              </p>
+                            )}
+                          </div>
                         </CardHeader>
 
-                        <CardContent className="overflow-hidden">
+                        <CardContent className="overflow-hidden flex-grow flex flex-col justify-end">
                           {/* Size Selection for Items with Multiple Variations */}
                           {variations.length > 0 && (
                             <div className="mb-4">
@@ -480,36 +482,40 @@ export default function MenuContentDesktop() {
                             </div>
                           )}
 
-                          <div className="flex items-center justify-between gap-2 flex-wrap">
-                            <span className="text-xl xl:text-2xl font-bold text-neonPink group-hover:text-neonCyan transition-colors duration-300 whitespace-nowrap">
-                              R{(() => {
-                                const selectedVariation = variations.find(v => v.id === selectedVariationId);
-                                return (selectedVariation?.absolute_price || item.price || 0).toFixed(2);
-                              })()}
-                            </span>
+                          {/* Price and Action Buttons Row */}
+                          <div className="space-y-2">
+                            {/* Price and Main Add Button */}
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                              <span className="text-xl xl:text-2xl font-bold text-neonPink group-hover:text-neonCyan transition-colors duration-300 whitespace-nowrap">
+                                R{(() => {
+                                  const selectedVariation = variations.find(v => v.id === selectedVariationId);
+                                  return (selectedVariation?.absolute_price || item.price || 0).toFixed(2);
+                                })()}
+                              </span>
 
-                            {(() => {
-                              // Get the ID to use for cart operations
-                              const cartItemId = selectedVariationId || item.id;
-                              const quantity = getCartQuantity(cartItemId);
+                              {(() => {
+                                // Get the ID to use for cart operations
+                                const cartItemId = selectedVariationId || item.id;
+                                const quantity = getCartQuantity(cartItemId);
+                                const hasAddons = item.available_addons && item.available_addons.length > 0;
 
-                              // Check if this item needs size selection and none is selected
-                              const needsSelection = variations.length > 0 && !selectedVariationId;
+                                // Check if this item needs size selection and none is selected
+                                const needsSelection = variations.length > 0 && !selectedVariationId;
 
-                              return quantity === 0 ? (
-                                <Button
-                                  onClick={() => handleAddToCart(item, selectedVariationId)}
-                                  disabled={needsSelection}
-                                  size="sm"
-                                  className={`font-semibold transition-all duration-300 backdrop-blur-sm shadow-md text-xs xl:text-sm whitespace-nowrap ${
-                                    needsSelection
-                                      ? 'bg-gray-600/50 text-gray-400 cursor-not-allowed border border-gray-600/30'
-                                      : 'bg-neonCyan/80 text-black hover:bg-neonPink/80 hover:text-white border border-neonCyan/30 hover:border-neonPink/50'
-                                  }`}
-                                >
-                                  <Plus className="h-3 w-3 xl:h-4 xl:w-4 mr-1" />
-                                  {needsSelection ? 'Select Size' : 'Add'}
-                                </Button>
+                                return quantity === 0 ? (
+                                  <Button
+                                    onClick={() => handleAddToCart(item, selectedVariationId)}
+                                    disabled={needsSelection}
+                                    size="sm"
+                                    className={`font-semibold transition-all duration-300 backdrop-blur-sm shadow-md text-xs xl:text-sm whitespace-nowrap ${
+                                      needsSelection
+                                        ? 'bg-gray-600/50 text-gray-400 cursor-not-allowed border border-gray-600/30'
+                                        : 'bg-gradient-to-r from-neonPink to-orange-500 text-white hover:scale-105 hover:shadow-[0_0_20px_rgba(255,105,180,0.5)] border-0'
+                                    }`}
+                                  >
+                                    <Plus className="h-3 w-3 xl:h-4 xl:w-4 mr-1" />
+                                    {needsSelection ? 'Select Size' : hasAddons ? 'Customize & Add' : 'Add'}
+                                  </Button>
                               ) : (
                                 <div className="flex items-center gap-2">
                                   <Button
@@ -538,6 +544,16 @@ export default function MenuContentDesktop() {
                                 </div>
                               );
                             })()}
+                            </div>
+
+                            {/* Customization Available Badge */}
+                            {item.available_addons && item.available_addons.length > 0 && (
+                              <div className="text-center">
+                                <Badge className="bg-neonCyan/20 text-neonCyan border border-neonCyan/30 text-xs">
+                                  ✨ Customization Available
+                                </Badge>
+                              </div>
+                            )}
                           </div>
                           
                           {/* Hover Effect Glow */}
@@ -553,7 +569,7 @@ export default function MenuContentDesktop() {
         </div>
 
         {/* RIGHT PANEL - Cart */}
-        <div className="w-80 xl:w-96 bg-gray-900 border-l border-gray-700 h-full flex-shrink-0 overflow-y-auto scrollbar-thin scrollbar-thumb-orange-500/50 scrollbar-track-gray-800 hover:scrollbar-thumb-orange-500">
+        <div className="w-64 xl:w-72 bg-gray-900 border-l border-gray-700 h-full flex-shrink-0 overflow-y-auto scrollbar-thin scrollbar-thumb-orange-500/50 scrollbar-track-gray-800 hover:scrollbar-thumb-orange-500">
           <div className="p-3 xl:p-4 sticky top-0">
             <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <ShoppingCart className="h-5 w-5 text-neonPink" />
