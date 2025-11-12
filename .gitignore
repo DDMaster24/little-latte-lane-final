@@ -58,3 +58,6 @@ temp-icons/**/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# MCP configuration (contains database credentials)
+.mcp.json
