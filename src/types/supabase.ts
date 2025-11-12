@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      addon_variations: {
+        Row: {
+          absolute_price: number | null
+          addon_id: string
+          created_at: string
+          display_order: number | null
+          id: string
+          is_available: boolean | null
+          is_default: boolean | null
+          name: string
+          price_adjustment: number | null
+          updated_at: string
+        }
+        Insert: {
+          absolute_price?: number | null
+          addon_id: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_available?: boolean | null
+          is_default?: boolean | null
+          name: string
+          price_adjustment?: number | null
+          updated_at?: string
+        }
+        Update: {
+          absolute_price?: number | null
+          addon_id?: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_available?: boolean | null
+          is_default?: boolean | null
+          name?: string
+          price_adjustment?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "addon_variations_addon_id_fkey"
+            columns: ["addon_id"]
+            isOneToOne: false
+            referencedRelation: "menu_addons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           booking_date: string
@@ -441,6 +488,45 @@ export type Database = {
         }
         Relationships: []
       }
+      menu_addons: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          display_order: number | null
+          id: string
+          image_url: string | null
+          is_available: boolean | null
+          name: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean | null
+          name: string
+          price?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean | null
+          name?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       menu_categories: {
         Row: {
           created_at: string | null
@@ -467,6 +553,105 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      menu_item_addons: {
+        Row: {
+          addon_id: string
+          category_id: string | null
+          created_at: string
+          id: string
+          is_required: boolean | null
+          max_quantity: number | null
+          menu_item_id: string | null
+        }
+        Insert: {
+          addon_id: string
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          is_required?: boolean | null
+          max_quantity?: number | null
+          menu_item_id?: string | null
+        }
+        Update: {
+          addon_id?: string
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          is_required?: boolean | null
+          max_quantity?: number | null
+          menu_item_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_item_addons_addon_id_fkey"
+            columns: ["addon_id"]
+            isOneToOne: false
+            referencedRelation: "menu_addons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_item_addons_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "menu_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_item_addons_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      menu_item_variations: {
+        Row: {
+          absolute_price: number | null
+          created_at: string
+          display_order: number | null
+          id: string
+          is_available: boolean | null
+          is_default: boolean | null
+          menu_item_id: string
+          name: string
+          price_adjustment: number
+          updated_at: string
+        }
+        Insert: {
+          absolute_price?: number | null
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_available?: boolean | null
+          is_default?: boolean | null
+          menu_item_id: string
+          name: string
+          price_adjustment?: number
+          updated_at?: string
+        }
+        Update: {
+          absolute_price?: number | null
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_available?: boolean | null
+          is_default?: boolean | null
+          menu_item_id?: string
+          name?: string
+          price_adjustment?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_item_variations_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       menu_items: {
         Row: {
@@ -650,7 +835,9 @@ export type Database = {
           order_id: string | null
           price: number
           quantity: number
+          selected_addons: Json | null
           special_instructions: string | null
+          variation_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -659,7 +846,9 @@ export type Database = {
           order_id?: string | null
           price: number
           quantity?: number
+          selected_addons?: Json | null
           special_instructions?: string | null
+          variation_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -668,7 +857,9 @@ export type Database = {
           order_id?: string | null
           price?: number
           quantity?: number
+          selected_addons?: Json | null
           special_instructions?: string | null
+          variation_id?: string | null
         }
         Relationships: [
           {
@@ -683,6 +874,13 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_variation_id_fkey"
+            columns: ["variation_id"]
+            isOneToOne: false
+            referencedRelation: "menu_item_variations"
             referencedColumns: ["id"]
           },
         ]

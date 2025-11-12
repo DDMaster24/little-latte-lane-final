@@ -214,10 +214,14 @@ export class DataClient {
         }
       }
 
-      // Build query
+      // Build query - include variations for size selection
+      // Note: Using explicit foreign key relationship menu_item_id
       let query = supabase
         .from('menu_items')
-        .select('*')
+        .select(`
+          *,
+          menu_item_variations!menu_item_id(*)
+        `)
         .eq('is_available', true);
 
       if (categoryId) {

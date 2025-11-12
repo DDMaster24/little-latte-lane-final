@@ -55,7 +55,17 @@ export interface Booking extends DbBooking {
 }
 
 // Use database types directly - with extensions for enhanced functionality
-export type MenuItem = DbMenuItem;
+export interface MenuItem extends DbMenuItem {
+  menu_item_variations?: Array<{
+    id: string;
+    name: string;
+    absolute_price?: number | null;
+    price_adjustment?: number | null;
+    is_available?: boolean | null;
+    is_default?: boolean | null;
+    display_order?: number | null;
+  }>;
+}
 export type Profile = DbProfile;
 export type Request = DbStaffRequest;
 

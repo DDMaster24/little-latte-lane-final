@@ -38,13 +38,7 @@ import {
 } from '@/components/LoadingComponents';
 import PizzaCustomizationPanel from '@/components/PizzaCustomizationPanel';
 import CartSidebar from '@/components/CartSidebar';
-import { 
-  groupMenuItemsBySize, 
-  type GroupedMenuItem, 
-  needsSizeSelection, 
-  getVariantBySize, 
-  getDefaultSize 
-} from '@/utils/menuGrouping';
+import type { MenuItem } from '@/types/app-types';
 
 type MobileTab = 'categories' | 'menu' | 'cart';
 
@@ -149,12 +143,10 @@ export default function MenuContentMobile() {
     router.push(`/ordering?category=${categoryId}`, { scroll: false });
   }, [router]);
 
-  // Filter items by selected category and group by size variants
-  const currentGroupedItems = useMemo(() => {
+  // Filter items by selected category - show each item individually with its variations
+  const currentItems = useMemo(() => {
     if (!selectedCategory || menuItems.length === 0) return [];
-    
-    const categoryItems = menuItems.filter((item) => item.category_id === selectedCategory);
-    return groupMenuItemsBySize(categoryItems);
+    return menuItems.filter((item) => item.category_id === selectedCategory);
   }, [selectedCategory, menuItems]);
 
   // Get category name with fallback
@@ -172,21 +164,21 @@ export default function MenuContentMobile() {
     return menuItems.filter((item) => item.category_id === categoryId).length;
   }, [menuItems]);
 
-  const handleAddToCart = (groupedItem: GroupedMenuItem, selectedSize?: string) => {
-    // If item has variants and no size is selected, don't add to cart
-    if (groupedItem.variants.length > 1 && !selectedSize) {
+  const handleAddToCart = (item: MenuItem, variationId?: string) => {
+    const variations = item.menu_item_variations || [];
+
+    // If item has variations and no variation is selected, don't add to cart
+    if (variations.length > 0 && !variationId) {
       return; // This prevents adding to cart without size selection
     }
 
-    // Get the specific variant to add to cart
-    const itemToAdd = selectedSize 
-      ? getVariantBySize(groupedItem, selectedSize) || groupedItem.variants[0]
-      : groupedItem.variants[0];
+    // Find the selected variation or use the item itself
+    const selectedVariation = variations.find(v => v.id === variationId);
 
     const cartItem: CartItem = {
-      id: itemToAdd.id,
-      name: itemToAdd.name,
-      price: itemToAdd.price,
+      id: variationId || item.id,
+      name: selectedVariation ? `${item.name} (${selectedVariation.name})` : item.name,
+      price: selectedVariation?.absolute_price || item.price,
       quantity: 1,
     };
 
@@ -374,9 +366,9 @@ export default function MenuContentMobile() {
             <div className="flex items-center justify-center gap-2">
               <Package className="h-4 w-4" />
               <span className="text-sm">Menu</span>
-              {currentGroupedItems.length > 0 && (
+              {currentItems.length > 0 && (
                 <Badge variant="secondary" className="bg-gray-600 text-xs">
-                  {currentGroupedItems.length}
+                  {currentItems.length}
                 </Badge>
               )}
             </div>
@@ -469,7 +461,7 @@ export default function MenuContentMobile() {
                   <div>
                     <h2 className="text-xl font-bold text-white">{selectedCategoryName}</h2>
                     <p className="text-gray-400 text-sm">
-                      {currentGroupedItems.length} items available
+                      {currentItems.length} items available
                     </p>
                   </div>
                   <Button
@@ -487,7 +479,7 @@ export default function MenuContentMobile() {
                   <PizzaCustomizationPanel />
                 ) : (
                   <>
-                    {currentGroupedItems.length === 0 ? (
+                    {currentItems.length === 0 ? (
                       <div className="text-center py-12">
                         <Clock className="h-12 w-12 text-gray-500 mx-auto mb-4" />
                         <p className="text-gray-400">
@@ -496,42 +488,43 @@ export default function MenuContentMobile() {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {currentGroupedItems.map((groupedItem) => {
-                          // Get selected size for this grouped item
-                          const selectedSize = selectedSizes[groupedItem.baseName] || getDefaultSize(groupedItem);
+                        {currentItems.map((item) => {
+                          // Get variations for this item
+                          const variations = item.menu_item_variations || [];
+                          const selectedVariationId = selectedSizes[item.id] || variations[0]?.id;
                           
                           return (
                             <Card
-                              key={groupedItem.id}
+                              key={item.id}
                               className="bg-gray-800/50 border border-gray-700 hover:border-neonCyan/50 transition-all duration-300"
                             >
                               <CardContent className="p-4">
                                 <div className="space-y-3">
                                   <div>
                                     <h3 className="text-lg font-semibold text-white mb-1">
-                                      {groupedItem.baseName}
+                                      {item.name}
                                     </h3>
-                                    {groupedItem.description && (
+                                    {item.description && (
                                       <p className="text-gray-400 text-sm line-clamp-2">
-                                        {groupedItem.description}
+                                        {item.description}
                                       </p>
                                     )}
                                   </div>
 
-                                  {/* Size Selection for Items with Multiple Variants */}
-                                  {groupedItem.variants.length > 1 && (
+                                  {/* Size Selection for Items with Variations */}
+                                  {variations.length > 0 && (
                                     <div>
                                       <p className="text-gray-300 text-sm mb-2">Size:</p>
                                       <div className="flex gap-2 flex-wrap">
-                                        {groupedItem.variants.map((variant) => {
-                                          const isSelected = selectedSize === variant.size;
-                                          
+                                        {variations.map((variation) => {
+                                          const isSelected = selectedVariationId === variation.id;
+
                                           return (
                                             <button
-                                              key={variant.id}
+                                              key={variation.id}
                                               onClick={() => setSelectedSizes(prev => ({
                                                 ...prev,
-                                                [groupedItem.baseName]: variant.size
+                                                [item.id]: variation.id
                                               }))}
                                               className={`px-3 py-1 rounded text-sm font-medium transition-all duration-300 ${
                                                 isSelected
@@ -539,7 +532,7 @@ export default function MenuContentMobile() {
                                                   : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                                               }`}
                                             >
-                                              {variant.size} - R{variant.price.toFixed(2)}
+                                              {variation.name} - R{(variation.absolute_price || 0).toFixed(2)}
                                             </button>
                                           );
                                         })}
@@ -550,25 +543,25 @@ export default function MenuContentMobile() {
                                   <div className="flex items-center justify-between">
                                     <span className="text-xl font-bold text-neonPink">
                                       R{(() => {
-                                        const variant = getVariantBySize(groupedItem, selectedSize);
-                                        return (variant?.price || groupedItem.variants[0].price).toFixed(2);
+                                        const selectedVariation = variations.find(v => v.id === selectedVariationId);
+                                        return (selectedVariation?.absolute_price || item.price || 0).toFixed(2);
                                       })()}
                                     </span>
 
                                     {(() => {
-                                      // Get the current variant based on selected size
-                                      const currentVariant = getVariantBySize(groupedItem, selectedSize) || groupedItem.variants[0];
-                                      const quantity = getCartQuantity(currentVariant.id);
-                                      
+                                      // Get cart item ID (variation ID or item ID)
+                                      const cartItemId = selectedVariationId || item.id;
+                                      const quantity = getCartQuantity(cartItemId);
+
                                       // Check if this item needs size selection and none is selected
-                                      const needsSelection = needsSizeSelection(groupedItem, selectedSize);
-                                      
+                                      const needsSelection = variations.length > 0 && !selectedVariationId;
+
                                       return quantity === 0 ? (
                                         <Button
-                                          onClick={() => handleAddToCart(groupedItem, selectedSize)}
+                                          onClick={() => handleAddToCart(item, selectedVariationId)}
                                           disabled={needsSelection}
                                           className={`font-semibold ${
-                                            needsSelection 
+                                            needsSelection
                                               ? 'bg-gray-600/50 text-gray-400 cursor-not-allowed'
                                               : 'bg-neonCyan text-black hover:bg-neonCyan/80'
                                           }`}
@@ -582,7 +575,7 @@ export default function MenuContentMobile() {
                                             size="sm"
                                             variant="outline"
                                             onClick={() =>
-                                              updateCartQuantity(currentVariant.id, quantity - 1)
+                                              updateCartQuantity(cartItemId, quantity - 1)
                                             }
                                             className="border-gray-600 text-gray-300 hover:bg-gray-700 h-8 w-8 p-0"
                                           >
@@ -595,7 +588,7 @@ export default function MenuContentMobile() {
                                             size="sm"
                                             variant="outline"
                                             onClick={() =>
-                                              updateCartQuantity(currentVariant.id, quantity + 1)
+                                              updateCartQuantity(cartItemId, quantity + 1)
                                             }
                                             className="border-gray-600 text-gray-300 hover:bg-gray-700 h-8 w-8 p-0"
                                           >

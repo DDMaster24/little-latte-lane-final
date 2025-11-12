@@ -33,13 +33,7 @@ import {
 } from '@/components/LoadingComponents';
 import PizzaCustomizationPanel from '@/components/PizzaCustomizationPanel';
 import CartSidebar from '@/components/CartSidebar';
-import { 
-  groupMenuItemsBySize, 
-  type GroupedMenuItem, 
-  needsSizeSelection, 
-  getVariantBySize, 
-  getDefaultSize 
-} from '@/utils/menuGrouping';
+import type { MenuItem } from '@/types/app-types';
 
 export default function MenuContentDesktop() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -144,12 +138,11 @@ export default function MenuContentDesktop() {
     router.push(`/ordering?category=${categoryId}`, { scroll: false });
   }, [router]);
 
-  // Optimized: Filter and group items by selected category with comprehensive size consolidation
-  const currentGroupedItems = useMemo(() => {
+  // Filter items by selected category (no grouping - show each item separately)
+  const currentItems = useMemo(() => {
     if (!selectedCategory || menuItems.length === 0) return [];
-    
-    const categoryItems = menuItems.filter((item) => item.category_id === selectedCategory);
-    return groupMenuItemsBySize(categoryItems);
+
+    return menuItems.filter((item) => item.category_id === selectedCategory);
   }, [selectedCategory, menuItems]);
 
   // Optimized: Get category name with fallback
@@ -167,21 +160,21 @@ export default function MenuContentDesktop() {
     return menuItems.filter((item) => item.category_id === categoryId).length;
   }, [menuItems]);
 
-  const handleAddToCart = (groupedItem: GroupedMenuItem, selectedSize?: string) => {
-    // If item has variants and no size is selected, don't add to cart
-    if (groupedItem.variants.length > 1 && !selectedSize) {
-      return; // This prevents adding to cart without size selection
+  const handleAddToCart = (item: MenuItem, variationId?: string) => {
+    const variations = item.menu_item_variations || [];
+
+    // If item has variations and none is selected, don't add to cart
+    if (variations.length > 0 && !variationId) {
+      return;
     }
 
-    // Get the specific variant to add to cart
-    const itemToAdd = selectedSize 
-      ? getVariantBySize(groupedItem, selectedSize) || groupedItem.variants[0]
-      : groupedItem.variants[0];
+    // Get the selected variation or use item itself
+    const selectedVariation = variations.find(v => v.id === variationId);
 
     const cartItem: CartItem = {
-      id: itemToAdd.id,
-      name: itemToAdd.name,
-      price: itemToAdd.price,
+      id: variationId || item.id,
+      name: selectedVariation ? `${item.name} (${selectedVariation.name})` : item.name,
+      price: selectedVariation?.absolute_price || item.price,
       quantity: 1,
     };
 
@@ -345,7 +338,7 @@ export default function MenuContentDesktop() {
             </h1>
             {!isPizzaCategory && (
               <p className="text-gray-400 mt-1 text-sm">
-                {currentGroupedItems.length} items available
+                {currentItems.length} items available
               </p>
             )}
           </div>
@@ -356,7 +349,7 @@ export default function MenuContentDesktop() {
           ) : (
             // Show Regular Menu Items
             <>
-              {currentGroupedItems.length === 0 ? (
+              {currentItems.length === 0 ? (
                 <div className="text-center py-12">
                   <Clock className="h-12 w-12 text-gray-500 mx-auto mb-4" />
                   <p className="text-gray-400">
@@ -365,13 +358,14 @@ export default function MenuContentDesktop() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4 xl:gap-6">
-                  {currentGroupedItems.map((groupedItem) => {
-                    // Get selected size for this grouped item
-                    const selectedSize = selectedSizes[groupedItem.baseName] || getDefaultSize(groupedItem);
+                  {currentItems.map((item) => {
+                    const variations = item.menu_item_variations || [];
+                    // Get selected variation for this item
+                    const selectedVariationId = selectedSizes[item.id] || variations[0]?.id;
                     
                     return (
                       <Card
-                        key={groupedItem.id}
+                        key={item.id}
                         className="group relative bg-black/20 backdrop-blur-md border border-neonCyan/30 hover:border-neonPink/50 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-neon animate-fade-in overflow-hidden"
                         style={{
                           background: 'rgba(0, 0, 0, 0.4)',
@@ -382,30 +376,30 @@ export default function MenuContentDesktop() {
                       >
                         <CardHeader className="pb-3">
                           <CardTitle className="text-neonCyan group-hover:text-neonPink transition-colors duration-300 text-base xl:text-lg line-clamp-2">
-                            {groupedItem.baseName}
+                            {item.name}
                           </CardTitle>
-                          {groupedItem.description && (
+                          {item.description && (
                             <p className="text-gray-300 text-xs xl:text-sm mt-1 group-hover:text-gray-200 transition-colors duration-300 line-clamp-2">
-                              {groupedItem.description}
+                              {item.description}
                             </p>
                           )}
                         </CardHeader>
 
                         <CardContent className="overflow-hidden">
-                          {/* Size Selection for Items with Multiple Variants */}
-                          {groupedItem.variants.length > 1 && (
+                          {/* Size Selection for Items with Multiple Variations */}
+                          {variations.length > 0 && (
                             <div className="mb-4">
                               <p className="text-gray-300 text-sm mb-2 group-hover:text-gray-200 transition-colors duration-300">Size:</p>
                               <div className="flex gap-2 flex-wrap">
-                                {groupedItem.variants.map((variant) => {
-                                  const isSelected = selectedSize === variant.size;
-                                  
+                                {variations.map((variation) => {
+                                  const isSelected = selectedVariationId === variation.id;
+
                                   return (
                                     <button
-                                      key={variant.id}
+                                      key={variation.id}
                                       onClick={() => setSelectedSizes(prev => ({
                                         ...prev,
-                                        [groupedItem.baseName]: variant.size
+                                        [item.id]: variation.id
                                       }))}
                                       className={`px-2 xl:px-3 py-1 rounded text-xs xl:text-sm font-medium transition-all duration-300 whitespace-nowrap ${
                                         isSelected
@@ -413,7 +407,7 @@ export default function MenuContentDesktop() {
                                           : 'bg-black/30 text-gray-300 hover:bg-black/50 hover:text-neonCyan backdrop-blur-sm border border-gray-600/50 hover:border-neonCyan/30'
                                       }`}
                                     >
-                                      {variant.size}
+                                      {variation.name}
                                     </button>
                                   );
                                 })}
@@ -424,22 +418,22 @@ export default function MenuContentDesktop() {
                           <div className="flex items-center justify-between gap-2 flex-wrap">
                             <span className="text-xl xl:text-2xl font-bold text-neonPink group-hover:text-neonCyan transition-colors duration-300 whitespace-nowrap">
                               R{(() => {
-                                const variant = getVariantBySize(groupedItem, selectedSize);
-                                return (variant?.price || groupedItem.variants[0].price).toFixed(2);
+                                const selectedVariation = variations.find(v => v.id === selectedVariationId);
+                                return (selectedVariation?.absolute_price || item.price || 0).toFixed(2);
                               })()}
                             </span>
 
                             {(() => {
-                              // Get the current variant based on selected size
-                              const currentVariant = getVariantBySize(groupedItem, selectedSize) || groupedItem.variants[0];
-                              const quantity = getCartQuantity(currentVariant.id);
-                              
+                              // Get the ID to use for cart operations
+                              const cartItemId = selectedVariationId || item.id;
+                              const quantity = getCartQuantity(cartItemId);
+
                               // Check if this item needs size selection and none is selected
-                              const needsSelection = needsSizeSelection(groupedItem, selectedSize);
-                              
+                              const needsSelection = variations.length > 0 && !selectedVariationId;
+
                               return quantity === 0 ? (
                                 <Button
-                                  onClick={() => handleAddToCart(groupedItem, selectedSize)}
+                                  onClick={() => handleAddToCart(item, selectedVariationId)}
                                   disabled={needsSelection}
                                   size="sm"
                                   className={`font-semibold transition-all duration-300 backdrop-blur-sm shadow-md text-xs xl:text-sm whitespace-nowrap ${
@@ -457,7 +451,7 @@ export default function MenuContentDesktop() {
                                     size="sm"
                                     variant="outline"
                                     onClick={() =>
-                                      updateCartQuantity(currentVariant.id, quantity - 1)
+                                      updateCartQuantity(cartItemId, quantity - 1)
                                     }
                                     className="border-neonCyan/30 text-neonCyan hover:bg-neonCyan/20 hover:text-neonPink backdrop-blur-sm transition-all duration-300"
                                   >
@@ -470,7 +464,7 @@ export default function MenuContentDesktop() {
                                     size="sm"
                                     variant="outline"
                                     onClick={() =>
-                                      updateCartQuantity(currentVariant.id, quantity + 1)
+                                      updateCartQuantity(cartItemId, quantity + 1)
                                     }
                                     className="border-neonCyan/30 text-neonCyan hover:bg-neonCyan/20 hover:text-neonPink backdrop-blur-sm transition-all duration-300"
                                   >
