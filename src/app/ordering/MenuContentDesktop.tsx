@@ -259,7 +259,7 @@ export default function MenuContentDesktop() {
       <div className="min-h-screen bg-darkBg">
         <div className="flex">
           {/* Left Panel - Categories Skeleton */}
-          <div className="w-64 bg-gray-900 border-r border-gray-700 p-4">
+          <div className="w-64 xl:w-72 bg-gray-900 border-r border-gray-700 p-4">
             <div className="mb-4">
               <div className="w-32 h-6 bg-gradient-to-r from-neonCyan/30 to-neonPink/30 rounded shimmer" />
             </div>
@@ -276,7 +276,7 @@ export default function MenuContentDesktop() {
           </div>
 
           {/* Right Panel - Enhanced Cart Skeleton */}
-          <div className="w-80 bg-gray-900 border-l border-gray-700 p-4">
+          <div className="w-80 xl:w-96 bg-gray-900 border-l border-gray-700 p-4">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="w-20 h-6 bg-gradient-to-r from-neonCyan/30 to-neonPink/30 rounded shimmer" />
@@ -355,7 +355,7 @@ export default function MenuContentDesktop() {
 
       <div className="flex overflow-hidden h-screen">
         {/* LEFT PANEL - Categories */}
-        <div className="w-56 xl:w-64 bg-gray-900 border-r border-gray-700 h-full flex-shrink-0 overflow-y-auto">
+        <div className="w-64 xl:w-72 bg-gray-900 border-r border-gray-700 h-full flex-shrink-0 overflow-y-auto">
           <div className="p-3 xl:p-4">
             <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <ChefHat className="h-5 w-5 text-neonCyan" />
@@ -553,7 +553,7 @@ export default function MenuContentDesktop() {
         </div>
 
         {/* RIGHT PANEL - Cart */}
-        <div className="w-72 xl:w-80 bg-gray-900 border-l border-gray-700 h-full flex-shrink-0 overflow-y-auto">
+        <div className="w-80 xl:w-96 bg-gray-900 border-l border-gray-700 h-full flex-shrink-0 overflow-y-auto">
           <div className="p-3 xl:p-4 sticky top-0">
             <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <ShoppingCart className="h-5 w-5 text-neonPink" />
