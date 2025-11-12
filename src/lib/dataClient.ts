@@ -362,6 +362,9 @@ export class DataClient {
 
       // Attach add-ons to each item based on its category
       for (const item of menuItems) {
+        // Skip items without a category_id
+        if (!item.category_id) continue;
+
         const { data: categoryAddons } = await supabase
           .from('menu_item_addons')
           .select(`

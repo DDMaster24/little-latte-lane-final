@@ -70,7 +70,7 @@ export function useMenu(options: UseMenuOptions = {}): UseMenuResult {
         // Fetch items based on category type
         const [sectionsResponse, itemsResponse] = await Promise.all([
           dataClient.getSections(),
-          isShowcase && selectedCategory?.name
+          isShowcase && selectedCategory
             ? dataClient.getShowcaseItems(selectedCategory.name)
             : dataClient.getMenuItems(categoryId),
         ]);

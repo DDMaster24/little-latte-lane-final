@@ -90,7 +90,7 @@ export interface Category extends DbMenuCategory {
   parent_name?: string | null; // For display purposes
   subcategories?: Category[]; // For hierarchical display
   items_count?: number; // For overview display
-  is_showcase?: boolean | null; // If true, shows items that have specific add-ons
+  // is_showcase is already defined in DbMenuCategory, no need to redeclare
 }
 
 // Event interface with event_type mapped to type for component compatibility
