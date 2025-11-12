@@ -555,7 +555,28 @@ export default function EnhancedMenuManagement() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="secondary">{itemAddons.length} linked</Badge>
+                          {itemAddons.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {itemAddons.slice(0, 3).map(link => (
+                                <Badge
+                                  key={link.id}
+                                  variant="outline"
+                                  className="text-xs bg-purple-900/20 border-purple-600/50 text-purple-300"
+                                  title={`${link.addon?.name}${link.is_required ? ' (Required)' : ''} - Max: ${link.max_quantity}`}
+                                >
+                                  {link.addon?.name}
+                                  {link.is_required && <span className="ml-1 text-neonPink">*</span>}
+                                </Badge>
+                              ))}
+                              {itemAddons.length > 3 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  +{itemAddons.length - 3} more
+                                </Badge>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-gray-500 text-sm">None</span>
+                          )}
                         </TableCell>
                         <TableCell>
                           <Badge variant={item.is_available ? "default" : "secondary"}>
@@ -651,9 +672,30 @@ export default function EnhancedMenuManagement() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-400">Items: {itemCount}</span>
-                        <span className="text-gray-400">Add-ons: {categoryAddons.length}</span>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-400">Items: {itemCount}</span>
+                          <span className="text-gray-400">Add-ons: {categoryAddons.length}</span>
+                        </div>
+                        {categoryAddons.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {categoryAddons.slice(0, 4).map(link => (
+                              <Badge
+                                key={link.id}
+                                variant="outline"
+                                className="text-xs bg-purple-900/20 border-purple-600/50 text-purple-300"
+                                title={`${link.addon?.name}${link.is_required ? ' (Required)' : ''}`}
+                              >
+                                {link.addon?.name}
+                              </Badge>
+                            ))}
+                            {categoryAddons.length > 4 && (
+                              <Badge variant="secondary" className="text-xs">
+                                +{categoryAddons.length - 4}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-2">
