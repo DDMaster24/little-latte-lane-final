@@ -18,9 +18,7 @@ webpush.setVapidDetails(
 interface BroadcastPayload {
   title: string
   body: string
-  image_url?: string
   target_audience: 'all' | 'customers' | 'staff'
-  scheduled_for?: string | null
 }
 
 export async function POST(request: NextRequest) {
@@ -96,48 +94,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // If scheduled, create broadcast record and return
-    if (payload.scheduled_for) {
-      const scheduledDate = new Date(payload.scheduled_for)
-      
-      if (scheduledDate <= new Date()) {
-        return NextResponse.json(
-          { error: 'Scheduled time must be in the future' },
-          { status: 400 }
-        )
-      }
-
-      const { data: broadcastMessage, error: insertError } = await supabase
-        .from('broadcast_messages')
-        .insert({
-          created_by: user.id,
-          title: payload.title,
-          body: payload.body,
-          image_url: payload.image_url || null,
-          target_audience: payload.target_audience,
-          scheduled_for: scheduledDate.toISOString(),
-          status: 'scheduled',
-        })
-        .select()
-        .single()
-
-      if (insertError) {
-        console.error('Failed to create scheduled broadcast:', insertError)
-        return NextResponse.json(
-          { error: 'Failed to schedule broadcast' },
-          { status: 500 }
-        )
-      }
-
-      return NextResponse.json({
-        success: true,
-        message: 'Broadcast scheduled successfully',
-        broadcastId: broadcastMessage.id,
-        scheduledFor: scheduledDate.toISOString(),
-      })
-    }
-
-    // Immediate send - Get target users with active push subscriptions
+    // Get target users with active push subscriptions
     let query = supabase
       .from('notifications')
       .select('user_id, push_subscription, profiles!inner(is_staff, is_admin)')
@@ -181,7 +138,6 @@ export async function POST(request: NextRequest) {
         created_by: user.id,
         title: payload.title,
         body: payload.body,
-        image_url: payload.image_url || null,
         target_audience: payload.target_audience,
         recipient_count: recipients.length,
         status: 'sending',
@@ -208,7 +164,6 @@ export async function POST(request: NextRequest) {
           body: payload.body,
           icon: '/icon-192x192.png',
           badge: '/icon-192x192.png',
-          image: payload.image_url || null,
           data: {
             notification_type: 'broadcast',
             category: 'announcement',
@@ -226,7 +181,6 @@ export async function POST(request: NextRequest) {
           category: 'announcement',
           title: payload.title,
           body: payload.body,
-          image_url: payload.image_url || null,
           delivery_method: ['push'],
           delivery_status: 'delivered',
           sent_at: new Date().toISOString(),

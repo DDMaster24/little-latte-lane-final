@@ -13,8 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Bell, Send, Clock, Users, Image as ImageIcon, X, CheckCircle, AlertCircle, History } from 'lucide-react'
-import Image from 'next/image'
+import { Bell, Send, Users, CheckCircle, AlertCircle, History } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { getSupabaseClient } from '@/lib/supabase-client'
 import NotificationHistoryView from './NotificationHistoryView'
@@ -22,17 +21,13 @@ import NotificationHistoryView from './NotificationHistoryView'
 interface BroadcastPayload {
   title: string
   body: string
-  image_url?: string
   target_audience: 'all' | 'customers' | 'staff'
-  scheduled_for?: string | null
 }
 
 export default function AdminNotificationsTab() {
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
-  const [imageUrl, setImageUrl] = useState('')
   const [targetAudience, setTargetAudience] = useState<'all' | 'customers' | 'staff'>('all')
-  const [scheduledFor, setScheduledFor] = useState<string>('')
   const [isSending, setIsSending] = useState(false)
   const [lastResult, setLastResult] = useState<{
     success: boolean
@@ -71,9 +66,7 @@ export default function AdminNotificationsTab() {
       const payload: BroadcastPayload = {
         title: title.trim(),
         body: body.trim(),
-        image_url: imageUrl.trim() || undefined,
         target_audience: targetAudience,
-        scheduled_for: null,
       }
 
       console.log('📤 Sending broadcast request...', payload)
@@ -83,7 +76,7 @@ export default function AdminNotificationsTab() {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Important: Include cookies for authentication
+        credentials: 'include',
         body: JSON.stringify(payload),
       })
 
@@ -109,89 +102,15 @@ export default function AdminNotificationsTab() {
       // Clear form
       setTitle('')
       setBody('')
-      setImageUrl('')
     } catch (error) {
       console.error('Failed to send broadcast:', error)
-      
+
       setLastResult({
         success: false,
         message: error instanceof Error ? error.message : 'Failed to send notification',
       })
 
       toast.error('Failed to send broadcast notification')
-    } finally {
-      setIsSending(false)
-    }
-  }
-
-  const handleSchedule = async () => {
-    if (!title.trim() || !body.trim()) {
-      toast.error('Please enter both title and message')
-      return
-    }
-
-    if (!scheduledFor) {
-      toast.error('Please select a date and time to schedule')
-      return
-    }
-
-    const scheduledDate = new Date(scheduledFor)
-    if (scheduledDate <= new Date()) {
-      toast.error('Scheduled time must be in the future')
-      return
-    }
-
-    setIsSending(true)
-    setLastResult(null)
-
-    try {
-      const payload: BroadcastPayload = {
-        title: title.trim(),
-        body: body.trim(),
-        image_url: imageUrl.trim() || undefined,
-        target_audience: targetAudience,
-        scheduled_for: scheduledDate.toISOString(),
-      }
-
-      const response = await fetch('/api/notifications/broadcast', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Important: Include cookies for authentication
-        body: JSON.stringify(payload),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to schedule notification')
-      }
-
-      await response.json()
-
-      setLastResult({
-        success: true,
-        message: `Notification scheduled for ${scheduledDate.toLocaleString()}`,
-      })
-
-      toast.success('📅 Notification scheduled successfully!', {
-        duration: 5000,
-      })
-
-      // Clear form
-      setTitle('')
-      setBody('')
-      setImageUrl('')
-      setScheduledFor('')
-    } catch (error) {
-      console.error('Failed to schedule broadcast:', error)
-      
-      setLastResult({
-        success: false,
-        message: error instanceof Error ? error.message : 'Failed to schedule notification',
-      })
-
-      toast.error('Failed to schedule notification')
     } finally {
       setIsSending(false)
     }
@@ -296,129 +215,6 @@ export default function AdminNotificationsTab() {
             </p>
           </div>
 
-          {/* Image Upload */}
-          <div className="space-y-2">
-            <Label htmlFor="imageUpload" className="text-white flex items-center gap-2">
-              <ImageIcon className="h-4 w-4" />
-              Upload Image (Optional)
-            </Label>
-            <div className="flex gap-2">
-              <Input
-                id="imageUpload"
-                type="file"
-                accept="image/*"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0]
-                  if (!file) return
-
-                  // Validate file size (max 5MB)
-                  if (file.size > 5 * 1024 * 1024) {
-                    toast.error('Image must be less than 5MB')
-                    e.target.value = ''
-                    return
-                  }
-
-                  // Validate file type
-                  if (!file.type.startsWith('image/')) {
-                    toast.error('Please select an image file')
-                    e.target.value = ''
-                    return
-                  }
-
-                  try {
-                    toast.loading('Uploading image...')
-                    
-                    // Create a unique filename
-                    const fileExt = file.name.split('.').pop()
-                    const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`
-                    const filePath = `notification-images/${fileName}`
-
-                    // Upload to Supabase storage
-                    const { getSupabaseClient } = await import('@/lib/supabase-client')
-                    const supabase = getSupabaseClient()
-                    
-                    const { data, error } = await supabase.storage
-                      .from('public-assets')
-                      .upload(filePath, file, {
-                        cacheControl: '3600',
-                        upsert: false
-                      })
-
-                    if (error) {
-                      console.error('Upload error:', error)
-                      toast.dismiss()
-                      toast.error('Failed to upload image: ' + error.message)
-                      e.target.value = ''
-                      return
-                    }
-
-                    // Get public URL
-                    const { data: { publicUrl } } = supabase.storage
-                      .from('public-assets')
-                      .getPublicUrl(data.path)
-
-                    setImageUrl(publicUrl)
-                    toast.dismiss()
-                    toast.success('Image uploaded successfully!')
-                    e.target.value = '' // Reset file input
-                  } catch (error) {
-                    console.error('Upload exception:', error)
-                    toast.dismiss()
-                    toast.error('Failed to upload image')
-                    e.target.value = ''
-                  }
-                }}
-                className="bg-gray-700 border-gray-600 text-white file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-neonCyan file:text-black hover:file:bg-cyan-400"
-              />
-            </div>
-            <p className="text-xs text-gray-400">
-              Upload an image (max 5MB, JPG/PNG/GIF/WebP)
-            </p>
-          </div>
-
-          {/* Image URL Input (Alternative) */}
-          <div className="space-y-2">
-            <Label htmlFor="imageUrl" className="text-white flex items-center gap-2">
-              <ImageIcon className="h-4 w-4" />
-              Or Enter Image URL
-            </Label>
-            <div className="flex gap-2">
-              <Input
-                id="imageUrl"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://example.com/image.jpg"
-                className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
-              />
-              {imageUrl && (
-                <Button
-                  onClick={() => setImageUrl('')}
-                  variant="outline"
-                  size="icon"
-                  className="border-gray-600 text-gray-400 hover:bg-gray-700"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-            {imageUrl && (
-              <div className="mt-2 p-2 bg-gray-700 rounded border border-gray-600">
-                <p className="text-xs text-gray-400 mb-2">Image Preview:</p>
-                <div className="relative w-full h-40">
-                  <Image
-                    src={imageUrl}
-                    alt="Notification preview"
-                    fill
-                    className="object-contain rounded"
-                    onError={() => {
-                      toast.error('Failed to load image')
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
           {/* Target Audience Selector */}
           <div className="space-y-2">
             <Label className="text-white flex items-center gap-2">
@@ -463,25 +259,6 @@ export default function AdminNotificationsTab() {
             <p className="text-xs text-gray-400">{getAudienceDescription()}</p>
           </div>
 
-          {/* Schedule Section */}
-          <div className="space-y-2">
-            <Label htmlFor="scheduledFor" className="text-white flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Schedule (Optional)
-            </Label>
-            <Input
-              id="scheduledFor"
-              type="datetime-local"
-              value={scheduledFor}
-              onChange={(e) => setScheduledFor(e.target.value)}
-              min={new Date().toISOString().slice(0, 16)}
-              className="bg-gray-700 border-gray-600 text-white"
-            />
-            <p className="text-xs text-gray-400">
-              Leave empty to send immediately, or select a date/time to schedule
-            </p>
-          </div>
-
           {/* Last Result Display */}
           {lastResult && (
             <Alert
@@ -502,12 +279,12 @@ export default function AdminNotificationsTab() {
             </Alert>
           )}
 
-          {/* Action Buttons */}
+          {/* Action Button */}
           <div className="flex gap-3 pt-4 border-t border-gray-700">
             <Button
               onClick={handleSendNow}
               disabled={isSending || !title.trim() || !body.trim()}
-              className="flex-1 bg-neonCyan text-darkBg font-bold hover:bg-neonCyan/90 disabled:opacity-50"
+              className="w-full bg-neonCyan text-darkBg font-bold hover:bg-neonCyan/90 disabled:opacity-50"
             >
               {isSending ? (
                 <>
@@ -517,31 +294,10 @@ export default function AdminNotificationsTab() {
               ) : (
                 <>
                   <Send className="mr-2 h-4 w-4" />
-                  Send Now
+                  Send Notification
                 </>
               )}
             </Button>
-            
-            {scheduledFor && (
-              <Button
-                onClick={handleSchedule}
-                disabled={isSending || !title.trim() || !body.trim()}
-                variant="outline"
-                className="flex-1 border-neonPink text-neonPink hover:bg-neonPink/20 disabled:opacity-50"
-              >
-                {isSending ? (
-                  <>
-                    <span className="animate-spin mr-2">⏳</span>
-                    Scheduling...
-                  </>
-                ) : (
-                  <>
-                    <Clock className="mr-2 h-4 w-4" />
-                    Schedule
-                  </>
-                )}
-              </Button>
-            )}
           </div>
         </CardContent>
       </Card>
@@ -573,16 +329,6 @@ export default function AdminNotificationsTab() {
                   <p className="text-gray-300 text-sm break-words">
                     {body || 'Your notification message will appear here...'}
                   </p>
-                  {imageUrl && (
-                    <div className="relative w-full h-32 mt-2">
-                      <Image
-                        src={imageUrl}
-                        alt="Notification"
-                        fill
-                        className="object-contain rounded"
-                      />
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -597,21 +343,16 @@ export default function AdminNotificationsTab() {
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-gray-400">
           <p>• Notifications are sent only to users who have enabled push notifications</p>
-          <p>• Keep titles concise and engaging (max 100 characters)</p>
-          <p>• Messages should be clear and actionable (max 500 characters)</p>
-          <p>• Upload images directly (max 5MB) or provide a public URL (HTTPS recommended)</p>
-          <p>• Uploaded images are stored in Supabase storage</p>
-          <p>• Scheduled notifications will be sent at the specified time</p>
-          <p>• Failed deliveries are logged and can be reviewed in the history</p>
+          <p>• Keep messages clear and concise for better engagement</p>
+          <p>• Test notifications are recommended before sending to all users</p>
+          <p>• Users can disable notifications in their account settings</p>
         </CardContent>
       </Card>
         </>
       )}
 
       {/* History Tab Content */}
-      {activeTab === 'history' && (
-        <NotificationHistoryView />
-      )}
+      {activeTab === 'history' && <NotificationHistoryView />}
     </div>
   )
 }
