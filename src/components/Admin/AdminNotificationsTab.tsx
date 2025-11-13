@@ -63,6 +63,7 @@ export default function AdminNotificationsTab() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Important: Include cookies for authentication
         body: JSON.stringify(payload),
       })
 
@@ -135,6 +136,7 @@ export default function AdminNotificationsTab() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Important: Include cookies for authentication
         body: JSON.stringify(payload),
       })
 
