@@ -214,7 +214,8 @@ export default function AdminNotificationsTab() {
 
       {/* Compose Tab Content */}
       {activeTab === 'compose' && (
-        <>\n      {/* Header */}
+        <>
+      {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-white mb-2">Send Broadcast Notification</h2>
         <p className="text-gray-400">
