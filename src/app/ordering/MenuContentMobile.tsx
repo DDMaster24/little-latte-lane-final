@@ -607,15 +607,16 @@ export default function MenuContentMobile() {
                                     </div>
                                   )}
 
-                                  {/* Add Extras Button - Shows if item has add-ons */}
+                                  {/* Add-Ons Button - Shows if item has add-ons */}
                                   {item.available_addons && item.available_addons.length > 0 && (
                                     <div className="mb-3">
                                       <Button
                                         onClick={() => handleCustomize(item, selectedVariationId)}
                                         size="sm"
-                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all duration-300 shadow-md"
+                                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-medium transition-all duration-300 shadow-lg hover:shadow-purple-500/50 border-0 text-xs"
                                       >
-                                        ✨ Add Extras ({item.available_addons.length} available)
+                                        <Plus className="h-3 w-3 mr-1" />
+                                        Add-Ons
                                       </Button>
                                     </div>
                                   )}
