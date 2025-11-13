@@ -16,6 +16,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Bell, Send, Clock, Users, Image as ImageIcon, X, CheckCircle, AlertCircle, History } from 'lucide-react'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
+import { getSupabaseClient } from '@/lib/supabase-client'
 import NotificationHistoryView from './NotificationHistoryView'
 
 interface BroadcastPayload {
@@ -46,6 +47,23 @@ export default function AdminNotificationsTab() {
       return
     }
 
+    // Verify client-side authentication first
+    console.log('🔍 Checking client auth state...')
+    const supabase = getSupabaseClient()
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+    console.log('🔍 Client session:', {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      userId: session?.user?.id,
+      error: sessionError?.message
+    })
+
+    if (!session) {
+      toast.error('You are not logged in. Please refresh the page.')
+      return
+    }
+
     setIsSending(true)
     setLastResult(null)
 
@@ -58,6 +76,8 @@ export default function AdminNotificationsTab() {
         scheduled_for: null,
       }
 
+      console.log('📤 Sending broadcast request...', payload)
+
       const response = await fetch('/api/notifications/broadcast', {
         method: 'POST',
         headers: {
@@ -66,6 +86,8 @@ export default function AdminNotificationsTab() {
         credentials: 'include', // Important: Include cookies for authentication
         body: JSON.stringify(payload),
       })
+
+      console.log('📥 Response status:', response.status)
 
       if (!response.ok) {
         const errorData = await response.json()

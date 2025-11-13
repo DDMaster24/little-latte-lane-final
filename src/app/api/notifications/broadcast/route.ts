@@ -4,8 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import type { Database } from '@/types/supabase'
+import { getSupabaseServer } from '@/lib/supabase-server'
 import webpush from 'web-push'
 import { checkRateLimit, getClientIdentifier, RateLimitPresets, getRateLimitHeaders } from '@/lib/rate-limit'
 
@@ -26,30 +25,9 @@ interface BroadcastPayload {
 
 export async function POST(request: NextRequest) {
   try {
-    // Debug: Log all cookies
-    const allCookies = request.cookies.getAll()
-    console.log('🍪 All cookies received:', allCookies.map(c => ({ name: c.name, hasValue: !!c.value })))
+    console.log('🔔 Broadcast API called')
 
-    // Create Supabase client with cookies from request
-    const supabase = createServerClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            const value = request.cookies.get(name)?.value
-            console.log(`🍪 Getting cookie "${name}":`, value ? 'Found' : 'Not found')
-            return value
-          },
-          set() {
-            // No-op in API routes - cookies are set via response
-          },
-          remove() {
-            // No-op in API routes
-          },
-        },
-      }
-    )
+    const supabase = await getSupabaseServer()
 
     // Verify admin authentication
     console.log('🔐 Attempting to get user...')
@@ -61,7 +39,8 @@ export async function POST(request: NextRequest) {
     console.log('🔐 Auth result:', {
       hasUser: !!user,
       userId: user?.id,
-      error: authError?.message
+      error: authError?.message,
+      errorCode: authError?.status
     })
 
     // Apply rate limiting for notifications
