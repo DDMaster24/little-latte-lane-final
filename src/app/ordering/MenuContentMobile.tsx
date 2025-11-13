@@ -613,7 +613,8 @@ export default function MenuContentMobile() {
                                       <Button
                                         onClick={() => handleCustomize(item, selectedVariationId)}
                                         size="sm"
-                                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-medium transition-all duration-300 shadow-lg hover:shadow-purple-500/50 border-0 text-xs"
+                                        variant="outline"
+                                        className="w-full bg-transparent border-2 border-purple-500/50 text-purple-400 hover:border-purple-400 hover:text-purple-300 hover:bg-purple-500/10 font-medium transition-all duration-300 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] text-xs"
                                       >
                                         <Plus className="h-3 w-3 mr-1" />
                                         Add-Ons
