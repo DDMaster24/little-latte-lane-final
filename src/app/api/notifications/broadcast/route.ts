@@ -4,7 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseServer } from '@/lib/supabase-server'
+import { createServerClient } from '@supabase/ssr'
+import type { Database } from '@/types/supabase'
 import webpush from 'web-push'
 import { checkRateLimit, getClientIdentifier, RateLimitPresets, getRateLimitHeaders } from '@/lib/rate-limit'
 
@@ -25,7 +26,24 @@ interface BroadcastPayload {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await getSupabaseServer()
+    // Create Supabase client with cookies from request
+    const supabase = createServerClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return request.cookies.get(name)?.value
+          },
+          set() {
+            // No-op in API routes - cookies are set via response
+          },
+          remove() {
+            // No-op in API routes
+          },
+        },
+      }
+    )
 
     // Verify admin authentication
     const {
