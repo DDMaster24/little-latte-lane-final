@@ -26,6 +26,10 @@ interface BroadcastPayload {
 
 export async function POST(request: NextRequest) {
   try {
+    // Debug: Log all cookies
+    const allCookies = request.cookies.getAll()
+    console.log('🍪 All cookies received:', allCookies.map(c => ({ name: c.name, hasValue: !!c.value })))
+
     // Create Supabase client with cookies from request
     const supabase = createServerClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -33,7 +37,9 @@ export async function POST(request: NextRequest) {
       {
         cookies: {
           get(name: string) {
-            return request.cookies.get(name)?.value
+            const value = request.cookies.get(name)?.value
+            console.log(`🍪 Getting cookie "${name}":`, value ? 'Found' : 'Not found')
+            return value
           },
           set() {
             // No-op in API routes - cookies are set via response
@@ -46,10 +52,17 @@ export async function POST(request: NextRequest) {
     )
 
     // Verify admin authentication
+    console.log('🔐 Attempting to get user...')
     const {
       data: { user },
       error: authError,
     } = await supabase.auth.getUser()
+
+    console.log('🔐 Auth result:', {
+      hasUser: !!user,
+      userId: user?.id,
+      error: authError?.message
+    })
 
     // Apply rate limiting for notifications
     const identifier = getClientIdentifier(request, user?.id);
