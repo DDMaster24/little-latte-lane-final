@@ -238,12 +238,24 @@ export class DataClient {
 
       let menuItems = data || [];
 
-      // Fetch category-level add-ons if categoryId is specified
+      // Fetch category-level add-ons - ALWAYS fetch for all items or specific category
+      let categoryIdsToFetch: string[] = [];
+
       if (categoryId) {
-        const { data: categoryAddons } = await supabase
+        // If specific category requested, only fetch for that category
+        categoryIdsToFetch = [categoryId];
+      } else {
+        // Otherwise, fetch add-ons for ALL categories
+        const uniqueCategoryIds = [...new Set(menuItems.map(item => item.category_id).filter(Boolean))] as string[];
+        categoryIdsToFetch = uniqueCategoryIds;
+      }
+
+      if (categoryIdsToFetch.length > 0) {
+        const { data: allCategoryAddons } = await supabase
           .from('menu_item_addons')
           .select(`
             id,
+            category_id,
             is_required,
             max_quantity,
             addon:menu_addons!menu_item_addons_addon_id_fkey(
@@ -261,22 +273,36 @@ export class DataClient {
               )
             )
           `)
-          .eq('category_id', categoryId)
+          .in('category_id', categoryIdsToFetch)
           .eq('menu_addons.is_available', true);
 
-        // Attach add-ons to each menu item in this category
-        if (categoryAddons && categoryAddons.length > 0) {
-          menuItems = menuItems.map(item => ({
-            ...item,
-            available_addons: categoryAddons
-              .filter(link => link.addon)
-              .map(link => ({
+        // Group add-ons by category_id for efficient lookup
+        const addonsByCategory = new Map<string, any[]>();
+        if (allCategoryAddons && allCategoryAddons.length > 0) {
+          allCategoryAddons.forEach(link => {
+            if (link.addon && link.category_id) {
+              if (!addonsByCategory.has(link.category_id)) {
+                addonsByCategory.set(link.category_id, []);
+              }
+              addonsByCategory.get(link.category_id)!.push({
                 ...link.addon,
                 is_required: link.is_required,
                 max_quantity: link.max_quantity,
-              })),
-          }));
+              });
+            }
+          });
         }
+
+        // Attach add-ons to each menu item based on their category
+        menuItems = menuItems.map(item => {
+          if (item.category_id && addonsByCategory.has(item.category_id)) {
+            return {
+              ...item,
+              available_addons: addonsByCategory.get(item.category_id),
+            };
+          }
+          return item;
+        });
       }
 
       // Cache the result
