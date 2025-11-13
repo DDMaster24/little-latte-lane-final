@@ -455,7 +455,7 @@ export default function MenuContentDesktop() {
                         <CardContent className="overflow-hidden flex-grow flex flex-col justify-end">
                           {/* Size Selection for Items with Multiple Variations */}
                           {variations.length > 0 && (
-                            <div className="mb-4">
+                            <div className="mb-3">
                               <p className="text-gray-300 text-sm mb-2 group-hover:text-gray-200 transition-colors duration-300">Size:</p>
                               <div className="flex gap-2 flex-wrap">
                                 {variations.map((variation) => {
@@ -482,6 +482,19 @@ export default function MenuContentDesktop() {
                             </div>
                           )}
 
+                          {/* Add Extras Button - Shows if item has add-ons */}
+                          {item.available_addons && item.available_addons.length > 0 && (
+                            <div className="mb-3">
+                              <Button
+                                onClick={() => handleCustomize(item, selectedVariationId)}
+                                size="sm"
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all duration-300 shadow-md border-0"
+                              >
+                                ✨ Add Extras ({item.available_addons.length} available)
+                              </Button>
+                            </div>
+                          )}
+
                           {/* Price and Action Buttons Row */}
                           <div className="space-y-2">
                             {/* Price and Main Add Button */}
@@ -497,14 +510,27 @@ export default function MenuContentDesktop() {
                                 // Get the ID to use for cart operations
                                 const cartItemId = selectedVariationId || item.id;
                                 const quantity = getCartQuantity(cartItemId);
-                                const hasAddons = item.available_addons && item.available_addons.length > 0;
 
                                 // Check if this item needs size selection and none is selected
                                 const needsSelection = variations.length > 0 && !selectedVariationId;
 
                                 return quantity === 0 ? (
                                   <Button
-                                    onClick={() => handleAddToCart(item, selectedVariationId)}
+                                    onClick={() => {
+                                      // Always skip add-ons modal when clicking Add directly
+                                      // Users must click "Add Extras" button to customize
+                                      const variations = item.menu_item_variations || [];
+                                      const selectedVariation = variations.find(v => v.id === selectedVariationId);
+
+                                      const cartItem = {
+                                        id: selectedVariationId || item.id,
+                                        name: selectedVariation ? `${item.name} (${selectedVariation.name})` : item.name,
+                                        price: selectedVariation?.absolute_price || item.price,
+                                        quantity: 1,
+                                      };
+
+                                      addItem(cartItem);
+                                    }}
                                     disabled={needsSelection}
                                     size="sm"
                                     className={`font-semibold transition-all duration-300 backdrop-blur-sm shadow-md text-xs xl:text-sm whitespace-nowrap ${
@@ -514,7 +540,7 @@ export default function MenuContentDesktop() {
                                     }`}
                                   >
                                     <Plus className="h-3 w-3 xl:h-4 xl:w-4 mr-1" />
-                                    {needsSelection ? 'Select Size' : hasAddons ? 'Customize & Add' : 'Add'}
+                                    {needsSelection ? 'Select Size' : 'Add'}
                                   </Button>
                               ) : (
                                 <div className="flex items-center gap-2">
@@ -545,15 +571,6 @@ export default function MenuContentDesktop() {
                               );
                             })()}
                             </div>
-
-                            {/* Customization Available Badge */}
-                            {item.available_addons && item.available_addons.length > 0 && (
-                              <div className="text-center">
-                                <Badge className="bg-neonCyan/20 text-neonCyan border border-neonCyan/30 text-xs">
-                                  ✨ Customization Available
-                                </Badge>
-                              </div>
-                            )}
                           </div>
                           
                           {/* Hover Effect Glow */}

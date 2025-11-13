@@ -580,7 +580,7 @@ export default function MenuContentMobile() {
 
                                   {/* Size Selection for Items with Variations */}
                                   {variations.length > 0 && (
-                                    <div>
+                                    <div className="mb-3">
                                       <p className="text-gray-300 text-sm mb-2">Size:</p>
                                       <div className="flex gap-2 flex-wrap">
                                         {variations.map((variation) => {
@@ -607,6 +607,19 @@ export default function MenuContentMobile() {
                                     </div>
                                   )}
 
+                                  {/* Add Extras Button - Shows if item has add-ons */}
+                                  {item.available_addons && item.available_addons.length > 0 && (
+                                    <div className="mb-3">
+                                      <Button
+                                        onClick={() => handleCustomize(item, selectedVariationId)}
+                                        size="sm"
+                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all duration-300 shadow-md"
+                                      >
+                                        ✨ Add Extras ({item.available_addons.length} available)
+                                      </Button>
+                                    </div>
+                                  )}
+
                                   <div className="space-y-2">
                                     <div className="flex items-center justify-between">
                                       <span className="text-xl font-bold text-neonPink">
@@ -620,14 +633,27 @@ export default function MenuContentMobile() {
                                         // Get cart item ID (variation ID or item ID)
                                         const cartItemId = selectedVariationId || item.id;
                                         const quantity = getCartQuantity(cartItemId);
-                                        const hasAddons = item.available_addons && item.available_addons.length > 0;
 
                                         // Check if this item needs size selection and none is selected
                                         const needsSelection = variations.length > 0 && !selectedVariationId;
 
                                         return quantity === 0 ? (
                                           <Button
-                                            onClick={() => handleAddToCart(item, selectedVariationId)}
+                                            onClick={() => {
+                                              // Always skip add-ons modal when clicking Add directly
+                                              // Users must click "Add Extras" button to customize
+                                              const variations = item.menu_item_variations || [];
+                                              const selectedVariation = variations.find(v => v.id === selectedVariationId);
+
+                                              const cartItem = {
+                                                id: selectedVariationId || item.id,
+                                                name: selectedVariation ? `${item.name} (${selectedVariation.name})` : item.name,
+                                                price: selectedVariation?.absolute_price || item.price,
+                                                quantity: 1,
+                                              };
+
+                                              addItem(cartItem);
+                                            }}
                                             disabled={needsSelection}
                                             className={`font-semibold ${
                                               needsSelection
@@ -636,7 +662,7 @@ export default function MenuContentMobile() {
                                             }`}
                                           >
                                             <Plus className="h-4 w-4 mr-1" />
-                                            {needsSelection ? 'Select Size' : hasAddons ? 'Customize & Add' : 'Add to Cart'}
+                                            {needsSelection ? 'Select Size' : 'Add to Cart'}
                                           </Button>
                                       ) : (
                                         <div className="flex items-center gap-2">
@@ -667,15 +693,6 @@ export default function MenuContentMobile() {
                                       );
                                     })()}
                                     </div>
-
-                                    {/* Customization Available Badge */}
-                                    {item.available_addons && item.available_addons.length > 0 && (
-                                      <div className="text-center">
-                                        <Badge className="bg-neonCyan/20 text-neonCyan border border-neonCyan/30 text-xs">
-                                          ✨ Customization Available
-                                        </Badge>
-                                      </div>
-                                    )}
                                   </div>
                                 </div>
                               </CardContent>
