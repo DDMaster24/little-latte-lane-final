@@ -1,5 +1,5 @@
 /**
- * Next.js Middleware
+ * Next.js Proxy (Next.js 16+)
  * Runs on Edge runtime for fast authentication and route protection
  */
 
@@ -7,7 +7,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { validateEnvironment } from '@/lib/env';
 
-// Validate environment on middleware initialization (production only)
+// Validate environment on proxy initialization (production only)
 if (process.env.NODE_ENV === 'production') {
   try {
     validateEnvironment();
@@ -49,7 +49,7 @@ function isProtectedRoute(pathname: string, routes: string[]): boolean {
   return routes.some(route => pathname.startsWith(route));
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -156,8 +156,8 @@ export async function middleware(request: NextRequest) {
 }
 
 /**
- * Middleware configuration
- * Specify which routes should run through middleware
+ * Proxy configuration
+ * Specify which routes should run through proxy
  */
 export const config = {
   matcher: [
