@@ -146,6 +146,13 @@ export default function EnhancedMenuManagement() {
     is_default: boolean;
   }>>([]);
 
+  // State for editing existing variations
+  const [editingVariations, setEditingVariations] = useState<Record<string, {
+    name: string;
+    absolute_price: number;
+    is_available: boolean;
+  }>>({});
+
   // Editing states
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
@@ -304,6 +311,7 @@ export default function EnhancedMenuManagement() {
       setIsItemDialogOpen(false);
       setItemForm({});
       setItemVariations([]);
+      setEditingVariations({});
       setEditingItem(null);
       fetchData();
     } catch (error) {
@@ -330,6 +338,24 @@ export default function EnhancedMenuManagement() {
       fetchData();
     } catch (error) {
       toast.error('Failed to delete variation');
+    }
+  };
+
+  const handleUpdateVariation = async (id: string) => {
+    try {
+      const variationData = editingVariations[id];
+      if (!variationData) return;
+
+      await updateItemVariation(id, {
+        name: variationData.name,
+        absolute_price: variationData.absolute_price,
+        is_available: variationData.is_available,
+      });
+
+      toast.success('Variation updated!');
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to update variation');
     }
   };
 
@@ -524,8 +550,7 @@ export default function EnhancedMenuManagement() {
                   <TableRow className="border-gray-700">
                     <TableHead className="text-gray-300">Name</TableHead>
                     <TableHead className="text-gray-300">Category</TableHead>
-                    <TableHead className="text-gray-300">Price</TableHead>
-                    <TableHead className="text-gray-300">Sizes</TableHead>
+                    <TableHead className="text-gray-300">Price & Sizes</TableHead>
                     <TableHead className="text-gray-300">Add-ons</TableHead>
                     <TableHead className="text-gray-300">Status</TableHead>
                     <TableHead className="text-gray-300">Actions</TableHead>
@@ -540,43 +565,23 @@ export default function EnhancedMenuManagement() {
                       <TableRow key={item.id} className="border-gray-700">
                         <TableCell className="text-white font-medium">{item.name}</TableCell>
                         <TableCell className="text-gray-300">{getCategoryName(item.category_id)}</TableCell>
-                        <TableCell className="text-neonCyan">R{item.price}</TableCell>
                         <TableCell>
                           {itemVars.length > 0 ? (
                             <div className="flex flex-wrap gap-1">
                               {itemVars.map(v => (
-                                <Badge key={v.id} variant="outline" className="text-xs">
-                                  {v.name} (R{v.absolute_price || v.price_adjustment || 0})
+                                <Badge key={v.id} variant="outline" className="text-xs text-neonCyan border-neonCyan/30">
+                                  {v.name}: R{v.absolute_price || v.price_adjustment || 0}
                                 </Badge>
                               ))}
                             </div>
                           ) : (
-                            <span className="text-gray-500">No sizes</span>
+                            <span className="text-neonCyan">R{item.price}</span>
                           )}
                         </TableCell>
                         <TableCell>
-                          {itemAddons.length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
-                              {itemAddons.slice(0, 3).map(link => (
-                                <Badge
-                                  key={link.id}
-                                  variant="outline"
-                                  className="text-xs bg-purple-900/20 border-purple-600/50 text-purple-300"
-                                  title={`${link.addon?.name}${link.is_required ? ' (Required)' : ''} - Max: ${link.max_quantity}`}
-                                >
-                                  {link.addon?.name}
-                                  {link.is_required && <span className="ml-1 text-neonPink">*</span>}
-                                </Badge>
-                              ))}
-                              {itemAddons.length > 3 && (
-                                <Badge variant="secondary" className="text-xs">
-                                  +{itemAddons.length - 3} more
-                                </Badge>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-gray-500 text-sm">None</span>
-                          )}
+                          <Badge variant={itemAddons.length > 0 ? "default" : "secondary"} className="text-xs">
+                            {itemAddons.length > 0 ? 'Yes' : 'No'}
+                          </Badge>
                         </TableCell>
                         <TableCell>
                           <Badge variant={item.is_available ? "default" : "secondary"}>
@@ -593,6 +598,19 @@ export default function EnhancedMenuManagement() {
                                 setEditingItem(item);
                                 setItemForm(item);
                                 setItemVariations([]);
+
+                                // Initialize editing variations with current data
+                                const itemVars = getItemVariations(item.id);
+                                const varsMap: Record<string, any> = {};
+                                itemVars.forEach(v => {
+                                  varsMap[v.id] = {
+                                    name: v.name,
+                                    absolute_price: v.absolute_price || v.price_adjustment || 0,
+                                    is_available: v.is_available !== false,
+                                  };
+                                });
+                                setEditingVariations(varsMap);
+
                                 setIsItemDialogOpen(true);
                               }}
                               className="border-gray-600 text-gray-300 hover:bg-gray-700"
@@ -1078,31 +1096,101 @@ export default function EnhancedMenuManagement() {
             {/* Show Existing Variations for Editing */}
             {editingItem && (
               <div className="border-t border-gray-700 pt-4 space-y-4">
-                <h3 className="text-sm font-semibold text-neonCyan">Existing Size Variations</h3>
+                <h3 className="text-sm font-semibold text-neonCyan">Size Variations & Pricing</h3>
                 {getItemVariations(editingItem.id).length > 0 ? (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {getItemVariations(editingItem.id).map((v) => (
-                      <div key={v.id} className="flex items-center justify-between bg-gray-800 px-4 py-3 rounded-lg">
-                        <div>
-                          <span className="text-white font-medium">{v.name}</span>
-                          <span className="text-gray-400 ml-3">
-                            R{v.absolute_price || v.price_adjustment || 0}
-                          </span>
-                          {v.is_default && <Badge className="ml-2" variant="default">Default</Badge>}
+                      <div key={v.id} className="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                        <div className="grid grid-cols-3 gap-3 mb-3">
+                          <div>
+                            <Label className="text-xs text-gray-400">Size Name</Label>
+                            <Input
+                              value={editingVariations[v.id]?.name || v.name}
+                              onChange={(e) => {
+                                setEditingVariations({
+                                  ...editingVariations,
+                                  [v.id]: {
+                                    ...editingVariations[v.id],
+                                    name: e.target.value,
+                                    absolute_price: editingVariations[v.id]?.absolute_price || v.absolute_price || 0,
+                                    is_available: editingVariations[v.id]?.is_available !== undefined ? editingVariations[v.id].is_available : (v.is_available !== false),
+                                  }
+                                });
+                              }}
+                              placeholder="e.g., Small"
+                              className="bg-gray-900 border-gray-600 text-white text-sm"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-gray-400">Price (R)</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariations[v.id]?.absolute_price || v.absolute_price || v.price_adjustment || 0}
+                              onChange={(e) => {
+                                setEditingVariations({
+                                  ...editingVariations,
+                                  [v.id]: {
+                                    ...editingVariations[v.id],
+                                    name: editingVariations[v.id]?.name || v.name,
+                                    absolute_price: parseFloat(e.target.value) || 0,
+                                    is_available: editingVariations[v.id]?.is_available !== undefined ? editingVariations[v.id].is_available : (v.is_available !== false),
+                                  }
+                                });
+                              }}
+                              placeholder="e.g., 30"
+                              className="bg-gray-900 border-gray-600 text-white text-sm"
+                            />
+                          </div>
+                          <div className="flex items-end">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                checked={editingVariations[v.id]?.is_available !== undefined ? editingVariations[v.id].is_available : (v.is_available !== false)}
+                                onChange={(e) => {
+                                  setEditingVariations({
+                                    ...editingVariations,
+                                    [v.id]: {
+                                      ...editingVariations[v.id],
+                                      name: editingVariations[v.id]?.name || v.name,
+                                      absolute_price: editingVariations[v.id]?.absolute_price || v.absolute_price || v.price_adjustment || 0,
+                                      is_available: e.target.checked,
+                                    }
+                                  });
+                                }}
+                                className="rounded"
+                              />
+                              <Label className="text-xs text-gray-400">Available</Label>
+                            </div>
+                          </div>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDeleteVariation(v.id)}
-                          className="text-red-400 hover:text-red-300"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center justify-between">
+                          {v.is_default && <Badge variant="default" className="text-xs">Default</Badge>}
+                          <div className="flex items-center gap-2 ml-auto">
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={() => handleUpdateVariation(v.id)}
+                              className="bg-neonCyan text-black hover:bg-neonCyan/80 text-xs"
+                            >
+                              Save
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDeleteVariation(v.id)}
+                              className="text-red-400 hover:text-red-300"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-sm">No size variations for this item</p>
+                  <p className="text-gray-500 text-sm">No size variations for this item. You can add them after creating the item.</p>
                 )}
               </div>
             )}
@@ -1113,6 +1201,7 @@ export default function EnhancedMenuManagement() {
                 onClick={() => {
                   setIsItemDialogOpen(false);
                   setItemVariations([]);
+                  setEditingVariations({});
                 }}
                 className="border-gray-600 text-gray-300"
               >
