@@ -940,7 +940,7 @@ export default function EnhancedMenuManagement() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Name *</Label>
+                  <Label>Name</Label>
                   <Input
                     value={itemForm.name || ''}
                     onChange={(e) => setItemForm({ ...itemForm, name: e.target.value })}
@@ -950,7 +950,7 @@ export default function EnhancedMenuManagement() {
                 </div>
 
                 <div>
-                  <Label>Category *</Label>
+                  <Label>Category</Label>
                   <Select
                     value={itemForm.category_id || ''}
                     onValueChange={(value) => setItemForm({ ...itemForm, category_id: value })}
@@ -979,221 +979,206 @@ export default function EnhancedMenuManagement() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Base Price (R) *</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={itemForm.price || 0}
-                    onChange={(e) => setItemForm({ ...itemForm, price: parseFloat(e.target.value) })}
-                    className="bg-gray-800 border-gray-600 text-white"
+              <div>
+                <Label>Status</Label>
+                <div className="flex items-center space-x-2 pt-2">
+                  <input
+                    type="checkbox"
+                    checked={itemForm.is_available !== false}
+                    onChange={(e) => setItemForm({ ...itemForm, is_available: e.target.checked })}
+                    className="rounded"
                   />
-                </div>
-
-                <div>
-                  <Label>Status</Label>
-                  <div className="flex items-center space-x-2 pt-2">
-                    <input
-                      type="checkbox"
-                      checked={itemForm.is_available !== false}
-                      onChange={(e) => setItemForm({ ...itemForm, is_available: e.target.checked })}
-                      className="rounded"
-                    />
-                    <span className="text-sm">Available</span>
-                  </div>
+                  <span className="text-sm">Available</span>
                 </div>
               </div>
             </div>
 
-            {/* Size Variations */}
-            {!editingItem && (
-              <div className="border-t border-gray-700 pt-4 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-neonCyan">Size Variations (Optional)</h3>
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={() => {
+            {/* Unified Size Variations Section */}
+            <div className="border-t border-gray-700 pt-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-neonCyan">Size Variations</h3>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    if (editingItem) {
+                      // For editing: add a new variation directly to the item
+                      setItemVariations([...itemVariations, { name: '', absolute_price: 0, is_default: false }]);
+                    } else {
+                      // For creating: add to temp variations array
                       setItemVariations([...itemVariations, { name: '', absolute_price: 0, is_default: itemVariations.length === 0 }]);
-                    }}
-                    className="bg-purple-600 text-white hover:bg-purple-700"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Size
-                  </Button>
+                    }
+                  }}
+                  className="bg-neonCyan text-black hover:bg-neonCyan/80"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Size
+                </Button>
+              </div>
+
+              {/* Table Header */}
+              <div className="bg-gray-800/50 rounded-t-lg border border-gray-700 border-b-0">
+                <div className="grid grid-cols-12 gap-3 px-4 py-2 text-xs font-semibold text-gray-400">
+                  <div className="col-span-4">Size</div>
+                  <div className="col-span-3">Price (R)</div>
+                  <div className="col-span-3">Available</div>
+                  <div className="col-span-2 text-right">Actions</div>
                 </div>
-
-                {itemVariations.length > 0 && (
-                  <div className="space-y-3">
-                    {itemVariations.map((variation, index) => (
-                      <div key={index} className="bg-gray-800 p-4 rounded-lg border border-gray-700">
-                        <div className="grid grid-cols-3 gap-3">
-                          <div>
-                            <Label className="text-xs">Size Name *</Label>
-                            <Input
-                              value={variation.name}
-                              onChange={(e) => {
-                                const newVars = [...itemVariations];
-                                newVars[index].name = e.target.value;
-                                setItemVariations(newVars);
-                              }}
-                              placeholder="e.g., Small"
-                              className="bg-gray-900 border-gray-600 text-white text-sm"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs">Price (R)</Label>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              value={variation.absolute_price}
-                              onChange={(e) => {
-                                const newVars = [...itemVariations];
-                                newVars[index].absolute_price = parseFloat(e.target.value) || 0;
-                                setItemVariations(newVars);
-                              }}
-                              placeholder="e.g., 30"
-                              className="bg-gray-900 border-gray-600 text-white text-sm"
-                            />
-                          </div>
-                          <div className="flex items-end gap-2">
-                            <div className="flex items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                checked={variation.is_default}
-                                onChange={(e) => {
-                                  const newVars = itemVariations.map((v, i) => ({
-                                    ...v,
-                                    is_default: i === index ? e.target.checked : false
-                                  }));
-                                  setItemVariations(newVars);
-                                }}
-                                className="rounded"
-                              />
-                              <Label className="text-xs">Default</Label>
-                            </div>
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                setItemVariations(itemVariations.filter((_, i) => i !== index));
-                              }}
-                              className="text-red-400 hover:text-red-300"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
-            )}
 
-            {/* Show Existing Variations for Editing */}
-            {editingItem && (
-              <div className="border-t border-gray-700 pt-4 space-y-4">
-                <h3 className="text-sm font-semibold text-neonCyan">Size Variations & Pricing</h3>
-                {getItemVariations(editingItem.id).length > 0 ? (
-                  <div className="space-y-3">
-                    {getItemVariations(editingItem.id).map((v) => (
-                      <div key={v.id} className="bg-gray-800 p-4 rounded-lg border border-gray-700">
-                        <div className="grid grid-cols-3 gap-3 mb-3">
-                          <div>
-                            <Label className="text-xs text-gray-400">Size Name</Label>
-                            <Input
-                              value={editingVariations[v.id]?.name || v.name}
-                              onChange={(e) => {
-                                setEditingVariations({
-                                  ...editingVariations,
-                                  [v.id]: {
-                                    ...editingVariations[v.id],
-                                    name: e.target.value,
-                                    absolute_price: editingVariations[v.id]?.absolute_price || v.absolute_price || 0,
-                                    is_available: editingVariations[v.id]?.is_available !== undefined ? editingVariations[v.id].is_available : (v.is_available !== false),
-                                  }
-                                });
-                              }}
-                              placeholder="e.g., Small"
-                              className="bg-gray-900 border-gray-600 text-white text-sm"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs text-gray-400">Price (R)</Label>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              value={editingVariations[v.id]?.absolute_price || v.absolute_price || v.price_adjustment || 0}
-                              onChange={(e) => {
-                                setEditingVariations({
-                                  ...editingVariations,
-                                  [v.id]: {
-                                    ...editingVariations[v.id],
-                                    name: editingVariations[v.id]?.name || v.name,
-                                    absolute_price: parseFloat(e.target.value) || 0,
-                                    is_available: editingVariations[v.id]?.is_available !== undefined ? editingVariations[v.id].is_available : (v.is_available !== false),
-                                  }
-                                });
-                              }}
-                              placeholder="e.g., 30"
-                              className="bg-gray-900 border-gray-600 text-white text-sm"
-                            />
-                          </div>
-                          <div className="flex items-end">
-                            <div className="flex items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                checked={editingVariations[v.id]?.is_available !== undefined ? editingVariations[v.id].is_available : (v.is_available !== false)}
-                                onChange={(e) => {
-                                  setEditingVariations({
-                                    ...editingVariations,
-                                    [v.id]: {
-                                      ...editingVariations[v.id],
-                                      name: editingVariations[v.id]?.name || v.name,
-                                      absolute_price: editingVariations[v.id]?.absolute_price || v.absolute_price || v.price_adjustment || 0,
-                                      is_available: e.target.checked,
-                                    }
-                                  });
-                                }}
-                                className="rounded"
-                              />
-                              <Label className="text-xs text-gray-400">Available</Label>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          {v.is_default && <Badge variant="default" className="text-xs">Default</Badge>}
-                          <div className="flex items-center gap-2 ml-auto">
-                            <Button
-                              type="button"
-                              size="sm"
-                              onClick={() => handleUpdateVariation(v.id)}
-                              className="bg-neonCyan text-black hover:bg-neonCyan/80 text-xs"
-                            >
-                              Save
-                            </Button>
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleDeleteVariation(v.id)}
-                              className="text-red-400 hover:text-red-300"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
+              {/* Existing Variations (when editing) */}
+              {editingItem && getItemVariations(editingItem.id).length > 0 && (
+                <div className="border border-gray-700 border-t-0 rounded-b-lg divide-y divide-gray-700">
+                  {getItemVariations(editingItem.id).map((v) => (
+                    <div key={v.id} className="grid grid-cols-12 gap-3 px-4 py-3 hover:bg-gray-800/30 transition-colors">
+                      <div className="col-span-4">
+                        <Input
+                          value={editingVariations[v.id]?.name || v.name}
+                          onChange={(e) => {
+                            setEditingVariations({
+                              ...editingVariations,
+                              [v.id]: {
+                                name: e.target.value,
+                                absolute_price: editingVariations[v.id]?.absolute_price || v.absolute_price || 0,
+                                is_available: editingVariations[v.id]?.is_available !== undefined ? editingVariations[v.id].is_available : (v.is_available !== false),
+                              }
+                            });
+                          }}
+                          placeholder="e.g., Small"
+                          className="bg-gray-900 border-gray-600 text-white text-sm h-8"
+                        />
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-500 text-sm">No size variations for this item. You can add them after creating the item.</p>
-                )}
-              </div>
-            )}
+                      <div className="col-span-3">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={editingVariations[v.id]?.absolute_price || v.absolute_price || v.price_adjustment || 0}
+                          onChange={(e) => {
+                            setEditingVariations({
+                              ...editingVariations,
+                              [v.id]: {
+                                name: editingVariations[v.id]?.name || v.name,
+                                absolute_price: parseFloat(e.target.value) || 0,
+                                is_available: editingVariations[v.id]?.is_available !== undefined ? editingVariations[v.id].is_available : (v.is_available !== false),
+                              }
+                            });
+                          }}
+                          placeholder="30"
+                          className="bg-gray-900 border-gray-600 text-white text-sm h-8"
+                        />
+                      </div>
+                      <div className="col-span-3 flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={editingVariations[v.id]?.is_available !== undefined ? editingVariations[v.id].is_available : (v.is_available !== false)}
+                          onChange={(e) => {
+                            setEditingVariations({
+                              ...editingVariations,
+                              [v.id]: {
+                                name: editingVariations[v.id]?.name || v.name,
+                                absolute_price: editingVariations[v.id]?.absolute_price || v.absolute_price || 0,
+                                is_available: e.target.checked,
+                              }
+                            });
+                          }}
+                          className="rounded w-4 h-4"
+                        />
+                      </div>
+                      <div className="col-span-2 flex items-center justify-end gap-1">
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => handleUpdateVariation(v.id)}
+                          className="bg-green-600 hover:bg-green-700 text-white h-7 px-2 text-xs"
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteVariation(v.id)}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-7 px-2"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* New Variations (when creating or adding to existing) */}
+              {itemVariations.length > 0 && (
+                <div className="border border-gray-700 border-t-0 rounded-b-lg divide-y divide-gray-700">
+                  {itemVariations.map((variation, index) => (
+                    <div key={index} className="grid grid-cols-12 gap-3 px-4 py-3 bg-blue-500/5 hover:bg-blue-500/10 transition-colors">
+                      <div className="col-span-4">
+                        <Input
+                          value={variation.name}
+                          onChange={(e) => {
+                            const newVars = [...itemVariations];
+                            newVars[index].name = e.target.value;
+                            setItemVariations(newVars);
+                          }}
+                          placeholder="e.g., Small"
+                          className="bg-gray-900 border-gray-600 text-white text-sm h-8"
+                        />
+                      </div>
+                      <div className="col-span-3">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={variation.absolute_price}
+                          onChange={(e) => {
+                            const newVars = [...itemVariations];
+                            newVars[index].absolute_price = parseFloat(e.target.value) || 0;
+                            setItemVariations(newVars);
+                          }}
+                          placeholder="30"
+                          className="bg-gray-900 border-gray-600 text-white text-sm h-8"
+                        />
+                      </div>
+                      <div className="col-span-3 flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={true}
+                          disabled
+                          className="rounded w-4 h-4 opacity-50"
+                        />
+                        <span className="text-xs text-gray-500 ml-2">New</span>
+                      </div>
+                      <div className="col-span-2 flex items-center justify-end">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setItemVariations(itemVariations.filter((_, i) => i !== index));
+                          }}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-7 px-2"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!editingItem && itemVariations.length === 0 && (
+                <div className="border border-gray-700 border-t-0 rounded-b-lg p-4 text-center">
+                  <p className="text-gray-500 text-sm">No sizes added yet. Click "Add Size" to create variations.</p>
+                </div>
+              )}
+
+              {editingItem && getItemVariations(editingItem.id).length === 0 && itemVariations.length === 0 && (
+                <div className="border border-gray-700 border-t-0 rounded-b-lg p-4 text-center">
+                  <p className="text-gray-500 text-sm">No sizes for this item. Click "Add Size" to add variations.</p>
+                </div>
+              )}
+            </div>
 
             <div className="flex justify-end gap-2 pt-4">
               <Button
