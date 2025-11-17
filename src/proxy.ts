@@ -113,8 +113,8 @@ export async function proxy(request: NextRequest) {
   // Check if route requires authentication
   if (isProtectedRoute(pathname, PROTECTED_ROUTES)) {
     if (!user) {
-      // Redirect to login with return URL
-      const redirectUrl = new URL('/auth/login', request.url);
+      // Redirect to home page (where users can log in)
+      const redirectUrl = new URL('/', request.url);
       redirectUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(redirectUrl);
     }
