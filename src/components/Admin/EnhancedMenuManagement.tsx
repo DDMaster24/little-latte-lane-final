@@ -202,8 +202,15 @@ export default function EnhancedMenuManagement() {
   const getItemVariations = (itemId: string) =>
     variations.filter(v => v.menu_item_id === itemId);
 
-  const getItemAddons = (itemId: string) =>
-    addonLinks.filter(l => l.menu_item_id === itemId);
+  const getItemAddons = (itemId: string) => {
+    const item = menuItems.find(i => i.id === itemId);
+    if (!item) return [];
+
+    // Get add-ons linked directly to this item OR linked to this item's category
+    return addonLinks.filter(l =>
+      l.menu_item_id === itemId || l.category_id === item.category_id
+    );
+  };
 
   const getCategoryAddons = (categoryId: string) =>
     addonLinks.filter(l => l.category_id === categoryId);
@@ -575,7 +582,9 @@ export default function EnhancedMenuManagement() {
                               ))}
                             </div>
                           ) : (
-                            <span className="text-neonCyan">R{item.price}</span>
+                            <Badge variant="outline" className="text-xs text-neonCyan border-neonCyan/30">
+                              R{item.price}
+                            </Badge>
                           )}
                         </TableCell>
                         <TableCell>
