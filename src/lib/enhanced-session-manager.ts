@@ -1,9 +1,9 @@
 /**
  * Enhanced Session Persistence Manager
- * Aggressive approach to maintain authentication across browser sessions
+ * Using Supabase SSR for cookie-based auth compatible with middleware
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from '@/types/supabase';
 
 // Storage keys for persistent session data
@@ -20,7 +20,7 @@ const STORAGE_KEYS = {
  */
 class SessionPersistenceManager {
   private static instance: SessionPersistenceManager;
-  private supabase: ReturnType<typeof createClient<Database>>;
+  private supabase: ReturnType<typeof createBrowserClient<Database>>;
   private sessionCheckInterval: NodeJS.Timeout | null = null;
   private lastRecoveryAttempt: number = 0;
   private recoveryAttemptCount: number = 0;
@@ -28,77 +28,9 @@ class SessionPersistenceManager {
   private readonly MAX_RECOVERY_ATTEMPTS = 3; // Max attempts before giving up
 
   private constructor() {
-    this.supabase = createClient<Database>(
+    this.supabase = createBrowserClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: true,
-          storage: {
-            getItem: (key: string) => {
-              if (typeof window === 'undefined') return null;
-              try {
-                // First try localStorage, then sessionStorage
-                let value = window.localStorage.getItem(key);
-                if (!value) {
-                  value = window.sessionStorage.getItem(key);
-                }
-                
-                // CRITICAL: Don't try to restore invalid sessions automatically
-                // This prevents infinite refresh loops on invalid tokens
-                // Let the normal auth flow handle session restoration
-                
-                // Reduced logging for performance
-                if (process.env.NODE_ENV === 'development' && key.includes('auth-token')) {
-                  console.log(`📦 Getting storage key "${key}":`, value ? 'Found' : 'Not found');
-                }
-                return value;
-              } catch (error) {
-                console.warn('Storage getItem error:', error);
-                return null;
-              }
-            },
-            setItem: (key: string, value: string) => {
-              if (typeof window === 'undefined') return;
-              try {
-                // Store in both localStorage and sessionStorage for redundancy
-                window.localStorage.setItem(key, value);
-                window.sessionStorage.setItem(key, value);
-                
-                // Reduced logging for performance
-                if (process.env.NODE_ENV === 'development' && key.includes('auth-token')) {
-                  console.log(`💾 Stored key "${key}" in both storage types`);
-                }
-                
-                // Also store our custom session backup - but avoid infinite loops
-                if (!key.includes('lll-')) {
-                  this.backupSessionData(key, value);
-                }
-              } catch (error) {
-                console.warn('Storage setItem error:', error);
-                // Fallback: try to store in just one location
-                try {
-                  window.localStorage.setItem(key, value);
-                } catch (fallbackError) {
-                  console.error('Critical storage error:', fallbackError);
-                }
-              }
-            },
-            removeItem: (key: string) => {
-              if (typeof window === 'undefined') return;
-              try {
-                window.localStorage.removeItem(key);
-                window.sessionStorage.removeItem(key);
-                console.log(`🗑️ Removed key "${key}" from both storage types`);
-              } catch (error) {
-                console.warn('Storage removeItem error:', error);
-              }
-            },
-          },
-        },
-      }
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
     this.initializeSessionMonitoring();
