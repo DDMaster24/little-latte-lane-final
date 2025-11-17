@@ -49,7 +49,7 @@ function isProtectedRoute(pathname: string, routes: string[]): boolean {
   return routes.some(route => pathname.startsWith(route));
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({
     request: {
       headers: request.headers,
