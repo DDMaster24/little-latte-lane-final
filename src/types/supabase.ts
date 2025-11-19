@@ -491,6 +491,7 @@ export type Database = {
       menu_addons: {
         Row: {
           category: string | null
+          category_id: string | null
           created_at: string
           description: string | null
           display_order: number | null
@@ -503,6 +504,7 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          category_id?: string | null
           created_at?: string
           description?: string | null
           display_order?: number | null
@@ -515,6 +517,7 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          category_id?: string | null
           created_at?: string
           description?: string | null
           display_order?: number | null
@@ -525,10 +528,19 @@ export type Database = {
           price?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "menu_addons_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "menu_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       menu_categories: {
         Row: {
+          category_type: Database["public"]["Enums"]["category_type"] | null
           created_at: string | null
           description: string | null
           display_order: number | null
@@ -538,6 +550,7 @@ export type Database = {
           name: string
         }
         Insert: {
+          category_type?: Database["public"]["Enums"]["category_type"] | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
@@ -547,6 +560,7 @@ export type Database = {
           name: string
         }
         Update: {
+          category_type?: Database["public"]["Enums"]["category_type"] | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
@@ -1092,7 +1106,7 @@ export type Database = {
       is_staff_or_admin: { Args: never; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      category_type: "menu_items" | "addons"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1219,6 +1233,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      category_type: ["menu_items", "addons"],
+    },
   },
 } as const

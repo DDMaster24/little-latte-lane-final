@@ -71,6 +71,7 @@ interface Category {
   description: string | null;
   display_order: number | null;
   is_active: boolean | null;
+  category_type: 'menu_items' | 'addons' | null;
 }
 
 interface MenuItem {
@@ -99,6 +100,7 @@ interface Addon {
   description: string | null;
   price: number;
   category: string | null;
+  category_id: string | null;
   display_order: number | null;
   is_available: boolean | null;
 }
@@ -262,6 +264,7 @@ export default function EnhancedMenuManagement() {
 
       const finalCategoryForm = {
         ...categoryForm,
+        category_type: categoryForm.category_type || 'menu_items', // Default to menu_items
         display_order: alphabeticalPosition
       };
 
@@ -269,7 +272,7 @@ export default function EnhancedMenuManagement() {
         await updateMenuCategory(editingCategory.id, finalCategoryForm);
         toast.success('Category updated!');
       } else {
-        await createMenuCategory(finalCategoryForm as { name: string; description?: string | null; display_order?: number | null; is_active?: boolean | null });
+        await createMenuCategory(finalCategoryForm as { name: string; description?: string | null; display_order?: number | null; is_active?: boolean | null; category_type?: 'menu_items' | 'addons' | null });
         toast.success('Category created!');
       }
       setIsCategoryDialogOpen(false);
@@ -932,6 +935,31 @@ export default function EnhancedMenuManagement() {
             </div>
 
             <div>
+              <Label>Category Type *</Label>
+              <Select
+                value={categoryForm.category_type || 'menu_items'}
+                onValueChange={(value: 'menu_items' | 'addons') =>
+                  setCategoryForm({ ...categoryForm, category_type: value })
+                }
+                disabled={!!editingCategory}
+              >
+                <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                  <SelectValue placeholder="Select category type" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-600">
+                  <SelectItem value="menu_items">📋 Menu Items Category</SelectItem>
+                  <SelectItem value="addons">🧩 Add-ons Category</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-400 mt-1">
+                {categoryForm.category_type === 'addons'
+                  ? 'This category will contain add-on items only'
+                  : 'This category will contain regular menu items only'}
+                {editingCategory && ' (Cannot change type after creation)'}
+              </p>
+            </div>
+
+            <div>
               <Label>Status</Label>
               <div className="flex items-center space-x-2 pt-2">
                 <input
@@ -994,13 +1022,16 @@ export default function EnhancedMenuManagement() {
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-800 border-gray-600">
-                      {categories.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
+                      {categories
+                        .filter((cat) => cat.category_type === 'menu_items' || !cat.category_type)
+                        .map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-gray-400 mt-1">Only menu item categories are shown</p>
                 </div>
               </div>
 
@@ -1279,23 +1310,24 @@ export default function EnhancedMenuManagement() {
             <div>
               <Label>Category (optional grouping)</Label>
               <Select
-                value={addonForm.category || 'none'}
-                onValueChange={(value) => setAddonForm({ ...addonForm, category: value === 'none' ? null : value })}
+                value={addonForm.category_id || 'none'}
+                onValueChange={(value) => setAddonForm({ ...addonForm, category_id: value === 'none' ? null : value })}
               >
                 <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-600">
                   <SelectItem value="none">None</SelectItem>
-                  <SelectItem value="Milk Alternatives">Milk Alternatives</SelectItem>
-                  <SelectItem value="Pizza Toppings">Pizza Toppings</SelectItem>
-                  <SelectItem value="Meal Extras">Meal Extras</SelectItem>
-                  <SelectItem value="Drink Enhancers">Drink Enhancers</SelectItem>
-                  <SelectItem value="Breakfast Add-ons">Breakfast Add-ons</SelectItem>
-                  <SelectItem value="Coffee Extras">Coffee Extras</SelectItem>
+                  {categories
+                    .filter((cat) => cat.category_type === 'addons')
+                    .map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-gray-400 mt-1">Add-ons are automatically ordered alphabetically</p>
+              <p className="text-xs text-gray-400 mt-1">Only add-on categories are shown. Add-ons are automatically ordered alphabetically</p>
             </div>
 
             <div>
