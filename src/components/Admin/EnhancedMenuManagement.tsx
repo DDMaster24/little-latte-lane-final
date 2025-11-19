@@ -253,11 +253,21 @@ export default function EnhancedMenuManagement() {
         return;
       }
 
+      let finalCategoryForm = { ...categoryForm };
+
+      // Calculate alphabetical position if selected
+      if (categoryForm.display_order === -1) {
+        const allNames = [...categories.map(c => c.name), categoryForm.name];
+        const sortedNames = allNames.sort((a, b) => a.localeCompare(b));
+        const alphabeticalPosition = sortedNames.indexOf(categoryForm.name);
+        finalCategoryForm.display_order = alphabeticalPosition;
+      }
+
       if (editingCategory) {
-        await updateMenuCategory(editingCategory.id, categoryForm);
+        await updateMenuCategory(editingCategory.id, finalCategoryForm);
         toast.success('Category updated!');
       } else {
-        await createMenuCategory(categoryForm as { name: string; description?: string | null; display_order?: number | null; is_active?: boolean | null });
+        await createMenuCategory(finalCategoryForm as { name: string; description?: string | null; display_order?: number | null; is_active?: boolean | null });
         toast.success('Category created!');
       }
       setIsCategoryDialogOpen(false);
@@ -386,11 +396,21 @@ export default function EnhancedMenuManagement() {
         return;
       }
 
+      let finalAddonForm = { ...addonForm };
+
+      // Calculate alphabetical position if selected
+      if (addonForm.display_order === -1) {
+        const allNames = [...addons.map(a => a.name), addonForm.name];
+        const sortedNames = allNames.sort((a, b) => a.localeCompare(b));
+        const alphabeticalPosition = sortedNames.indexOf(addonForm.name);
+        finalAddonForm.display_order = alphabeticalPosition;
+      }
+
       if (editingAddon) {
-        await updateAddon(editingAddon.id, addonForm);
+        await updateAddon(editingAddon.id, finalAddonForm);
         toast.success('Add-on updated!');
       } else {
-        await createAddon(addonForm as { name: string; price: number });
+        await createAddon(finalAddonForm as { name: string; price: number });
         toast.success('Add-on created!');
       }
       setIsAddonDialogOpen(false);
@@ -909,13 +929,40 @@ export default function EnhancedMenuManagement() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Display Order</Label>
-                <Input
-                  type="number"
-                  value={categoryForm.display_order || 0}
-                  onChange={(e) => setCategoryForm({ ...categoryForm, display_order: parseInt(e.target.value) })}
-                  className="bg-gray-800 border-gray-600 text-white"
-                />
+                <Label>Position</Label>
+                <Select
+                  value={categoryForm.display_order?.toString() || '0'}
+                  onValueChange={(value) => {
+                    if (value === 'first') {
+                      setCategoryForm({ ...categoryForm, display_order: 0 });
+                    } else if (value === 'last') {
+                      const maxOrder = Math.max(...categories.map(c => c.display_order || 0), -1);
+                      setCategoryForm({ ...categoryForm, display_order: maxOrder + 1 });
+                    } else if (value === 'alpha') {
+                      // Will be calculated on save based on alphabetical position
+                      setCategoryForm({ ...categoryForm, display_order: -1 });
+                    } else {
+                      setCategoryForm({ ...categoryForm, display_order: parseInt(value) });
+                    }
+                  }}
+                >
+                  <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                    <SelectValue placeholder="Select position" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-600">
+                    <SelectItem value="first">📍 First position</SelectItem>
+                    <SelectItem value="last">📍 Last position</SelectItem>
+                    <SelectItem value="alpha">🔤 Alphabetically</SelectItem>
+                    {categories
+                      .filter(c => !editingCategory || c.id !== editingCategory.id)
+                      .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+                      .map((cat) => (
+                        <SelectItem key={cat.id} value={((cat.display_order || 0) + 1).toString()}>
+                          ⬇️ After "{cat.name}"
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
@@ -1286,13 +1333,40 @@ export default function EnhancedMenuManagement() {
               </div>
 
               <div>
-                <Label>Display Order</Label>
-                <Input
-                  type="number"
-                  value={addonForm.display_order || 0}
-                  onChange={(e) => setAddonForm({ ...addonForm, display_order: parseInt(e.target.value) })}
-                  className="bg-gray-800 border-gray-600 text-white"
-                />
+                <Label>Position</Label>
+                <Select
+                  value={addonForm.display_order?.toString() || '0'}
+                  onValueChange={(value) => {
+                    if (value === 'first') {
+                      setAddonForm({ ...addonForm, display_order: 0 });
+                    } else if (value === 'last') {
+                      const maxOrder = Math.max(...addons.map(a => a.display_order || 0), -1);
+                      setAddonForm({ ...addonForm, display_order: maxOrder + 1 });
+                    } else if (value === 'alpha') {
+                      // Will be calculated on save based on alphabetical position
+                      setAddonForm({ ...addonForm, display_order: -1 });
+                    } else {
+                      setAddonForm({ ...addonForm, display_order: parseInt(value) });
+                    }
+                  }}
+                >
+                  <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                    <SelectValue placeholder="Select position" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-600">
+                    <SelectItem value="first">📍 First position</SelectItem>
+                    <SelectItem value="last">📍 Last position</SelectItem>
+                    <SelectItem value="alpha">🔤 Alphabetically</SelectItem>
+                    {addons
+                      .filter(a => !editingAddon || a.id !== editingAddon.id)
+                      .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+                      .map((addon) => (
+                        <SelectItem key={addon.id} value={((addon.display_order || 0) + 1).toString()}>
+                          ⬇️ After "{addon.name}"
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
