@@ -1314,14 +1314,14 @@ export default function EnhancedMenuManagement() {
               <div>
                 <Label>Category (optional grouping)</Label>
                 <Select
-                  value={addonForm.category || ''}
-                  onValueChange={(value) => setAddonForm({ ...addonForm, category: value })}
+                  value={addonForm.category || 'none'}
+                  onValueChange={(value) => setAddonForm({ ...addonForm, category: value === 'none' ? null : value })}
                 >
                   <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 border-gray-600">
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     <SelectItem value="Milk Alternatives">Milk Alternatives</SelectItem>
                     <SelectItem value="Pizza Toppings">Pizza Toppings</SelectItem>
                     <SelectItem value="Meal Extras">Meal Extras</SelectItem>
