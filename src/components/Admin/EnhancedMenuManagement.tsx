@@ -253,15 +253,17 @@ export default function EnhancedMenuManagement() {
         return;
       }
 
-      let finalCategoryForm = { ...categoryForm };
+      // Always calculate alphabetical position
+      const allNames = editingCategory
+        ? [...categories.filter(c => c.id !== editingCategory.id).map(c => c.name), categoryForm.name]
+        : [...categories.map(c => c.name), categoryForm.name];
+      const sortedNames = allNames.sort((a, b) => a.localeCompare(b));
+      const alphabeticalPosition = sortedNames.indexOf(categoryForm.name);
 
-      // Calculate alphabetical position if selected
-      if (categoryForm.display_order === -1) {
-        const allNames = [...categories.map(c => c.name), categoryForm.name];
-        const sortedNames = allNames.sort((a, b) => a.localeCompare(b));
-        const alphabeticalPosition = sortedNames.indexOf(categoryForm.name);
-        finalCategoryForm.display_order = alphabeticalPosition;
-      }
+      const finalCategoryForm = {
+        ...categoryForm,
+        display_order: alphabeticalPosition
+      };
 
       if (editingCategory) {
         await updateMenuCategory(editingCategory.id, finalCategoryForm);
@@ -396,15 +398,17 @@ export default function EnhancedMenuManagement() {
         return;
       }
 
-      let finalAddonForm = { ...addonForm };
+      // Always calculate alphabetical position
+      const allNames = editingAddon
+        ? [...addons.filter(a => a.id !== editingAddon.id).map(a => a.name), addonForm.name]
+        : [...addons.map(a => a.name), addonForm.name];
+      const sortedNames = allNames.sort((a, b) => a.localeCompare(b));
+      const alphabeticalPosition = sortedNames.indexOf(addonForm.name);
 
-      // Calculate alphabetical position if selected
-      if (addonForm.display_order === -1) {
-        const allNames = [...addons.map(a => a.name), addonForm.name];
-        const sortedNames = allNames.sort((a, b) => a.localeCompare(b));
-        const alphabeticalPosition = sortedNames.indexOf(addonForm.name);
-        finalAddonForm.display_order = alphabeticalPosition;
-      }
+      const finalAddonForm = {
+        ...addonForm,
+        display_order: alphabeticalPosition
+      };
 
       if (editingAddon) {
         await updateAddon(editingAddon.id, finalAddonForm);
@@ -927,56 +931,18 @@ export default function EnhancedMenuManagement() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Position</Label>
-                <Select
-                  value={categoryForm.display_order?.toString() || '0'}
-                  onValueChange={(value) => {
-                    if (value === 'first') {
-                      setCategoryForm({ ...categoryForm, display_order: 0 });
-                    } else if (value === 'last') {
-                      const maxOrder = Math.max(...categories.map(c => c.display_order || 0), -1);
-                      setCategoryForm({ ...categoryForm, display_order: maxOrder + 1 });
-                    } else if (value === 'alpha') {
-                      // Will be calculated on save based on alphabetical position
-                      setCategoryForm({ ...categoryForm, display_order: -1 });
-                    } else {
-                      setCategoryForm({ ...categoryForm, display_order: parseInt(value) });
-                    }
-                  }}
-                >
-                  <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
-                    <SelectValue placeholder="Select position" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
-                    <SelectItem value="first">📍 First position</SelectItem>
-                    <SelectItem value="last">📍 Last position</SelectItem>
-                    <SelectItem value="alpha">🔤 Alphabetically</SelectItem>
-                    {categories
-                      .filter(c => !editingCategory || c.id !== editingCategory.id)
-                      .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
-                      .map((cat) => (
-                        <SelectItem key={cat.id} value={((cat.display_order || 0) + 1).toString()}>
-                          ⬇️ After "{cat.name}"
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+            <div>
+              <Label>Status</Label>
+              <div className="flex items-center space-x-2 pt-2">
+                <input
+                  type="checkbox"
+                  checked={categoryForm.is_active !== false}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, is_active: e.target.checked })}
+                  className="rounded"
+                />
+                <span className="text-sm">Active</span>
               </div>
-
-              <div>
-                <Label>Status</Label>
-                <div className="flex items-center space-x-2 pt-2">
-                  <input
-                    type="checkbox"
-                    checked={categoryForm.is_active !== false}
-                    onChange={(e) => setCategoryForm({ ...categoryForm, is_active: e.target.checked })}
-                    className="rounded"
-                  />
-                  <span className="text-sm">Active</span>
-                </div>
-              </div>
+              <p className="text-xs text-gray-400 mt-1">Categories are automatically ordered alphabetically</p>
             </div>
 
             <div className="flex justify-end gap-2">
@@ -1310,64 +1276,26 @@ export default function EnhancedMenuManagement() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Category (optional grouping)</Label>
-                <Select
-                  value={addonForm.category || 'none'}
-                  onValueChange={(value) => setAddonForm({ ...addonForm, category: value === 'none' ? null : value })}
-                >
-                  <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
-                    <SelectItem value="none">None</SelectItem>
-                    <SelectItem value="Milk Alternatives">Milk Alternatives</SelectItem>
-                    <SelectItem value="Pizza Toppings">Pizza Toppings</SelectItem>
-                    <SelectItem value="Meal Extras">Meal Extras</SelectItem>
-                    <SelectItem value="Drink Enhancers">Drink Enhancers</SelectItem>
-                    <SelectItem value="Breakfast Add-ons">Breakfast Add-ons</SelectItem>
-                    <SelectItem value="Coffee Extras">Coffee Extras</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label>Position</Label>
-                <Select
-                  value={addonForm.display_order?.toString() || '0'}
-                  onValueChange={(value) => {
-                    if (value === 'first') {
-                      setAddonForm({ ...addonForm, display_order: 0 });
-                    } else if (value === 'last') {
-                      const maxOrder = Math.max(...addons.map(a => a.display_order || 0), -1);
-                      setAddonForm({ ...addonForm, display_order: maxOrder + 1 });
-                    } else if (value === 'alpha') {
-                      // Will be calculated on save based on alphabetical position
-                      setAddonForm({ ...addonForm, display_order: -1 });
-                    } else {
-                      setAddonForm({ ...addonForm, display_order: parseInt(value) });
-                    }
-                  }}
-                >
-                  <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
-                    <SelectValue placeholder="Select position" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
-                    <SelectItem value="first">📍 First position</SelectItem>
-                    <SelectItem value="last">📍 Last position</SelectItem>
-                    <SelectItem value="alpha">🔤 Alphabetically</SelectItem>
-                    {addons
-                      .filter(a => !editingAddon || a.id !== editingAddon.id)
-                      .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
-                      .map((addon) => (
-                        <SelectItem key={addon.id} value={((addon.display_order || 0) + 1).toString()}>
-                          ⬇️ After "{addon.name}"
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <Label>Category (optional grouping)</Label>
+              <Select
+                value={addonForm.category || 'none'}
+                onValueChange={(value) => setAddonForm({ ...addonForm, category: value === 'none' ? null : value })}
+              >
+                <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-600">
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="Milk Alternatives">Milk Alternatives</SelectItem>
+                  <SelectItem value="Pizza Toppings">Pizza Toppings</SelectItem>
+                  <SelectItem value="Meal Extras">Meal Extras</SelectItem>
+                  <SelectItem value="Drink Enhancers">Drink Enhancers</SelectItem>
+                  <SelectItem value="Breakfast Add-ons">Breakfast Add-ons</SelectItem>
+                  <SelectItem value="Coffee Extras">Coffee Extras</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-400 mt-1">Add-ons are automatically ordered alphabetically</p>
             </div>
 
             <div>
