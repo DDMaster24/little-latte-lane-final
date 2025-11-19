@@ -538,6 +538,7 @@ export default function EnhancedMenuManagement() {
                 Menu Items {searchQuery && `(${filteredItems.length} results)`}
               </h3>
               <Button
+                type="button"
                 onClick={() => {
                   setEditingItem(null);
                   setItemForm({});
