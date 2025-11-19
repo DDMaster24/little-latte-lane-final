@@ -283,8 +283,14 @@ export default function EnhancedMenuManagement() {
   // Item operations
   const handleSaveItem = async () => {
     try {
-      if (!itemForm.name || itemForm.price === undefined) {
-        toast.error('Item name and price are required');
+      if (!itemForm.name) {
+        toast.error('Item name is required');
+        return;
+      }
+
+      // If no variations, require base price
+      if (itemVariations.length === 0 && itemForm.price === undefined) {
+        toast.error('Either add size variations or set a base price');
         return;
       }
 
@@ -295,7 +301,13 @@ export default function EnhancedMenuManagement() {
         itemId = editingItem.id;
         toast.success('Item updated!');
       } else {
-        const result = await createMenuItem(itemForm as { name: string; description?: string | null; price: number; category_id?: string | null; is_available?: boolean | null });
+        // Set a default price of 0 if not provided (variations will have their own prices)
+        const itemData = {
+          ...itemForm,
+          price: itemForm.price ?? 0,
+        } as { name: string; description?: string | null; price: number; category_id?: string | null; is_available?: boolean | null };
+
+        const result = await createMenuItem(itemData);
         itemId = result.data?.id!;
         if (!itemId) throw new Error('Failed to get item ID');
         toast.success('Item created!');
@@ -1202,7 +1214,7 @@ export default function EnhancedMenuManagement() {
               >
                 Cancel
               </Button>
-              <Button onClick={handleSaveItem} className="bg-neonCyan text-black">
+              <Button type="button" onClick={handleSaveItem} className="bg-neonCyan text-black">
                 {editingItem ? 'Update' : 'Create'} Item
               </Button>
             </div>
