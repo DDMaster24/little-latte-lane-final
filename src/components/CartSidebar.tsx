@@ -89,10 +89,14 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const [address, setAddress] = useState<EnhancedAddress>(parseAddressString(null));
   const [phone, setPhone] = useState('');
   const [specialInstructions, setSpecialInstructions] = useState('');
-  
+
   // New state for streamlined checkout
   const [isRobertsEstateResident, setIsRobertsEstateResident] = useState(false);
   const [confirmAddressCorrect, setConfirmAddressCorrect] = useState(false);
+
+  // Tip state
+  const [tipType, setTipType] = useState<'15%' | '25%' | 'custom' | 'none'>('15%');
+  const [customTipAmount, setCustomTipAmount] = useState<string>('0');
   
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderData, setOrderData] = useState<{
@@ -173,7 +177,21 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
 
   // Calculate delivery fee from profile address
   const deliveryFee = isRobertsEstateResident ? 10 : 30;
-  const totalWithDelivery = total + (deliveryType === 'delivery' ? deliveryFee : 0);
+
+  // Calculate tip amount based on tip type
+  const calculateTipAmount = (): number => {
+    if (tipType === 'none') return 0;
+    if (tipType === '15%') return total * 0.15;
+    if (tipType === '25%') return total * 0.25;
+    if (tipType === 'custom') {
+      const amount = parseFloat(customTipAmount);
+      return isNaN(amount) ? 0 : Math.max(0, amount);
+    }
+    return 0;
+  };
+
+  const tipAmount = calculateTipAmount();
+  const totalWithDeliveryAndTip = total + (deliveryType === 'delivery' ? deliveryFee : 0) + tipAmount;
 
   // Fetch draft orders when cart is empty and sidebar opens
   useEffect(() => {
@@ -286,18 +304,19 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
       const result = await createOrderServerAction({
         userId: profile.id,
         items: checkoutItems,
-        total: totalWithDelivery,
+        total: totalWithDeliveryAndTip,
         deliveryType,
-        deliveryAddress: deliveryType === 'delivery' 
+        deliveryAddress: deliveryType === 'delivery'
           ? serializeAddress(address)
           : undefined,
         delivery_fee: deliveryType === 'delivery' ? deliveryFee : null,
-        delivery_zone: deliveryType === 'delivery' && isRobertsEstateResident 
-          ? 'roberts_estate' 
+        delivery_zone: deliveryType === 'delivery' && isRobertsEstateResident
+          ? 'roberts_estate'
           : 'middleburg',
         delivery_coordinates: null,
         address_verified: false,
         specialInstructions: specialInstructions.trim() || undefined,
+        tip_amount: tipAmount,
       });
 
       if (result.success && result.orderId) {
@@ -632,9 +651,94 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                             <span className="text-neonCyan">R{deliveryFee.toFixed(2)}</span>
                           </div>
                         )}
-                        <div className="flex justify-between items-center border-t border-gray-600 pt-2">
+
+                        {/* Tip Selection */}
+                        <div className="border-t border-gray-600 pt-3 mt-3 space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-white font-medium">Tip for Driver:</span>
+                            {tipAmount > 0 && (
+                              <span className="text-neonPink font-semibold">R{tipAmount.toFixed(2)}</span>
+                            )}
+                          </div>
+
+                          {/* Tip Options */}
+                          <div className="grid grid-cols-2 gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setTipType('15%')}
+                              className={`text-xs ${
+                                tipType === '15%'
+                                  ? 'bg-neonCyan/20 border-neonCyan text-neonCyan'
+                                  : 'border-gray-600 text-gray-300 hover:bg-gray-700/50'
+                              }`}
+                            >
+                              15% (R{(total * 0.15).toFixed(2)})
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setTipType('25%')}
+                              className={`text-xs ${
+                                tipType === '25%'
+                                  ? 'bg-neonCyan/20 border-neonCyan text-neonCyan'
+                                  : 'border-gray-600 text-gray-300 hover:bg-gray-700/50'
+                              }`}
+                            >
+                              25% (R{(total * 0.25).toFixed(2)})
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setTipType('custom');
+                                setCustomTipAmount('');
+                              }}
+                              className={`text-xs ${
+                                tipType === 'custom'
+                                  ? 'bg-neonCyan/20 border-neonCyan text-neonCyan'
+                                  : 'border-gray-600 text-gray-300 hover:bg-gray-700/50'
+                              }`}
+                            >
+                              Custom
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setTipType('none')}
+                              className={`text-xs ${
+                                tipType === 'none'
+                                  ? 'bg-red-500/20 border-red-500 text-red-400'
+                                  : 'border-gray-600 text-gray-300 hover:bg-gray-700/50'
+                              }`}
+                            >
+                              No Tip
+                            </Button>
+                          </div>
+
+                          {/* Custom Tip Input */}
+                          {tipType === 'custom' && (
+                            <div className="mt-2">
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={customTipAmount}
+                                onChange={(e) => setCustomTipAmount(e.target.value)}
+                                placeholder="Enter tip amount (R)"
+                                className="bg-gray-700/50 border-neonCyan/50 text-white placeholder:text-gray-400 focus:border-neonCyan focus:ring-1 focus:ring-neonCyan/20 text-sm"
+                              />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex justify-between items-center border-t border-gray-600 pt-2 mt-2">
                           <span className="text-lg font-semibold text-white">Total:</span>
-                          <span className="text-xl font-bold text-neonCyan">R{totalWithDelivery.toFixed(2)}</span>
+                          <span className="text-xl font-bold text-neonCyan">R{totalWithDeliveryAndTip.toFixed(2)}</span>
                         </div>
                       </div>
 
@@ -722,7 +826,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                     <YocoPayment
                       orderId={orderId!}
                       userId={profile?.id || ''}
-                      amount={totalWithDelivery}
+                      amount={totalWithDeliveryAndTip}
                       itemName={getOrderTitle()}
                       itemDescription={getItemDescription()}
                       userDetails={{
@@ -784,9 +888,15 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                             <span className="text-neonCyan">R{deliveryFee.toFixed(2)}</span>
                           </div>
                         )}
+                        {tipAmount > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-300">Tip for Driver:</span>
+                            <span className="text-neonPink">R{tipAmount.toFixed(2)}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between border-t border-gray-600 pt-2">
                           <span className="text-gray-300 font-semibold">Total:</span>
-                          <span className="text-neonPink font-bold text-lg">R{totalWithDelivery.toFixed(2)}</span>
+                          <span className="text-neonPink font-bold text-lg">R{totalWithDeliveryAndTip.toFixed(2)}</span>
                         </div>
                       </div>
                       

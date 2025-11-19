@@ -1150,6 +1150,7 @@ export async function createOrderServerAction(orderData: {
   delivery_coordinates?: { lat: number; lng: number } | null;
   address_verified?: boolean | null;
   specialInstructions?: string;
+  tip_amount?: number;
 }) {
   try {
     console.log('🔄 Server-side order creation for user:', orderData.userId);
@@ -1184,6 +1185,7 @@ export async function createOrderServerAction(orderData: {
         delivery_coordinates: orderData.delivery_coordinates || null,
         address_verified: orderData.address_verified || null,
         special_instructions: orderData.specialInstructions || null,
+        tip_amount: orderData.tip_amount || 0,
         created_at: new Date().toISOString(),
       })
       .select('id, order_number')

@@ -902,6 +902,7 @@ export type Database = {
           payment_status: string | null
           special_instructions: string | null
           status: string | null
+          tip_amount: number | null
           total_amount: number | null
           updated_at: string | null
           user_id: string | null
@@ -919,6 +920,7 @@ export type Database = {
           payment_status?: string | null
           special_instructions?: string | null
           status?: string | null
+          tip_amount?: number | null
           total_amount?: number | null
           updated_at?: string | null
           user_id?: string | null
@@ -936,6 +938,7 @@ export type Database = {
           payment_status?: string | null
           special_instructions?: string | null
           status?: string | null
+          tip_amount?: number | null
           total_amount?: number | null
           updated_at?: string | null
           user_id?: string | null
