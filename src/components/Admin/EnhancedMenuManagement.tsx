@@ -1232,12 +1232,12 @@ export default function EnhancedMenuManagement() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Name * (e.g., "Boba", "Extra Cheese")</Label>
+                <Label>Name *</Label>
                 <Input
                   value={addonForm.name || ''}
                   onChange={(e) => setAddonForm({ ...addonForm, name: e.target.value })}
                   className="bg-gray-800 border-gray-600 text-white"
-                  placeholder="e.g., Boba"
+                  placeholder="Add-on name"
                 />
               </div>
 
@@ -1266,12 +1266,23 @@ export default function EnhancedMenuManagement() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Category (optional grouping)</Label>
-                <Input
+                <Select
                   value={addonForm.category || ''}
-                  onChange={(e) => setAddonForm({ ...addonForm, category: e.target.value })}
-                  className="bg-gray-800 border-gray-600 text-white"
-                  placeholder="e.g., Toppings, Extras"
-                />
+                  onValueChange={(value) => setAddonForm({ ...addonForm, category: value })}
+                >
+                  <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-600">
+                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="Milk Alternatives">Milk Alternatives</SelectItem>
+                    <SelectItem value="Pizza Toppings">Pizza Toppings</SelectItem>
+                    <SelectItem value="Meal Extras">Meal Extras</SelectItem>
+                    <SelectItem value="Drink Enhancers">Drink Enhancers</SelectItem>
+                    <SelectItem value="Breakfast Add-ons">Breakfast Add-ons</SelectItem>
+                    <SelectItem value="Coffee Extras">Coffee Extras</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
@@ -1306,7 +1317,7 @@ export default function EnhancedMenuManagement() {
               >
                 Cancel
               </Button>
-              <Button onClick={handleSaveAddon} className="bg-neonCyan text-black">
+              <Button type="button" onClick={handleSaveAddon} className="bg-neonCyan text-black">
                 {editingAddon ? 'Update' : 'Create'} Add-on
               </Button>
             </div>
