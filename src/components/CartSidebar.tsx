@@ -640,15 +640,15 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                     <div className="border-t border-neonCyan/30 pt-4 pb-safe-bottom">
                       <div className="space-y-2 mb-4">
                         <div className="flex justify-between items-center">
-                          <span className="text-white">Subtotal:</span>
-                          <span className="text-white">R{total.toFixed(2)}</span>
+                          <span className="text-gray-300">Subtotal:</span>
+                          <span className="text-neonCyan font-medium">R{total.toFixed(2)}</span>
                         </div>
                         {deliveryType === 'delivery' && (
                           <div className="flex justify-between items-center">
                             <span className="text-gray-300">
                               Delivery Fee {isRobertsEstateResident ? '(Roberts Estate)' : '(Middleburg)'}:
                             </span>
-                            <span className="text-neonCyan">R{deliveryFee.toFixed(2)}</span>
+                            <span className="text-neonCyan font-medium">R{deliveryFee.toFixed(2)}</span>
                           </div>
                         )}
 
@@ -657,7 +657,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                           <div className="flex justify-between items-center">
                             <span className="text-orange-400 font-medium">Tip for Driver:</span>
                             {tipAmount > 0 && (
-                              <span className="text-neonPink font-semibold">R{tipAmount.toFixed(2)}</span>
+                              <span className="text-orange-400 font-semibold">R{tipAmount.toFixed(2)}</span>
                             )}
                           </div>
 
@@ -736,9 +736,9 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                           )}
                         </div>
 
-                        <div className="flex justify-between items-center border-t border-gray-600 pt-2 mt-2">
-                          <span className="text-lg font-semibold text-white">Total:</span>
-                          <span className="text-xl font-bold text-neonCyan">R{totalWithDeliveryAndTip.toFixed(2)}</span>
+                        <div className="flex justify-between items-center border-t border-gray-600 pt-3 mt-2">
+                          <span className="text-xl font-bold text-white">Total:</span>
+                          <span className="text-2xl font-bold text-neonCyan">R{totalWithDeliveryAndTip.toFixed(2)}</span>
                         </div>
                       </div>
 
@@ -878,25 +878,25 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-300">Subtotal:</span>
-                          <span className="text-white">R{total.toFixed(2)}</span>
+                          <span className="text-neonCyan font-medium">R{total.toFixed(2)}</span>
                         </div>
                         {deliveryType === 'delivery' && (
                           <div className="flex justify-between">
                             <span className="text-gray-300">
                               Delivery Fee {isRobertsEstateResident ? '(Roberts Estate)' : '(Middleburg)'}:
                             </span>
-                            <span className="text-neonCyan">R{deliveryFee.toFixed(2)}</span>
+                            <span className="text-neonCyan font-medium">R{deliveryFee.toFixed(2)}</span>
                           </div>
                         )}
                         {tipAmount > 0 && (
                           <div className="flex justify-between">
                             <span className="text-gray-300">Tip for Driver:</span>
-                            <span className="text-neonPink">R{tipAmount.toFixed(2)}</span>
+                            <span className="text-orange-400 font-medium">R{tipAmount.toFixed(2)}</span>
                           </div>
                         )}
                         <div className="flex justify-between border-t border-gray-600 pt-2">
-                          <span className="text-gray-300 font-semibold">Total:</span>
-                          <span className="text-neonPink font-bold text-lg">R{totalWithDeliveryAndTip.toFixed(2)}</span>
+                          <span className="text-white font-bold">Total:</span>
+                          <span className="text-neonCyan font-bold text-lg">R{totalWithDeliveryAndTip.toFixed(2)}</span>
                         </div>
                       </div>
                       
