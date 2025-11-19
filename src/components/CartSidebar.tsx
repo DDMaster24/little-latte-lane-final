@@ -179,8 +179,11 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   // Calculate delivery fee from profile address
   const deliveryFee = isRobertsEstateResident ? 10 : 30;
 
-  // Calculate tip amount based on tip type
+  // Calculate tip amount based on tip type (only for delivery)
   const calculateTipAmount = (): number => {
+    // No tip for pickup orders
+    if (deliveryType === 'pickup') return 0;
+
     if (tipType === '10%') return total * 0.10;
     if (tipType === '15%') return total * 0.15;
     if (tipType === '20%') return total * 0.20;
@@ -639,8 +642,43 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                       ))}
                     </div>
 
+                    {/* Delivery Type Selection */}
+                    <div className="border-t border-neonCyan/30 pt-4">
+                      <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 mb-3">
+                        <Label className="text-white font-medium text-sm mb-2 block">
+                          Order Type *
+                        </Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setDeliveryType('delivery')}
+                            className={`text-sm py-3 ${
+                              deliveryType === 'delivery'
+                                ? 'bg-neonCyan/20 border-neonCyan text-neonCyan font-medium'
+                                : 'border-gray-600 text-gray-300 hover:bg-gray-700/50'
+                            }`}
+                          >
+                            🚚 Delivery
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setDeliveryType('pickup')}
+                            className={`text-sm py-3 ${
+                              deliveryType === 'pickup'
+                                ? 'bg-neonCyan/20 border-neonCyan text-neonCyan font-medium'
+                                : 'border-gray-600 text-gray-300 hover:bg-gray-700/50'
+                            }`}
+                          >
+                            🏪 Pickup
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Total */}
-                    <div className="border-t border-neonCyan/30 pt-4 pb-safe-bottom">
+                    <div className="pb-safe-bottom">
                       <div className="space-y-2 mb-4">
                         <div className="flex justify-between items-center">
                           <span className="text-gray-300">Subtotal:</span>
@@ -655,8 +693,9 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                           </div>
                         )}
 
-                        {/* Tip Selection */}
-                        <div className="border-t border-gray-600 pt-3 mt-3 space-y-3">
+                        {/* Tip Selection - Only show for delivery */}
+                        {deliveryType === 'delivery' && (
+                          <div className="border-t border-gray-600 pt-3 mt-3 space-y-3">
                           <div className="flex justify-between items-center">
                             <span className="text-orange-400 font-medium">Tip for Driver:</span>
                             <span className="text-orange-400 font-semibold">R{tipAmount.toFixed(2)}</span>
@@ -766,7 +805,8 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                               </div>
                             </div>
                           )}
-                        </div>
+                          </div>
+                        )}
 
                         <div className="flex justify-between items-center border-t border-gray-600 pt-3 mt-2">
                           <span className="text-xl font-bold text-white">Total:</span>
@@ -920,10 +960,12 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                             <span className="text-neonCyan font-medium">R{deliveryFee.toFixed(2)}</span>
                           </div>
                         )}
-                        <div className="flex justify-between">
-                          <span className="text-gray-300">Tip for Driver:</span>
-                          <span className="text-orange-400 font-medium">R{tipAmount.toFixed(2)}</span>
-                        </div>
+                        {deliveryType === 'delivery' && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-300">Tip for Driver:</span>
+                            <span className="text-orange-400 font-medium">R{tipAmount.toFixed(2)}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between border-t border-gray-600 pt-2">
                           <span className="text-white font-bold">Total:</span>
                           <span className="text-neonCyan font-bold text-lg">R{totalWithDeliveryAndTip.toFixed(2)}</span>
