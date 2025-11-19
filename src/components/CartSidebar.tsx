@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Slider } from '@/components/ui/slider';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import {
   Select,
@@ -96,7 +97,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
 
   // Tip state
   const [tipType, setTipType] = useState<'10%' | '15%' | '20%' | '25%' | 'custom'>('10%');
-  const [customTipAmount, setCustomTipAmount] = useState<string>('0');
+  const [customTipPercentage, setCustomTipPercentage] = useState<number>(25); // Slider from 25% to 100%
   
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderData, setOrderData] = useState<{
@@ -185,8 +186,9 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
     if (tipType === '20%') return total * 0.20;
     if (tipType === '25%') return total * 0.25;
     if (tipType === 'custom') {
-      const amount = parseFloat(customTipAmount);
-      return isNaN(amount) ? total * 0.10 : Math.max(0, amount); // Default to 10% if invalid
+      // Custom tip is percentage-based (25% to 100%)
+      const percentage = Math.max(25, Math.min(100, customTipPercentage));
+      return total * (percentage / 100);
     }
     return total * 0.10; // Default to 10%
   };
@@ -675,7 +677,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                                     : 'border-gray-600 text-gray-300 hover:bg-gray-700/50'
                                 }`}
                               >
-                                10% (R{(total * 0.10).toFixed(2)})
+                                10%
                               </Button>
                               <Button
                                 type="button"
@@ -688,7 +690,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                                     : 'border-gray-600 text-gray-300 hover:bg-gray-700/50'
                                 }`}
                               >
-                                15% (R{(total * 0.15).toFixed(2)})
+                                15%
                               </Button>
                               <Button
                                 type="button"
@@ -701,7 +703,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                                     : 'border-gray-600 text-gray-300 hover:bg-gray-700/50'
                                 }`}
                               >
-                                20% (R{(total * 0.20).toFixed(2)})
+                                20%
                               </Button>
                             </div>
                             {/* Row 2: 25%, Custom */}
@@ -717,7 +719,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                                     : 'border-gray-600 text-gray-300 hover:bg-gray-700/50'
                                 }`}
                               >
-                                25% (R{(total * 0.25).toFixed(2)})
+                                25%
                               </Button>
                               <Button
                                 type="button"
@@ -725,7 +727,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                                 size="sm"
                                 onClick={() => {
                                   setTipType('custom');
-                                  setCustomTipAmount('');
+                                  setCustomTipPercentage(25); // Reset to minimum
                                 }}
                                 className={`text-xs ${
                                   tipType === 'custom'
@@ -738,18 +740,30 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                             </div>
                           </div>
 
-                          {/* Custom Tip Input */}
+                          {/* Custom Tip Slider */}
                           {tipType === 'custom' && (
-                            <div className="mt-2">
-                              <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={customTipAmount}
-                                onChange={(e) => setCustomTipAmount(e.target.value)}
-                                placeholder="Enter tip amount (R)"
-                                className="bg-gray-700/50 border-neonCyan/50 text-white placeholder:text-gray-400 focus:border-neonCyan focus:ring-1 focus:ring-neonCyan/20 text-sm"
-                              />
+                            <div className="mt-3 space-y-3 p-4 bg-gray-700/30 rounded-lg border border-neonCyan/30">
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="text-sm text-gray-300 font-medium">Custom Tip:</span>
+                                <span className="text-lg font-bold text-neonCyan">
+                                  {customTipPercentage}% (R{(total * (customTipPercentage / 100)).toFixed(2)})
+                                </span>
+                              </div>
+                              <div className="space-y-2">
+                                <Slider
+                                  min={25}
+                                  max={100}
+                                  step={1}
+                                  value={[customTipPercentage]}
+                                  onValueChange={(value) => setCustomTipPercentage(value[0])}
+                                  className="w-full [&_[role=slider]]:bg-neonCyan [&_[role=slider]]:border-neonCyan [&_[role=slider]]:shadow-lg [&_[role=slider]]:shadow-neonCyan/50 [&>span:first-child]:bg-gray-600 [&>span>span]:bg-neonCyan"
+                                />
+                                <div className="flex justify-between text-xs text-gray-400 mt-1">
+                                  <span>25%</span>
+                                  <span className="text-gray-500">Minimum</span>
+                                  <span>100%</span>
+                                </div>
+                              </div>
                             </div>
                           )}
                         </div>
