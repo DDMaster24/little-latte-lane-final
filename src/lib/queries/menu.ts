@@ -28,6 +28,7 @@ export class MenuQueries {
 
   /**
    * Get all active categories with their menu items
+   * Handles both regular categories and showcase categories
    */
   async getCategoriesWithItems(): Promise<CategoryWithItems[]> {
     const { data, error } = await this.client
@@ -41,7 +42,61 @@ export class MenuQueries {
       .order('name', { referencedTable: 'menu_items' });
 
     if (error) throw error;
-    return data as CategoryWithItems[];
+
+    // Process showcase categories to show items with linked add-ons
+    const processedData = await Promise.all(
+      (data as CategoryWithItems[]).map(async (category) => {
+        if (category.is_showcase) {
+          // Get items for showcase category
+          const showcaseItems = await this.getShowcaseItems(category.id);
+          return { ...category, menu_items: showcaseItems };
+        }
+        return category;
+      })
+    );
+
+    return processedData;
+  }
+
+  /**
+   * Get menu items for a showcase category
+   * Returns all menu items that have add-ons linked to this category
+   */
+  private async getShowcaseItems(categoryId: string): Promise<MenuItemRow[]> {
+    // Step 1: Get all add-ons linked to this showcase category
+    const { data: addonLinks, error: addonError } = await this.client
+      .from('menu_item_addons')
+      .select('addon_id')
+      .eq('category_id', categoryId);
+
+    if (addonError) throw addonError;
+    if (!addonLinks || addonLinks.length === 0) return [];
+
+    const addonIds = addonLinks.map(link => link.addon_id);
+
+    // Step 2: Get all menu items that have these add-ons
+    const { data: itemLinks, error: itemError } = await this.client
+      .from('menu_item_addons')
+      .select('menu_item_id')
+      .in('addon_id', addonIds)
+      .not('menu_item_id', 'is', null);
+
+    if (itemError) throw itemError;
+    if (!itemLinks || itemLinks.length === 0) return [];
+
+    // Get unique menu item IDs
+    const uniqueItemIds = [...new Set(itemLinks.map(link => link.menu_item_id).filter((id): id is string => id !== null))];
+
+    // Step 3: Fetch the actual menu items
+    const { data: items, error: itemsError } = await this.client
+      .from('menu_items')
+      .select('*')
+      .in('id', uniqueItemIds)
+      .eq('is_available', true)
+      .order('name');
+
+    if (itemsError) throw itemsError;
+    return items || [];
   }
 
   /**
@@ -122,10 +177,11 @@ export class MenuQueries {
 export class ServerMenuQueries {
   /**
    * Get all active categories with their menu items (server-side)
+   * Handles both regular categories and showcase categories
    */
   static async getCategoriesWithItems(): Promise<CategoryWithItems[]> {
     const supabase = await getSupabaseServer();
-    
+
     const { data, error } = await supabase
       .from('menu_categories')
       .select(`
@@ -137,7 +193,63 @@ export class ServerMenuQueries {
       .order('name', { referencedTable: 'menu_items' });
 
     if (error) throw error;
-    return data as CategoryWithItems[];
+
+    // Process showcase categories to show items with linked add-ons
+    const processedData = await Promise.all(
+      (data as CategoryWithItems[]).map(async (category) => {
+        if (category.is_showcase) {
+          // Get items for showcase category
+          const showcaseItems = await ServerMenuQueries.getShowcaseItems(category.id);
+          return { ...category, menu_items: showcaseItems };
+        }
+        return category;
+      })
+    );
+
+    return processedData;
+  }
+
+  /**
+   * Get menu items for a showcase category (server-side)
+   * Returns all menu items that have add-ons linked to this category
+   */
+  private static async getShowcaseItems(categoryId: string): Promise<MenuItemRow[]> {
+    const supabase = await getSupabaseServer();
+
+    // Step 1: Get all add-ons linked to this showcase category
+    const { data: addonLinks, error: addonError } = await supabase
+      .from('menu_item_addons')
+      .select('addon_id')
+      .eq('category_id', categoryId);
+
+    if (addonError) throw addonError;
+    if (!addonLinks || addonLinks.length === 0) return [];
+
+    const addonIds = addonLinks.map(link => link.addon_id);
+
+    // Step 2: Get all menu items that have these add-ons
+    const { data: itemLinks, error: itemError } = await supabase
+      .from('menu_item_addons')
+      .select('menu_item_id')
+      .in('addon_id', addonIds)
+      .not('menu_item_id', 'is', null);
+
+    if (itemError) throw itemError;
+    if (!itemLinks || itemLinks.length === 0) return [];
+
+    // Get unique menu item IDs
+    const uniqueItemIds = [...new Set(itemLinks.map(link => link.menu_item_id).filter((id): id is string => id !== null))];
+
+    // Step 3: Fetch the actual menu items
+    const { data: items, error: itemsError } = await supabase
+      .from('menu_items')
+      .select('*')
+      .in('id', uniqueItemIds)
+      .eq('is_available', true)
+      .order('name');
+
+    if (itemsError) throw itemsError;
+    return items || [];
   }
 
   /**
