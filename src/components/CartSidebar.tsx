@@ -655,7 +655,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                         {/* Tip Selection */}
                         <div className="border-t border-gray-600 pt-3 mt-3 space-y-3">
                           <div className="flex justify-between items-center">
-                            <span className="text-white font-medium">Tip for Driver:</span>
+                            <span className="text-orange-400 font-medium">Tip for Driver:</span>
                             {tipAmount > 0 && (
                               <span className="text-neonPink font-semibold">R{tipAmount.toFixed(2)}</span>
                             )}
