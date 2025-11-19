@@ -95,7 +95,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const [confirmAddressCorrect, setConfirmAddressCorrect] = useState(false);
 
   // Tip state
-  const [tipType, setTipType] = useState<'15%' | '25%' | 'custom' | 'none'>('15%');
+  const [tipType, setTipType] = useState<'10%' | '15%' | '20%' | '25%' | 'custom'>('10%');
   const [customTipAmount, setCustomTipAmount] = useState<string>('0');
   
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -180,14 +180,15 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
 
   // Calculate tip amount based on tip type
   const calculateTipAmount = (): number => {
-    if (tipType === 'none') return 0;
+    if (tipType === '10%') return total * 0.10;
     if (tipType === '15%') return total * 0.15;
+    if (tipType === '20%') return total * 0.20;
     if (tipType === '25%') return total * 0.25;
     if (tipType === 'custom') {
       const amount = parseFloat(customTipAmount);
-      return isNaN(amount) ? 0 : Math.max(0, amount);
+      return isNaN(amount) ? total * 0.10 : Math.max(0, amount); // Default to 10% if invalid
     }
-    return 0;
+    return total * 0.10; // Default to 10%
   };
 
   const tipAmount = calculateTipAmount();
@@ -656,68 +657,85 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                         <div className="border-t border-gray-600 pt-3 mt-3 space-y-3">
                           <div className="flex justify-between items-center">
                             <span className="text-orange-400 font-medium">Tip for Driver:</span>
-                            {tipAmount > 0 && (
-                              <span className="text-orange-400 font-semibold">R{tipAmount.toFixed(2)}</span>
-                            )}
+                            <span className="text-orange-400 font-semibold">R{tipAmount.toFixed(2)}</span>
                           </div>
 
                           {/* Tip Options */}
-                          <div className="grid grid-cols-2 gap-2">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setTipType('15%')}
-                              className={`text-xs ${
-                                tipType === '15%'
-                                  ? 'bg-neonCyan/20 border-neonCyan text-neonCyan'
-                                  : 'border-gray-600 text-gray-300 hover:bg-gray-700/50'
-                              }`}
-                            >
-                              15% (R{(total * 0.15).toFixed(2)})
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setTipType('25%')}
-                              className={`text-xs ${
-                                tipType === '25%'
-                                  ? 'bg-neonCyan/20 border-neonCyan text-neonCyan'
-                                  : 'border-gray-600 text-gray-300 hover:bg-gray-700/50'
-                              }`}
-                            >
-                              25% (R{(total * 0.25).toFixed(2)})
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setTipType('custom');
-                                setCustomTipAmount('');
-                              }}
-                              className={`text-xs ${
-                                tipType === 'custom'
-                                  ? 'bg-neonCyan/20 border-neonCyan text-neonCyan'
-                                  : 'border-gray-600 text-gray-300 hover:bg-gray-700/50'
-                              }`}
-                            >
-                              Custom
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setTipType('none')}
-                              className={`text-xs ${
-                                tipType === 'none'
-                                  ? 'bg-red-500/20 border-red-500 text-red-400'
-                                  : 'border-gray-600 text-gray-300 hover:bg-gray-700/50'
-                              }`}
-                            >
-                              No Tip
-                            </Button>
+                          <div className="space-y-2">
+                            {/* Row 1: 10%, 15%, 20% */}
+                            <div className="grid grid-cols-3 gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setTipType('10%')}
+                                className={`text-xs ${
+                                  tipType === '10%'
+                                    ? 'bg-neonCyan/20 border-neonCyan text-neonCyan'
+                                    : 'border-gray-600 text-gray-300 hover:bg-gray-700/50'
+                                }`}
+                              >
+                                10% (R{(total * 0.10).toFixed(2)})
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setTipType('15%')}
+                                className={`text-xs ${
+                                  tipType === '15%'
+                                    ? 'bg-neonCyan/20 border-neonCyan text-neonCyan'
+                                    : 'border-gray-600 text-gray-300 hover:bg-gray-700/50'
+                                }`}
+                              >
+                                15% (R{(total * 0.15).toFixed(2)})
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setTipType('20%')}
+                                className={`text-xs ${
+                                  tipType === '20%'
+                                    ? 'bg-neonCyan/20 border-neonCyan text-neonCyan'
+                                    : 'border-gray-600 text-gray-300 hover:bg-gray-700/50'
+                                }`}
+                              >
+                                20% (R{(total * 0.20).toFixed(2)})
+                              </Button>
+                            </div>
+                            {/* Row 2: 25%, Custom */}
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setTipType('25%')}
+                                className={`text-xs ${
+                                  tipType === '25%'
+                                    ? 'bg-neonCyan/20 border-neonCyan text-neonCyan'
+                                    : 'border-gray-600 text-gray-300 hover:bg-gray-700/50'
+                                }`}
+                              >
+                                25% (R{(total * 0.25).toFixed(2)})
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setTipType('custom');
+                                  setCustomTipAmount('');
+                                }}
+                                className={`text-xs ${
+                                  tipType === 'custom'
+                                    ? 'bg-neonCyan/20 border-neonCyan text-neonCyan'
+                                    : 'border-gray-600 text-gray-300 hover:bg-gray-700/50'
+                                }`}
+                              >
+                                Custom
+                              </Button>
+                            </div>
                           </div>
 
                           {/* Custom Tip Input */}
@@ -888,12 +906,10 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                             <span className="text-neonCyan font-medium">R{deliveryFee.toFixed(2)}</span>
                           </div>
                         )}
-                        {tipAmount > 0 && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-300">Tip for Driver:</span>
-                            <span className="text-orange-400 font-medium">R{tipAmount.toFixed(2)}</span>
-                          </div>
-                        )}
+                        <div className="flex justify-between">
+                          <span className="text-gray-300">Tip for Driver:</span>
+                          <span className="text-orange-400 font-medium">R{tipAmount.toFixed(2)}</span>
+                        </div>
                         <div className="flex justify-between border-t border-gray-600 pt-2">
                           <span className="text-white font-bold">Total:</span>
                           <span className="text-neonCyan font-bold text-lg">R{totalWithDeliveryAndTip.toFixed(2)}</span>
