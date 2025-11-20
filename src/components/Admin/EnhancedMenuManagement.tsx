@@ -92,6 +92,7 @@ interface ItemVariation {
   is_default: boolean | null;
   display_order: number | null;
   is_available: boolean | null;
+  variation_type?: 'size' | 'flavor';
 }
 
 interface Addon {
@@ -141,8 +142,15 @@ export default function EnhancedMenuManagement() {
   const [addonForm, setAddonForm] = useState<Partial<Addon>>({});
   const [linkForm, setLinkForm] = useState<Partial<AddonLink>>({});
 
-  // Inline variations for item form
+  // Inline variations for item form (sizes)
   const [itemVariations, setItemVariations] = useState<Array<{
+    name: string;
+    absolute_price: number;
+    is_default: boolean;
+  }>>([]);
+
+  // Flavor variations for item form
+  const [flavorVariations, setFlavorVariations] = useState<Array<{
     name: string;
     absolute_price: number;
     is_default: boolean;
@@ -203,6 +211,12 @@ export default function EnhancedMenuManagement() {
 
   const getItemVariations = (itemId: string) =>
     variations.filter(v => v.menu_item_id === itemId);
+
+  const getItemSizeVariations = (itemId: string) =>
+    variations.filter(v => v.menu_item_id === itemId && (!v.variation_type || v.variation_type === 'size'));
+
+  const getItemFlavorVariations = (itemId: string) =>
+    variations.filter(v => v.menu_item_id === itemId && v.variation_type === 'flavor');
 
   const getItemAddons = (itemId: string) => {
     const item = menuItems.find(i => i.id === itemId);
@@ -303,10 +317,14 @@ export default function EnhancedMenuManagement() {
         return;
       }
 
-      // If no variations, require base price
-      if (itemVariations.length === 0 && itemForm.price === undefined) {
-        toast.error('Either add size variations or set a base price');
-        return;
+      // If no variations (size OR flavor), require base price
+      if (itemVariations.length === 0 && flavorVariations.length === 0 && (!itemForm.price || itemForm.price === 0)) {
+        // Check if editing and has existing variations
+        const hasExistingVariations = editingItem && getItemVariations(editingItem.id).length > 0;
+        if (!hasExistingVariations) {
+          toast.error('Either add size/flavor variations or set a base price greater than 0');
+          return;
+        }
       }
 
       let itemId: string;
@@ -328,7 +346,7 @@ export default function EnhancedMenuManagement() {
         toast.success('Item created!');
       }
 
-      // Save variations if any
+      // Save size variations if any
       if (itemVariations.length > 0) {
         for (const variation of itemVariations) {
           await createItemVariation({
@@ -337,14 +355,31 @@ export default function EnhancedMenuManagement() {
             absolute_price: variation.absolute_price,
             is_default: variation.is_default,
             display_order: 0,
+            variation_type: 'size',
           });
         }
         toast.success(`Added ${itemVariations.length} size variation(s)!`);
       }
 
+      // Save flavor variations if any
+      if (flavorVariations.length > 0) {
+        for (const variation of flavorVariations) {
+          await createItemVariation({
+            menu_item_id: itemId,
+            name: variation.name,
+            absolute_price: variation.absolute_price,
+            is_default: variation.is_default,
+            display_order: 0,
+            variation_type: 'flavor',
+          });
+        }
+        toast.success(`Added ${flavorVariations.length} flavor variation(s)!`);
+      }
+
       setIsItemDialogOpen(false);
       setItemForm({});
       setItemVariations([]);
+      setFlavorVariations([]);
       setEditingVariations({});
       setEditingItem(null);
       fetchData();
@@ -582,6 +617,7 @@ export default function EnhancedMenuManagement() {
                   setEditingItem(null);
                   setItemForm({});
                   setItemVariations([]);
+                  setFlavorVariations([]);
                   setIsItemDialogOpen(true);
                 }}
                 className="bg-neonCyan text-black hover:bg-neonCyan/80"
@@ -606,6 +642,8 @@ export default function EnhancedMenuManagement() {
                 <TableBody>
                   {filteredItems.map((item) => {
                     const itemVars = getItemVariations(item.id);
+                    const itemSizes = getItemSizeVariations(item.id);
+                    const itemFlavors = getItemFlavorVariations(item.id);
                     const itemAddons = getItemAddons(item.id);
 
                     return (
@@ -613,13 +651,26 @@ export default function EnhancedMenuManagement() {
                         <TableCell className="text-white font-medium">{item.name}</TableCell>
                         <TableCell className="text-gray-300">{getCategoryName(item.category_id)}</TableCell>
                         <TableCell>
-                          {itemVars.length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
-                              {itemVars.map(v => (
-                                <Badge key={v.id} variant="outline" className="text-xs text-neonCyan border-neonCyan/30">
-                                  {v.name}: R{v.absolute_price || v.price_adjustment || 0}
-                                </Badge>
-                              ))}
+                          {itemSizes.length > 0 || itemFlavors.length > 0 ? (
+                            <div className="flex flex-col gap-1">
+                              {itemSizes.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                  {itemSizes.map(v => (
+                                    <Badge key={v.id} variant="outline" className="text-xs text-neonCyan border-neonCyan/30">
+                                      {v.name}: R{v.absolute_price || v.price_adjustment || 0}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                              {itemFlavors.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                  {itemFlavors.map(v => (
+                                    <Badge key={v.id} variant="outline" className="text-xs text-neonPink border-neonPink/30">
+                                      {v.name}: R{v.absolute_price || v.price_adjustment || 0}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           ) : (
                             <Badge variant="outline" className="text-xs text-neonCyan border-neonCyan/30">
@@ -1036,6 +1087,23 @@ export default function EnhancedMenuManagement() {
               </div>
 
               <div>
+                <Label>Base Price (R)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={itemForm.price ?? 0}
+                  onChange={(e) => setItemForm({ ...itemForm, price: parseFloat(e.target.value) || 0 })}
+                  className="bg-gray-800 border-gray-600 text-white"
+                  placeholder="0.00"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  {(editingItem && getItemVariations(editingItem.id).length > 0) || itemVariations.length > 0 || flavorVariations.length > 0
+                    ? "Note: Size/flavor variations below will override this base price"
+                    : "This price will be used when there are no size or flavor variations"}
+                </p>
+              </div>
+
+              <div>
                 <Label>Description</Label>
                 <Textarea
                   value={itemForm.description || ''}
@@ -1246,12 +1314,194 @@ export default function EnhancedMenuManagement() {
               )}
             </div>
 
+            {/* Flavor Variations Section */}
+            <div className="border-t border-gray-700 pt-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-neonPink">Flavor Variations</h3>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    setFlavorVariations([...flavorVariations, { name: '', absolute_price: 0, is_default: flavorVariations.length === 0 }]);
+                  }}
+                  className="bg-neonPink text-black hover:bg-neonPink/80"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Flavor
+                </Button>
+              </div>
+
+              {/* Table Header */}
+              <div className="bg-gray-800/50 rounded-t-lg border border-gray-700 border-b-0">
+                <div className="grid grid-cols-12 gap-3 px-4 py-2 text-xs font-semibold text-gray-400">
+                  <div className="col-span-4">Flavor</div>
+                  <div className="col-span-3">Price (R)</div>
+                  <div className="col-span-3">Available</div>
+                  <div className="col-span-2 text-right">Actions</div>
+                </div>
+              </div>
+
+              {/* Existing Flavor Variations (when editing) */}
+              {editingItem && getItemFlavorVariations(editingItem.id).length > 0 && (
+                <div className="border border-gray-700 border-t-0 rounded-b-lg divide-y divide-gray-700">
+                  {getItemFlavorVariations(editingItem.id).map((v) => (
+                    <div key={v.id} className="grid grid-cols-12 gap-3 px-4 py-3 hover:bg-gray-800/30 transition-colors">
+                      <div className="col-span-4">
+                        <Input
+                          value={editingVariations[v.id]?.name || v.name}
+                          onChange={(e) => {
+                            setEditingVariations({
+                              ...editingVariations,
+                              [v.id]: {
+                                name: e.target.value,
+                                absolute_price: editingVariations[v.id]?.absolute_price || v.absolute_price || 0,
+                                is_available: editingVariations[v.id]?.is_available !== undefined ? editingVariations[v.id].is_available : (v.is_available !== false),
+                              }
+                            });
+                          }}
+                          placeholder="e.g., Cheese"
+                          className="bg-gray-900 border-gray-600 text-white text-sm h-8"
+                        />
+                      </div>
+                      <div className="col-span-3">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={editingVariations[v.id]?.absolute_price || v.absolute_price || v.price_adjustment || 0}
+                          onChange={(e) => {
+                            setEditingVariations({
+                              ...editingVariations,
+                              [v.id]: {
+                                name: editingVariations[v.id]?.name || v.name,
+                                absolute_price: parseFloat(e.target.value) || 0,
+                                is_available: editingVariations[v.id]?.is_available !== undefined ? editingVariations[v.id].is_available : (v.is_available !== false),
+                              }
+                            });
+                          }}
+                          placeholder="30"
+                          className="bg-gray-900 border-gray-600 text-white text-sm h-8"
+                        />
+                      </div>
+                      <div className="col-span-3 flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={editingVariations[v.id]?.is_available !== undefined ? editingVariations[v.id].is_available : (v.is_available !== false)}
+                          onChange={(e) => {
+                            setEditingVariations({
+                              ...editingVariations,
+                              [v.id]: {
+                                name: editingVariations[v.id]?.name || v.name,
+                                absolute_price: editingVariations[v.id]?.absolute_price || v.absolute_price || 0,
+                                is_available: e.target.checked,
+                              }
+                            });
+                          }}
+                          className="rounded w-4 h-4"
+                        />
+                      </div>
+                      <div className="col-span-2 flex items-center justify-end gap-1">
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => handleUpdateVariation(v.id)}
+                          className="bg-green-600 hover:bg-green-700 text-white h-7 px-2 text-xs"
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteVariation(v.id)}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-7 px-2"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* New Flavor Variations (when creating or adding to existing) */}
+              {flavorVariations.length > 0 && (
+                <div className="border border-gray-700 border-t-0 rounded-b-lg divide-y divide-gray-700">
+                  {flavorVariations.map((variation, index) => (
+                    <div key={index} className="grid grid-cols-12 gap-3 px-4 py-3 bg-pink-500/5 hover:bg-pink-500/10 transition-colors">
+                      <div className="col-span-4">
+                        <Input
+                          value={variation.name}
+                          onChange={(e) => {
+                            const newVars = [...flavorVariations];
+                            newVars[index].name = e.target.value;
+                            setFlavorVariations(newVars);
+                          }}
+                          placeholder="e.g., Cheese"
+                          className="bg-gray-900 border-gray-600 text-white text-sm h-8"
+                        />
+                      </div>
+                      <div className="col-span-3">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={variation.absolute_price}
+                          onChange={(e) => {
+                            const newVars = [...flavorVariations];
+                            newVars[index].absolute_price = parseFloat(e.target.value) || 0;
+                            setFlavorVariations(newVars);
+                          }}
+                          placeholder="30"
+                          className="bg-gray-900 border-gray-600 text-white text-sm h-8"
+                        />
+                      </div>
+                      <div className="col-span-3 flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={true}
+                          disabled
+                          className="rounded w-4 h-4 opacity-50"
+                        />
+                        <span className="text-xs text-gray-500 ml-2">New</span>
+                      </div>
+                      <div className="col-span-2 flex items-center justify-end">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setFlavorVariations(flavorVariations.filter((_, i) => i !== index));
+                          }}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-7 px-2"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!editingItem && flavorVariations.length === 0 && (
+                <div className="border border-gray-700 border-t-0 rounded-b-lg p-4 text-center">
+                  <p className="text-gray-500 text-sm">No flavors added yet. Click "Add Flavor" to create flavor variations.</p>
+                </div>
+              )}
+
+              {editingItem && getItemFlavorVariations(editingItem.id).length === 0 && flavorVariations.length === 0 && (
+                <div className="border border-gray-700 border-t-0 rounded-b-lg p-4 text-center">
+                  <p className="text-gray-500 text-sm">No flavors for this item. Click "Add Flavor" to add flavor variations.</p>
+                </div>
+              )}
+            </div>
+
             <div className="flex justify-end gap-2 pt-4">
               <Button
                 variant="outline"
                 onClick={() => {
                   setIsItemDialogOpen(false);
                   setItemVariations([]);
+                  setFlavorVariations([]);
                   setEditingVariations({});
                 }}
                 className="border-gray-600 text-gray-300"

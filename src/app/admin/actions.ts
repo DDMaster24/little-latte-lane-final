@@ -196,6 +196,7 @@ export async function createItemVariation(variationData: {
   is_default?: boolean;
   display_order?: number;
   is_available?: boolean;
+  variation_type?: 'size' | 'flavor';
 }) {
   try {
     const supabase = getSupabaseAdmin();
@@ -233,6 +234,7 @@ export async function updateItemVariation(id: string, variationData: Partial<{
   is_default: boolean | null;
   display_order: number | null;
   is_available: boolean | null;
+  variation_type: 'size' | 'flavor' | null;
 }>) {
   try {
     const supabase = getSupabaseAdmin();

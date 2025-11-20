@@ -635,6 +635,7 @@ export type Database = {
           name: string
           price_adjustment: number
           updated_at: string
+          variation_type: string | null
         }
         Insert: {
           absolute_price?: number | null
@@ -647,6 +648,7 @@ export type Database = {
           name: string
           price_adjustment?: number
           updated_at?: string
+          variation_type?: string | null
         }
         Update: {
           absolute_price?: number | null
@@ -659,6 +661,7 @@ export type Database = {
           name?: string
           price_adjustment?: number
           updated_at?: string
+          variation_type?: string | null
         }
         Relationships: [
           {
