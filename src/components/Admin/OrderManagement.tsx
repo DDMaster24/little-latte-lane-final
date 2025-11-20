@@ -7,11 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { updateOrderStatus, getAllOrdersForAdmin } from '@/app/actions';
-import { 
-  RefreshCw, Search, Filter, Clock, ChefHat, Package, 
+import {
+  RefreshCw, Search, Filter, Clock, ChefHat, Package,
   CheckCircle, AlertCircle, Eye, Phone, Mail, MapPin, Users
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { NeonCoffeeCupLoader } from '@/components/LoadingComponents';
 
 interface Order {
   id: string;
@@ -332,8 +333,7 @@ export default function OrderManagement() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <RefreshCw className="h-8 w-8 animate-spin text-neonCyan" />
-        <span className="ml-2 text-gray-300">Loading orders...</span>
+        <NeonCoffeeCupLoader size="lg" text="Loading Little Latte Lane" />
       </div>
     );
   }

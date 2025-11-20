@@ -19,7 +19,7 @@ import {
   ArrowLeft,
   Calendar,
 } from 'lucide-react';
-import { OrderCardSkeleton } from '@/components/ui/loading-skeleton';
+import { NeonCoffeeCupLoader } from '@/components/LoadingComponents';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import toast from 'react-hot-toast';
 
@@ -594,48 +594,8 @@ export default function KitchenView() {
   if (loading) {
     return (
       <div className="h-screen bg-darkBg text-neonText overflow-hidden">
-        {/* Header Skeleton */}
-        <div className="bg-gray-900/95 backdrop-blur-md border-b border-gray-700/50 fixed top-0 left-0 right-0 z-50">
-          <div className="max-w-full px-4 py-3">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gray-700 rounded animate-pulse"></div>
-                <div className="w-32 h-6 bg-gray-700 rounded animate-pulse"></div>
-              </div>
-              <div className="flex gap-3">
-                <div className="w-20 h-8 bg-gray-700 rounded animate-pulse"></div>
-                <div className="w-20 h-8 bg-gray-700 rounded animate-pulse"></div>
-                <div className="w-16 h-8 bg-gray-700 rounded animate-pulse"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Content Skeletons */}
-        <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 p-4 sm:p-6 pt-20">
-          <div className="flex-1 xl:w-2/3">
-            <div className="text-center mb-6">
-              <div className="w-32 h-8 bg-gray-700 rounded animate-pulse mx-auto"></div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3 gap-3 sm:gap-4">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <OrderCardSkeleton key={i} />
-              ))}
-            </div>
-          </div>
-          
-          <div className="xl:w-1/3 xl:border-l xl:border-gray-700 xl:pl-6">
-            <div className="text-center mb-4">
-              <div className="w-32 h-6 bg-gray-700 rounded animate-pulse mx-auto"></div>
-            </div>
-            <div className="space-y-2">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="bg-gray-800 border border-gray-600 rounded-lg p-3">
-                  <div className="w-full h-16 bg-gray-700 rounded animate-pulse"></div>
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="flex items-center justify-center h-screen">
+          <NeonCoffeeCupLoader size="lg" text="Loading Little Latte Lane" />
         </div>
       </div>
     );
