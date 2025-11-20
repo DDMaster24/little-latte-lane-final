@@ -6,14 +6,17 @@
 
 import { Suspense } from 'react';
 import MenuContent from './MenuContent';
-import { NeonCoffeeCupLoader } from '@/components/LoadingComponents';
+import { LoadingSpinner } from '@/components/LoadingComponents';
 
 export default function ModernMenuPage() {
   return (
     <Suspense
       fallback={
         <div className="min-h-screen bg-darkBg text-white flex items-center justify-center">
-          <NeonCoffeeCupLoader size="lg" text="Loading Little Latte Lane" />
+          <div className="text-center">
+            <LoadingSpinner size="lg" className="mx-auto mb-4" />
+            <p className="text-purple-400">Loading menu...</p>
+          </div>
         </div>
       }
     >

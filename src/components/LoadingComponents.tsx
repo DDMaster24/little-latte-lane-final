@@ -8,37 +8,6 @@ interface LoadingSkeletonProps {
   className?: string;
 }
 
-// Neon Coffee Cup Loading Component - Using Custom GIF
-export function NeonCoffeeCupLoader({
-  size = 'md',
-  text,
-  className = '',
-}: {
-  size?: 'sm' | 'md' | 'lg' | 'xl';
-  text?: string;
-  className?: string;
-}) {
-  const sizeClasses = {
-    sm: 'w-32 h-32',
-    md: 'w-48 h-48',
-    lg: 'w-64 h-64',
-    xl: 'w-80 h-80',
-  };
-
-  return (
-    <div className={`flex flex-col items-center justify-center ${className}`}>
-      {/* Custom Loading GIF */}
-      <div className={`relative ${sizeClasses[size]}`}>
-        <img
-          src="/loading-screen.gif"
-          alt="Loading Little Latte Lane"
-          className="w-full h-full object-contain"
-        />
-      </div>
-    </div>
-  );
-}
-
 interface LoadingProgressProps {
   steps: string[];
   currentStep: number;

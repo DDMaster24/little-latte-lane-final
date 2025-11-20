@@ -12,7 +12,6 @@ import {
   CheckCircle, AlertCircle, Eye, Phone, Mail, MapPin, Users
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { NeonCoffeeCupLoader } from '@/components/LoadingComponents';
 
 interface Order {
   id: string;
@@ -333,7 +332,8 @@ export default function OrderManagement() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <NeonCoffeeCupLoader size="lg" text="Loading Little Latte Lane" />
+        <RefreshCw className="h-8 w-8 animate-spin text-neonCyan" />
+        <span className="ml-2 text-gray-300">Loading orders...</span>
       </div>
     );
   }

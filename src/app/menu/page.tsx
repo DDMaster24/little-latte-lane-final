@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { PageViewer, fetchPage, ReactBricks, types } from 'react-bricks/frontend';
 import { ClientOnly } from '@/components/ClientOnly';
-import { NeonCoffeeCupLoader } from '@/components/LoadingComponents';
+import { CategorySkeleton } from '@/components/LoadingComponents';
 import MenuClosurePage from '@/components/MenuClosurePage';
 import { useRestaurantClosure } from '@/hooks/useRestaurantClosure';
 import config from '../../../react-bricks/config';
@@ -83,7 +83,10 @@ function MenuContent() {
     return (
       <main className="bg-darkBg py-8 px-6">
         <div className="flex items-center justify-center min-h-screen">
-          <NeonCoffeeCupLoader size="lg" text="Loading Little Latte Lane" />
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-neonCyan mx-auto mb-4"></div>
+            <p className="text-gray-300">Loading menu content...</p>
+          </div>
         </div>
       </main>
     );
@@ -170,9 +173,12 @@ export default function MenuPage() {
     <ClientOnly
       fallback={
         <main className="bg-darkBg py-8 px-6">
-          <div className="flex items-center justify-center min-h-screen">
-            <NeonCoffeeCupLoader size="lg" text="Loading Little Latte Lane" />
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold bg-neon-gradient bg-clip-text text-transparent">
+              Menu
+            </h1>
           </div>
+          <CategorySkeleton />
         </main>
       }
     >

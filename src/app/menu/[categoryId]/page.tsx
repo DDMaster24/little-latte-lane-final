@@ -11,7 +11,6 @@ import { useCartStore, type CartItem } from '@/stores/cartStore';
 import PizzaCustomizer from '@/components/PizzaCustomizer';
 import toast from 'react-hot-toast';
 import { ShoppingCart, Settings } from 'lucide-react';
-import { NeonCoffeeCupLoader } from '@/components/LoadingComponents';
 
 const supabase = getSupabaseClient();
 
@@ -147,8 +146,15 @@ export default function MenuCategory() {
   if (loading) {
     return (
       <div className="min-h-screen bg-darkBg p-6">
-        <div className="flex items-center justify-center min-h-screen">
-          <NeonCoffeeCupLoader size="lg" text="Loading Little Latte Lane" />
+        <div className="max-w-7xl mx-auto">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-gray-700 rounded w-1/3"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-64 bg-gray-700 rounded"></div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
