@@ -534,10 +534,14 @@ export default function MenuContentDesktop() {
                                       const selectedVariation = variations.find(v => v.id === selectedVariationId);
 
                                       const cartItem = {
-                                        id: selectedVariationId || item.id,
+                                        id: item.id, // Always use menu item ID, not variation ID
                                         name: selectedVariation ? `${item.name} (${selectedVariation.name})` : item.name,
                                         price: selectedVariation?.absolute_price || item.price,
                                         quantity: 1,
+                                        customization: selectedVariation ? {
+                                          variationId: selectedVariation.id,
+                                          variationName: selectedVariation.name,
+                                        } : undefined,
                                       };
 
                                       addItem(cartItem);
