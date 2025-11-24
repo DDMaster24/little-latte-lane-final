@@ -86,7 +86,8 @@ export class AuthQueries {
   }
 
   /**
-   * Sign up with email and password - Custom email handling
+   * Sign up with email and password
+   * Email confirmation is handled via Supabase webhooks (see /api/auth/webhook)
    */
   async signUp(email: string, password: string, userData?: Partial<ProfileInsert>) {
     const { data, error } = await this.client.auth.signUp({
@@ -95,31 +96,11 @@ export class AuthQueries {
       options: {
         data: userData,
         emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-        // CRITICAL: We handle ALL email confirmation through our custom branded system
-        // Supabase default emails should be disabled in dashboard settings
+        // Email confirmation handled via webhook → custom branded email via Resend
       },
     });
 
     if (error) throw error;
-
-    // If signup successful and user was created, trigger our custom welcome email
-    if (data.user && !error) {
-      try {
-        await fetch('/api/auth/welcome', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userEmail: email,
-            userName: userData?.full_name,
-            userId: data.user.id,
-          }),
-        });
-      } catch (emailError) {
-        console.warn('Welcome email failed to send:', emailError);
-        // Don't throw - signup was successful even if email failed
-      }
-    }
-
     return data;
   }
 

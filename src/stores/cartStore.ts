@@ -3,6 +3,9 @@ import { persist } from 'zustand/middleware';
 import { toast } from 'sonner';
 
 interface CartItemCustomization {
+  // Menu item variation (size, etc.)
+  variationId?: string;
+  variationName?: string;
   // Legacy customization format
   variant?: {
     name: string;

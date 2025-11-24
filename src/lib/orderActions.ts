@@ -134,23 +134,31 @@ export async function performCheckout(
       }
 
       const unitPrice = parseFloat(menuItem.price.toString());
+      const variationId = item.customization?.variationId;
 
       orderItems.push({
         order_id: orderId,
         menu_item_id: item.id,
+        variation_id: (typeof variationId === 'string' ? variationId : null),
         quantity: item.quantity,
         price: unitPrice,
       });
     }
 
-    // Process customized items (pizzas, etc.) - these don't have menu_item_id
+    // Process customized items (items with add-ons, fully custom pizzas, etc.)
     for (const item of customizedItems) {
       // Get the item price from the cart item itself
       const unitPrice = item.price ? parseFloat(item.price.toString()) : 0;
 
+      // Items with variations should still have menu_item_id
+      // Only fully custom items (no base menu item) should have null menu_item_id
+      const variationId = item.customization?.variationId;
+      const hasMenuItemId = variationId || item.id;
+
       orderItems.push({
         order_id: orderId,
-        menu_item_id: null, // Customized items don't reference a menu item
+        menu_item_id: hasMenuItemId ? item.id : null,
+        variation_id: (typeof variationId === 'string' ? variationId : null),
         quantity: item.quantity,
         price: unitPrice,
         special_instructions: JSON.stringify({

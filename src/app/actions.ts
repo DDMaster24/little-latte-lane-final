@@ -1197,10 +1197,10 @@ export async function createOrderServerAction(orderData: {
     
     // Create order items
     const orderItems = [];
-    
+
     for (const item of orderData.items) {
-      if (item.customization?.isCustomized) {
-        // Customized item
+      if (item.customization?.isCustomized && !item.customization?.variationId) {
+        // Fully customized item (pizza, etc.) - no menu_item_id
         orderItems.push({
           order_id: order.id,
           menu_item_id: null,
@@ -1214,20 +1214,22 @@ export async function createOrderServerAction(orderData: {
           }),
         });
       } else {
-        // Regular menu item
+        // Regular menu item or item with variation
         const { data: menuItem, error: menuError } = await supabase
           .from('menu_items')
           .select('price, name')
           .eq('id', item.id)
           .single();
-        
+
         if (menuError || !menuItem) {
           throw new Error(`Menu item ${item.id} not found`);
         }
-        
+
+        const variationId = item.customization?.variationId;
         orderItems.push({
           order_id: order.id,
           menu_item_id: item.id,
+          variation_id: (typeof variationId === 'string' ? variationId : null),
           quantity: item.quantity,
           price: parseFloat(menuItem.price.toString()),
         });

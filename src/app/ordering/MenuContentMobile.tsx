@@ -206,10 +206,15 @@ export default function MenuContentMobile() {
     if (addonNames) itemName += ` + ${addonNames}`;
 
     const cartItem: CartItem = {
-      id: variationId || item.id,
+      id: item.id, // Always use menu_item_id, not variation ID
       name: itemName,
       price: totalPrice,
       quantity: 1,
+      customization: {
+        variationId: selectedVariation?.id,
+        variationName: selectedVariation?.name,
+        isCustomized: true,
+      },
     };
 
     addItem(cartItem);
@@ -234,10 +239,14 @@ export default function MenuContentMobile() {
     const selectedVariation = variations.find(v => v.id === variationId);
 
     const cartItem: CartItem = {
-      id: variationId || item.id,
+      id: item.id, // Always use menu_item_id, not variation ID
       name: selectedVariation ? `${item.name} (${selectedVariation.name})` : item.name,
       price: selectedVariation?.absolute_price || item.price,
       quantity: 1,
+      customization: selectedVariation ? {
+        variationId: selectedVariation.id,
+        variationName: selectedVariation.name,
+      } : undefined,
     };
 
     addItem(cartItem);

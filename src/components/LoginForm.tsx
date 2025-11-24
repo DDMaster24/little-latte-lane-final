@@ -6,10 +6,9 @@ import toast from 'react-hot-toast'; // For feedback
 import { Input } from '@/components/ui/input'; // Shadcn UI for inputs
 import { Button } from '@/components/ui/button'; // Shadcn UI for buttons
 import { Label } from '@/components/ui/label'; // Shadcn UI for labels
-import { Eye, EyeOff, Loader2, Mail, RefreshCw } from 'lucide-react'; // For show/hide icons and loading
+import { Eye, EyeOff, Loader2, Mail } from 'lucide-react'; // For show/hide icons and loading
 import { checkEmailExists } from '@/app/actions'; // For server action
 import AddressInputSignup from '@/components/AddressInputSignup';
-import OTPInput from '@/components/OTPInput';
 import { type EnhancedAddress, validatedToEnhanced } from '@/lib/addressCompat';
 import { type ValidatedAddress } from '@/types/address';
 import { parseAddressString, serializeAddress } from '@/lib/addressUtils';
@@ -19,9 +18,6 @@ const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 const MODAL_CLOSE_DELAY_MS = 500; // Delay before closing modal after login
 const PASSWORD_MIN_LENGTH = 8;
-const OTP_LENGTH = 6;
-const OTP_RESEND_DELAY_MS = 60 * 1000; // 60 seconds between resend attempts (prevent spam)
-const OTP_EXPIRY_TIME_MINUTES = 60; // OTP codes expire after 60 minutes (configured in Supabase)
 
 interface LoginFormProps {
   setIsModalOpen: (open: boolean) => void; // Prop to close modal on success
@@ -47,15 +43,10 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
   const [attempts, setAttempts] = useState(0); // Track attempts
   const [blockedUntil, setBlockedUntil] = useState(0); // Timestamp for block
   const [isCheckingEmail, setIsCheckingEmail] = useState(false); // Email verification loading state
-  
-  // OTP verification states
-  const [isAwaitingOTP, setIsAwaitingOTP] = useState(false); // User needs to enter OTP
-  const [otpCode, setOtpCode] = useState(''); // 6-digit OTP code
-  const [isVerifyingOTP, setIsVerifyingOTP] = useState(false); // Verifying OTP loading state
-  const [otpError, setOtpError] = useState(''); // OTP error message
-  const [canResendOTP, setCanResendOTP] = useState(true); // Can user resend OTP
-  const [resendCountdown, setResendCountdown] = useState(0); // Countdown timer for resend
-  const [pendingEmail, setPendingEmail] = useState(''); // Store email for OTP verification
+
+  // Signup confirmation state
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false); // Show "check email" message
+  const [pendingEmail, setPendingEmail] = useState(''); // Store email for confirmation message
 
   async function handleContinue() {
     if (blockedUntil > Date.now()) {
@@ -159,107 +150,6 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
     }
   }
 
-  // Handle OTP verification
-  async function handleVerifyOTP() {
-    if (otpCode.length !== OTP_LENGTH) {
-      setOtpError('Please enter the complete 6-digit code');
-      toast.error('Please enter the complete verification code');
-      return;
-    }
-
-    try {
-      setIsVerifyingOTP(true);
-      setOtpError('');
-
-      // Verify the OTP code
-      const { data, error } = await supabase.auth.verifyOtp({
-        email: pendingEmail,
-        token: otpCode,
-        type: 'email'
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        toast.success('Email verified successfully! Logging you in...');
-        
-        // User is now logged in automatically after OTP verification
-        // Wait a moment for auth state to update
-        setTimeout(() => {
-          setIsAwaitingOTP(false);
-          setOtpCode('');
-          setPendingEmail('');
-          setIsModalOpen(false); // Close the modal
-        }, MODAL_CLOSE_DELAY_MS);
-      }
-    } catch (error) {
-      console.error('OTP verification error:', error);
-      let errorMessage = error instanceof Error ? error.message : 'Invalid verification code';
-      
-      // Provide helpful messages for common errors
-      if (errorMessage.includes('expired') || errorMessage.includes('token')) {
-        errorMessage = `Verification code has expired (codes are valid for ${OTP_EXPIRY_TIME_MINUTES} minutes). Please click "Resend Code" to get a new one.`;
-      } else if (errorMessage.includes('invalid')) {
-        errorMessage = 'Invalid verification code. Please check the code and try again.';
-      }
-      
-      setOtpError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setIsVerifyingOTP(false);
-    }
-  }
-
-  // Handle resending OTP with 60-second cooldown to prevent abuse
-  async function handleResendOTP() {
-    if (!canResendOTP) {
-      toast.error(`Please wait ${resendCountdown} seconds before requesting a new code`);
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      setOtpError('');
-      setOtpCode(''); // Clear the old code
-
-      // Resend OTP using Supabase
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: pendingEmail,
-      });
-
-      if (error) throw error;
-
-      toast.success(`New verification code sent! Valid for ${OTP_EXPIRY_TIME_MINUTES} minutes. Please check your email.`);
-      
-      // Start 60-second resend cooldown to prevent spam
-      setCanResendOTP(false);
-      setResendCountdown(OTP_RESEND_DELAY_MS / 1000);
-      
-      const interval = setInterval(() => {
-        setResendCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            setCanResendOTP(true);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } catch (error) {
-      console.error('Resend OTP error:', error);
-      let errorMessage = error instanceof Error ? error.message : 'Failed to resend code';
-      
-      // Provide helpful error messages
-      if (errorMessage.includes('rate') || errorMessage.includes('too many')) {
-        errorMessage = 'Too many resend requests. Please wait a moment before trying again.';
-      }
-      
-      toast.error(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -362,7 +252,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
           email: trimmedEmail,
           password,
           options: {
-            emailRedirectTo: undefined, // Disable email redirect - we're using OTP
+            emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
             data: signupMetadata,
           },
         });
@@ -375,31 +265,14 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
         console.log('📋 User metadata saved:', authData.user?.user_metadata);
 
         // Database trigger 'handle_new_user()' automatically creates the profile
-        // The AuthProvider will fetch it once the user verifies OTP and logs in
+        // Webhook will send custom branded confirmation email
         // No manual profile creation needed here - prevents race conditions
-        
-        // Switch to OTP verification mode
+
+        // Show email confirmation message
         setPendingEmail(trimmedEmail);
-        setIsAwaitingOTP(true);
-        setOtpCode('');
-        
-        // Initialize resend cooldown (60 seconds to prevent immediate spam)
-        setCanResendOTP(false);
-        setResendCountdown(OTP_RESEND_DELAY_MS / 1000);
-        
-        // Start countdown timer for resend button
-        const interval = setInterval(() => {
-          setResendCountdown((prev) => {
-            if (prev <= 1) {
-              clearInterval(interval);
-              setCanResendOTP(true);
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-        
-        toast.success(`Verification code sent! Valid for ${OTP_EXPIRY_TIME_MINUTES} minutes. Please check your email and enter the 6-digit code below.`);
+        setShowEmailConfirmation(true);
+
+        toast.success('Account created! Please check your email to verify your account and complete signup.');
         
       } catch (signupError) {
         console.error('❌ Signup failed:', signupError);
@@ -495,106 +368,43 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       className="space-y-4"
       autoComplete="off"
     >
-      {/* OTP Verification Screen */}
-      {isAwaitingOTP ? (
-        <div className="space-y-6">
-          <div className="text-center">
-            <div className="mx-auto w-16 h-16 bg-gradient-to-r from-neonCyan to-neonPink rounded-full flex items-center justify-center mb-4">
-              <Mail className="w-8 h-8 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-2">
-              Check Your Email
-            </h2>
-            <p className="text-gray-400 mb-1">
-              We sent a 6-digit verification code to:
-            </p>
-            <p className="text-white font-medium mb-2">{pendingEmail}</p>
-            <p className="text-sm text-gray-500 mb-3">
-              Enter the code below to verify your email and complete signup
-            </p>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600/20 border border-blue-500/30 rounded-lg">
-              <span className="text-xs text-blue-300">
-                ⏱️ Code expires in {OTP_EXPIRY_TIME_MINUTES} minutes
-              </span>
-            </div>
+      {/* Email Confirmation Message */}
+      {showEmailConfirmation ? (
+        <div className="space-y-6 text-center">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-r from-neonCyan to-neonPink rounded-full flex items-center justify-center mb-4">
+            <Mail className="w-8 h-8 text-white" />
           </div>
-
-          <div>
-            <Label htmlFor="otp" className="text-center block mb-3">
-              Verification Code
-            </Label>
-            <OTPInput
-              value={otpCode}
-              onChange={setOtpCode}
-              disabled={isVerifyingOTP}
-              autoFocus
-            />
-            {otpError && (
-              <p role="alert" className="text-sm text-red-500 mt-3 text-center">
-                {otpError}
-              </p>
-            )}
+          <h2 className="text-2xl font-bold text-white mb-2">
+            Check Your Email!
+          </h2>
+          <p className="text-gray-400 mb-1">
+            We sent a confirmation link to:
+          </p>
+          <p className="text-white font-medium mb-4">{pendingEmail}</p>
+          <div className="bg-gradient-to-r from-neonCyan/10 to-neonPink/10 border border-neonCyan/30 rounded-lg p-4 mb-4">
+            <p className="text-sm text-gray-300 mb-2">
+              📧 Click the link in your email to verify your account and complete signup.
+            </p>
+            <p className="text-xs text-gray-400">
+              The link will redirect you back here to log in.
+            </p>
           </div>
-
+          <p className="text-xs text-gray-500">
+            Didn&apos;t receive the email? Check your spam folder or contact support.
+          </p>
           <Button
             type="button"
-            onClick={handleVerifyOTP}
-            disabled={isVerifyingOTP || otpCode.length !== OTP_LENGTH}
+            onClick={() => {
+              setShowEmailConfirmation(false);
+              setPendingEmail('');
+              setIsSignup(false);
+              setSignupStep(1);
+              toast('You can now log in once you verify your email.');
+            }}
             className="w-full neon-button"
           >
-            {isVerifyingOTP ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Verifying...
-              </>
-            ) : (
-              'Verify Email'
-            )}
+            Back to Login
           </Button>
-
-          <div className="text-center space-y-2">
-            <p className="text-sm text-gray-400">
-              Didn&apos;t receive the code?
-            </p>
-            <Button
-              type="button"
-              onClick={handleResendOTP}
-              disabled={!canResendOTP || isLoading}
-              variant="outline"
-              className="border-gray-600 text-gray-300 hover:bg-gray-700/50"
-            >
-              {!canResendOTP ? (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Resend in {resendCountdown}s
-                </>
-              ) : isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Resend Code
-                </>
-              )}
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                setIsAwaitingOTP(false);
-                setOtpCode('');
-                setPendingEmail('');
-                setOtpError('');
-                toast('Verification cancelled. You can try signing up again.');
-              }}
-              variant="ghost"
-              className="text-gray-400 hover:text-white"
-            >
-              Cancel and go back
-            </Button>
-          </div>
         </div>
       ) : isSignup && signupStep === 1 && (
         <>
@@ -645,7 +455,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
           </div>
         </>
       )}
-      {!isAwaitingOTP && isSignup && signupStep === 2 && (
+      {!showEmailConfirmation && isSignup && signupStep === 2 && (
         <>
           <div className="mb-4">
             <p className="text-sm text-gray-200 font-medium mb-2">
@@ -669,7 +479,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
           </div>
         </>
       )}
-      {!isAwaitingOTP && (!isSignup || signupStep === 1) && (
+      {!showEmailConfirmation && (!isSignup || signupStep === 1) && (
         <div>
           <Label htmlFor="email">Email</Label>
           <Input
@@ -691,7 +501,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
           )}
         </div>
       )}
-      {!isAwaitingOTP && (step === 'password' || (isSignup && signupStep === 1)) && (
+      {!showEmailConfirmation && (step === 'password' || (isSignup && signupStep === 1)) && (
         <div>
           <Label htmlFor="password">Password</Label>
           <div className="relative">
@@ -744,7 +554,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
         </div>
       )}
       {/* Step navigation buttons for signup */}
-      {!isAwaitingOTP && isSignup && signupStep === 2 && (
+      {!showEmailConfirmation && isSignup && signupStep === 2 && (
         <div className="flex gap-2">
           <Button
             type="button"
@@ -766,7 +576,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       )}
       
       {/* Primary button for step 1 and login */}
-      {!isAwaitingOTP && (!isSignup || signupStep === 1) && (
+      {!showEmailConfirmation && (!isSignup || signupStep === 1) && (
         <Button type="submit" className="neon-button w-full" disabled={isLoading || isCheckingEmail}>
           {(isLoading || isCheckingEmail) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isCheckingEmail
@@ -782,7 +592,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       )}
       
       {/* Back button for step 2 */}
-      {!isAwaitingOTP && isSignup && signupStep === 2 && (
+      {!showEmailConfirmation && isSignup && signupStep === 2 && (
         <Button
           type="button"
           onClick={() => setSignupStep(1)}
@@ -794,7 +604,7 @@ export default function LoginForm({ setIsModalOpen }: LoginFormProps) {
       )}
       
       {/* Toggle between login and signup - only show on step 1 */}
-      {!isAwaitingOTP && (!isSignup || signupStep === 1) && (
+      {!showEmailConfirmation && (!isSignup || signupStep === 1) && (
         <Button
           type="button"
           onClick={() => {

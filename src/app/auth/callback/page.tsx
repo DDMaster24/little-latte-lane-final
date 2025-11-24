@@ -19,10 +19,40 @@ export default function AuthCallbackPage() {
     const handleAuthCallback = async () => {
       try {
         const supabase = getSupabaseClient();
-        
-        // Handle auth callback from email link
+
+        // Extract token_hash and type from URL (Supabase auth callback params)
+        const token_hash = searchParams.get('token_hash');
+        const type = searchParams.get('type');
+
+        // If we have token params, this is an email confirmation callback
+        if (token_hash && type) {
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash,
+            type: type as any,
+          });
+
+          if (error) {
+            console.error('Email verification error:', error);
+            setState('error');
+            setMessage(error.message || 'Email verification failed');
+            return;
+          }
+
+          if (data.session) {
+            setState('success');
+            setMessage('Your email has been confirmed successfully!');
+
+            // Redirect to home page after a short delay
+            setTimeout(() => {
+              router.push('/?welcome=true');
+            }, 2000);
+            return;
+          }
+        }
+
+        // Fallback: Check if user already has a session
         const { data, error } = await supabase.auth.getSession();
-        
+
         if (error) {
           console.error('Auth callback error:', error);
           setState('error');
@@ -32,11 +62,11 @@ export default function AuthCallbackPage() {
 
         if (data.session) {
           setState('success');
-          setMessage('Your email has been confirmed successfully!');
-          
-          // Redirect to account page after a short delay
+          setMessage('You are already logged in!');
+
+          // Redirect to home page after a short delay
           setTimeout(() => {
-            router.push('/account?welcome=true');
+            router.push('/');
           }, 2000);
         } else {
           // Check for specific error codes in URL
@@ -109,11 +139,11 @@ export default function AuthCallbackPage() {
                 Return to Home
               </Button>
               <Button
-                onClick={() => router.push('/auth/resend-confirmation')}
+                onClick={() => window.location.href = 'mailto:admin@littlelattelane.co.za?subject=Email%20Confirmation%20Issue'}
                 variant="outline"
                 className="w-full border-neonPink text-neonPink hover:bg-neonPink/10"
               >
-                Resend Confirmation Email
+                Contact Support
               </Button>
             </div>
           </div>
@@ -129,10 +159,10 @@ export default function AuthCallbackPage() {
             <p className="text-gray-300 mb-6">{message}</p>
             <div className="space-y-3">
               <Button
-                onClick={() => router.push('/auth/resend-confirmation')}
+                onClick={() => window.location.href = 'mailto:admin@littlelattelane.co.za?subject=Expired%20Confirmation%20Link'}
                 className="w-full bg-neonPink text-white hover:bg-neonPink/80"
               >
-                Request New Confirmation Link
+                Contact Support for Help
               </Button>
               <Button
                 onClick={() => router.push('/')}

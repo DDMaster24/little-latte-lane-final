@@ -150,8 +150,9 @@ async function handleUserSignup(user: {
       .single();
 
     // Generate confirmation URL (this would typically come from the auth event)
-    const confirmationUrl = user.confirmation_url || 
-      `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm?token=${user.confirmation_token}`;
+    // Note: With custom SMTP in Supabase, this webhook is not needed as emails are sent directly
+    const confirmationUrl = user.confirmation_url ||
+      `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?token_hash=${user.confirmation_token}&type=email`;
 
     // Send branded welcome email
     const emailSent = await sendWelcomeEmail({
