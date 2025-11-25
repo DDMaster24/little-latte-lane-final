@@ -1,51 +1,47 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useCartStore, type CartItem } from '@/stores/cartStore';
-import { Plus, Minus, ShoppingCart } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, Loader2 } from 'lucide-react';
+import { getSupabaseClient } from '@/lib/supabase-client';
+
+interface PizzaVariation {
+  id: string;
+  name: string;
+  absolute_price: number;
+  is_available: boolean;
+}
+
+interface PizzaItem {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  variations: PizzaVariation[];
+}
 
 interface PizzaTopping {
+  id: string;
   name: string;
   smallPrice: number;
   largePrice: number;
 }
 
-interface PizzaType {
-  name: string;
-  description: string;
-  smallPrice: number;
-  largePrice: number;
-}
-
-const PIZZA_TYPES: PizzaType[] = [
-  {
-    name: 'Regina',
-    description: 'Ham & Cheese on wood-fired base',
-    smallPrice: 42.0,
-    largePrice: 98.0,
-  },
-  {
-    name: 'Margarita',
-    description: 'Mozzarella & Basil on wood-fired base',
-    smallPrice: 35.0,
-    largePrice: 82.0,
-  },
-];
-
+// Hardcoded toppings - these could also be fetched from database in future
 const PIZZA_TOPPINGS: PizzaTopping[] = [
-  { name: 'Salami', smallPrice: 10.0, largePrice: 15.0 },
-  { name: 'Ham', smallPrice: 7.0, largePrice: 12.0 },
-  { name: 'Avo', smallPrice: 10.0, largePrice: 15.0 },
-  { name: 'Pineapple', smallPrice: 7.0, largePrice: 12.0 },
-  { name: 'Figs', smallPrice: 12.0, largePrice: 17.0 },
-  { name: 'Olives', smallPrice: 8.0, largePrice: 17.0 },
-  { name: 'Mushrooms', smallPrice: 12.0, largePrice: 17.0 },
-  { name: 'Garlic', smallPrice: 5.0, largePrice: 10.0 },
-  { name: 'Feta', smallPrice: 10.0, largePrice: 15.0 },
+  { id: '1', name: 'Salami', smallPrice: 10.0, largePrice: 15.0 },
+  { id: '2', name: 'Ham', smallPrice: 7.0, largePrice: 12.0 },
+  { id: '3', name: 'Avo', smallPrice: 10.0, largePrice: 15.0 },
+  { id: '4', name: 'Pineapple', smallPrice: 7.0, largePrice: 12.0 },
+  { id: '5', name: 'Figs', smallPrice: 12.0, largePrice: 17.0 },
+  { id: '6', name: 'Olives', smallPrice: 8.0, largePrice: 17.0 },
+  { id: '7', name: 'Mushrooms', smallPrice: 12.0, largePrice: 17.0 },
+  { id: '8', name: 'Garlic', smallPrice: 5.0, largePrice: 10.0 },
+  { id: '9', name: 'Feta', smallPrice: 10.0, largePrice: 15.0 },
 ];
 
 interface PizzaCustomizationPanelProps {
@@ -55,20 +51,140 @@ interface PizzaCustomizationPanelProps {
 export default function PizzaCustomizationPanel({
   onAddToCart,
 }: PizzaCustomizationPanelProps) {
-  const [selectedPizzaType, setSelectedPizzaType] = useState<PizzaType>(
-    PIZZA_TYPES[0]
-  );
+  const [pizzaItems, setPizzaItems] = useState<PizzaItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [selectedPizza, setSelectedPizza] = useState<PizzaItem | null>(null);
   const [selectedSize, setSelectedSize] = useState<'small' | 'large'>('small');
   const [selectedToppings, setSelectedToppings] = useState<string[]>([]);
   const [quantity, setQuantity] = useState(1);
 
   const { addItem } = useCartStore();
 
+  // Fetch pizza items from database
+  useEffect(() => {
+    const fetchPizzas = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const supabase = getSupabaseClient();
+
+        // Get Pizza category ID
+        const { data: categoryData, error: categoryError } = await supabase
+          .from('menu_categories')
+          .select('id')
+          .eq('name', 'Pizza')
+          .eq('category_type', 'menu_items')
+          .single();
+
+        if (categoryError || !categoryData) {
+          setError('Could not find Pizza category');
+          setLoading(false);
+          return;
+        }
+
+        // Get all pizza items with their variations
+        const { data: itemsData, error: itemsError } = await supabase
+          .from('menu_items')
+          .select(`
+            id,
+            name,
+            description,
+            price,
+            menu_item_variations (
+              id,
+              name,
+              absolute_price,
+              is_available
+            )
+          `)
+          .eq('category_id', categoryData.id)
+          .eq('is_available', true)
+          .order('name');
+
+        if (itemsError) {
+          setError('Failed to load pizza items');
+          setLoading(false);
+          return;
+        }
+
+        // Transform data
+        const pizzas: PizzaItem[] = (itemsData || []).map(item => ({
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          price: Number(item.price),
+          variations: (item.menu_item_variations || [])
+            .filter((v) => v.is_available)
+            .map((v) => ({
+              id: v.id,
+              name: v.name,
+              absolute_price: Number(v.absolute_price || 0),
+              is_available: v.is_available ?? false,
+            })),
+        }));
+
+        setPizzaItems(pizzas);
+
+        // Auto-select first pizza if available
+        if (pizzas.length > 0) {
+          setSelectedPizza(pizzas[0]);
+        }
+      } catch (err) {
+        setError('Failed to load pizza menu');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPizzas();
+  }, []);
+
+  // Get price for selected size
+  const getSelectedPrice = useCallback(() => {
+    if (!selectedPizza) return 0;
+
+    const sizeMap: Record<string, string> = {
+      'small': 'Small',
+      'large': 'Large',
+    };
+
+    const variation = selectedPizza.variations.find(
+      v => v.name.toLowerCase() === sizeMap[selectedSize].toLowerCase()
+    );
+
+    return variation?.absolute_price || selectedPizza.price;
+  }, [selectedPizza, selectedSize]);
+
+  // Check if pizza has both sizes available
+  const availableSizes = useMemo(() => {
+    if (!selectedPizza) return { small: false, large: false };
+
+    const hasSmall = selectedPizza.variations.some(
+      v => v.name.toLowerCase() === 'small' && v.is_available
+    );
+    const hasLarge = selectedPizza.variations.some(
+      v => v.name.toLowerCase() === 'large' && v.is_available
+    );
+
+    return { small: hasSmall, large: hasLarge };
+  }, [selectedPizza]);
+
+  // Auto-select available size when pizza changes
+  useEffect(() => {
+    if (selectedPizza) {
+      if (availableSizes.small) {
+        setSelectedSize('small');
+      } else if (availableSizes.large) {
+        setSelectedSize('large');
+      }
+    }
+  }, [selectedPizza, availableSizes]);
+
   const calculateTotalPrice = useCallback(() => {
-    const basePrice =
-      selectedSize === 'small'
-        ? selectedPizzaType.smallPrice
-        : selectedPizzaType.largePrice;
+    const basePrice = getSelectedPrice();
 
     const toppingsPrice = selectedToppings.reduce((sum, toppingName) => {
       const topping = PIZZA_TOPPINGS.find((t) => t.name === toppingName);
@@ -82,10 +198,11 @@ export default function PizzaCustomizationPanel({
     }, 0);
 
     return (basePrice + toppingsPrice) * quantity;
-  }, [selectedPizzaType, selectedSize, selectedToppings, quantity]);
+  }, [selectedSize, selectedToppings, quantity, getSelectedPrice]);
 
-  const handlePizzaTypeChange = (pizzaType: PizzaType) => {
-    setSelectedPizzaType(pizzaType);
+  const handlePizzaChange = (pizza: PizzaItem) => {
+    setSelectedPizza(pizza);
+    setSelectedToppings([]); // Reset toppings when changing pizza
   };
 
   const handleSizeChange = (size: 'small' | 'large') => {
@@ -105,29 +222,35 @@ export default function PizzaCustomizationPanel({
   };
 
   const handleAddToCart = () => {
+    if (!selectedPizza) return;
+
     const toppingsText =
       selectedToppings.length > 0 ? ` + ${selectedToppings.join(', ')}` : '';
     const sizeText =
       selectedSize.charAt(0).toUpperCase() + selectedSize.slice(1);
 
+    // Find the variation ID for the selected size
+    const selectedVariation = selectedPizza.variations.find(
+      v => v.name.toLowerCase() === selectedSize
+    );
+
     const cartItem: CartItem = {
-      id: Date.now().toString(),
-      name: `${selectedPizzaType.name} Pizza (${sizeText})${toppingsText}`,
+      id: selectedPizza.id, // Use actual menu item ID
+      name: `${selectedPizza.name} (${sizeText})${toppingsText}`,
       price: calculateTotalPrice() / quantity,
       quantity: quantity,
       customization: {
-        pizzaType: selectedPizzaType.name,
+        variationId: selectedVariation?.id,
+        variationName: sizeText,
+        pizzaType: selectedPizza.name,
         size: selectedSize,
         toppings: selectedToppings,
-        basePrice:
-          selectedSize === 'small'
-            ? selectedPizzaType.smallPrice
-            : selectedPizzaType.largePrice,
+        basePrice: getSelectedPrice(),
         toppingsPrice: selectedToppings.reduce((sum, toppingName) => {
           const topping = PIZZA_TOPPINGS.find((t) => t.name === toppingName);
           return sum + (topping ? getToppingPrice(topping) : 0);
         }, 0),
-        isCustomized: true, // Mark this as a customized item
+        isCustomized: true,
       },
     };
 
@@ -137,10 +260,43 @@ export default function PizzaCustomizationPanel({
       addItem(cartItem);
     }
 
-    // Toast is now handled in the cart store
+    // Reset after adding
+    setSelectedToppings([]);
+    setQuantity(1);
   };
 
   const totalPrice = calculateTotalPrice();
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-neonCyan" />
+        <span className="ml-3 text-gray-300">Loading pizzas...</span>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-400 mb-4">{error}</p>
+        <Button onClick={() => window.location.reload()} variant="outline">
+          Try Again
+        </Button>
+      </div>
+    );
+  }
+
+  // No pizzas available
+  if (pizzaItems.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-400">No pizzas available at the moment.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -162,24 +318,33 @@ export default function PizzaCustomizationPanel({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {PIZZA_TYPES.map((pizzaType) => (
+          {pizzaItems.map((pizza) => (
             <div
-              key={pizzaType.name}
+              key={pizza.id}
               className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                selectedPizzaType?.name === pizzaType.name
+                selectedPizza?.id === pizza.id
                   ? 'border-neonBlue bg-neonBlue/10'
                   : 'border-gray-600 hover:border-neonBlue/50'
               }`}
-              onClick={() => handlePizzaTypeChange(pizzaType)}
+              onClick={() => handlePizzaChange(pizza)}
             >
               <div className="flex justify-between items-center">
                 <div>
                   <h3 className="text-lg font-semibold text-white">
-                    {pizzaType.name}
+                    {pizza.name}
                   </h3>
-                  <p className="text-gray-300 text-sm">
-                    {pizzaType.description}
-                  </p>
+                  {pizza.description && (
+                    <p className="text-gray-300 text-sm">
+                      {pizza.description}
+                    </p>
+                  )}
+                </div>
+                <div className="text-right">
+                  {pizza.variations.length > 0 && (
+                    <p className="text-neonCyan text-sm">
+                      From R{Math.min(...pizza.variations.map(v => v.absolute_price)).toFixed(2)}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -188,41 +353,49 @@ export default function PizzaCustomizationPanel({
       </Card>
 
       {/* Step 2: Choose Size */}
-      <Card className="bg-gray-800/50 backdrop-blur-sm border-neonCyan/50">
-        <CardHeader>
-          <CardTitle className="text-neonCyan text-xl">
-            Step 2: Choose Size
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {['small', 'large'].map((size) => (
-              <div
-                key={size}
-                className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                  selectedSize === size
-                    ? 'border-neonCyan bg-neonCyan/10'
-                    : 'border-gray-600 hover:border-neonCyan/50'
-                }`}
-                onClick={() => handleSizeChange(size as 'small' | 'large')}
-              >
-                <div className="text-center">
-                  <h3 className="text-lg font-semibold text-white capitalize">
-                    {size} {size === 'small' ? '(8-10 inch)' : '(12-14 inch)'}
-                  </h3>
-                  <p className="text-neonCyan font-bold text-xl">
-                    R
-                    {(size === 'small'
-                      ? selectedPizzaType.smallPrice
-                      : selectedPizzaType.largePrice
-                    ).toFixed(2)}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {selectedPizza && (availableSizes.small || availableSizes.large) && (
+        <Card className="bg-gray-800/50 backdrop-blur-sm border-neonCyan/50">
+          <CardHeader>
+            <CardTitle className="text-neonCyan text-xl">
+              Step 2: Choose Size
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {(['small', 'large'] as const).map((size) => {
+                const isAvailable = availableSizes[size];
+                const variation = selectedPizza.variations.find(
+                  v => v.name.toLowerCase() === size
+                );
+                const price = variation?.absolute_price || selectedPizza.price;
+
+                if (!isAvailable) return null;
+
+                return (
+                  <div
+                    key={size}
+                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                      selectedSize === size
+                        ? 'border-neonCyan bg-neonCyan/10'
+                        : 'border-gray-600 hover:border-neonCyan/50'
+                    }`}
+                    onClick={() => handleSizeChange(size)}
+                  >
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold text-white capitalize">
+                        {size} {size === 'small' ? '(8-10 inch)' : '(12-14 inch)'}
+                      </h3>
+                      <p className="text-neonCyan font-bold text-xl">
+                        R{price.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Step 3: Add Toppings */}
       <Card className="bg-gray-800/50 backdrop-blur-sm border-neonPink/50">
@@ -242,7 +415,7 @@ export default function PizzaCustomizationPanel({
 
               return (
                 <div
-                  key={topping.name}
+                  key={topping.id}
                   className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
                     isSelected
                       ? 'border-neonPink bg-neonPink/10'
@@ -280,14 +453,10 @@ export default function PizzaCustomizationPanel({
           <div className="space-y-2">
             <div className="flex justify-between">
               <span>
-                {selectedPizzaType.name} Pizza ({selectedSize})
+                {selectedPizza?.name} ({selectedSize})
               </span>
               <span>
-                R
-                {(selectedSize === 'small'
-                  ? selectedPizzaType.smallPrice
-                  : selectedPizzaType.largePrice
-                ).toFixed(2)}
+                R{getSelectedPrice().toFixed(2)}
               </span>
             </div>
 
@@ -352,6 +521,7 @@ export default function PizzaCustomizationPanel({
 
             <Button
               onClick={handleAddToCart}
+              disabled={!selectedPizza}
               className="bg-neonCyan text-black hover:bg-neonCyan/80 font-semibold py-3 px-8"
             >
               <ShoppingCart className="h-5 w-5 mr-2" />
