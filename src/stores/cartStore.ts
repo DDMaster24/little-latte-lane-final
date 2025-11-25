@@ -129,8 +129,9 @@ export const useCartStore = create<CartStore>()(
       name: 'little-latte-cart',
       // Only persist essential cart data, exclude functions
       partialize: (state) => ({ items: state.items }),
-      // Version for cache invalidation if needed
-      version: 1,
+      // Version 2: Clears old cart data that had variation IDs stored as item IDs
+      // This fixes the "Menu item not found" error during checkout
+      version: 2,
     }
   )
 );
