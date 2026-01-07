@@ -13,7 +13,7 @@ export default function FooterSection() {
             <h3 className="text-fluid-base xs:text-fluid-lg font-bold mb-2 bg-neon-gradient bg-clip-text text-transparent">
               Contact Number:
             </h3>
-            <p className="text-fluid-sm xs:text-fluid-base">+27 (0)12 345 6789</p>
+            <p className="text-fluid-sm xs:text-fluid-base">+27 79 678 2737</p>
             <p className="text-fluid-xs text-gray-400 mt-1.5">Opening Hours:</p>
             <div className="text-fluid-xs xs:text-fluid-sm space-y-0.5">
               <p>Mon - Fri: 6:00 AM - 6:00 PM</p>
