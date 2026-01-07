@@ -536,11 +536,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
+  // SECURITY: Minimal response - don't reveal configuration status
   return NextResponse.json({
-    message: 'Yoco checkout webhook endpoint is active',
-    timestamp: new Date().toISOString(),
-    webhookSecret: getYocoWebhookSecret() ? 'Configured' : 'Not configured',
+    message: 'Yoco webhook endpoint',
     supportedMethods: ['POST'],
-    status: 'ready'
   });
 }

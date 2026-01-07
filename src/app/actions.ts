@@ -142,70 +142,51 @@ export async function updateUserProfile(
 export async function getOrCreateUserProfile(
   userId: string,
   userEmail?: string
-): Promise<{ 
-  success: boolean; 
-  profile?: ProfileRow; 
-  error?: string 
+): Promise<{
+  success: boolean;
+  profile?: ProfileRow;
+  error?: string
 }> {
   try {
-    // Only log in production or when debugging
-    if (process.env.NODE_ENV === 'production' || process.env.DEBUG_AUTH) {
-      console.log('🔧 Server action: Getting or creating profile for user', userId);
-    }
-    
     const supabase = getSupabaseAdmin();
 
-    // Try to get existing profile
-    const { data: profile, error: fetchError } = await supabase
+    // Use UPSERT to atomically handle race conditions
+    // This prevents duplicate key errors when multiple requests try to create the same profile
+    const { data: profile, error: upsertError } = await supabase
       .from('profiles')
-      .select('id, created_at, email, phone, updated_at, address, full_name, is_staff, is_admin, phone_number, role')
-      .eq('id', userId)
-      .single();
-
-    if (!fetchError) {
-      if (process.env.NODE_ENV === 'production' || process.env.DEBUG_AUTH) {
-        console.log('✅ Profile found');
-      }
-      return { success: true, profile };
-    }
-
-    if (fetchError.code === 'PGRST116') {
-      // Profile doesn't exist, create it
-      console.log('📝 Creating new profile for user:', userId);
-      
-      const { data: newProfile, error: createError } = await supabase
-        .from('profiles')
-        .insert({
+      .upsert(
+        {
           id: userId,
           email: userEmail,
+          // Only set defaults on insert, not on update (handled by onConflict)
           full_name: null,
           phone: null,
           address: null,
           is_admin: false,
           is_staff: false,
-          created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        })
-        .select('id, created_at, email, phone, updated_at, address, full_name, is_staff, is_admin, phone_number, role')
-        .single();
+        },
+        {
+          onConflict: 'id',
+          // Don't update existing fields - just return the existing profile
+          ignoreDuplicates: false,
+        }
+      )
+      .select('id, created_at, email, phone, updated_at, address, full_name, is_staff, is_admin, phone_number, role')
+      .single();
 
-      if (createError) {
-        console.error('❌ Error creating profile:', createError);
-        return { success: false, error: createError.message };
-      }
-
-      console.log('✅ Profile created successfully');
-      return { success: true, profile: newProfile };
+    if (upsertError) {
+      console.error('❌ Error upserting profile:', upsertError);
+      return { success: false, error: upsertError.message };
     }
 
-    console.error('❌ Error fetching profile:', fetchError);
-    return { success: false, error: fetchError.message };
+    return { success: true, profile };
 
   } catch (error) {
     console.error('❌ Server action error:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 }

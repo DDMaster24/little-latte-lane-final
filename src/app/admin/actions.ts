@@ -1,9 +1,16 @@
 'use server';
 
 import { getSupabaseAdmin } from '@/lib/supabase-server';
+import { verifyAdmin } from '@/lib/adminAuth';
 
 // Order status management function
 export async function updateOrderStatus(orderId: string, status: string) {
+  // Verify admin authorization
+  const authResult = await verifyAdmin();
+  if (!authResult.authorized) {
+    return { success: false, error: authResult.error || 'Unauthorized' };
+  }
+
   try {
     const supabase = getSupabaseAdmin();
     
@@ -39,6 +46,11 @@ export async function createMenuCategory(categoryData: {
   display_order?: number | null;
   is_active?: boolean | null;
 }) {
+  const authResult = await verifyAdmin();
+  if (!authResult.authorized) {
+    return { success: false, message: authResult.error || 'Unauthorized' };
+  }
+
   try {
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
@@ -65,6 +77,11 @@ export async function updateMenuCategory(id: string, categoryData: Partial<{
   display_order: number | null;
   is_active: boolean | null;
 }>) {
+  const authResult = await verifyAdmin();
+  if (!authResult.authorized) {
+    return { success: false, message: authResult.error || 'Unauthorized' };
+  }
+
   try {
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
@@ -87,6 +104,11 @@ export async function updateMenuCategory(id: string, categoryData: Partial<{
 }
 
 export async function deleteMenuCategory(id: string) {
+  const authResult = await verifyAdmin();
+  if (!authResult.authorized) {
+    return { success: false, message: authResult.error || 'Unauthorized' };
+  }
+
   try {
     const supabase = getSupabaseAdmin();
     const { error } = await supabase
@@ -115,6 +137,11 @@ export async function createMenuItem(menuItem: {
   is_available?: boolean | null;
   image_url?: string | null;
 }) {
+  const authResult = await verifyAdmin();
+  if (!authResult.authorized) {
+    return { success: false, message: authResult.error || 'Unauthorized' };
+  }
+
   try {
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
@@ -143,6 +170,11 @@ export async function updateMenuItem(id: string, menuItem: Partial<{
   is_available: boolean | null;
   image_url: string | null;
 }>) {
+  const authResult = await verifyAdmin();
+  if (!authResult.authorized) {
+    return { success: false, message: authResult.error || 'Unauthorized' };
+  }
+
   try {
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
@@ -165,6 +197,11 @@ export async function updateMenuItem(id: string, menuItem: Partial<{
 }
 
 export async function deleteMenuItem(id: string) {
+  const authResult = await verifyAdmin();
+  if (!authResult.authorized) {
+    return { success: false, message: authResult.error || 'Unauthorized' };
+  }
+
   try {
     const supabase = getSupabaseAdmin();
     const { error } = await supabase
@@ -198,6 +235,11 @@ export async function createItemVariation(variationData: {
   is_available?: boolean;
   variation_type?: 'size' | 'flavor';
 }) {
+  const authResult = await verifyAdmin();
+  if (!authResult.authorized) {
+    return { success: false, message: authResult.error || 'Unauthorized' };
+  }
+
   try {
     const supabase = getSupabaseAdmin();
 
@@ -236,6 +278,11 @@ export async function updateItemVariation(id: string, variationData: Partial<{
   is_available: boolean | null;
   variation_type: 'size' | 'flavor' | null;
 }>) {
+  const authResult = await verifyAdmin();
+  if (!authResult.authorized) {
+    return { success: false, message: authResult.error || 'Unauthorized' };
+  }
+
   try {
     const supabase = getSupabaseAdmin();
 
@@ -276,6 +323,11 @@ export async function updateItemVariation(id: string, variationData: Partial<{
 }
 
 export async function deleteItemVariation(id: string) {
+  const authResult = await verifyAdmin();
+  if (!authResult.authorized) {
+    return { success: false, message: authResult.error || 'Unauthorized' };
+  }
+
   try {
     const supabase = getSupabaseAdmin();
     const { error } = await (supabase as any)
@@ -308,6 +360,11 @@ export async function createAddon(addonData: {
   display_order?: number;
   is_available?: boolean;
 }) {
+  const authResult = await verifyAdmin();
+  if (!authResult.authorized) {
+    return { success: false, message: authResult.error || 'Unauthorized' };
+  }
+
   try {
     const supabase = getSupabaseAdmin();
     const { data, error } = await (supabase as any)
@@ -337,6 +394,11 @@ export async function updateAddon(id: string, addonData: Partial<{
   display_order: number | null;
   is_available: boolean | null;
 }>) {
+  const authResult = await verifyAdmin();
+  if (!authResult.authorized) {
+    return { success: false, message: authResult.error || 'Unauthorized' };
+  }
+
   try {
     const supabase = getSupabaseAdmin();
     const { data, error } = await (supabase as any)
@@ -359,6 +421,11 @@ export async function updateAddon(id: string, addonData: Partial<{
 }
 
 export async function deleteAddon(id: string) {
+  const authResult = await verifyAdmin();
+  if (!authResult.authorized) {
+    return { success: false, message: authResult.error || 'Unauthorized' };
+  }
+
   try {
     const supabase = getSupabaseAdmin();
     const { error } = await (supabase as any)
@@ -389,6 +456,11 @@ export async function linkAddonToItem(linkData: {
   is_required?: boolean;
   max_quantity?: number;
 }) {
+  const authResult = await verifyAdmin();
+  if (!authResult.authorized) {
+    return { success: false, message: authResult.error || 'Unauthorized' };
+  }
+
   try {
     const supabase = getSupabaseAdmin();
 
@@ -420,6 +492,11 @@ export async function linkAddonToItem(linkData: {
 }
 
 export async function unlinkAddon(id: string) {
+  const authResult = await verifyAdmin();
+  if (!authResult.authorized) {
+    return { success: false, message: authResult.error || 'Unauthorized' };
+  }
+
   try {
     const supabase = getSupabaseAdmin();
     const { error } = await (supabase as any)
@@ -443,6 +520,11 @@ export async function updateAddonLink(id: string, linkData: Partial<{
   is_required: boolean;
   max_quantity: number;
 }>) {
+  const authResult = await verifyAdmin();
+  if (!authResult.authorized) {
+    return { success: false, message: authResult.error || 'Unauthorized' };
+  }
+
   try {
     const supabase = getSupabaseAdmin();
     const { data, error } = await (supabase as any)
@@ -465,9 +547,14 @@ export async function updateAddonLink(id: string, linkData: Partial<{
 }
 
 export async function getBookingInquiries() {
+  const authResult = await verifyAdmin();
+  if (!authResult.authorized) {
+    return { success: false, message: authResult.error || 'Unauthorized' };
+  }
+
   try {
     const supabase = getSupabaseAdmin();
-    
+
     const { data: inquiries, error } = await supabase
       .from('contact_submissions')
       .select('*')
@@ -486,10 +573,15 @@ export async function getBookingInquiries() {
 }
 
 export async function uploadImage(formData: FormData) {
+  const authResult = await verifyAdmin();
+  if (!authResult.authorized) {
+    return { success: false, message: authResult.error || 'Unauthorized' };
+  }
+
   try {
     const supabase = getSupabaseAdmin();
     const file = formData.get('file') as File;
-    
+
     if (!file) {
       return { success: false, message: 'No file provided' };
     }
@@ -519,9 +611,14 @@ export async function uploadImage(formData: FormData) {
  * Handles foreign key constraints by deleting in correct order
  */
 export async function deleteUserCompletely(email: string) {
+  const authResult = await verifyAdmin();
+  if (!authResult.authorized) {
+    return { success: false, error: authResult.error || 'Unauthorized' };
+  }
+
   try {
     const supabase = getSupabaseAdmin();
-    
+
     console.log(`🗑️ Starting deletion process for user: ${email}`);
 
     // Step 1: Get user ID from auth.users by email
